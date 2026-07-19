@@ -9,15 +9,17 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      deployments: write
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bun run test
       - run: bun run build
-      - uses: cloudflare/wrangler-action@v3
+      - uses: peaceiris/actions-gh-pages@v4
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=wann
+          deploy_key: ${{ secrets.PAGES_DEPLOY_KEY }}
+          external_repository: wann-o-meter/wann-o-meter.github.io
+          publish_branch: main
+          publish_dir: dist
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
