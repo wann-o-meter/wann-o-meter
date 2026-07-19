@@ -1,0 +1,38 @@
+---
+// Global, cross-cutting tag page - replaces the old per-category-node
+// [category]/tag/[tag].astro. Tags aren't hierarchical (a page's tags don't
+// belong to its category tree), so a per-node tag route would multiply into
+// thin, mostly-empty pages once categories can nest ("sport/fussball/tag/x",
+// "sport/tag/x", ...) - one flat /themen/{tag}/ listing across ALL
+// categories serves the same purpose without that explosion. Sibling to
+// themen/index.astro's client-side tag filter, just as its own indexable,
+// linkable page per tag.
+import Layout from "../../layouts/Layout.astro";
+import { getAllTags, getPagesByTag } from "../../../lib/pages";
+
+export function getStaticPaths() {
+  return getAllTags().map((tag) => ({
+    params: { tag },
+    props: { pages: getPagesByTag(tag) },
+  }));
+}
+
+const { tag } = Astro.params;
+const { pages } = Astro.props;
+const sorted = [...pages].sort((a, b) => a.meta.title.localeCompare(b.meta.title, "de"));
+---
+
+<Layout title={`Themen: ${tag}`} description={`Alle Seiten mit dem Tag "${tag}", ueber alle Themenbereiche hinweg.`}>
+  <p class="back"><a href="/themen/">&larr; Themen</a></p>
+  <h1>Themen: {tag}</h1>
+
+  <ul class="rows">
+    {sorted.map((p) => <li><a href={`/${p.category}/${p.slug}/`}>{p.meta.title}</a></li>)}
+  </ul>
+</Layout>
+
+<style>
+  .back {
+    font-size: 0.9rem;
+  }
+</style>

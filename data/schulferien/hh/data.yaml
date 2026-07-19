@@ -1,0 +1,88 @@
+subject:
+  slug: hh
+  category: schulferien
+windows:
+  - type: school_holidays-winter
+    year: 2026
+    from: '2026-01-29'
+    to: '2026-01-29'
+    precision: exact
+    ics: false
+    name: Winterferien
+  - type: school_holidays-easter
+    year: 2026
+    from: '2026-03-01'
+    to: '2026-03-12'
+    precision: exact
+    ics: false
+    name: Osterferien
+  - type: school_holidays-whitsun
+    year: 2026
+    from: '2026-05-07'
+    to: '2026-05-14'
+    precision: exact
+    ics: false
+    name: Pfingstferien
+  - type: school_holidays-summer
+    year: 2026
+    from: '2026-07-01'
+    to: '2026-08-11'
+    precision: exact
+    ics: false
+    name: Sommerferien
+  - type: school_holidays-autumn
+    year: 2026
+    from: '2026-10-19'
+    to: '2026-10-30'
+    precision: exact
+    ics: false
+    name: Herbstferien
+  - type: school_holidays-christmas
+    year: 2026
+    from: '2026-12-21'
+    to: '2027-01-01'
+    precision: exact
+    ics: false
+    name: Weihnachtsferien
+  - type: school_holidays-winter
+    year: 2027
+    from: '2027-01-29'
+    to: '2027-01-29'
+    precision: exact
+    ics: false
+    name: Winterferien
+  - type: school_holidays-easter
+    year: 2027
+    from: '2027-03-01'
+    to: '2027-03-12'
+    precision: exact
+    ics: false
+    name: Osterferien
+  - type: school_holidays-whitsun
+    year: 2027
+    from: '2027-05-07'
+    to: '2027-05-14'
+    precision: exact
+    ics: false
+    name: Pfingstferien
+  - type: school_holidays-summer
+    year: 2027
+    from: '2027-07-01'
+    to: '2027-08-11'
+    precision: exact
+    ics: false
+    name: Sommerferien
+source:
+  - url: https://www.kmk.org/service/ferien.html
+    license: official_par5
+    license_note: >-
+      Ferientermine der Kultusministerkonferenz (KMK), zusammengestellt aus den Meldungen der
+      Kultusministerien der Laender. 2026-Daten uebernommen aus internem Datenbestand
+      (Buerotoolbox), stichprobenartig gegen die Feiertage geprueft.
+    retrieved_at: '2026-07-11'
+    extraction: manual
+  - url: https://www.kmk.org/service/ferienregelung/ferienkalender.html
+    license: official_par5
+    license_note: Amtlicher .ics-Download der KMK fuer Hamburg, Schuljahr 2026/2027 (liefert die 2027-Daten).
+    retrieved_at: '2026-07-11'
+    extraction: manual

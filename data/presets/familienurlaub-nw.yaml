@@ -1,0 +1,12 @@
+slug: familienurlaub-nw
+name: Familienurlaub-Planung Nordrhein-Westfalen
+description: >-
+  Alle drei Ebenen aktiv für Nordrhein-Westfalen: Feiertage, Schulferien und
+  Gemüsesaison zusammen im Blick, etwa um einen Urlaub um die Schulferien
+  herum mit einer erntereichen Jahreszeit zu verbinden.
+layers:
+  - holiday
+  - school_holidays
+  - produce
+region: NW
+mode: overlay

@@ -1,0 +1,34 @@
+university_de:
+  method: wikidata_sparql
+  sparql: |
+    SELECT ?item ?itemLabel ?website ?regionISO WHERE {
+      ?item wdt:P31/wdt:P279* wd:Q3918 .
+      ?item wdt:P17 wd:Q183 .
+      ?item wdt:P856 ?website .
+      OPTIONAL { ?item wdt:P131* ?region . ?region wdt:P300 ?regionISO . }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "de". }
+    }
+  target_kinds:
+  - semestertermine
+  - pruefungsphasen
+  - rueckmeldefristen
+museum_de:
+  method: wikidata_sparql
+  sparql: "SELECT ?item ?itemLabel ?website ?regionISO WHERE {\r\n  ?item wdt:P31/wdt:P279*\
+    \ wd:Q33506 .   # <-- change Q3918 to your entity's Wikidata class\r\n  ?item\
+    \ wdt:P17 wd:Q183 .              # country: Germany\r\n  ?item wdt:P856 ?website\
+    \ .            # official website\r\n  OPTIONAL { ?item wdt:P131* ?region . ?region\
+    \ wdt:P300 ?regionISO . }\r\n  SERVICE wikibase:label { bd:serviceParam wikibase:language\
+    \ \"de\". }\r\n}\n"
+  target_kinds:
+  - oeffnungszeiten
+religion:
+  method: wikidata_sparql
+  sparql: "SELECT ?holiday ?holidayLabel ?religionLabel ?dayInYear ?partOfLabel WHERE\
+    \ {\r\n  ?holiday wdt:P31/wdt:P279* wd:Q375011 .\r\n  ?holiday wdt:P140 ?religion\
+    \ .\r\n  VALUES ?religion { wd:Q432 wd:Q5043 wd:Q9268 }\r\n  OPTIONAL { ?holiday\
+    \ wdt:P837 ?dayInYear . }\r\n  OPTIONAL { ?holiday wdt:P361 ?partOf . }\r\n  SERVICE\
+    \ wikibase:label { bd:serviceParam wikibase:language \"de\". }\r\n}\r\nORDER BY\
+    \ ?religionLabel ?holidayLabel\n"
+  target_kinds:
+  - feiertage

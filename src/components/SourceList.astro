@@ -1,0 +1,28 @@
+---
+import type { Source } from "../../lib/schema";
+import { formatDate } from "../../lib/format-date";
+
+interface Props {
+  sources: Source[];
+}
+const { sources } = Astro.props;
+---
+
+<h2>Quelle &amp; Stand</h2>
+<ul class="source-list">
+  {
+    sources.map((q) => (
+      <li class="source-item">
+        <span class="label">{q.license}</span>
+        <a href={q.url}>{q.url}</a>
+        <span class="retrieved"> · abgerufen am {formatDate(q.retrieved_at)}</span>
+        {q.contributed_by && (
+          <span class="contributed-by">
+            {" "}· vorgeschlagen von <a href={`https://github.com/${q.contributed_by}`}>@{q.contributed_by}</a>
+          </span>
+        )}
+        {q.license_note && <p class="note">{q.license_note}</p>}
+      </li>
+    ))
+  }
+</ul>

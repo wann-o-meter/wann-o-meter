@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Wann-Plattform • Admin{% endblock %}</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="/static/theme.css">
+    <style>
+        .header {
+            border-bottom: 1px solid var(--line);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .logo {
+            font-family: var(--font-mono);
+            font-size: 1.15rem;
+            font-weight: 500;
+        }
+        .nav {
+            display: flex;
+            gap: 1.25rem;
+            font-size: 0.9rem;
+        }
+        .nav a {
+            color: var(--muted);
+            text-decoration: none;
+            padding-bottom: 0.15rem;
+            border-bottom: 2px solid transparent;
+        }
+        .nav a.active {
+            color: var(--ink);
+            border-bottom-color: var(--accent);
+            font-weight: 600;
+        }
+        .container {
+            max-width: 1800px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 2rem;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .field-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        /* .tall's max-height alone did nothing without overflow-y: content
+           past 400px just spilled out over whatever card sat below it
+           instead of scrolling inside its own box. */
+        .scroll-box.tall { max-height: 400px; overflow-y: auto; }
+        .scroll-box table { margin: 0; }
+        /* Compact row density for tables like Discovered Pages - the default
+           th/td padding (0.75rem 1rem) plus a multi-line preview made every
+           row take a lot of vertical space for how little was scannable. */
+        table.compact th, table.compact td {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.85rem;
+        }
+        .clamp-1 {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 26rem;
+        }
+        .empty-hint {
+            color: var(--muted);
+            padding: 1rem 0;
+        }
+        .running { color: var(--accent); font-weight: 600; }
+        .idle { color: var(--muted); }
+        .inline-form {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            align-items: center;
+        }
+        .inline-form input, .inline-form select { padding: 0.35rem; }
+        /* License labels are full descriptions now (not short enum values) -
+           without this the closed <select> can blow out the row width. */
+        .license-select {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        {% block extra_style %}{% endblock %}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div style="display:flex; align-items:center; gap:1.5rem;">
+            <div>
+                <span class="logo">wann<span style="color:var(--accent);">.</span></span>
+                <span style="color:var(--muted); font-weight:500;"> Admin</span>
+            </div>
+            <nav class="nav">
+                <a href="/" class="{{ 'active' if active_nav == 'harvest' else '' }}">Harvest</a>
+                <a href="/crawler" class="{{ 'active' if active_nav == 'crawler' else '' }}">Crawler</a>
+            </nav>
+        </div>
+        <div style="display:flex; align-items:center; gap:1rem;">
+            {% include "_status_fragment.html" %}
+            {% block header_actions %}{% endblock %}
+        </div>
+    </div>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

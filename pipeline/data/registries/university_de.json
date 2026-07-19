@@ -1,0 +1,5292 @@
+[
+  {
+    "entity_id": "accadis-hochschule-bad-homburg",
+    "entity_class": "university_de",
+    "name": "Accadis Hochschule Bad Homburg",
+    "domain": "accadis.com",
+    "wikidata_id": "Q338514",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "akad-university",
+    "entity_class": "university_de",
+    "name": "AKAD University",
+    "domain": "akad.de",
+    "wikidata_id": "Q30263681",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "akademie-der-bildenden-kuenste-nuernberg",
+    "entity_class": "university_de",
+    "name": "Akademie der Bildenden Künste Nürnberg",
+    "domain": "adbk-nuernberg.de",
+    "wikidata_id": "Q414041",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "akademie-der-polizei-hamburg",
+    "entity_class": "university_de",
+    "name": "Akademie der Polizei Hamburg",
+    "domain": "akademie-der-polizei.hamburg.de",
+    "wikidata_id": "Q1622155",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "akademie-der-wissenschaften-und-der-literatur-mainz",
+    "entity_class": "university_de",
+    "name": "Akademie der Wissenschaften und der Literatur Mainz",
+    "domain": "adwmainz.de",
+    "wikidata_id": "Q414163",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "akademie-fuer-darstellende-kunst-baden-wuerttemberg",
+    "entity_class": "university_de",
+    "name": "Akademie für Darstellende Kunst Baden-Württemberg",
+    "domain": "adk-bw.de",
+    "wikidata_id": "Q414258",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "akademie-fuer-digitale-medienproduktion",
+    "entity_class": "university_de",
+    "name": "Akademie für digitale Medienproduktion",
+    "domain": "filmschool.de",
+    "wikidata_id": "Q414353",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "akkon-hochschule-fuer-humanwissenschaften",
+    "entity_class": "university_de",
+    "name": "Akkon-Hochschule für Humanwissenschaften",
+    "domain": "akkon-hochschule.de",
+    "wikidata_id": "Q17122136",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "albert-ludwigs-universitaet-freiburg",
+    "entity_class": "university_de",
+    "name": "Albert-Ludwigs-Universität Freiburg",
+    "domain": "uni-freiburg.de",
+    "wikidata_id": "Q153987",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "alice-salomon-hochschule-berlin",
+    "entity_class": "university_de",
+    "name": "Alice Salomon Hochschule Berlin",
+    "domain": "ash-berlin.eu",
+    "wikidata_id": "Q2646956",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "allensbach-hochschule",
+    "entity_class": "university_de",
+    "name": "Allensbach Hochschule",
+    "domain": "allensbach-hochschule.de",
+    "wikidata_id": "Q2586224",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "apollon-hochschule-der-gesundheitswirtschaft",
+    "entity_class": "university_de",
+    "name": "Apollon Hochschule der Gesundheitswirtschaft",
+    "domain": "apollon-hochschule.de",
+    "wikidata_id": "Q619201",
+    "region": "DE-HB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "archivschule-marburg",
+    "entity_class": "university_de",
+    "name": "Archivschule Marburg",
+    "domain": "archivschule.de",
+    "wikidata_id": "Q636031",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "augustana-hochschule-neuendettelsau",
+    "entity_class": "university_de",
+    "name": "Augustana-Hochschule Neuendettelsau",
+    "domain": "augustana.de",
+    "wikidata_id": "Q765928",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "bard-college-berlin",
+    "entity_class": "university_de",
+    "name": "Bard College Berlin",
+    "domain": "berlin.bard.edu",
+    "wikidata_id": "Q666828",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "barenboim-said-akademie",
+    "entity_class": "university_de",
+    "name": "Barenboim-Said-Akademie",
+    "domain": "barenboimsaid.de",
+    "wikidata_id": "Q18356619",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "bauhaus-universitaet-weimar",
+    "entity_class": "university_de",
+    "name": "Bauhaus-Universität Weimar",
+    "domain": "uni-weimar.de",
+    "wikidata_id": "Q573975",
+    "region": "DE-TH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "bbw-hochschule",
+    "entity_class": "university_de",
+    "name": "Bbw Hochschule",
+    "domain": "bbw-hochschule.de",
+    "wikidata_id": "Q812777",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "berliner-hochschule-fuer-technik",
+    "entity_class": "university_de",
+    "name": "Berliner Hochschule für Technik",
+    "domain": "bht-berlin.de",
+    "wikidata_id": "Q851413",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "berufsakademie-breitenbrunn",
+    "entity_class": "university_de",
+    "name": "Berufsakademie Breitenbrunn",
+    "domain": "ba-breitenbrunn.de",
+    "wikidata_id": "Q23782301",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "berufsakademie-fuer-bankwirtschaft",
+    "entity_class": "university_de",
+    "name": "Berufsakademie für Bankwirtschaft",
+    "domain": "ba-bankwirtschaft.de",
+    "wikidata_id": "Q122575751",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "berufsakademie-melle",
+    "entity_class": "university_de",
+    "name": "Berufsakademie Melle",
+    "domain": "ba-melle.de",
+    "wikidata_id": "Q122577611",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "berufsakademie-wilhelmshaven",
+    "entity_class": "university_de",
+    "name": "Berufsakademie Wilhelmshaven",
+    "domain": "berufsakademie-wilhelmshaven.de",
+    "wikidata_id": "Q64355120",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "best-sabel-hochschule-berlin",
+    "entity_class": "university_de",
+    "name": "BEST-Sabel-Hochschule Berlin",
+    "domain": "bsb-hochschule.de",
+    "wikidata_id": "Q795830",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "bildungszentrum-der-thueringer-landesverwaltung-gotha",
+    "entity_class": "university_de",
+    "name": "Bildungszentrum der Thüringer Landesverwaltung Gotha",
+    "domain": "bildungszentrum.thueringen.de",
+    "wikidata_id": "Q1698934",
+    "region": "DE-TH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "brand-academy-hochschule-fuer-design-und-kommunikation",
+    "entity_class": "university_de",
+    "name": "Brand Academy – Hochschule für Design und Kommunikation",
+    "domain": "brand-acad.de",
+    "wikidata_id": "Q897742",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "brandenburgische-technische-universitaet",
+    "entity_class": "university_de",
+    "name": "Brandenburgische Technische Universität",
+    "domain": "b-tu.de",
+    "wikidata_id": "Q149433",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "bsbi-school-of-business-and-innovation",
+    "entity_class": "university_de",
+    "name": "BSBI School of Business and Innovation",
+    "domain": "berlinsbi.com",
+    "wikidata_id": "Q107440148",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "bsp-business-law-school",
+    "entity_class": "university_de",
+    "name": "BSP Business & Law School",
+    "domain": "businessschool-berlin.de",
+    "wikidata_id": "Q1017599",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "bundesakademie-fuer-sicherheitspolitik",
+    "entity_class": "university_de",
+    "name": "Bundesakademie für Sicherheitspolitik",
+    "domain": "baks.bund.de",
+    "wikidata_id": "Q466748",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "burg-giebichenstein-kunsthochschule-halle",
+    "entity_class": "university_de",
+    "name": "Burg Giebichenstein Kunsthochschule Halle",
+    "domain": "burg-halle.de",
+    "wikidata_id": "Q1011953",
+    "region": "DE-ST",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "carl-von-ossietzky-universitaet-oldenburg",
+    "entity_class": "university_de",
+    "name": "Carl von Ossietzky Universität Oldenburg",
+    "domain": "uol.de",
+    "wikidata_id": "Q597758",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "cbs-international-business-school",
+    "entity_class": "university_de",
+    "name": "CBS International Business School",
+    "domain": "cbs-edu.de",
+    "wikidata_id": "Q1110267",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "centre-juridique-franco-allemand",
+    "entity_class": "university_de",
+    "name": "Centre juridique franco-allemand",
+    "domain": "cjfa.eu",
+    "wikidata_id": "Q118884",
+    "region": "DE-SL",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "charlotte-fresenius-hochschule",
+    "entity_class": "university_de",
+    "name": "Charlotte Fresenius Hochschule",
+    "domain": "charlotte-fresenius-uni.de",
+    "wikidata_id": "Q110624130",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "christian-albrechts-universitaet-zu-kiel",
+    "entity_class": "university_de",
+    "name": "Christian-Albrechts-Universität zu Kiel",
+    "domain": "uni-kiel.de",
+    "wikidata_id": "Q156737",
+    "region": "DE-SH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "ciu-korntal",
+    "entity_class": "university_de",
+    "name": "CIU Korntal",
+    "domain": "ciu.edu",
+    "wikidata_id": "Q133304514",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "code-university-of-applied-sciences",
+    "entity_class": "university_de",
+    "name": "CODE University of Applied Sciences",
+    "domain": "code.berlin",
+    "wikidata_id": "Q40387612",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "collegium-borromaeum-freiburg-im-breisgau",
+    "entity_class": "university_de",
+    "name": "Collegium Borromaeum (Freiburg im Breisgau)",
+    "domain": "cb-freiburg.de",
+    "wikidata_id": "Q1109185",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "collegium-orientale",
+    "entity_class": "university_de",
+    "name": "Collegium Orientale",
+    "domain": "collegium-orientale.de",
+    "wikidata_id": "Q1109275",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "collegium-willibaldinum",
+    "entity_class": "university_de",
+    "name": "Collegium Willibaldinum",
+    "domain": "priesterseminar-eichstaett.de",
+    "wikidata_id": "Q1109299",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "constructor-university",
+    "entity_class": "university_de",
+    "name": "Constructor University",
+    "domain": "constructor.university",
+    "wikidata_id": "Q132853201",
+    "region": "DE-HB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "constructor-university-bremen",
+    "entity_class": "university_de",
+    "name": "Constructor University Bremen",
+    "domain": "jacobs-university.de",
+    "wikidata_id": "Q59114",
+    "region": "DE-HB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "cusanus-hochschule",
+    "entity_class": "university_de",
+    "name": "Cusanus Hochschule",
+    "domain": "hfgg.de",
+    "wikidata_id": "Q20828998",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "cvjm-hochschule",
+    "entity_class": "university_de",
+    "name": "CVJM-Hochschule",
+    "domain": "cvjm-hochschule.de",
+    "wikidata_id": "Q1024571",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "design-akademie-berlin-srh-hochschule-fuer-kommunikation-und-design",
+    "entity_class": "university_de",
+    "name": "Design akademie berlin, SRH Hochschule für Kommunikation und Design",
+    "domain": "design-akademie-berlin.de",
+    "wikidata_id": "Q1200666",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "deutsche-hochschule-der-polizei",
+    "entity_class": "university_de",
+    "name": "Deutsche Hochschule der Polizei",
+    "domain": "dhpol.de",
+    "wikidata_id": "Q1203113",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "deutsche-hochschule-fuer-gesundheit-und-sport",
+    "entity_class": "university_de",
+    "name": "Deutsche Hochschule für Gesundheit und Sport",
+    "domain": "dhgs-hochschule.de",
+    "wikidata_id": "Q1622185",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "deutsche-hochschule-fuer-praevention-und-gesundheitsmanagement",
+    "entity_class": "university_de",
+    "name": "Deutsche Hochschule für Prävention und Gesundheitsmanagement",
+    "domain": "dhfpg.de",
+    "wikidata_id": "Q1203121",
+    "region": "DE-SL",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "deutsche-internationale-universitaet-berlin",
+    "entity_class": "university_de",
+    "name": "Deutsche Internationale Universität Berlin",
+    "domain": "giu-berlin.de",
+    "wikidata_id": "Q122865100",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "deutsche-sporthochschule-koeln",
+    "entity_class": "university_de",
+    "name": "Deutsche Sporthochschule Köln",
+    "domain": "dshs-koeln.de",
+    "wikidata_id": "Q315229",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "deutsche-universitaet-fuer-verwaltungswissenschaften-speyer",
+    "entity_class": "university_de",
+    "name": "Deutsche Universität für Verwaltungswissenschaften Speyer",
+    "domain": "uni-speyer.de",
+    "wikidata_id": "Q22963",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "diploma-hochschule",
+    "entity_class": "university_de",
+    "name": "Diploma Hochschule",
+    "domain": "diploma.de",
+    "wikidata_id": "Q1153856",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "dpfa-hochschule-sachsen",
+    "entity_class": "university_de",
+    "name": "DPFA Hochschule Sachsen",
+    "domain": "dpfa-hs.de",
+    "wikidata_id": "Q15804334",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "dresden-international-university",
+    "entity_class": "university_de",
+    "name": "Dresden International University",
+    "domain": "di-uni.de",
+    "wikidata_id": "Q1258462",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "duale-hochschule-baden-wuerttemberg",
+    "entity_class": "university_de",
+    "name": "Duale Hochschule Baden-Württemberg",
+    "domain": "dhbw.de",
+    "wikidata_id": "Q1262605",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "duale-hochschule-baden-wuerttemberg-heidenheim",
+    "entity_class": "university_de",
+    "name": "Duale Hochschule Baden-Württemberg Heidenheim",
+    "domain": "dhbw-heidenheim.de",
+    "wikidata_id": "Q1262602",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "duale-hochschule-baden-wuerttemberg-heilbronn",
+    "entity_class": "university_de",
+    "name": "Duale Hochschule Baden-Württemberg Heilbronn",
+    "domain": "heilbronn.dhbw.de",
+    "wikidata_id": "Q18287426",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "duale-hochschule-baden-wuerttemberg-karlsruhe",
+    "entity_class": "university_de",
+    "name": "Duale Hochschule Baden-Württemberg Karlsruhe",
+    "domain": "karlsruhe.dhbw.de",
+    "wikidata_id": "Q1262599",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "duale-hochschule-baden-wuerttemberg-loerrach",
+    "entity_class": "university_de",
+    "name": "Duale Hochschule Baden-Württemberg Lörrach",
+    "domain": "dhbw-loerrach.de",
+    "wikidata_id": "Q1001338",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "duale-hochschule-baden-wuerttemberg-mannheim",
+    "entity_class": "university_de",
+    "name": "Duale Hochschule Baden-Württemberg Mannheim",
+    "domain": "dhbw-mannheim.de",
+    "wikidata_id": "Q1262608",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "duale-hochschule-baden-wuerttemberg-mosbach",
+    "entity_class": "university_de",
+    "name": "Duale Hochschule Baden-Württemberg Mosbach",
+    "domain": "dhbw-mosbach.de",
+    "wikidata_id": "Q1262616",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "duale-hochschule-baden-wuerttemberg-ravensburg",
+    "entity_class": "university_de",
+    "name": "Duale Hochschule Baden-Württemberg Ravensburg",
+    "domain": "dhbw-ravensburg.de",
+    "wikidata_id": "Q1262617",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "duale-hochschule-baden-wuerttemberg-stuttgart",
+    "entity_class": "university_de",
+    "name": "Duale Hochschule Baden-Württemberg Stuttgart",
+    "domain": "dhbw-stuttgart.de",
+    "wikidata_id": "Q1262612",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "duale-hochschule-baden-wuerttemberg-villingen-schwenningen",
+    "entity_class": "university_de",
+    "name": "Duale Hochschule Baden-Württemberg Villingen-Schwenningen",
+    "domain": "dhbw-vs.de",
+    "wikidata_id": "Q1262615",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "duale-hochschule-gera-eisenach",
+    "entity_class": "university_de",
+    "name": "Duale Hochschule Gera-Eisenach",
+    "domain": "dhge.de",
+    "wikidata_id": "Q27973252",
+    "region": "DE-TH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "duale-hochschule-schleswig-holstein",
+    "entity_class": "university_de",
+    "name": "Duale Hochschule Schleswig-Holstein",
+    "domain": "dhsh.de",
+    "wikidata_id": "Q80805367",
+    "region": "DE-SH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "ebc-hochschule",
+    "entity_class": "university_de",
+    "name": "EBC Hochschule",
+    "domain": "ebc-hochschule.de",
+    "wikidata_id": "Q1262310",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "eberhard-karls-universitaet-tuebingen",
+    "entity_class": "university_de",
+    "name": "Eberhard Karls Universität Tübingen",
+    "domain": "uni-tuebingen.de",
+    "wikidata_id": "Q153978",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "ebs-universitaet-fuer-wirtschaft-und-recht",
+    "entity_class": "university_de",
+    "name": "EBS Universität für Wirtschaft und Recht",
+    "domain": "ebs.edu",
+    "wikidata_id": "Q316272",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "ebz-business-school",
+    "entity_class": "university_de",
+    "name": "EBZ Business School",
+    "domain": "ebz-business-school.de",
+    "wikidata_id": "Q1274007",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "edu-con-hochschule-berlin",
+    "entity_class": "university_de",
+    "name": "EDU.CON Hochschule Berlin",
+    "domain": "educon-university.de",
+    "wikidata_id": "Q1249190",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "ernst-abbe-hochschule-jena",
+    "entity_class": "university_de",
+    "name": "Ernst-Abbe-Hochschule Jena",
+    "domain": "eah-jena.de",
+    "wikidata_id": "Q1356982",
+    "region": "DE-TH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "escp-business-school",
+    "entity_class": "university_de",
+    "name": "ESCP Business School",
+    "domain": "escp.eu",
+    "wikidata_id": "Q29293",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "eu-business-school",
+    "entity_class": "university_de",
+    "name": "EU Business School",
+    "domain": "onlinembadegree.in",
+    "wikidata_id": "Q5413406",
+    "region": "CH-GE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "eu-business-school-2",
+    "entity_class": "university_de",
+    "name": "EU Business School",
+    "domain": "euruni.edu",
+    "wikidata_id": "Q5413406",
+    "region": "CH-GE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "europa-universitaet-flensburg",
+    "entity_class": "university_de",
+    "name": "Europa-Universität Flensburg",
+    "domain": "uni-flensburg.de",
+    "wikidata_id": "Q506436",
+    "region": "DE-SH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "europa-universitaet-viadrina",
+    "entity_class": "university_de",
+    "name": "Europa-Universität Viadrina",
+    "domain": "europa-uni.de",
+    "wikidata_id": "Q149481",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "europaeische-fachhochschule",
+    "entity_class": "university_de",
+    "name": "Europäische Fachhochschule",
+    "domain": "eufh.de",
+    "wikidata_id": "Q1377296",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "europaeische-fernhochschule-hamburg",
+    "entity_class": "university_de",
+    "name": "Europäische Fernhochschule Hamburg",
+    "domain": "euro-fh.de",
+    "wikidata_id": "Q1377302",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "europaeische-hochschule-fuer-innovation-und-perspektive",
+    "entity_class": "university_de",
+    "name": "Europäische Hochschule für Innovation und Perspektive",
+    "domain": "ehip.eu",
+    "wikidata_id": "Q118258797",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "european-school-of-management-and-technology",
+    "entity_class": "university_de",
+    "name": "European School of Management and Technology",
+    "domain": "esmt.org",
+    "wikidata_id": "Q569528",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "european-school-of-management-and-technology-2",
+    "entity_class": "university_de",
+    "name": "European School of Management and Technology",
+    "domain": "esmt.berlin",
+    "wikidata_id": "Q569528",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "evangelische-hochschule-berlin",
+    "entity_class": "university_de",
+    "name": "Evangelische Hochschule Berlin",
+    "domain": "eh-berlin.de",
+    "wikidata_id": "Q1380205",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "evangelische-hochschule-darmstadt",
+    "entity_class": "university_de",
+    "name": "Evangelische Hochschule Darmstadt",
+    "domain": "eh-darmstadt.de",
+    "wikidata_id": "Q1380207",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "evangelische-hochschule-freiburg",
+    "entity_class": "university_de",
+    "name": "Evangelische Hochschule Freiburg",
+    "domain": "eh-freiburg.de",
+    "wikidata_id": "Q880440",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "evangelische-hochschule-fuer-kirchenmusik-halle",
+    "entity_class": "university_de",
+    "name": "Evangelische Hochschule für Kirchenmusik Halle",
+    "domain": "ehk-halle.de",
+    "wikidata_id": "Q1380222",
+    "region": "DE-ST",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "evangelische-hochschule-fuer-kirchenmusik-tuebingen",
+    "entity_class": "university_de",
+    "name": "Evangelische Hochschule für Kirchenmusik Tübingen",
+    "domain": "kirchenmusikhochschule.de",
+    "wikidata_id": "Q1380220",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "evangelische-hochschule-fuer-soziale-arbeit-diakonie",
+    "entity_class": "university_de",
+    "name": "Evangelische Hochschule für Soziale Arbeit & Diakonie",
+    "domain": "ev-hochschule-hh.de",
+    "wikidata_id": "Q1380223",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "evangelische-hochschule-fuer-soziale-arbeit-dresden",
+    "entity_class": "university_de",
+    "name": "Evangelische Hochschule für Soziale Arbeit Dresden",
+    "domain": "ehs-dresden.de",
+    "wikidata_id": "Q1380226",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "evangelische-hochschule-ludwigsburg",
+    "entity_class": "university_de",
+    "name": "Evangelische Hochschule Ludwigsburg",
+    "domain": "eh-ludwigsburg.de",
+    "wikidata_id": "Q1338536",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "evangelische-hochschule-nuernberg",
+    "entity_class": "university_de",
+    "name": "Evangelische Hochschule Nürnberg",
+    "domain": "evhn.de",
+    "wikidata_id": "Q475312",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "evangelische-hochschule-rheinland-westfalen-lippe",
+    "entity_class": "university_de",
+    "name": "Evangelische Hochschule Rheinland-Westfalen-Lippe",
+    "domain": "evh-bochum.de",
+    "wikidata_id": "Q1380172",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "evangelische-hochschule-rheinland-westfalen-lippe-2",
+    "entity_class": "university_de",
+    "name": "Evangelische Hochschule Rheinland-Westfalen-Lippe",
+    "domain": "efh-bochum.de",
+    "wikidata_id": "Q1380172",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "evangelische-hochschule-tabor",
+    "entity_class": "university_de",
+    "name": "Evangelische Hochschule Tabor",
+    "domain": "eh-tabor.de",
+    "wikidata_id": "Q1380215",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-clara-hoffbauer-potsdam",
+    "entity_class": "university_de",
+    "name": "Fachhochschule Clara Hoffbauer Potsdam",
+    "domain": "fhchp.de",
+    "wikidata_id": "Q61943383",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-der-diakonie",
+    "entity_class": "university_de",
+    "name": "Fachhochschule der Diakonie",
+    "domain": "offene-fh-diakonie.de",
+    "wikidata_id": "Q1391246",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-der-diakonie-2",
+    "entity_class": "university_de",
+    "name": "Fachhochschule der Diakonie",
+    "domain": "fh-diakonie.de",
+    "wikidata_id": "Q1391246",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-der-saechsischen-verwaltung-meissen",
+    "entity_class": "university_de",
+    "name": "Fachhochschule der Sächsischen Verwaltung Meißen",
+    "domain": "fhsv.sachsen.de",
+    "wikidata_id": "Q1391248",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-der-wirtschaft",
+    "entity_class": "university_de",
+    "name": "Fachhochschule der Wirtschaft",
+    "domain": "fhdw.de",
+    "wikidata_id": "Q1391254",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-des-mittelstands",
+    "entity_class": "university_de",
+    "name": "Fachhochschule des Mittelstands",
+    "domain": "fh-mittelstand.de",
+    "wikidata_id": "Q1391258",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-dortmund",
+    "entity_class": "university_de",
+    "name": "Fachhochschule Dortmund",
+    "domain": "fh-dortmund.de",
+    "wikidata_id": "Q1324675",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-dresden",
+    "entity_class": "university_de",
+    "name": "Fachhochschule Dresden",
+    "domain": "fh-dresden.eu",
+    "wikidata_id": "Q1391187",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-erfurt",
+    "entity_class": "university_de",
+    "name": "Fachhochschule Erfurt",
+    "domain": "fh-erfurt.de",
+    "wikidata_id": "Q1391189",
+    "region": "DE-TH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-fuer-die-wirtschaft",
+    "entity_class": "university_de",
+    "name": "Fachhochschule für die Wirtschaft",
+    "domain": "fhdw-hannover.de",
+    "wikidata_id": "Q1391282",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-fuer-finanzen-brandenburg",
+    "entity_class": "university_de",
+    "name": "Fachhochschule für Finanzen Brandenburg",
+    "domain": "fhf.brandenburg.de",
+    "wikidata_id": "Q1257534",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-fuer-finanzen-nordrhein-westfalen",
+    "entity_class": "university_de",
+    "name": "Fachhochschule für Finanzen Nordrhein-Westfalen",
+    "domain": "fhf-nordkirchen.de",
+    "wikidata_id": "Q1365807",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-fuer-interkulturelle-theologie",
+    "entity_class": "university_de",
+    "name": "Fachhochschule für Interkulturelle Theologie",
+    "domain": "fh-hermannsburg.de",
+    "wikidata_id": "Q1391271",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-fuer-oeffentliche-verwaltung-polizei-und-rechtspflege",
+    "entity_class": "university_de",
+    "name": "Fachhochschule für öffentliche Verwaltung, Polizei und Rechtspflege",
+    "domain": "fh-guestrow.de",
+    "wikidata_id": "Q1391288",
+    "region": "DE-MV",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-fuer-oeffentliche-verwaltung-rheinland-pfalz",
+    "entity_class": "university_de",
+    "name": "Fachhochschule für öffentliche Verwaltung Rheinland-Pfalz",
+    "domain": "hoev-rlp.de",
+    "wikidata_id": "Q1391292",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-fuer-rechtspflege-nordrhein-westfalen",
+    "entity_class": "university_de",
+    "name": "Fachhochschule für Rechtspflege Nordrhein-Westfalen",
+    "domain": "fhr.nrw.de",
+    "wikidata_id": "Q1391267",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-fuer-sport-und-management-potsdam",
+    "entity_class": "university_de",
+    "name": "Fachhochschule für Sport und Management Potsdam",
+    "domain": "fhsmp.de",
+    "wikidata_id": "Q17123097",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-fuer-verwaltung-und-dienstleistung",
+    "entity_class": "university_de",
+    "name": "Fachhochschule für Verwaltung und Dienstleistung",
+    "domain": "fhvd.de",
+    "wikidata_id": "Q1391272",
+    "region": "DE-SH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-fuer-verwaltung-und-rechtspflege-berlin",
+    "entity_class": "university_de",
+    "name": "Fachhochschule für Verwaltung und Rechtspflege Berlin",
+    "domain": "fhvr-berlin.de",
+    "wikidata_id": "Q1391276",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-kaiserslautern",
+    "entity_class": "university_de",
+    "name": "Fachhochschule Kaiserslautern",
+    "domain": "hs-kl.de",
+    "wikidata_id": "Q1391198",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-macromedia",
+    "entity_class": "university_de",
+    "name": "Fachhochschule Macromedia",
+    "domain": "mhmk-international.org",
+    "wikidata_id": "Q1346417",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-macromedia-2",
+    "entity_class": "university_de",
+    "name": "Fachhochschule Macromedia",
+    "domain": "hochschule-macromedia.de",
+    "wikidata_id": "Q1346417",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-magdeburg-stendal",
+    "entity_class": "university_de",
+    "name": "Fachhochschule Magdeburg-Stendal",
+    "domain": "hs-magdeburg.de",
+    "wikidata_id": "Q1622123",
+    "region": "DE-ST",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-ottersberg",
+    "entity_class": "university_de",
+    "name": "Fachhochschule Ottersberg",
+    "domain": "hks-ottersberg.de",
+    "wikidata_id": "Q1391213",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-polizei-sachsen-anhalt",
+    "entity_class": "university_de",
+    "name": "Fachhochschule Polizei Sachsen-Anhalt",
+    "domain": "fh-polizei.sachsen-anhalt.de",
+    "wikidata_id": "Q1391214",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-potsdam",
+    "entity_class": "university_de",
+    "name": "Fachhochschule Potsdam",
+    "domain": "fh-potsdam.de",
+    "wikidata_id": "Q896706",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-schloss-hohenfels",
+    "entity_class": "university_de",
+    "name": "Fachhochschule Schloss Hohenfels",
+    "domain": "fh-schloss-hohenfels.de",
+    "wikidata_id": "Q1391220",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-schwaebisch-hall",
+    "entity_class": "university_de",
+    "name": "Fachhochschule Schwäbisch Hall",
+    "domain": "fhsh.de",
+    "wikidata_id": "Q1391224",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-suedwestfalen",
+    "entity_class": "university_de",
+    "name": "Fachhochschule Südwestfalen",
+    "domain": "fh-swf.de",
+    "wikidata_id": "Q1259168",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fachhochschule-wedel",
+    "entity_class": "university_de",
+    "name": "Fachhochschule Wedel",
+    "domain": "fh-wedel.de",
+    "wikidata_id": "Q976984",
+    "region": "DE-SH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fernuniversitaet-in-hagen",
+    "entity_class": "university_de",
+    "name": "Fernuniversität in Hagen",
+    "domain": "fernuni-hagen.de",
+    "wikidata_id": "Q687017",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fh-aachen",
+    "entity_class": "university_de",
+    "name": "FH Aachen",
+    "domain": "fh-aachen.de",
+    "wikidata_id": "Q1388301",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fh-muenster",
+    "entity_class": "university_de",
+    "name": "FH Münster",
+    "domain": "fh-muenster.de",
+    "wikidata_id": "Q554425",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fh-westkueste",
+    "entity_class": "university_de",
+    "name": "FH Westküste",
+    "domain": "fh-westkueste.de",
+    "wikidata_id": "Q1391235",
+    "region": "DE-SH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "filmakademie-baden-wuerttemberg",
+    "entity_class": "university_de",
+    "name": "Filmakademie Baden-Württemberg",
+    "domain": "filmakademie.de",
+    "wikidata_id": "Q880577",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "filmuniversitaet-babelsberg-konrad-wolf",
+    "entity_class": "university_de",
+    "name": "Filmuniversität Babelsberg „Konrad Wolf“",
+    "domain": "filmuniversitaet.de",
+    "wikidata_id": "Q1550192",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fliedner-fachhochschule-duesseldorf",
+    "entity_class": "university_de",
+    "name": "Fliedner Fachhochschule Düsseldorf",
+    "domain": "fliedner-fachhochschule.de",
+    "wikidata_id": "Q1428381",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "folkwang-universitaet-der-kuenste",
+    "entity_class": "university_de",
+    "name": "Folkwang Universität der Künste",
+    "domain": "folkwang-uni.de",
+    "wikidata_id": "Q521612",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fom-hochschule-fuer-oekonomie-management",
+    "entity_class": "university_de",
+    "name": "FOM Hochschule für Oekonomie & Management",
+    "domain": "fom.de",
+    "wikidata_id": "Q55156",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "fom-hochschule-fuer-oekonomie-management-2",
+    "entity_class": "university_de",
+    "name": "FOM Hochschule für Oekonomie & Management",
+    "domain": "fom-international.com",
+    "wikidata_id": "Q55156",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "frankfurt-university-of-applied-sciences",
+    "entity_class": "university_de",
+    "name": "Frankfurt University of Applied Sciences",
+    "domain": "frankfurt-university.de",
+    "wikidata_id": "Q812648",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "freie-hochschule-fuer-grafik-design-bildende-kunst-freiburg",
+    "entity_class": "university_de",
+    "name": "Freie Hochschule für Grafik-Design & Bildende Kunst Freiburg",
+    "domain": "freie-hochschule-freiburg.de",
+    "wikidata_id": "Q1453965",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "freie-hochschule-stuttgart",
+    "entity_class": "university_de",
+    "name": "Freie Hochschule Stuttgart",
+    "domain": "freie-hochschule-stuttgart.de",
+    "wikidata_id": "Q1453964",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "freie-theologische-hochschule-giessen",
+    "entity_class": "university_de",
+    "name": "Freie Theologische Hochschule Gießen",
+    "domain": "fthgiessen.de",
+    "wikidata_id": "Q1454033",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "freie-universitaet-berlin",
+    "entity_class": "university_de",
+    "name": "Freie Universität Berlin",
+    "domain": "fu-berlin.de",
+    "wikidata_id": "Q153006",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "friedrich-alexander-universitaet-erlangen-nuernberg",
+    "entity_class": "university_de",
+    "name": "Friedrich-Alexander-Universität Erlangen-Nürnberg",
+    "domain": "fau.eu",
+    "wikidata_id": "Q40025",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "friedrich-alexander-universitaet-erlangen-nuernberg-2",
+    "entity_class": "university_de",
+    "name": "Friedrich-Alexander-Universität Erlangen-Nürnberg",
+    "domain": "fau.de",
+    "wikidata_id": "Q40025",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "friedrich-schiller-universitaet-jena",
+    "entity_class": "university_de",
+    "name": "Friedrich-Schiller-Universität Jena",
+    "domain": "uni-jena.de",
+    "wikidata_id": "Q154561",
+    "region": "DE-TH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "ga-hochschule",
+    "entity_class": "university_de",
+    "name": "GA Hochschule",
+    "domain": "ga-hochschule.de",
+    "wikidata_id": "Q15811164",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "georg-august-universitaet-goettingen",
+    "entity_class": "university_de",
+    "name": "Georg-August-Universität Göttingen",
+    "domain": "uni-goettingen.de",
+    "wikidata_id": "Q152838",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "georg-simon-ohm-hochschule-fuer-angewandte-wissenschaften-fachhochschule-nuernberg",
+    "entity_class": "university_de",
+    "name": "Georg-Simon-Ohm-Hochschule für angewandte Wissenschaften – Fachhochschule Nürnberg",
+    "domain": "th-nuernberg.de",
+    "wikidata_id": "Q1503440",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "german-graduate-school-of-management-and-law",
+    "entity_class": "university_de",
+    "name": "German Graduate School of Management and Law",
+    "domain": "ggs.de",
+    "wikidata_id": "Q1513916",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "german-open-business-school",
+    "entity_class": "university_de",
+    "name": "German open Business School",
+    "domain": "go-bs.de",
+    "wikidata_id": "Q1514069",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "german-university-of-digital-science",
+    "entity_class": "university_de",
+    "name": "German University of Digital Science",
+    "domain": "german-uds.de",
+    "wikidata_id": "Q133538136",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "goethe-universitaet-frankfurt-am-main",
+    "entity_class": "university_de",
+    "name": "Goethe-Universität Frankfurt am Main",
+    "domain": "goethe-university-frankfurt.de",
+    "wikidata_id": "Q50662",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "graduate-school-for-computing-in-medicine-and-life-sciences",
+    "entity_class": "university_de",
+    "name": "Graduate School for Computing in Medicine and Life Sciences",
+    "domain": "gradschool.uni-luebeck.de",
+    "wikidata_id": "Q5592027",
+    "region": "DE-SH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "graduate-school-rhein-neckar",
+    "entity_class": "university_de",
+    "name": "Graduate School Rhein-Neckar",
+    "domain": "gsrn.de",
+    "wikidata_id": "Q1541259",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hafencity-universitaet-hamburg",
+    "entity_class": "university_de",
+    "name": "HafenCity Universität Hamburg",
+    "domain": "hcu-hamburg.de",
+    "wikidata_id": "Q1567759",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "handelshochschule-leipzig",
+    "entity_class": "university_de",
+    "name": "Handelshochschule Leipzig",
+    "domain": "hhl.de",
+    "wikidata_id": "Q679945",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hawk-hochschule-hildesheim-holzminden-goettingen",
+    "entity_class": "university_de",
+    "name": "HAWK Hochschule Hildesheim/Holzminden/Göttingen",
+    "domain": "hawk.de",
+    "wikidata_id": "Q1562772",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "heinrich-heine-universitaet-duesseldorf",
+    "entity_class": "university_de",
+    "name": "Heinrich-Heine-Universität Düsseldorf",
+    "domain": "hhu.de",
+    "wikidata_id": "Q317032",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "helmut-schmidt-universitaet-universitaet-der-bundeswehr-hamburg",
+    "entity_class": "university_de",
+    "name": "Helmut-Schmidt-Universität/Universität der Bundeswehr Hamburg",
+    "domain": "hsu-hh.de",
+    "wikidata_id": "Q530991",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hertie-school",
+    "entity_class": "university_de",
+    "name": "Hertie School",
+    "domain": "hertie-school.org",
+    "wikidata_id": "Q317156",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "herzogliches-georgianum",
+    "entity_class": "university_de",
+    "name": "Herzogliches Georgianum",
+    "domain": "herzoglichesgeorgianum.de",
+    "wikidata_id": "Q533069",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hessische-hochschule-fuer-finanzen-und-rechtspflege",
+    "entity_class": "university_de",
+    "name": "Hessische Hochschule für Finanzen und Rechtspflege",
+    "domain": "studienzentrum-rotenburg.de",
+    "wikidata_id": "Q1615884",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hfh-hamburger-fern-hochschule",
+    "entity_class": "university_de",
+    "name": "HFH · Hamburger Fern-Hochschule",
+    "domain": "hfh-fernstudium.de",
+    "wikidata_id": "Q1563580",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hmu-health-and-medical-university",
+    "entity_class": "university_de",
+    "name": "HMU Health and Medical University",
+    "domain": "health-and-medical-university.de",
+    "wikidata_id": "Q84941339",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-21",
+    "entity_class": "university_de",
+    "name": "Hochschule 21",
+    "domain": "hs21.de",
+    "wikidata_id": "Q1622069",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-aalen",
+    "entity_class": "university_de",
+    "name": "Hochschule Aalen",
+    "domain": "hs-aalen.de",
+    "wikidata_id": "Q1622071",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-albstadt-sigmaringen",
+    "entity_class": "university_de",
+    "name": "Hochschule Albstadt-Sigmaringen",
+    "domain": "hs-albsig.de",
+    "wikidata_id": "Q1441039",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-anhalt",
+    "entity_class": "university_de",
+    "name": "Hochschule Anhalt",
+    "domain": "hs-anhalt.de",
+    "wikidata_id": "Q1622074",
+    "region": "DE-ST",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-biberach",
+    "entity_class": "university_de",
+    "name": "Hochschule Biberach",
+    "domain": "hochschule-biberach.de",
+    "wikidata_id": "Q1622079",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-bielefeld",
+    "entity_class": "university_de",
+    "name": "Hochschule Bielefeld",
+    "domain": "hsbi.de",
+    "wikidata_id": "Q1391181",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-bonn-rhein-sieg",
+    "entity_class": "university_de",
+    "name": "Hochschule Bonn-Rhein-Sieg",
+    "domain": "h-brs.de",
+    "wikidata_id": "Q1622083",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-bremen",
+    "entity_class": "university_de",
+    "name": "Hochschule Bremen",
+    "domain": "hs-bremen.de",
+    "wikidata_id": "Q1622092",
+    "region": "DE-HB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-bremerhaven",
+    "entity_class": "university_de",
+    "name": "Hochschule Bremerhaven",
+    "domain": "hs-bremerhaven.de",
+    "wikidata_id": "Q1622093",
+    "region": "DE-HB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-darmstadt",
+    "entity_class": "university_de",
+    "name": "Hochschule Darmstadt",
+    "domain": "h-da.de",
+    "wikidata_id": "Q284992",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-der-bayerischen-wirtschaft",
+    "entity_class": "university_de",
+    "name": "Hochschule der Bayerischen Wirtschaft",
+    "domain": "hdbw-hochschule.de",
+    "wikidata_id": "Q21036325",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-der-bildenden-kuenste-essen",
+    "entity_class": "university_de",
+    "name": "Hochschule der bildenden Künste Essen",
+    "domain": "hbk-essen.de",
+    "wikidata_id": "Q19964930",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-der-bildenden-kuenste-saar",
+    "entity_class": "university_de",
+    "name": "Hochschule der Bildenden Künste Saar",
+    "domain": "hbksaar.de",
+    "wikidata_id": "Q1622149",
+    "region": "DE-SL",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-der-bundesagentur-fuer-arbeit",
+    "entity_class": "university_de",
+    "name": "Hochschule der Bundesagentur für Arbeit",
+    "domain": "hdba.de",
+    "wikidata_id": "Q1622148",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-der-deutschen-bundesbank",
+    "entity_class": "university_de",
+    "name": "Hochschule der Deutschen Bundesbank",
+    "domain": "hochschule-bundesbank.de",
+    "wikidata_id": "Q1622151",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-der-deutschen-gesetzlichen-unfallversicherung",
+    "entity_class": "university_de",
+    "name": "Hochschule der Deutschen Gesetzlichen Unfallversicherung",
+    "domain": "dguv.de",
+    "wikidata_id": "Q1622174",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-der-medien",
+    "entity_class": "university_de",
+    "name": "Hochschule der Medien",
+    "domain": "hdm-stuttgart.de",
+    "wikidata_id": "Q1233544",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-der-polizei-des-landes-brandenburg",
+    "entity_class": "university_de",
+    "name": "Hochschule der Polizei des Landes Brandenburg",
+    "domain": "hpolbb.de",
+    "wikidata_id": "Q1391247",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-der-polizei-rheinland-pfalz",
+    "entity_class": "university_de",
+    "name": "Hochschule der Polizei Rheinland-Pfalz",
+    "domain": "polizei.rlp.de",
+    "wikidata_id": "Q21040613",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-der-saechsischen-polizei",
+    "entity_class": "university_de",
+    "name": "Hochschule der Sächsischen Polizei",
+    "domain": "polizei.sachsen.de",
+    "wikidata_id": "Q1509323",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-der-wirtschaft-fuer-management",
+    "entity_class": "university_de",
+    "name": "Hochschule der Wirtschaft für Management",
+    "domain": "hdwm.de",
+    "wikidata_id": "Q1622159",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-des-bundes-fuer-oeffentliche-verwaltung",
+    "entity_class": "university_de",
+    "name": "Hochschule des Bundes für öffentliche Verwaltung",
+    "domain": "hsbund.de",
+    "wikidata_id": "Q1391252",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-duesseldorf",
+    "entity_class": "university_de",
+    "name": "Hochschule Düsseldorf",
+    "domain": "hs-duesseldorf.de",
+    "wikidata_id": "Q322886",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-emden-leer",
+    "entity_class": "university_de",
+    "name": "Hochschule Emden/Leer",
+    "domain": "hs-emden-leer.de",
+    "wikidata_id": "Q1622096",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-esslingen",
+    "entity_class": "university_de",
+    "name": "Hochschule Esslingen",
+    "domain": "hs-esslingen.de",
+    "wikidata_id": "Q1622101",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-flensburg",
+    "entity_class": "university_de",
+    "name": "Hochschule Flensburg",
+    "domain": "hs-flensburg.de",
+    "wikidata_id": "Q328274",
+    "region": "DE-SH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fresenius",
+    "entity_class": "university_de",
+    "name": "Hochschule Fresenius",
+    "domain": "hs-fresenius.de",
+    "wikidata_id": "Q1622099",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-angewandte-paedagogik",
+    "entity_class": "university_de",
+    "name": "Hochschule für angewandte Pädagogik",
+    "domain": "hsap.de",
+    "wikidata_id": "Q21040612",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-angewandte-wissenschaft-trier-university-of-applied-science",
+    "entity_class": "university_de",
+    "name": "Hochschule für Angewandte Wissenschaft/Trier University of Applied Science",
+    "domain": "hochschule-trier.de",
+    "wikidata_id": "Q896546",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-angewandte-wissenschaften-ansbach",
+    "entity_class": "university_de",
+    "name": "Hochschule für angewandte Wissenschaften Ansbach",
+    "domain": "hs-ansbach.de",
+    "wikidata_id": "Q1622076",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-angewandte-wissenschaften-coburg",
+    "entity_class": "university_de",
+    "name": "Hochschule für angewandte Wissenschaften Coburg",
+    "domain": "hs-coburg.de",
+    "wikidata_id": "Q1622234",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-angewandte-wissenschaften-hamburg",
+    "entity_class": "university_de",
+    "name": "Hochschule für Angewandte Wissenschaften Hamburg",
+    "domain": "haw-hamburg.de",
+    "wikidata_id": "Q913987",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-angewandte-wissenschaften-hof",
+    "entity_class": "university_de",
+    "name": "Hochschule für Angewandte Wissenschaften Hof",
+    "domain": "hof-university.de",
+    "wikidata_id": "Q1622109",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-angewandte-wissenschaften-kempten",
+    "entity_class": "university_de",
+    "name": "Hochschule für angewandte Wissenschaften Kempten",
+    "domain": "hochschule-kempten.de",
+    "wikidata_id": "Q1622115",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-angewandte-wissenschaften-kiel",
+    "entity_class": "university_de",
+    "name": "Hochschule für Angewandte Wissenschaften Kiel",
+    "domain": "fh-kiel.de",
+    "wikidata_id": "Q1391201",
+    "region": "DE-SH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-angewandte-wissenschaften-landshut",
+    "entity_class": "university_de",
+    "name": "Hochschule für angewandte Wissenschaften Landshut",
+    "domain": "haw-landshut.de",
+    "wikidata_id": "Q1622121",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-angewandte-wissenschaften-muenchen",
+    "entity_class": "university_de",
+    "name": "Hochschule für angewandte Wissenschaften München",
+    "domain": "hm.edu",
+    "wikidata_id": "Q314089",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-angewandte-wissenschaften-neu-ulm",
+    "entity_class": "university_de",
+    "name": "Hochschule für angewandte Wissenschaften Neu-Ulm",
+    "domain": "hnu.de",
+    "wikidata_id": "Q1622129",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-angewandte-wissenschaften-weihenstephan-triesdorf",
+    "entity_class": "university_de",
+    "name": "Hochschule für angewandte Wissenschaften Weihenstephan-Triesdorf",
+    "domain": "hswt.de",
+    "wikidata_id": "Q1622145",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-angewandtes-management",
+    "entity_class": "university_de",
+    "name": "Hochschule für angewandtes Management",
+    "domain": "fham.de",
+    "wikidata_id": "Q1280712",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-bildende-kuenste-braunschweig",
+    "entity_class": "university_de",
+    "name": "Hochschule für Bildende Künste Braunschweig",
+    "domain": "hbk-bs.de",
+    "wikidata_id": "Q879216",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-bildende-kuenste-dresden",
+    "entity_class": "university_de",
+    "name": "Hochschule für Bildende Künste Dresden",
+    "domain": "hfbk-dresden.de",
+    "wikidata_id": "Q464752",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-bildende-kuenste-hamburg",
+    "entity_class": "university_de",
+    "name": "Hochschule für bildende Künste Hamburg",
+    "domain": "hfbk-hamburg.de",
+    "wikidata_id": "Q1622237",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-evangelische-kirchenmusik-bayreuth",
+    "entity_class": "university_de",
+    "name": "Hochschule für evangelische Kirchenmusik Bayreuth",
+    "domain": "hfk-bayreuth.de",
+    "wikidata_id": "Q1622241",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-fernsehen-und-film-muenchen",
+    "entity_class": "university_de",
+    "name": "Hochschule für Fernsehen und Film München",
+    "domain": "hff-muenchen.de",
+    "wikidata_id": "Q569350",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-fernsehen-und-film-muenchen-2",
+    "entity_class": "university_de",
+    "name": "Hochschule für Fernsehen und Film München",
+    "domain": "hff-muc.de",
+    "wikidata_id": "Q569350",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-finanzen-rheinland-pfalz",
+    "entity_class": "university_de",
+    "name": "Hochschule für Finanzen Rheinland-Pfalz",
+    "domain": "fachhochschule-edenkoben.de",
+    "wikidata_id": "Q1391265",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-finanzwirtschaft-management",
+    "entity_class": "university_de",
+    "name": "Hochschule für Finanzwirtschaft & Management",
+    "domain": "s-hochschule.de",
+    "wikidata_id": "Q1622157",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-forstwirtschaft-rottenburg",
+    "entity_class": "university_de",
+    "name": "Hochschule für Forstwirtschaft Rottenburg",
+    "domain": "hs-rottenburg.net",
+    "wikidata_id": "Q1622175",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-gestaltung-offenbach-am-main",
+    "entity_class": "university_de",
+    "name": "Hochschule für Gestaltung Offenbach am Main",
+    "domain": "hfg-offenbach.de",
+    "wikidata_id": "Q1622179",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-gestaltung-schwaebisch-gmuend",
+    "entity_class": "university_de",
+    "name": "Hochschule für Gestaltung Schwäbisch Gmünd",
+    "domain": "hfg-gmuend.de",
+    "wikidata_id": "Q248702",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-gestaltung-ulm",
+    "entity_class": "university_de",
+    "name": "Hochschule für Gestaltung Ulm",
+    "domain": "hfg-ulm.de",
+    "wikidata_id": "Q591905",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-gestaltung-ulm-2",
+    "entity_class": "university_de",
+    "name": "Hochschule für Gestaltung Ulm",
+    "domain": "hfg-archiv.museumulm.de",
+    "wikidata_id": "Q591905",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-gestaltung-ulm-3",
+    "entity_class": "university_de",
+    "name": "Hochschule für Gestaltung Ulm",
+    "domain": "hfg-archiv.ulm.de",
+    "wikidata_id": "Q591905",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-gesundheit",
+    "entity_class": "university_de",
+    "name": "Hochschule für Gesundheit",
+    "domain": "hs-gesundheit.de",
+    "wikidata_id": "Q1622183",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-grafik-und-buchkunst-leipzig",
+    "entity_class": "university_de",
+    "name": "Hochschule für Grafik und Buchkunst Leipzig",
+    "domain": "hgb-leipzig.de",
+    "wikidata_id": "Q315175",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-internationale-wirtschaft-und-logistik",
+    "entity_class": "university_de",
+    "name": "Hochschule für internationale Wirtschaft und Logistik",
+    "domain": "iubh-dualesstudium.de",
+    "wikidata_id": "Q1545954",
+    "region": "DE-HB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-internationales-management-heidelberg",
+    "entity_class": "university_de",
+    "name": "Hochschule für Internationales Management Heidelberg",
+    "domain": "himh.de",
+    "wikidata_id": "Q1622188",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-juedische-studien",
+    "entity_class": "university_de",
+    "name": "Hochschule für Jüdische Studien",
+    "domain": "hfjs.eu",
+    "wikidata_id": "Q1622186",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-katholische-kirchenmusik-und-musikpaedagogik-regensburg",
+    "entity_class": "university_de",
+    "name": "Hochschule für Katholische Kirchenmusik und Musikpädagogik Regensburg",
+    "domain": "hfkm-regensburg.de",
+    "wikidata_id": "Q1622189",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-kirchenmusik-dresden",
+    "entity_class": "university_de",
+    "name": "Hochschule für Kirchenmusik Dresden",
+    "domain": "kirchenmusik-dresden.de",
+    "wikidata_id": "Q1380217",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-kirchenmusik-heidelberg",
+    "entity_class": "university_de",
+    "name": "Hochschule für Kirchenmusik Heidelberg",
+    "domain": "hfk-heidelberg.de",
+    "wikidata_id": "Q946968",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-kirchenmusik-herford-witten",
+    "entity_class": "university_de",
+    "name": "Hochschule für Kirchenmusik  Herford-Witten",
+    "domain": "hochschule-herford.de",
+    "wikidata_id": "Q1622191",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-kommunikation-und-gestaltung",
+    "entity_class": "university_de",
+    "name": "Hochschule für Kommunikation und Gestaltung",
+    "domain": "hfk-bw.de",
+    "wikidata_id": "Q21040608",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-kuenste-bremen",
+    "entity_class": "university_de",
+    "name": "Hochschule für Künste Bremen",
+    "domain": "hfk-bremen.de",
+    "wikidata_id": "Q466664",
+    "region": "DE-HB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-medien-kommunikation-und-wirtschaft",
+    "entity_class": "university_de",
+    "name": "Hochschule für Medien, Kommunikation und Wirtschaft",
+    "domain": "hmkw.de",
+    "wikidata_id": "Q1622198",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-musik-carl-maria-von-weber-dresden",
+    "entity_class": "university_de",
+    "name": "Hochschule für Musik Carl Maria von Weber Dresden",
+    "domain": "hfmdd.de",
+    "wikidata_id": "Q468181",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-musik-detmold",
+    "entity_class": "university_de",
+    "name": "Hochschule für Musik Detmold",
+    "domain": "hfm-detmold.de",
+    "wikidata_id": "Q317855",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-musik-franz-liszt-weimar",
+    "entity_class": "university_de",
+    "name": "Hochschule für Musik Franz Liszt Weimar",
+    "domain": "hfm-weimar.de",
+    "wikidata_id": "Q536163",
+    "region": "DE-TH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-musik-freiburg",
+    "entity_class": "university_de",
+    "name": "Hochschule für Musik Freiburg",
+    "domain": "mh-freiburg.de",
+    "wikidata_id": "Q650345",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-musik-hanns-eisler-berlin",
+    "entity_class": "university_de",
+    "name": "Hochschule für Musik „Hanns Eisler“ Berlin",
+    "domain": "hfm-berlin.de",
+    "wikidata_id": "Q569460",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-musik-karlsruhe",
+    "entity_class": "university_de",
+    "name": "Hochschule für Musik Karlsruhe",
+    "domain": "hfm-karlsruhe.de",
+    "wikidata_id": "Q448324",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-musik-mainz",
+    "entity_class": "university_de",
+    "name": "Hochschule für Musik Mainz",
+    "domain": "hfm-mainz.de",
+    "wikidata_id": "Q1622203",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-musik-theater-und-medien-hannover",
+    "entity_class": "university_de",
+    "name": "Hochschule für Musik, Theater und Medien Hannover",
+    "domain": "hmtm-hannover.de",
+    "wikidata_id": "Q455331",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-musik-und-darstellende-kunst-frankfurt-am-main",
+    "entity_class": "university_de",
+    "name": "Hochschule für Musik und Darstellende Kunst Frankfurt am Main",
+    "domain": "hfmdk-frankfurt.info",
+    "wikidata_id": "Q317796",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-musik-und-darstellende-kunst-mannheim",
+    "entity_class": "university_de",
+    "name": "Hochschule für Musik und Darstellende Kunst Mannheim",
+    "domain": "muho-mannheim.de",
+    "wikidata_id": "Q1413500",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-musik-und-tanz-koeln",
+    "entity_class": "university_de",
+    "name": "Hochschule für Musik und Tanz Köln",
+    "domain": "hfmt-koeln.de",
+    "wikidata_id": "Q55021",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-musik-und-theater-felix-mendelssohn-bartholdy-leipzig",
+    "entity_class": "university_de",
+    "name": "Hochschule für Musik und Theater „Felix Mendelssohn Bartholdy“ Leipzig",
+    "domain": "hmt-leipzig.de",
+    "wikidata_id": "Q312578",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-musik-und-theater-hamburg",
+    "entity_class": "university_de",
+    "name": "Hochschule für Musik und Theater Hamburg",
+    "domain": "hfmt-hamburg.de",
+    "wikidata_id": "Q700824",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-musik-und-theater-muenchen",
+    "entity_class": "university_de",
+    "name": "Hochschule für Musik und Theater München",
+    "domain": "hmtm.de",
+    "wikidata_id": "Q657167",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-musik-wuerzburg",
+    "entity_class": "university_de",
+    "name": "Hochschule für Musik Würzburg",
+    "domain": "hfm-wuerzburg.de",
+    "wikidata_id": "Q260107",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-nachhaltige-entwicklung-eberswalde",
+    "entity_class": "university_de",
+    "name": "Hochschule für nachhaltige Entwicklung Eberswalde",
+    "domain": "hnee.de",
+    "wikidata_id": "Q1622244",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-oeffentliche-verwaltung-bremen",
+    "entity_class": "university_de",
+    "name": "Hochschule für Öffentliche Verwaltung Bremen",
+    "domain": "hfoev.bremen.de",
+    "wikidata_id": "Q1622242",
+    "region": "DE-HB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-oeffentliche-verwaltung-und-finanzen-ludwigsburg",
+    "entity_class": "university_de",
+    "name": "Hochschule für öffentliche Verwaltung und Finanzen Ludwigsburg",
+    "domain": "hs-ludwigsburg.de",
+    "wikidata_id": "Q1604537",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-philosophie-muenchen",
+    "entity_class": "university_de",
+    "name": "Hochschule für Philosophie München",
+    "domain": "hfph.de",
+    "wikidata_id": "Q881849",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-politik-muenchen",
+    "entity_class": "university_de",
+    "name": "Hochschule für Politik München",
+    "domain": "hfp.tum.de",
+    "wikidata_id": "Q1622215",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-polizei-baden-wuerttemberg",
+    "entity_class": "university_de",
+    "name": "Hochschule für Polizei Baden-Württemberg",
+    "domain": "hfpol-bw.de",
+    "wikidata_id": "Q1622214",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-polizei-und-oeffentliche-verwaltung-nordrhein-westfalen",
+    "entity_class": "university_de",
+    "name": "Hochschule für Polizei und öffentliche Verwaltung Nordrhein-Westfalen",
+    "domain": "hspv.nrw.de",
+    "wikidata_id": "Q1391293",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-rechtspflege-schwetzingen",
+    "entity_class": "university_de",
+    "name": "Hochschule für Rechtspflege Schwetzingen",
+    "domain": "fh-schwetzingen.de",
+    "wikidata_id": "Q1391225",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-schauspielkunst-ernst-busch-berlin",
+    "entity_class": "university_de",
+    "name": "Hochschule für Schauspielkunst Ernst Busch Berlin",
+    "domain": "hfs-berlin.de",
+    "wikidata_id": "Q895796",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-technik-stuttgart",
+    "entity_class": "university_de",
+    "name": "Hochschule für Technik Stuttgart",
+    "domain": "hft-stuttgart.de",
+    "wikidata_id": "Q1540704",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-technik-und-wirtschaft-berlin",
+    "entity_class": "university_de",
+    "name": "Hochschule für Technik und Wirtschaft Berlin",
+    "domain": "htw-berlin.de",
+    "wikidata_id": "Q875138",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-technik-und-wirtschaft-des-saarlandes",
+    "entity_class": "university_de",
+    "name": "Hochschule für Technik und Wirtschaft des Saarlandes",
+    "domain": "htwsaar.de",
+    "wikidata_id": "Q884111",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-technik-und-wirtschaft-dresden",
+    "entity_class": "university_de",
+    "name": "Hochschule für Technik und Wirtschaft Dresden",
+    "domain": "htw-dresden.de",
+    "wikidata_id": "Q1622222",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-technik-wirtschaft-und-gesundheit-bochum",
+    "entity_class": "university_de",
+    "name": "Hochschule für Technik, Wirtschaft und Gesundheit Bochum",
+    "domain": "hochschule-bochum.de",
+    "wikidata_id": "Q1622078",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-technik-wirtschaft-und-kultur-leipzig",
+    "entity_class": "university_de",
+    "name": "Hochschule für Technik, Wirtschaft und Kultur Leipzig",
+    "domain": "htwk-leipzig.de",
+    "wikidata_id": "Q1622216",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-telekommunikation-leipzig",
+    "entity_class": "university_de",
+    "name": "Hochschule für Telekommunikation Leipzig",
+    "domain": "hft-leipzig.de",
+    "wikidata_id": "Q1622226",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-verwaltung-in-niedersachsen",
+    "entity_class": "university_de",
+    "name": "Hochschule für Verwaltung in Niedersachsen",
+    "domain": "nsi-hsvn.de",
+    "wikidata_id": "Q53869248",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-wirtschaft-und-gesellschaft-ludwigshafen",
+    "entity_class": "university_de",
+    "name": "Hochschule für Wirtschaft und Gesellschaft Ludwigshafen",
+    "domain": "hwg-lu.de",
+    "wikidata_id": "Q1622125",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-wirtschaft-und-recht-berlin",
+    "entity_class": "university_de",
+    "name": "Hochschule für Wirtschaft und Recht Berlin",
+    "domain": "hwr-berlin.de",
+    "wikidata_id": "Q464443",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fuer-wirtschaft-und-umwelt-nuertingen-geislingen",
+    "entity_class": "university_de",
+    "name": "Hochschule für Wirtschaft und Umwelt Nürtingen-Geislingen",
+    "domain": "hfwu.de",
+    "wikidata_id": "Q1622229",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-fulda",
+    "entity_class": "university_de",
+    "name": "Hochschule Fulda",
+    "domain": "hs-fulda.de",
+    "wikidata_id": "Q453821",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-furtwangen",
+    "entity_class": "university_de",
+    "name": "Hochschule Furtwangen",
+    "domain": "hs-furtwangen.de",
+    "wikidata_id": "Q529572",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-geisenheim",
+    "entity_class": "university_de",
+    "name": "Hochschule Geisenheim",
+    "domain": "hs-geisenheim.de",
+    "wikidata_id": "Q2718928",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-hamm-lippstadt",
+    "entity_class": "university_de",
+    "name": "Hochschule Hamm-Lippstadt",
+    "domain": "hshl.de",
+    "wikidata_id": "Q1505130",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-hannover",
+    "entity_class": "university_de",
+    "name": "Hochschule Hannover",
+    "domain": "hs-hannover.de",
+    "wikidata_id": "Q224514",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-harz",
+    "entity_class": "university_de",
+    "name": "Hochschule Harz",
+    "domain": "hs-harz.de",
+    "wikidata_id": "Q1622105",
+    "region": "DE-ST",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-heilbronn",
+    "entity_class": "university_de",
+    "name": "Hochschule Heilbronn",
+    "domain": "hs-heilbronn.de",
+    "wikidata_id": "Q327693",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-karlsruhe",
+    "entity_class": "university_de",
+    "name": "Hochschule Karlsruhe",
+    "domain": "h-ka.de",
+    "wikidata_id": "Q761708",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-koblenz",
+    "entity_class": "university_de",
+    "name": "Hochschule Koblenz",
+    "domain": "hs-koblenz.de",
+    "wikidata_id": "Q1622117",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-konstanz-technik-wirtschaft-und-gestaltung",
+    "entity_class": "university_de",
+    "name": "Hochschule Konstanz Technik, Wirtschaft und Gestaltung",
+    "domain": "htwg-konstanz.de",
+    "wikidata_id": "Q1622118",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-lausitz",
+    "entity_class": "university_de",
+    "name": "Hochschule Lausitz",
+    "domain": "hs-lausitz.de",
+    "wikidata_id": "Q1622120",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-mainz",
+    "entity_class": "university_de",
+    "name": "Hochschule Mainz",
+    "domain": "hs-mainz.de",
+    "wikidata_id": "Q459724",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-merseburg",
+    "entity_class": "university_de",
+    "name": "Hochschule Merseburg",
+    "domain": "hs-merseburg.de",
+    "wikidata_id": "Q1622126",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-mittweida",
+    "entity_class": "university_de",
+    "name": "Hochschule Mittweida",
+    "domain": "hs-mittweida.de",
+    "wikidata_id": "Q202952",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-neubrandenburg",
+    "entity_class": "university_de",
+    "name": "Hochschule Neubrandenburg",
+    "domain": "hs-nb.de",
+    "wikidata_id": "Q1622130",
+    "region": "DE-MV",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-niederrhein",
+    "entity_class": "university_de",
+    "name": "Hochschule Niederrhein",
+    "domain": "hs-niederrhein.de",
+    "wikidata_id": "Q1318081",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-offenburg",
+    "entity_class": "university_de",
+    "name": "Hochschule Offenburg",
+    "domain": "hs-offenburg.de",
+    "wikidata_id": "Q1622133",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-osnabrueck",
+    "entity_class": "university_de",
+    "name": "Hochschule Osnabrück",
+    "domain": "hs-osnabrueck.de",
+    "wikidata_id": "Q1622135",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-pforzheim",
+    "entity_class": "university_de",
+    "name": "Hochschule Pforzheim",
+    "domain": "hs-pforzheim.de",
+    "wikidata_id": "Q884358",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-ravensburg-weingarten",
+    "entity_class": "university_de",
+    "name": "Hochschule Ravensburg-Weingarten",
+    "domain": "rwu.de",
+    "wikidata_id": "Q2718933",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-reutlingen",
+    "entity_class": "university_de",
+    "name": "Hochschule Reutlingen",
+    "domain": "reutlingen-university.de",
+    "wikidata_id": "Q317125",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-rhein-waal",
+    "entity_class": "university_de",
+    "name": "Hochschule Rhein-Waal",
+    "domain": "hochschule-rhein-waal.de",
+    "wikidata_id": "Q1622138",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-rheinmain",
+    "entity_class": "university_de",
+    "name": "Hochschule RheinMain",
+    "domain": "hs-rm.de",
+    "wikidata_id": "Q542415",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-ruhr-west",
+    "entity_class": "university_de",
+    "name": "Hochschule Ruhr West",
+    "domain": "hochschule-ruhr-west.de",
+    "wikidata_id": "Q1622141",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-ruhr-west-2",
+    "entity_class": "university_de",
+    "name": "Hochschule Ruhr West",
+    "domain": "en.hochschule-ruhr-west.de",
+    "wikidata_id": "Q1622141",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-schmalkalden",
+    "entity_class": "university_de",
+    "name": "Hochschule Schmalkalden",
+    "domain": "hs-schmalkalden.de",
+    "wikidata_id": "Q1391222",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-stralsund",
+    "entity_class": "university_de",
+    "name": "Hochschule Stralsund",
+    "domain": "hochschule-stralsund.de",
+    "wikidata_id": "Q1391231",
+    "region": "DE-MV",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-weserbergland",
+    "entity_class": "university_de",
+    "name": "Hochschule Weserbergland",
+    "domain": "hsw-hameln.de",
+    "wikidata_id": "Q1400766",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-wismar",
+    "entity_class": "university_de",
+    "name": "Hochschule Wismar",
+    "domain": "hs-wismar.de",
+    "wikidata_id": "Q883036",
+    "region": "DE-MV",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-worms",
+    "entity_class": "university_de",
+    "name": "Hochschule Worms",
+    "domain": "hs-worms.de",
+    "wikidata_id": "Q1391239",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hochschule-zittau-goerlitz",
+    "entity_class": "university_de",
+    "name": "Hochschule Zittau/Görlitz",
+    "domain": "hszg.de",
+    "wikidata_id": "Q1622147",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "hsd-hochschule-doepfer",
+    "entity_class": "university_de",
+    "name": "HSD Hochschule Döpfer",
+    "domain": "hs-doepfer.de",
+    "wikidata_id": "Q15818931",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "humanistische-hochschule-berlin",
+    "entity_class": "university_de",
+    "name": "Humanistische Hochschule Berlin",
+    "domain": "humanistische-hochschule-berlin.de",
+    "wikidata_id": "Q115973023",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "humboldt-universitaet-zu-berlin",
+    "entity_class": "university_de",
+    "name": "Humboldt-Universität zu Berlin",
+    "domain": "hu-berlin.de",
+    "wikidata_id": "Q152087",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "humboldt-viadrina-school-of-governance",
+    "entity_class": "university_de",
+    "name": "Humboldt-Viadrina School of Governance",
+    "domain": "humboldt-viadrina.org",
+    "wikidata_id": "Q1636934",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "ib-hochschule-fuer-gesundheit-und-soziales",
+    "entity_class": "university_de",
+    "name": "IB Hochschule für Gesundheit und Soziales",
+    "domain": "ib-hochschule.de",
+    "wikidata_id": "Q1653042",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "iba-internationale-berufsakademie",
+    "entity_class": "university_de",
+    "name": "Iba - Internationale Berufsakademie",
+    "domain": "iba-darmstadt.com",
+    "wikidata_id": "Q1667074",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "institut-fuer-kuenstlerische-forschung-und-bildung-muenchen",
+    "entity_class": "university_de",
+    "name": "Institut für künstlerische Forschung und Bildung München",
+    "domain": "mima-university.de",
+    "wikidata_id": "Q122762888",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "international-business-school-of-service-management",
+    "entity_class": "university_de",
+    "name": "International Business School of Service Management",
+    "domain": "iss-hamburg.de",
+    "wikidata_id": "Q1666398",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "international-psychoanalytic-university-berlin",
+    "entity_class": "university_de",
+    "name": "International Psychoanalytic University Berlin",
+    "domain": "ipu-berlin.de",
+    "wikidata_id": "Q1666832",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "international-school-of-management",
+    "entity_class": "university_de",
+    "name": "International School of Management",
+    "domain": "ism.de",
+    "wikidata_id": "Q1665159",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "international-university-in-germany",
+    "entity_class": "university_de",
+    "name": "International University in Germany",
+    "domain": "i-u.de",
+    "wikidata_id": "Q1408542",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "international-university-of-cooperative-education-freiburg",
+    "entity_class": "university_de",
+    "name": "International University of Cooperative Education Freiburg",
+    "domain": "iu-ce.de",
+    "wikidata_id": "Q1667017",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "internationale-hochschule-liebenzell",
+    "entity_class": "university_de",
+    "name": "Internationale Hochschule Liebenzell",
+    "domain": "ihl.eu",
+    "wikidata_id": "Q1667283",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "internationale-hochschule-sdi-muenchen",
+    "entity_class": "university_de",
+    "name": "Internationale Hochschule SDI München",
+    "domain": "sdi-muenchen.de",
+    "wikidata_id": "Q833743",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "internationales-priesterseminar-herz-jesu",
+    "entity_class": "university_de",
+    "name": "Internationales Priesterseminar Herz Jesu",
+    "domain": "zaitzkofen.fsspx.org",
+    "wikidata_id": "Q1667803",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "ist-hochschule-fuer-management",
+    "entity_class": "university_de",
+    "name": "IST-Hochschule für Management",
+    "domain": "ist-hochschule.de",
+    "wikidata_id": "Q15819802",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "iu-internationale-hochschule",
+    "entity_class": "university_de",
+    "name": "IU Internationale Hochschule",
+    "domain": "iu.de",
+    "wikidata_id": "Q1667281",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "jade-hochschule",
+    "entity_class": "university_de",
+    "name": "Jade Hochschule",
+    "domain": "jade-hs.de",
+    "wikidata_id": "Q982400",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "johannes-gutenberg-universitaet-mainz",
+    "entity_class": "university_de",
+    "name": "Johannes Gutenberg-Universität Mainz",
+    "domain": "uni-mainz.de",
+    "wikidata_id": "Q161982",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "julius-maximilians-universitaet-wuerzburg",
+    "entity_class": "university_de",
+    "name": "Julius-Maximilians-Universität Würzburg",
+    "domain": "uni-wuerzburg.de",
+    "wikidata_id": "Q161976",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "justus-liebig-universitaet-giessen",
+    "entity_class": "university_de",
+    "name": "Justus-Liebig-Universität Gießen",
+    "domain": "uni-giessen.de",
+    "wikidata_id": "Q317053",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "karlshochschule-international-university",
+    "entity_class": "university_de",
+    "name": "Karlshochschule International University",
+    "domain": "karlshochschule.de",
+    "wikidata_id": "Q1733921",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "karlsruher-institut-fuer-technologie",
+    "entity_class": "university_de",
+    "name": "Karlsruher Institut für Technologie",
+    "domain": "kit.edu",
+    "wikidata_id": "Q309988",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "katholisch-theologischen-fakultaet-muenchen",
+    "entity_class": "university_de",
+    "name": "Katholisch-Theologischen Fakultät München",
+    "domain": "kaththeol.uni-muenchen.de",
+    "wikidata_id": "Q19934225",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "katholische-fachhochschule-norddeutschland",
+    "entity_class": "university_de",
+    "name": "Katholische Fachhochschule Norddeutschland",
+    "domain": "kath-fh-nord.de",
+    "wikidata_id": "Q1736333",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "katholische-hochschule-freiburg",
+    "entity_class": "university_de",
+    "name": "Katholische Hochschule Freiburg",
+    "domain": "kh-freiburg.de",
+    "wikidata_id": "Q1736342",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "katholische-hochschule-fuer-kirchenmusik-rottenburg",
+    "entity_class": "university_de",
+    "name": "Katholische Hochschule für Kirchenmusik Rottenburg",
+    "domain": "kirchenmusik-hochschule.org",
+    "wikidata_id": "Q1736343",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "katholische-hochschule-fuer-kirchenmusik-st-gregorius",
+    "entity_class": "university_de",
+    "name": "Katholische Hochschule für Kirchenmusik St. Gregorius",
+    "domain": "khkstgregorius.de",
+    "wikidata_id": "Q1287680",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "katholische-hochschule-fuer-soziale-arbeit",
+    "entity_class": "university_de",
+    "name": "Katholische Hochschule für Soziale Arbeit",
+    "domain": "fh-saarbruecken.de",
+    "wikidata_id": "Q1736345",
+    "region": "DE-SL",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "katholische-hochschule-fuer-sozialwesen-berlin",
+    "entity_class": "university_de",
+    "name": "Katholische Hochschule für Sozialwesen Berlin",
+    "domain": "khsb-berlin.de",
+    "wikidata_id": "Q1736348",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "katholische-hochschule-mainz",
+    "entity_class": "university_de",
+    "name": "Katholische Hochschule Mainz",
+    "domain": "kh-mz.de",
+    "wikidata_id": "Q872180",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "katholische-hochschule-nordrhein-westfalen",
+    "entity_class": "university_de",
+    "name": "Katholische Hochschule Nordrhein-Westfalen",
+    "domain": "katho-nrw.de",
+    "wikidata_id": "Q1736344",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "katholische-stiftungshochschule-muenchen",
+    "entity_class": "university_de",
+    "name": "Katholische Stiftungshochschule München",
+    "domain": "ksfh.de",
+    "wikidata_id": "Q1632429",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "katholische-universitaet-eichstaett-ingolstadt",
+    "entity_class": "university_de",
+    "name": "Katholische Universität Eichstätt-Ingolstadt",
+    "domain": "ku.de",
+    "wikidata_id": "Q315161",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "kirchliche-hochschule-wuppertal",
+    "entity_class": "university_de",
+    "name": "Kirchliche Hochschule Wuppertal",
+    "domain": "kiho-wuppertal-bethel.de",
+    "wikidata_id": "Q885105",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "kmm-hamburg-institut-fuer-kultur-und-medienmanagement",
+    "entity_class": "university_de",
+    "name": "KMM Hamburg – Institut für Kultur- und Medienmanagement",
+    "domain": "kmm-hamburg.de",
+    "wikidata_id": "Q1718821",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "koelner-hochschule-fuer-katholische-theologie",
+    "entity_class": "university_de",
+    "name": "Kölner Hochschule für Katholische Theologie",
+    "domain": "khkt.de",
+    "wikidata_id": "Q2088271",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "kuehne-logistics-university",
+    "entity_class": "university_de",
+    "name": "Kühne Logistics University",
+    "domain": "the-klu.org",
+    "wikidata_id": "Q1683524",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "kunstakademie-duesseldorf",
+    "entity_class": "university_de",
+    "name": "Kunstakademie Düsseldorf",
+    "domain": "kunstakademie-duesseldorf.de",
+    "wikidata_id": "Q662355",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "kunstakademie-muenster",
+    "entity_class": "university_de",
+    "name": "Kunstakademie Münster",
+    "domain": "kunstakademie-muenster.de",
+    "wikidata_id": "Q1792343",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "kunsthochschule-berlin-weissensee",
+    "entity_class": "university_de",
+    "name": "Kunsthochschule Berlin-Weißensee",
+    "domain": "kh-berlin.de",
+    "wikidata_id": "Q1773894",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "kunsthochschule-fuer-medien-koeln",
+    "entity_class": "university_de",
+    "name": "Kunsthochschule für Medien Köln",
+    "domain": "en.khm.de",
+    "wikidata_id": "Q827038",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "kunsthochschule-fuer-medien-koeln-2",
+    "entity_class": "university_de",
+    "name": "Kunsthochschule für Medien Köln",
+    "domain": "khm.de",
+    "wikidata_id": "Q827038",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "kunsthochschule-mainz",
+    "entity_class": "university_de",
+    "name": "Kunsthochschule Mainz",
+    "domain": "kunsthochschule-mainz.de",
+    "wikidata_id": "Q1792452",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "leibniz-fachhochschule",
+    "entity_class": "university_de",
+    "name": "Leibniz Fachhochschule",
+    "domain": "leibniz-fh.de",
+    "wikidata_id": "Q30263706",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "leibniz-universitaet-hannover",
+    "entity_class": "university_de",
+    "name": "Leibniz Universität Hannover",
+    "domain": "uni-hannover.de",
+    "wikidata_id": "Q678982",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "leuphana-universitaet-lueneburg",
+    "entity_class": "university_de",
+    "name": "Leuphana Universität Lüneburg",
+    "domain": "leuphana.de",
+    "wikidata_id": "Q505170",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "ludwig-maximilians-universitaet-muenchen",
+    "entity_class": "university_de",
+    "name": "Ludwig-Maximilians-Universität München",
+    "domain": "lmu.de",
+    "wikidata_id": "Q55044",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "lutherische-theologische-hochschule-oberursel",
+    "entity_class": "university_de",
+    "name": "Lutherische Theologische Hochschule Oberursel",
+    "domain": "lthh-oberursel.de",
+    "wikidata_id": "Q1877909",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "marineschule-muerwik",
+    "entity_class": "university_de",
+    "name": "Marineschule Mürwik",
+    "domain": "bundeswehr.de",
+    "wikidata_id": "Q881870",
+    "region": "DE-SH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "martin-luther-universitaet-halle-wittenberg",
+    "entity_class": "university_de",
+    "name": "Martin-Luther-Universität Halle-Wittenberg",
+    "domain": "uni-halle.de",
+    "wikidata_id": "Q32120",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "mathias-hochschule-rheine",
+    "entity_class": "university_de",
+    "name": "Mathias Hochschule Rheine",
+    "domain": "mhrheine.de",
+    "wikidata_id": "Q1908482",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "media-akademie-hochschule-stuttgart",
+    "entity_class": "university_de",
+    "name": "Media Akademie – Hochschule Stuttgart",
+    "domain": "media-hs.de",
+    "wikidata_id": "Q21040685",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "mediadesign-hochschule",
+    "entity_class": "university_de",
+    "name": "Mediadesign Hochschule",
+    "domain": "mediadesign.de",
+    "wikidata_id": "Q1916178",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "medical-school-berlin",
+    "entity_class": "university_de",
+    "name": "Medical School Berlin",
+    "domain": "medicalschool-berlin.de",
+    "wikidata_id": "Q1916267",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "medizinische-hochschule-brandenburg-theodor-fontane",
+    "entity_class": "university_de",
+    "name": "Medizinische Hochschule Brandenburg Theodor Fontane",
+    "domain": "mhb-fontane.de",
+    "wikidata_id": "Q16320336",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "medizinische-hochschule-hannover",
+    "entity_class": "university_de",
+    "name": "Medizinische Hochschule Hannover",
+    "domain": "mhh.de",
+    "wikidata_id": "Q911561",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "medizinische-universitaet-lausitz-carl-thiem",
+    "entity_class": "university_de",
+    "name": "Medizinische Universität Lausitz – Carl Thiem",
+    "domain": "mul-ct.de",
+    "wikidata_id": "Q127256070",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "merz-akademie",
+    "entity_class": "university_de",
+    "name": "Merz Akademie",
+    "domain": "merz-akademie.de",
+    "wikidata_id": "Q1922219",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "msh-medical-school-hamburg-fachhochschule-fuer-gesundheit-und-medizin",
+    "entity_class": "university_de",
+    "name": "MSH Medical School Hamburg – Fachhochschule für Gesundheit und Medizin",
+    "domain": "medicalschool-hamburg.de",
+    "wikidata_id": "Q1881867",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "munich-business-school",
+    "entity_class": "university_de",
+    "name": "Munich Business School",
+    "domain": "munich-business-school.de",
+    "wikidata_id": "Q1311824",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "musikhochschule-luebeck",
+    "entity_class": "university_de",
+    "name": "Musikhochschule Lübeck",
+    "domain": "mh-luebeck.de",
+    "wikidata_id": "Q513622",
+    "region": "DE-SH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "muthesius-kunsthochschule",
+    "entity_class": "university_de",
+    "name": "Muthesius Kunsthochschule",
+    "domain": "muthesius-kunsthochschule.de",
+    "wikidata_id": "Q1305888",
+    "region": "DE-SH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "naturwissenschaftlich-technische-akademie-isny",
+    "entity_class": "university_de",
+    "name": "Naturwissenschaftlich-Technische Akademie Isny",
+    "domain": "nta-isny.de",
+    "wikidata_id": "Q569899",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "nbs-northern-business-school-hochschule-fuer-management-und-sicherheit",
+    "entity_class": "university_de",
+    "name": "NBS Northern Business School - Hochschule für Management und Sicherheit",
+    "domain": "nbs.de",
+    "wikidata_id": "Q24175530",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "nordakademie",
+    "entity_class": "university_de",
+    "name": "Nordakademie",
+    "domain": "nordakademie.de",
+    "wikidata_id": "Q1379386",
+    "region": "DE-SH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "norddeutsche-hochschule-fuer-rechtspflege",
+    "entity_class": "university_de",
+    "name": "Norddeutsche Hochschule für Rechtspflege",
+    "domain": "fhr-nord.niedersachsen.de",
+    "wikidata_id": "Q1997776",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "ostbayerische-technische-hochschule-amberg-weiden",
+    "entity_class": "university_de",
+    "name": "Ostbayerische Technische Hochschule Amberg-Weiden",
+    "domain": "oth-aw.de",
+    "wikidata_id": "Q1622072",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "ostbayerische-technische-hochschule-regensburg",
+    "entity_class": "university_de",
+    "name": "Ostbayerische Technische Hochschule Regensburg",
+    "domain": "oth-regensburg.de",
+    "wikidata_id": "Q982435",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "ostfalia-hochschule-fuer-angewandte-wissenschaften",
+    "entity_class": "university_de",
+    "name": "Ostfalia Hochschule für angewandte Wissenschaften",
+    "domain": "ostfalia.de",
+    "wikidata_id": "Q2035460",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "ostkreuzschule",
+    "entity_class": "university_de",
+    "name": "Ostkreuzschule",
+    "domain": "ostkreuzschule.de",
+    "wikidata_id": "Q2035743",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "otto-friedrich-universitaet-bamberg",
+    "entity_class": "university_de",
+    "name": "Otto-Friedrich-Universität Bamberg",
+    "domain": "uni-bamberg.de",
+    "wikidata_id": "Q707272",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "otto-von-guericke-universitaet-magdeburg",
+    "entity_class": "university_de",
+    "name": "Otto-von-Guericke-Universität Magdeburg",
+    "domain": "ovgu.de",
+    "wikidata_id": "Q655866",
+    "region": "DE-ST",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "paedagogische-hochschule-freiburg",
+    "entity_class": "university_de",
+    "name": "Pädagogische Hochschule Freiburg",
+    "domain": "ph-freiburg.de",
+    "wikidata_id": "Q1441203",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "paedagogische-hochschule-heidelberg",
+    "entity_class": "university_de",
+    "name": "Pädagogische Hochschule Heidelberg",
+    "domain": "ph-heidelberg.de",
+    "wikidata_id": "Q1429906",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "paedagogische-hochschule-karlsruhe",
+    "entity_class": "university_de",
+    "name": "Pädagogische Hochschule Karlsruhe",
+    "domain": "ph-karlsruhe.de",
+    "wikidata_id": "Q1310061",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "paedagogische-hochschule-ludwigsburg",
+    "entity_class": "university_de",
+    "name": "Pädagogische Hochschule Ludwigsburg",
+    "domain": "ph-ludwigsburg.de",
+    "wikidata_id": "Q2120211",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "paedagogische-hochschule-schwaebisch-gmuend",
+    "entity_class": "university_de",
+    "name": "Pädagogische Hochschule Schwäbisch Gmünd",
+    "domain": "ph-gmuend.de",
+    "wikidata_id": "Q2120205",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "paedagogische-hochschule-weingarten",
+    "entity_class": "university_de",
+    "name": "Pädagogische Hochschule Weingarten",
+    "domain": "ph-weingarten.de",
+    "wikidata_id": "Q2120222",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "palucca-hochschule-fuer-tanz-dresden",
+    "entity_class": "university_de",
+    "name": "Palucca Hochschule für Tanz Dresden",
+    "domain": "palucca.eu",
+    "wikidata_id": "Q2048456",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "pfh-private-hochschule-goettingen",
+    "entity_class": "university_de",
+    "name": "PFH Private Hochschule Göttingen",
+    "domain": "pfh.de",
+    "wikidata_id": "Q2044046",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "pfh-private-hochschule-goettingen-2",
+    "entity_class": "university_de",
+    "name": "PFH Private Hochschule Göttingen",
+    "domain": "pfh-university.com",
+    "wikidata_id": "Q2044046",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "philipps-universitaet-marburg",
+    "entity_class": "university_de",
+    "name": "Philipps-Universität Marburg",
+    "domain": "uni-marburg.de",
+    "wikidata_id": "Q155354",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "philosophisch-theologische-hochschule-benediktbeuern",
+    "entity_class": "university_de",
+    "name": "Philosophisch-Theologische Hochschule Benediktbeuern",
+    "domain": "pth-bb.de",
+    "wikidata_id": "Q2088266",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "philosophisch-theologische-hochschule-muenster",
+    "entity_class": "university_de",
+    "name": "Philosophisch-Theologische Hochschule Münster",
+    "domain": "pth-muenster.de",
+    "wikidata_id": "Q2088268",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "philosophisch-theologische-hochschule-sankt-georgen",
+    "entity_class": "university_de",
+    "name": "Philosophisch-Theologische Hochschule Sankt Georgen",
+    "domain": "sankt-georgen.de",
+    "wikidata_id": "Q895645",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "polizeiakademie-niedersachsen",
+    "entity_class": "university_de",
+    "name": "Polizeiakademie Niedersachsen",
+    "domain": "polizeiakademie.niedersachsen.de",
+    "wikidata_id": "Q2101676",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "popakademie-baden-wuerttemberg",
+    "entity_class": "university_de",
+    "name": "Popakademie Baden-Württemberg",
+    "domain": "popakademie.de",
+    "wikidata_id": "Q1492202",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "praxis-hochschule",
+    "entity_class": "university_de",
+    "name": "Praxis-Hochschule",
+    "domain": "praxishochschule.de",
+    "wikidata_id": "Q16855778",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "priesterseminar-regensburg",
+    "entity_class": "university_de",
+    "name": "Priesterseminar Regensburg",
+    "domain": "priesterseminar-regensburg.de",
+    "wikidata_id": "Q2109616",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "priesterseminar-wuerzburg",
+    "entity_class": "university_de",
+    "name": "Priesterseminar Würzburg",
+    "domain": "priesterseminar-wuerzburg.de",
+    "wikidata_id": "Q2109625",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "private-berufsakademie-fulda",
+    "entity_class": "university_de",
+    "name": "Private Berufsakademie Fulda",
+    "domain": "ba-fulda.de",
+    "wikidata_id": "Q123010841",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "private-fachhochschule-doepfer-fuer-physiotherapie-und-ergotherapie",
+    "entity_class": "university_de",
+    "name": "Private Fachhochschule Döpfer für Physiotherapie und Ergotherapie",
+    "domain": "fh-doepfer.de",
+    "wikidata_id": "Q1509126",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "private-fernfachhochschule-sachsen",
+    "entity_class": "university_de",
+    "name": "Private Fernfachhochschule Sachsen",
+    "domain": "ffh-sachsen.com",
+    "wikidata_id": "Q2111090",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "private-hanseuniversitaet",
+    "entity_class": "university_de",
+    "name": "Private Hanseuniversität",
+    "domain": "hanseuni.de",
+    "wikidata_id": "Q251214",
+    "region": "DE-MV",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "private-hochschule-fuer-wirtschaft-und-technik-vechta-diepholz-oldenburg",
+    "entity_class": "university_de",
+    "name": "Private Hochschule für Wirtschaft und Technik Vechta/Diepholz/Oldenburg",
+    "domain": "phwt.de",
+    "wikidata_id": "Q1391278",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "private-hochschule-fuer-wirtschaft-und-technik-vechta-diepholz-oldenburg-2",
+    "entity_class": "university_de",
+    "name": "Private Hochschule für Wirtschaft und Technik Vechta/Diepholz/Oldenburg",
+    "domain": "fhwt.de",
+    "wikidata_id": "Q1391278",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "provadis-school-of-international-management-and-technology",
+    "entity_class": "university_de",
+    "name": "Provadis School of International Management and Technology",
+    "domain": "provadis-hochschule.de",
+    "wikidata_id": "Q2113846",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "psychologische-hochschule-berlin",
+    "entity_class": "university_de",
+    "name": "Psychologische Hochschule Berlin",
+    "domain": "psychologische-hochschule.de",
+    "wikidata_id": "Q2115997",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "q122335127",
+    "entity_class": "university_de",
+    "name": "Q122335127",
+    "domain": "uni-wh.de",
+    "wikidata_id": "Q122335127",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "q126956265",
+    "entity_class": "university_de",
+    "name": "Q126956265",
+    "domain": "bam.de",
+    "wikidata_id": "Q126956265",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "q135930158",
+    "entity_class": "university_de",
+    "name": "Q135930158",
+    "domain": "academyeurope.eu",
+    "wikidata_id": "Q135930158",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "q1481465",
+    "entity_class": "university_de",
+    "name": "Q1481465",
+    "domain": "hoems.hessen.de",
+    "wikidata_id": "Q1481465",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "q1622113",
+    "entity_class": "university_de",
+    "name": "Q1622113",
+    "domain": "hs-kehl.de",
+    "wikidata_id": "Q1622113",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "q28971028",
+    "entity_class": "university_de",
+    "name": "Q28971028",
+    "domain": "unu.edu",
+    "wikidata_id": "Q28971028",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "q7109839",
+    "entity_class": "university_de",
+    "name": "Q7109839",
+    "domain": "oss.uni-frankfurt.de",
+    "wikidata_id": "Q7109839",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "quadriga-hochschule-berlin",
+    "entity_class": "university_de",
+    "name": "Quadriga Hochschule Berlin",
+    "domain": "quadriga-hochschule.com",
+    "wikidata_id": "Q2121899",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "rheinische-fachhochschule-neuss-fuer-internationale-wirtschaft",
+    "entity_class": "university_de",
+    "name": "Rheinische Fachhochschule Neuss für Internationale Wirtschaft",
+    "domain": "rfh-neuss.eu",
+    "wikidata_id": "Q1447117",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "rheinische-friedrich-wilhelms-universitaet-bonn",
+    "entity_class": "university_de",
+    "name": "Rheinische Friedrich-Wilhelms-Universität Bonn",
+    "domain": "uni-bonn.de",
+    "wikidata_id": "Q152171",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "rheinische-hochschule-koeln",
+    "entity_class": "university_de",
+    "name": "Rheinische Hochschule Köln",
+    "domain": "rh-koeln.de",
+    "wikidata_id": "Q1245583",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "rheinland-pfaelzische-technische-universitaet-kaiserslautern-landau",
+    "entity_class": "university_de",
+    "name": "Rheinland-Pfälzische Technische Universität Kaiserslautern-Landau",
+    "domain": "rptu.de",
+    "wikidata_id": "Q111020102",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "ruhr-universitaet-bochum",
+    "entity_class": "university_de",
+    "name": "Ruhr-Universität Bochum",
+    "domain": "ruhr-uni-bochum.de",
+    "wikidata_id": "Q309948",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "ruprecht-karls-universitaet-heidelberg",
+    "entity_class": "university_de",
+    "name": "Ruprecht-Karls-Universität Heidelberg",
+    "domain": "uni-heidelberg.de",
+    "wikidata_id": "Q151510",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "rwth-aachen",
+    "entity_class": "university_de",
+    "name": "RWTH Aachen",
+    "domain": "rwth-aachen.de",
+    "wikidata_id": "Q273263",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "sigmund-freud-privatuniversitaet-berlin",
+    "entity_class": "university_de",
+    "name": "Sigmund Freud Privatuniversität Berlin",
+    "domain": "sfu-berlin.de",
+    "wikidata_id": "Q48756211",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "srh-fernhochschule",
+    "entity_class": "university_de",
+    "name": "SRH Fernhochschule",
+    "domain": "mobile-university.de",
+    "wikidata_id": "Q2207700",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "srh-hochschule-berlin",
+    "entity_class": "university_de",
+    "name": "SRH Hochschule Berlin",
+    "domain": "srh-hochschule-berlin.de",
+    "wikidata_id": "Q7392824",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "srh-hochschule-der-populaeren-kuenste",
+    "entity_class": "university_de",
+    "name": "SRH Hochschule der populären Künste",
+    "domain": "hdpk.de",
+    "wikidata_id": "Q1622160",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "srh-hochschule-fuer-gesundheit",
+    "entity_class": "university_de",
+    "name": "SRH Hochschule für Gesundheit",
+    "domain": "srh-university.de",
+    "wikidata_id": "Q2207696",
+    "region": "DE-TH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "srh-hochschule-fuer-wirtschaft-und-medien-calw",
+    "entity_class": "university_de",
+    "name": "SRH Hochschule für Wirtschaft und Medien Calw",
+    "domain": "hochschule-calw.de",
+    "wikidata_id": "Q2207713",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "srh-hochschule-hamm",
+    "entity_class": "university_de",
+    "name": "SRH Hochschule Hamm",
+    "domain": "fh-hamm.de",
+    "wikidata_id": "Q1757937",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "srh-hochschule-heidelberg",
+    "entity_class": "university_de",
+    "name": "SRH Hochschule Heidelberg",
+    "domain": "srh-hochschule-heidelberg.de",
+    "wikidata_id": "Q2207707",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "srh-hochschule-heidelberg-2",
+    "entity_class": "university_de",
+    "name": "SRH Hochschule Heidelberg",
+    "domain": "hochschule-heidelberg.de",
+    "wikidata_id": "Q2207707",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "staatliche-akademie-der-bildenden-kuenste-karlsruhe",
+    "entity_class": "university_de",
+    "name": "Staatliche Akademie der Bildenden Künste Karlsruhe",
+    "domain": "kunstakademie-karlsruhe.de",
+    "wikidata_id": "Q322938",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "staatliche-akademie-der-bildenden-kuenste-stuttgart",
+    "entity_class": "university_de",
+    "name": "Staatliche Akademie der Bildenden Künste Stuttgart",
+    "domain": "abk-stuttgart.de",
+    "wikidata_id": "Q2324294",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "staatliche-hochschule-fuer-bildende-kuenste-staedelschule",
+    "entity_class": "university_de",
+    "name": "Staatliche Hochschule für Bildende Künste – Städelschule",
+    "domain": "staedelschule.de",
+    "wikidata_id": "Q875722",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "staatliche-hochschule-fuer-gestaltung-karlsruhe",
+    "entity_class": "university_de",
+    "name": "Staatliche Hochschule für Gestaltung Karlsruhe",
+    "domain": "hfg-karlsruhe.de",
+    "wikidata_id": "Q896116",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "staatliche-hochschule-fuer-musik-und-darstellende-kunst-stuttgart",
+    "entity_class": "university_de",
+    "name": "Staatliche Hochschule für Musik und Darstellende Kunst Stuttgart",
+    "domain": "mh-stuttgart.de",
+    "wikidata_id": "Q568692",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "staatliche-studienakademie-dresden",
+    "entity_class": "university_de",
+    "name": "Staatliche Studienakademie Dresden",
+    "domain": "dhsn.de",
+    "wikidata_id": "Q828762",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "staatliche-studienakademie-glauchau",
+    "entity_class": "university_de",
+    "name": "Staatliche Studienakademie Glauchau",
+    "domain": "ba-glauchau.de",
+    "wikidata_id": "Q828773",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "staatliche-studienakademie-leipzig",
+    "entity_class": "university_de",
+    "name": "Staatliche Studienakademie Leipzig",
+    "domain": "ba-leipzig.de",
+    "wikidata_id": "Q65952781",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "staatliche-studienakademie-plauen",
+    "entity_class": "university_de",
+    "name": "Staatliche Studienakademie Plauen",
+    "domain": "ba-plauen.de",
+    "wikidata_id": "Q828771",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "staatliche-studienakademie-riesa",
+    "entity_class": "university_de",
+    "name": "Staatliche Studienakademie Riesa",
+    "domain": "ba-riesa.de",
+    "wikidata_id": "Q96623670",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "steinbeis-hochschule",
+    "entity_class": "university_de",
+    "name": "Steinbeis-Hochschule",
+    "domain": "steinbeis-hochschule.de",
+    "wikidata_id": "Q883471",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "steuerakademie-niedersachsen",
+    "entity_class": "university_de",
+    "name": "Steuerakademie Niedersachsen",
+    "domain": "steuerakademie.niedersachsen.de",
+    "wikidata_id": "Q1238833",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "stiftungsuniversitaet-hildesheim",
+    "entity_class": "university_de",
+    "name": "Stiftungsuniversität Hildesheim",
+    "domain": "uni-hildesheim.de",
+    "wikidata_id": "Q319333",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-aschaffenburg",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Aschaffenburg",
+    "domain": "th-ab.de",
+    "wikidata_id": "Q1523703",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-augsburg",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Augsburg",
+    "domain": "tha.de",
+    "wikidata_id": "Q896468",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-bingen",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Bingen",
+    "domain": "th-bingen.de",
+    "wikidata_id": "Q878170",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-brandenburg",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Brandenburg",
+    "domain": "th-brandenburg.de",
+    "wikidata_id": "Q1391182",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-deggendorf",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Deggendorf",
+    "domain": "th-deg.de",
+    "wikidata_id": "Q468553",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-georg-agricola",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Georg Agricola",
+    "domain": "thga.de",
+    "wikidata_id": "Q2399066",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-georg-agricola-2",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Georg Agricola",
+    "domain": "tfh-bochum.de",
+    "wikidata_id": "Q2399066",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-ingolstadt",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Ingolstadt",
+    "domain": "thi.de",
+    "wikidata_id": "Q1622111",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-koeln",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Köln",
+    "domain": "th-koeln.de",
+    "wikidata_id": "Q54166",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-luebeck",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Lübeck",
+    "domain": "th-luebeck.de",
+    "wikidata_id": "Q1391202",
+    "region": "DE-SH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-mannheim",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Mannheim",
+    "domain": "hs-mannheim.de",
+    "wikidata_id": "Q321369",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-mittelhessen",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Mittelhessen",
+    "domain": "thm.de",
+    "wikidata_id": "Q314684",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-mittelhessen-2",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Mittelhessen",
+    "domain": "th-mittelhessen.de",
+    "wikidata_id": "Q314684",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-ostwestfalen-lippe",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Ostwestfalen-Lippe",
+    "domain": "th-owl.de",
+    "wikidata_id": "Q895634",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-rosenheim",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Rosenheim",
+    "domain": "th-rosenheim.de",
+    "wikidata_id": "Q263537",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-ulm",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Ulm",
+    "domain": "hs-ulm.de",
+    "wikidata_id": "Q1622143",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-wildau",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Wildau",
+    "domain": "th-wildau.de",
+    "wikidata_id": "Q686171",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-hochschule-wuerzburg-schweinfurt",
+    "entity_class": "university_de",
+    "name": "Technische Hochschule Würzburg-Schweinfurt",
+    "domain": "thws.de",
+    "wikidata_id": "Q1622239",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-universitaet-bergakademie-freiberg",
+    "entity_class": "university_de",
+    "name": "Technische Universität Bergakademie Freiberg",
+    "domain": "tu-freiberg.de",
+    "wikidata_id": "Q689854",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-universitaet-berlin",
+    "entity_class": "university_de",
+    "name": "Technische Universität Berlin",
+    "domain": "tu.berlin",
+    "wikidata_id": "Q51985",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-universitaet-braunschweig",
+    "entity_class": "university_de",
+    "name": "Technische Universität Braunschweig",
+    "domain": "tu-braunschweig.de",
+    "wikidata_id": "Q734324",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-universitaet-chemnitz",
+    "entity_class": "university_de",
+    "name": "Technische Universität Chemnitz",
+    "domain": "tu-chemnitz.de",
+    "wikidata_id": "Q159630",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-universitaet-clausthal",
+    "entity_class": "university_de",
+    "name": "Technische Universität Clausthal",
+    "domain": "tu-clausthal.de",
+    "wikidata_id": "Q447354",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-universitaet-darmstadt",
+    "entity_class": "university_de",
+    "name": "Technische Universität Darmstadt",
+    "domain": "tu-darmstadt.de",
+    "wikidata_id": "Q310695",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-universitaet-dortmund",
+    "entity_class": "university_de",
+    "name": "Technische Universität Dortmund",
+    "domain": "tu-dortmund.de",
+    "wikidata_id": "Q685557",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-universitaet-dresden",
+    "entity_class": "university_de",
+    "name": "Technische Universität Dresden",
+    "domain": "tu-dresden.de",
+    "wikidata_id": "Q158158",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-universitaet-hamburg",
+    "entity_class": "university_de",
+    "name": "Technische Universität Hamburg",
+    "domain": "tuhh.de",
+    "wikidata_id": "Q1060",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-universitaet-ilmenau",
+    "entity_class": "university_de",
+    "name": "Technische Universität Ilmenau",
+    "domain": "tu-ilmenau.de",
+    "wikidata_id": "Q129195",
+    "region": "DE-TH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-universitaet-kaiserslautern",
+    "entity_class": "university_de",
+    "name": "Technische Universität Kaiserslautern",
+    "domain": "uni-kl.de",
+    "wikidata_id": "Q678965",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-universitaet-muenchen",
+    "entity_class": "university_de",
+    "name": "Technische Universität München",
+    "domain": "tum.de",
+    "wikidata_id": "Q157808",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "technische-universitaet-nuernberg",
+    "entity_class": "university_de",
+    "name": "Technische Universität Nürnberg",
+    "domain": "utn.de",
+    "wikidata_id": "Q56187114",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "theologisch-paedagogisches-institut-moritzburg",
+    "entity_class": "university_de",
+    "name": "Theologisch Pädagogisches Institut Moritzburg",
+    "domain": "tpi-moritzburg.de",
+    "wikidata_id": "Q1380210",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "theologische-fakultaet-fulda",
+    "entity_class": "university_de",
+    "name": "Theologische Fakultät Fulda",
+    "domain": "thf-fulda.de",
+    "wikidata_id": "Q2418934",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "theologische-fakultaet-fulda-2",
+    "entity_class": "university_de",
+    "name": "Theologische Fakultät Fulda",
+    "domain": "en.thf-fulda.de",
+    "wikidata_id": "Q2418934",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "theologische-fakultaet-paderborn",
+    "entity_class": "university_de",
+    "name": "Theologische Fakultät Paderborn",
+    "domain": "thf-paderborn.de",
+    "wikidata_id": "Q883284",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "theologische-fakultaet-trier",
+    "entity_class": "university_de",
+    "name": "Theologische Fakultät Trier",
+    "domain": "theologie-trier.de",
+    "wikidata_id": "Q1714370",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "theologische-hochschule-beuron",
+    "entity_class": "university_de",
+    "name": "Theologische Hochschule Beuron",
+    "domain": "erzabtei-beuron.de",
+    "wikidata_id": "Q2418952",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "theologische-hochschule-ewersbach",
+    "entity_class": "university_de",
+    "name": "Theologische Hochschule Ewersbach",
+    "domain": "th-ewersbach.de",
+    "wikidata_id": "Q2418963",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "theologische-hochschule-friedensau",
+    "entity_class": "university_de",
+    "name": "Theologische Hochschule Friedensau",
+    "domain": "thh-friedensau.de",
+    "wikidata_id": "Q538520",
+    "region": "DE-ST",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "theologische-hochschule-reutlingen",
+    "entity_class": "university_de",
+    "name": "Theologische Hochschule Reutlingen",
+    "domain": "th-reutlingen.de",
+    "wikidata_id": "Q2418970",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "theologisches-seminar-elstal",
+    "entity_class": "university_de",
+    "name": "Theologisches Seminar Elstal",
+    "domain": "th-elstal.de",
+    "wikidata_id": "Q1623675",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "tieraerztliche-hochschule-hannover",
+    "entity_class": "university_de",
+    "name": "Tierärztliche Hochschule Hannover",
+    "domain": "tiho-hannover.de",
+    "wikidata_id": "Q1607255",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "tomorrow-university-of-applied-sciences",
+    "entity_class": "university_de",
+    "name": "Tomorrow University of Applied Sciences (",
+    "domain": "tomorrow.university",
+    "wikidata_id": "Q122911598",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "touro-college-berlin",
+    "entity_class": "university_de",
+    "name": "Touro College Berlin",
+    "domain": "touroberlin.com",
+    "wikidata_id": "Q2446761",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "ukrainische-freie-universitaet-muenchen",
+    "entity_class": "university_de",
+    "name": "Ukrainische Freie Universität München",
+    "domain": "ufu-muenchen.de",
+    "wikidata_id": "Q646136",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "umwelt-campus-birkenfeld",
+    "entity_class": "university_de",
+    "name": "Umwelt-Campus Birkenfeld",
+    "domain": "umwelt-campus.de",
+    "wikidata_id": "Q2478851",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-augsburg",
+    "entity_class": "university_de",
+    "name": "Universität Augsburg",
+    "domain": "uni-augsburg.de",
+    "wikidata_id": "Q616905",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-bayreuth",
+    "entity_class": "university_de",
+    "name": "Universität Bayreuth",
+    "domain": "uni-bayreuth.de",
+    "wikidata_id": "Q702482",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-bielefeld",
+    "entity_class": "university_de",
+    "name": "Universität Bielefeld",
+    "domain": "uni-bielefeld.de",
+    "wikidata_id": "Q24382",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-bremen",
+    "entity_class": "university_de",
+    "name": "Universität Bremen",
+    "domain": "uni-bremen.de",
+    "wikidata_id": "Q500692",
+    "region": "DE-HB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-der-bundeswehr-muenchen",
+    "entity_class": "university_de",
+    "name": "Universität der Bundeswehr München",
+    "domain": "unibw.de",
+    "wikidata_id": "Q283099",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-der-kuenste-berlin",
+    "entity_class": "university_de",
+    "name": "Universität der Künste Berlin",
+    "domain": "udk-berlin.de",
+    "wikidata_id": "Q55038",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-des-saarlandes",
+    "entity_class": "university_de",
+    "name": "Universität des Saarlandes",
+    "domain": "uni-saarland.de",
+    "wikidata_id": "Q700758",
+    "region": "DE-SL",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-duisburg-essen",
+    "entity_class": "university_de",
+    "name": "Universität Duisburg-Essen",
+    "domain": "uni-due.de",
+    "wikidata_id": "Q696757",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-erfurt",
+    "entity_class": "university_de",
+    "name": "Universität Erfurt",
+    "domain": "uni-erfurt.de",
+    "wikidata_id": "Q702524",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-greifswald",
+    "entity_class": "university_de",
+    "name": "Universität Greifswald",
+    "domain": "uni-greifswald.de",
+    "wikidata_id": "Q165528",
+    "region": "DE-MV",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-hamburg",
+    "entity_class": "university_de",
+    "name": "Universität Hamburg",
+    "domain": "uni-hamburg.de",
+    "wikidata_id": "Q156725",
+    "region": "DE-HH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-helmstedt",
+    "entity_class": "university_de",
+    "name": "Universität Helmstedt",
+    "domain": "uni-helmstedt.hab.de",
+    "wikidata_id": "Q314466",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-hohenheim",
+    "entity_class": "university_de",
+    "name": "Universität Hohenheim",
+    "domain": "uni-hohenheim.de",
+    "wikidata_id": "Q690912",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-karlsruhe",
+    "entity_class": "university_de",
+    "name": "Universität Karlsruhe",
+    "domain": "uni-karlsruhe.de",
+    "wikidata_id": "Q29426438",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-kassel",
+    "entity_class": "university_de",
+    "name": "Universität Kassel",
+    "domain": "uni-kassel.de",
+    "wikidata_id": "Q833822",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-koblenz",
+    "entity_class": "university_de",
+    "name": "Universität Koblenz",
+    "domain": "uni-koblenz.de",
+    "wikidata_id": "Q113633597",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-koblenz-landau",
+    "entity_class": "university_de",
+    "name": "Universität Koblenz-Landau",
+    "domain": "uni-koblenz-landau.de",
+    "wikidata_id": "Q448590",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-konstanz",
+    "entity_class": "university_de",
+    "name": "Universität Konstanz",
+    "domain": "uni-konstanz.de",
+    "wikidata_id": "Q835440",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-leipzig",
+    "entity_class": "university_de",
+    "name": "Universität Leipzig",
+    "domain": "uni-leipzig.de",
+    "wikidata_id": "Q154804",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-mannheim",
+    "entity_class": "university_de",
+    "name": "Universität Mannheim",
+    "domain": "uni-mannheim.de",
+    "wikidata_id": "Q317070",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-muenster",
+    "entity_class": "university_de",
+    "name": "Universität Münster",
+    "domain": "uni-muenster.de",
+    "wikidata_id": "Q168426",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-osnabrueck",
+    "entity_class": "university_de",
+    "name": "Universität Osnabrück",
+    "domain": "uni-osnabrueck.de",
+    "wikidata_id": "Q702499",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-paderborn",
+    "entity_class": "university_de",
+    "name": "Universität Paderborn",
+    "domain": "uni-paderborn.de",
+    "wikidata_id": "Q679134",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-passau",
+    "entity_class": "university_de",
+    "name": "Universität Passau",
+    "domain": "uni-passau.de",
+    "wikidata_id": "Q704468",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-potsdam",
+    "entity_class": "university_de",
+    "name": "Universität Potsdam",
+    "domain": "uni-potsdam.de",
+    "wikidata_id": "Q153012",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-regensburg",
+    "entity_class": "university_de",
+    "name": "Universität Regensburg",
+    "domain": "uni-regensburg.de",
+    "wikidata_id": "Q574571",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-rostock",
+    "entity_class": "university_de",
+    "name": "Universität Rostock",
+    "domain": "uni-rostock.de",
+    "wikidata_id": "Q159895",
+    "region": "DE-MV",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-siegen",
+    "entity_class": "university_de",
+    "name": "Universität Siegen",
+    "domain": "uni-siegen.de",
+    "wikidata_id": "Q504723",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-stuttgart",
+    "entity_class": "university_de",
+    "name": "Universität Stuttgart",
+    "domain": "uni-stuttgart.de",
+    "wikidata_id": "Q122453",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-trier",
+    "entity_class": "university_de",
+    "name": "Universität Trier",
+    "domain": "uni-trier.de",
+    "wikidata_id": "Q702486",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-ulm",
+    "entity_class": "university_de",
+    "name": "Universität Ulm",
+    "domain": "uni-ulm.de",
+    "wikidata_id": "Q835662",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-vechta",
+    "entity_class": "university_de",
+    "name": "Universität Vechta",
+    "domain": "uni-vechta.de",
+    "wikidata_id": "Q2496174",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-zu-koeln",
+    "entity_class": "university_de",
+    "name": "Universität zu Köln",
+    "domain": "uni-koeln.de",
+    "wikidata_id": "Q54096",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaet-zu-luebeck",
+    "entity_class": "university_de",
+    "name": "Universität zu Lübeck",
+    "domain": "uni-luebeck.de",
+    "wikidata_id": "Q317087",
+    "region": "DE-SH",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "universitaetsmedizin-goettingen",
+    "entity_class": "university_de",
+    "name": "Universitätsmedizin Göttingen",
+    "domain": "umg.eu",
+    "wikidata_id": "Q2496408",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "university-of-labour",
+    "entity_class": "university_de",
+    "name": "University of Labour",
+    "domain": "university-of-labour.de",
+    "wikidata_id": "Q110489587",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "university-of-management-and-communication",
+    "entity_class": "university_de",
+    "name": "University of Management and Communication",
+    "domain": "umc-potsdam.de",
+    "wikidata_id": "Q1728041",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "victoria-internationale-hochschule",
+    "entity_class": "university_de",
+    "name": "VICTORIA | Internationale Hochschule",
+    "domain": "hwtk.de",
+    "wikidata_id": "Q17123645",
+    "region": "DE-BE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "vinzenz-pallotti-university",
+    "entity_class": "university_de",
+    "name": "Vinzenz Pallotti University",
+    "domain": "pthv.de",
+    "wikidata_id": "Q1619104",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "vwa-hochschule",
+    "entity_class": "university_de",
+    "name": "VWA Hochschule",
+    "domain": "vwa-hochschule.de",
+    "wikidata_id": "Q15852343",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "vwa-und-berufsakademie-goettingen",
+    "entity_class": "university_de",
+    "name": "VWA und Berufsakademie Göttingen",
+    "domain": "vwa-goettingen.de",
+    "wikidata_id": "Q2519262",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "welfenakademie-braunschweig",
+    "entity_class": "university_de",
+    "name": "Welfenakademie Braunschweig",
+    "domain": "welfenakademie.de",
+    "wikidata_id": "Q2557506",
+    "region": "DE-NI",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "westfaelische-hochschule-gelsenkirchen-bocholt-recklinghausen",
+    "entity_class": "university_de",
+    "name": "Westfälische Hochschule Gelsenkirchen Bocholt Recklinghausen",
+    "domain": "w-hs.de",
+    "wikidata_id": "Q2565230",
+    "region": "DE-NW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "westsaechsische-hochschule-zwickau",
+    "entity_class": "university_de",
+    "name": "Westsächsische Hochschule Zwickau",
+    "domain": "fh-zwickau.de",
+    "wikidata_id": "Q884503",
+    "region": "DE-SN",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "whitecliffe-university-of-applied-sciences",
+    "entity_class": "university_de",
+    "name": "Whitecliffe University of Applied Sciences",
+    "domain": "berlin-international.de",
+    "wikidata_id": "Q21040611",
+    "region": null,
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "whu-otto-beisheim-school-of-management",
+    "entity_class": "university_de",
+    "name": "WHU – Otto Beisheim School of Management",
+    "domain": "whu.edu",
+    "wikidata_id": "Q316595",
+    "region": "DE-RP",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "wildau-institute-of-technology",
+    "entity_class": "university_de",
+    "name": "Wildau Institute of Technology",
+    "domain": "wit-wildau.de",
+    "wikidata_id": "Q2570367",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "wilhelm-buechner-hochschule",
+    "entity_class": "university_de",
+    "name": "Wilhelm Büchner Hochschule",
+    "domain": "wb-fernstudium.de",
+    "wikidata_id": "Q2572209",
+    "region": "DE-HE",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "wilhelm-loehe-hochschule-fuer-angewandte-wissenschaften",
+    "entity_class": "university_de",
+    "name": "Wilhelm Löhe Hochschule für angewandte Wissenschaften",
+    "domain": "wlh-fuerth.de",
+    "wikidata_id": "Q1532259",
+    "region": "DE-BY",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "wilhelmsstift",
+    "entity_class": "university_de",
+    "name": "Wilhelmsstift",
+    "domain": "wilhelmsstift.de",
+    "wikidata_id": "Q2576313",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "xu-exponential-university-of-applied-sciences",
+    "entity_class": "university_de",
+    "name": "XU Exponential University of Applied Sciences",
+    "domain": "xu-university.com",
+    "wikidata_id": "Q60867576",
+    "region": "DE-BB",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "zeppelin-universitaet",
+    "entity_class": "university_de",
+    "name": "Zeppelin Universität",
+    "domain": "zeppelin-university.com",
+    "wikidata_id": "Q191426",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  },
+  {
+    "entity_id": "zeppelin-universitaet-2",
+    "entity_class": "university_de",
+    "name": "Zeppelin Universität",
+    "domain": "zu.de",
+    "wikidata_id": "Q191426",
+    "region": "DE-BW",
+    "registry_source": "wikidata",
+    "fetched_at": "2026-07-16T21:41:11.671542+00:00"
+  }
+]

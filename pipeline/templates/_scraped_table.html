@@ -1,0 +1,93 @@
+                <div id="scraped-table">
+                {% if scraped %}
+                <div class="scroll-box tall">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>URL</th>
+                                <th style="width:110px;">Kind</th>
+                                <th style="width:150px;">Scraped At</th>
+                                <th style="width:180px;">Output</th>
+                                <th style="width:420px;">Page</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in scraped %}
+                            <tr>
+                                <td><span class="url"><a href="{{ entry.url }}" target="_blank">{{ entry.url }}</a></span></td>
+                                <td>{{ entry.kind }}</td>
+                                <td style="font-size:0.8rem; color:var(--muted); font-family:var(--font-mono);">
+                                    {{ entry.scraped_at[:19] }}
+                                    {% if entry.changed is not none %}
+                                    <span class="badge {{ 'badge-accent' if entry.changed else '' }}" title="{{ 'Content changed since the previous scrape' if entry.changed else 'Same content as the previous scrape' }}">
+                                        {{ 'Changed' if entry.changed else 'Unchanged' }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div style="display:flex; flex-wrap:wrap; gap:0.35rem;">
+                                        <a href="/scraped/{{ entry.filename }}" target="_blank" class="btn btn-sm" style="text-decoration:none; display:inline-block;">
+                                            View YAML
+                                        </a>
+                                        <button type="button" class="btn btn-primary btn-sm extract-llm-btn" data-url="{{ entry.url }}" title="LLM-Extraktion fuer Seiten, die die regelbasierte Erkennung nicht schafft (z.B. geschriebene Monatsnamen ohne Jahr in derselben Zeile)">
+                                            Extract LLM
+                                        </button>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if entry.page_slug %}
+                                    <a href="/page-data/{{ entry.page_category }}/{{ entry.page_slug }}" target="_blank" class="btn btn-sm" style="text-decoration:none; display:inline-block;">
+                                        Page created ({{ entry.page_category }}/{{ entry.page_slug }})
+                                    </a>
+                                    {% else %}
+                                    <form action="/create-page" method="post">
+                                        <input type="hidden" name="run_id" value="{{ run_id }}">
+                                        <input type="hidden" name="url" value="{{ entry.url }}">
+                                        <div class="inline-form">
+                                            <span class="field-suggest-group">
+                                                <input type="text" name="title" value="{{ entry.title }}" placeholder="Title" required style="width:150px;">
+                                                <button type="button" class="btn btn-sm suggest-title-btn" data-url="{{ entry.url }}" title="LLM-Bereinigung des rohen &lt;title&gt;-Tags (entfernt Jahreszahlen, doppelte Site-Namen, ...)">
+                                                    Suggest
+                                                </button>
+                                            </span>
+                                            <span class="field-suggest-group">
+                                                <input type="text" name="category" list="category-suggestions" placeholder="Category" required style="width:150px;">
+                                                <button type="button" class="btn btn-sm suggest-category-btn" data-url="{{ entry.url }}" title="LLM-Vorschlag, bevorzugt bereits vorhandene Kategorien">
+                                                    Suggest
+                                                </button>
+                                            </span>
+                                            <span class="field-suggest-group">
+                                                <input type="text" name="tags" list="tag-suggestions" placeholder="tags, comma" style="width:120px;">
+                                                <button type="button" class="btn btn-sm suggest-tags-btn" data-url="{{ entry.url }}" title="LLM-Vorschlaege, bevorzugt bereits verwendete Tags">
+                                                    Suggest
+                                                </button>
+                                            </span>
+                                            <select name="license" required class="license-select" title="Which license fits? See the help text above the table.">
+                                                <option value="" disabled selected>License…</option>
+                                                {% for option in license_options %}
+                                                <option value="{{ option.value }}">{{ option.label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <input type="text" name="contributed_by" value="{{ entry.contributed_by }}" placeholder="Contributed by (GitHub handle)" title="Credits whoever suggested this URL - prefilled from an '@handle seed' line, editable, leave blank for none." style="width:190px;">
+                                        </div>
+                                        <div class="inline-form" style="margin-top:0.4rem; padding-top:0.4rem; border-top:1px dashed var(--line);">
+                                            <button type="button" class="btn btn-sm suggest-all-btn" data-url="{{ entry.url }}" title="Fuellt Title, Category und Tags per LLM-Vorschlag - Lizenz bleibt manuell (rechtliche Einschaetzung)">
+                                                Suggest All
+                                            </button>
+                                            <button type="button" class="btn btn-sm auto-create-btn" data-url="{{ entry.url }}" title="Suggest All, dann automatisch Create Page - sobald eine Lizenz gewaehlt ist">
+                                                Auto-Create
+                                            </button>
+                                            <button type="submit" class="btn btn-primary btn-sm">Create Page</button>
+                                        </div>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="empty-hint">Nothing scraped yet.</p>
+                {% endif %}
+                </div>

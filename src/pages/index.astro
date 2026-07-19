@@ -1,0 +1,227 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getAllContent } from "../../lib/all-content";
+import type { ContentCard } from "../../lib/all-content";
+import { graph, websiteNode } from "../../lib/structured-data";
+
+const cards = [...getAllContent()].sort((a, b) => a.title.localeCompare(b.title, "de"));
+const tags = [...new Set([...cards.flatMap((c) => c.tags)].map((t) => t.toLowerCase()))].sort((a, b) => a.localeCompare(b, "de"))
+
+// Google-SERP-like clustering: one result group per type, most relevant
+// items (ContentCard.featured) shown directly, the rest collapsed behind a
+// "show more" toggle so e.g. Feiertage's 200+ countries don't drown out
+// everything else.
+const groupsByType = new Map<string, ContentCard[]>();
+for (const card of cards) {
+  const group = groupsByType.get(card.type);
+  if (group) group.push(card);
+  else groupsByType.set(card.type, [card]);
+}
+const groups = [...groupsByType.entries()].map(([type, items]) => ({
+  type,
+  items: [...items].sort((a, b) => Number(b.featured) - Number(a.featured)),
+  moreCount: items.filter((i) => !i.featured).length,
+}));
+
+const homeDescription =
+  "Strukturierte Antworten auf Wann-Fragen, als Kalender-Abo - Feiertage, Urlaubsfenster, Saisonkalender und mehr, alles durchsuchbar.";
+const structuredData = graph([
+  websiteNode({ name: "Wann-O-Meter", url: new URL("/", Astro.site).href, description: homeDescription }),
+]);
+---
+
+<Layout
+  title="Wann ist der beste Zeitpunkt?"
+  description={homeDescription}
+  structuredData={structuredData}
+>
+  <h1>Wann ist der beste Zeitpunkt fuer X?</h1>
+  <p class="lead">
+    Ein Kalender, auf den man geprüfte Zeitschichten legt. Jede Kombination teilbar als URL,
+    jede Ebene einzeln abonnierbar als ICS-Feed.
+  </p>
+  <p><a class="cta" href="/kalender/">Ebenen-Kalender öffnen →</a></p>
+
+  <h2>Alle Themen durchsuchen</h2>
+  <input
+    type="search"
+    id="search-input"
+    placeholder="Titel oder Tag suchen…"
+    aria-label="Seiten durchsuchen"
+  />
+
+  {
+    tags.length > 0 && (
+      <p class="tags">
+        {tags.map((tag) => (
+          <button type="button" class="badge tag-filter" data-tag={tag}>{tag}</button>
+        ))}
+      </p>
+    )
+  }
+
+  <div id="results">
+    {
+      groups.map((group) => (
+        <section class="group" data-type={group.type}>
+          <h2>
+            {group.type} <span class="count">{group.items.length}</span>
+          </h2>
+          <ul class="cards narrow">
+            {group.items.map((c) => (
+              <li
+                data-title={c.title.toLowerCase()}
+                data-tags={c.tags.join(" ").toLowerCase()}
+                data-featured={String(c.featured)}
+                hidden={!c.featured}
+              >
+                <a href={c.url}>{c.title}</a>
+              </li>
+            ))}
+          </ul>
+          {group.moreCount > 0 && (
+            <button type="button" class="more" data-group={group.type}>
+              +{group.moreCount} weitere anzeigen
+            </button>
+          )}
+        </section>
+      ))
+    }
+  </div>
+  <p id="no-results" hidden>Keine Treffer.</p>
+</Layout>
+
+<style>
+  .lead {
+    font-size: 1.05rem;
+    max-width: 34rem;
+  }
+  .cta {
+    margin: 0.5rem 0 1rem;
+  }
+  #search-input {
+    width: 100%;
+    max-width: 24rem;
+    margin: 1rem 0;
+    display: block;
+  }
+  .tags {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .tag-filter {
+    cursor: pointer;
+    font: inherit;
+  }
+  .tag-filter.active {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .group h2 {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+  .count {
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-family: var(--font-mono);
+    font-weight: 400;
+  }
+  .narrow {
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  }
+  .narrow a {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.88rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .more {
+    margin: 0.7rem 0 2rem;
+  }
+</style>
+
+<script>
+  // Plain-vanilla substring filter, no framework/search-index dependency -
+  // dataset is a few hundred items at most, well below the threshold where
+  // that would pay off. Non-featured items start hidden (collapsed into
+  // their type's cluster); a group's "show more" button reveals them
+  // permanently, and an active search/tag filter always overrides the
+  // collapse so nothing is unreachable.
+  const search = document.getElementById("search-input") as HTMLInputElement;
+  const noResults = document.getElementById("no-results")!;
+  const groups = Array.from(document.querySelectorAll<HTMLElement>(".group"));
+  const tagButtons = document.querySelectorAll<HTMLButtonElement>(".tag-filter");
+  const moreButtons = document.querySelectorAll<HTMLButtonElement>(".more");
+
+  let activeTag: string | null = null;
+  const expandedGroups = new Set<string>();
+
+  function apply() {
+    const query = search.value.trim().toLowerCase();
+    const searchActive = query !== "" || activeTag !== null;
+    let totalVisible = 0;
+
+    for (const group of groups) {
+      const groupName = group.dataset.type ?? "";
+      let visibleInGroup = 0;
+      for (const entry of group.querySelectorAll<HTMLLIElement>("li")) {
+        const title = entry.dataset.title ?? "";
+        const tags = entry.dataset.tags ?? "";
+        const isFeatured = entry.dataset.featured === "true";
+        const matchesQuery = query === "" || title.includes(query) || tags.includes(query);
+        const matchesTag = activeTag === null || tags.split(" ").includes(activeTag);
+        const collapsed = !searchActive && !isFeatured && !expandedGroups.has(groupName);
+        const show = matchesQuery && matchesTag && !collapsed;
+        entry.hidden = !show;
+        if (show) visibleInGroup++;
+      }
+      group.hidden = visibleInGroup === 0;
+      totalVisible += visibleInGroup;
+
+      const moreButton = group.querySelector<HTMLButtonElement>(".more");
+      if (moreButton) moreButton.hidden = searchActive || expandedGroups.has(groupName);
+    }
+
+    noResults.hidden = totalVisible > 0;
+  }
+
+  search.addEventListener("input", apply);
+  for (const button of tagButtons) {
+    button.addEventListener("click", () => {
+      // Lowercased to match `tags` above (itself lowercased from data-tags) -
+      // without this, clicking a tag whose displayed casing isn't already
+      // all-lowercase (e.g. "Feiertage") silently matches nothing.
+      const tagValue = (button.dataset.tag ?? "").toLowerCase();
+      activeTag = activeTag === tagValue ? null : tagValue;
+      for (const b of tagButtons) {
+        b.classList.toggle("active", (b.dataset.tag ?? "").toLowerCase() === activeTag && activeTag !== null);
+      }
+      apply();
+    });
+  }
+  for (const button of moreButtons) {
+    button.addEventListener("click", () => {
+      expandedGroups.add(button.dataset.group ?? "");
+      apply();
+    });
+  }
+
+  // Nav's "Durchsuchen" link points at "/#search-input" - focus it on
+  // arrival. Covers both a fresh page load and clicking the link while
+  // already on "/" (same-document hash change, no reload/DOMContentLoaded).
+  function focusSearchIfTargeted() {
+    if (location.hash !== "#search-input") return;
+    // preventScroll + an explicit centered scrollIntoView, instead of the
+    // browser's default jump-to-top-of-viewport anchor behavior - otherwise
+    // the input lands right at the top edge, easy to miss.
+    search.focus({ preventScroll: true });
+    search.scrollIntoView({ block: "center", behavior: "smooth" });
+  }
+  focusSearchIfTargeted();
+  window.addEventListener("hashchange", focusSearchIfTargeted);
+</script>

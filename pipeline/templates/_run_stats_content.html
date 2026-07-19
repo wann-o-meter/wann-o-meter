@@ -1,0 +1,40 @@
+                    <h3 class="section-title">Run {{ run.run_id }}</h3>
+                    {% if run.source_entity_class %}
+                    <div style="font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem;">
+                        Seeded from harvest registry: <strong>{{ run.source_entity_class }}</strong>
+                    </div>
+                    {% endif %}
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="stat-value">{{ run.pages_crawled }}</div>
+                            <div class="stat-label">Crawled</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">{{ run.accepted_count }}</div>
+                            <div class="stat-label">Queued for Scrape</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" style="color:var(--accent);">{{ run.rejected_count }}</div>
+                            <div class="stat-label">Rejected</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:1rem; font-size:0.85rem; color:var(--muted);">
+                        Status:
+                        {% if run.status == "running" %}<strong class="running">Running</strong>
+                        {% elif run.status == "stopped" %}<strong>Stopped</strong>
+                        {% else %}<strong>Done</strong>{% endif %}
+                    </div>
+                    {% if run.status == "running" %}
+                    <div style="margin-top:0.35rem; font-size:0.85rem; color:var(--muted);">
+                        Currently crawling: <strong>{{ run.current_seed or "..." }}</strong>
+                    </div>
+                    {% endif %}
+                    <div style="margin-top:0.5rem; font-size:0.8rem; color:var(--muted);">
+                        Seeds: {{ run.seeds_done }} / {{ run.seeds|length }} done
+                        {% if run.pages_per_seed %}· {{ run.pages_per_seed }} pages/seed budget
+                        {% else %}· unlimited pages/seed{% endif %}
+                    </div>
+                    <button type="button" id="auto-accept-toggle-btn" class="btn btn-sm {{ 'btn-primary' if run.auto_accept_dated else '' }}" style="margin-top:0.75rem;" title="When on, a newly discovered page with a detected date is scraped immediately instead of waiting for a manual Scrape click">
+                        Auto-scrape dated pages: {{ 'On' if run.auto_accept_dated else 'Off' }}
+                    </button>

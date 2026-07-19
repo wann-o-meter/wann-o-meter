@@ -1,0 +1,42 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { allPresets, calendarUrl } from "../../../lib/presets";
+import { STATES } from "../../../lib/states";
+
+export function getStaticPaths() {
+  return allPresets().map((preset) => ({ params: { slug: preset.slug }, props: { preset } }));
+}
+
+const { preset } = Astro.props;
+const LAYER_NAMES: Record<string, string> = {
+  holiday: "Feiertage",
+  school_holidays: "Schulferien",
+  produce: "Gemüsesaison",
+};
+---
+
+<Layout title={preset.name} description={preset.description}>
+  <p class="back"><a href="/presets/">&larr; Presets</a></p>
+  <h1>{preset.name}</h1>
+  <p>{preset.description}</p>
+
+  <p class="details">
+    Region: {STATES[preset.region] ?? preset.region} · Ebenen:{" "}
+    {preset.layers.map((e) => LAYER_NAMES[e]).join(", ")}
+  </p>
+
+  <p>
+    <a class="cta" href={calendarUrl(preset)}>Im Ebenen-Kalender öffnen →</a>
+  </p>
+</Layout>
+
+<style>
+  .back {
+    font-size: 0.9rem;
+  }
+  .details {
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-family: var(--font-mono);
+  }
+</style>

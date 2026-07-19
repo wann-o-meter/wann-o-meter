@@ -1,0 +1,4 @@
+title: Test Fixture Page (nested category, not real content)
+description: Placeholder page used by lib/pages.test.ts to cover 3-level-deep category nesting - not a real curated source.
+tags:
+- fixture
