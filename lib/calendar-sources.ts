@@ -44,3 +44,17 @@ export function getAllCalendarEntries(): CalendarEntry[] {
 export function getCalendarEntry(id: string): CalendarEntry | undefined {
   return getAllCalendarEntries().find((entry) => entry.id === id);
 }
+
+// Bounded subset for the homepage's "Heute ist..." teaser (src/pages/
+// index.astro, computed client-side so "today" never freezes at build
+// time) - region-agnostic Saisonkalender plus the 16 German states'
+// Feiertage/Urlaubsfenster, never the 200+ country Feiertage entries the
+// full catalog also has (too many to ship/fetch for a one-line teaser).
+export function getTodayFeedEntries(): CalendarEntry[] {
+  return getAllCalendarEntries().filter(
+    (e) =>
+      e.id.startsWith("saisonkalender--") ||
+      e.id.startsWith("urlaubsfenster--") ||
+      e.id.startsWith("feiertage--de-"),
+  );
+}

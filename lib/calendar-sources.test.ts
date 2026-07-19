@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getAllPages, getCategoryMeta } from "./pages";
-import { getAllCalendarEntries, getCalendarEntry } from "./calendar-sources";
+import { getAllCalendarEntries, getCalendarEntry, getTodayFeedEntries } from "./calendar-sources";
 
 describe("getAllCalendarEntries", () => {
   it("returns entries for every content type, grouped by the page's real category rather than a generic bucket", () => {
@@ -44,5 +44,16 @@ describe("getAllCalendarEntries", () => {
     expect(schulferien).toBeDefined();
     expect(schulferien!.url).toBe("/schulferien/nw/");
     expect(schulferien!.windows.length).toBeGreaterThan(0);
+  });
+});
+
+describe("getTodayFeedEntries", () => {
+  it("includes only Saisonkalender, Urlaubsfenster, and the 16 German-state Feiertage - never a country or schulferien entry", () => {
+    const ids = getTodayFeedEntries().map((e) => e.id);
+    expect(ids.some((id) => id.startsWith("saisonkalender--"))).toBe(true);
+    expect(ids.some((id) => id.startsWith("urlaubsfenster--"))).toBe(true);
+    expect(ids.filter((id) => id.startsWith("feiertage--de-")).length).toBe(16);
+    expect(ids.some((id) => id.startsWith("feiertage--") && !id.startsWith("feiertage--de-"))).toBe(false);
+    expect(ids.some((id) => id.startsWith("schulferien--"))).toBe(false);
   });
 });

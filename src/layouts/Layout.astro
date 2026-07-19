@@ -49,7 +49,7 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
     <header>
       <div class:list={["wrap", "header-bar", { wide }]}>
         <a href="/" class="brand">Wann-<span class="brand-accent">O</span>-Meter</a>
-        <span id="today-indicator" class="today-indicator"></span>
+        <a id="today-indicator" class="today-indicator" href="/kalender/"></a>
         <nav>
           <a href="/kalender/">Kalender</a>
           <a href="/#search-input">Durchsuchen</a>
@@ -76,7 +76,13 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
       // last built, not update as real days/weeks pass for a visitor.
       import { formatTodayLabel } from "../../lib/date-display";
       const el = document.getElementById("today-indicator");
-      if (el) el.textContent = formatTodayLabel();
+      if (el instanceof HTMLAnchorElement) {
+        el.textContent = formatTodayLabel();
+        // Kalender.vue reads ?day= to jump straight to that day's week view.
+        const d = new Date();
+        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        el.href = `/kalender/?day=${iso}`;
+      }
 
       // Cmd+K (Mac) / Ctrl+K (everyone else) jumps to the homepage search,
       // same target as the "Durchsuchen" nav link - focuses it directly if
@@ -140,6 +146,10 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
     color: var(--muted);
     font-family: var(--font-mono);
     font-size: 0.8rem;
+    text-decoration: none;
+  }
+  .today-indicator:hover {
+    color: var(--accent);
   }
   nav {
     display: flex;

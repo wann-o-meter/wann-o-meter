@@ -293,6 +293,7 @@ export interface PageEvent {
   date: string;
   to?: string; // present only when it differs from `date` (a multi-day window, not a single-day marker)
   label: string;
+  value?: number; // e.g. Urlaubsfenster's efficiency (totalDaysOff / requiredVacationDays) - see RawWindow.value
 }
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -306,7 +307,7 @@ export function getPageEvents(page: Page): PageEvent[] {
   if (page.data.windows.length > 0) {
     return page.data.windows
       .flatMap((w) => materializeRawWindow(w, page.slug, page.data.source, rollingYears()))
-      .map((w) => ({ date: w.from, to: w.to !== w.from ? w.to : undefined, label: w.description }))
+      .map((w) => ({ date: w.from, to: w.to !== w.from ? w.to : undefined, label: w.description, value: w.value }))
       .sort((a, b) => a.date.localeCompare(b.date));
   }
 
