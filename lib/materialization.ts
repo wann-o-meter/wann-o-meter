@@ -13,7 +13,7 @@ export function holidaySource(): Source {
     retrieved_at: DATA_AS_OF,
     license: "own_derivation",
     license_note:
-      "Own derivation from the statutory holidays of each German state (date-holidays library, based on each state's holiday laws).",
+      "Eigene Ableitung aus den gesetzlichen Feiertagen der Bundesländer (Bibliothek date-holidays, basierend auf den jeweiligen Feiertagsgesetzen).",
     extraction: "parser", // code computes this, no human types it
   };
 }

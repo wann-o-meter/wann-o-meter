@@ -1,11 +1,20 @@
 ---
-import type { Source } from "../../lib/schema";
+import type { License, Source } from "../../lib/schema";
 import { formatDate } from "../../lib/format-date";
 
 interface Props {
   sources: Source[];
 }
 const { sources } = Astro.props;
+
+const LICENSE_LABELS: Record<License, string> = {
+  official_par5: "Amtliches Werk (§5 UrhG)",
+  dl_de_by: "Datenlizenz Deutschland – Namensnennung",
+  cc_by: "CC BY",
+  tos_checked: "Nutzung gemäß geprüften Nutzungsbedingungen",
+  permission_granted: "Nutzung mit Genehmigung",
+  own_derivation: "Eigene Ableitung",
+};
 ---
 
 <h2>Quelle &amp; Stand</h2>
@@ -13,7 +22,7 @@ const { sources } = Astro.props;
   {
     sources.map((q) => (
       <li class="source-item">
-        <span class="label">{q.license}</span>
+        <span class="label">{LICENSE_LABELS[q.license]}</span>
         <a href={q.url}>{q.url}</a>
         <span class="retrieved"> · abgerufen am {formatDate(q.retrieved_at)}</span>
         {q.contributed_by && (
