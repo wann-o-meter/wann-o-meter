@@ -19,9 +19,9 @@ describe("getAllCalendarEntries", () => {
   });
 
   it("only includes pages that actually have events", () => {
-    const naturphaenomene = getAllCalendarEntries().filter((e) => e.id.startsWith("naturphaenomene--"));
-    expect(naturphaenomene.length).toBeGreaterThan(0);
-    for (const a of naturphaenomene) expect(a.windows.length).toBeGreaterThan(0);
+    const entries = getAllCalendarEntries();
+    expect(entries.length).toBeGreaterThan(0);
+    for (const e of entries) expect(e.windows.length).toBeGreaterThan(0);
   });
 
   it("builds a resolvable saisonkalender entry with url/feedUrl matching the real routes", () => {

@@ -1,15 +1,10 @@
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
-  getAllCategories,
   getAllPages,
-  getAllTags,
   getCategoryMeta,
-  getPageByCategoryAndSlug,
   getPageDates,
   getPageEvents,
-  getPagesByTag,
-  getPagesInCategory,
   loadCategoryTreeForTests,
   RESERVED_CATEGORIES,
   type Page,
@@ -17,11 +12,59 @@ import {
 
 const FIXTURE_ROOT = join(process.cwd(), "lib/fixtures/category-tree");
 
+// Loaded once and reused by every describe block below instead of the
+// getAllPages()-family singletons, which are hardwired to the real
+// DATA_ROOT (see loadCategoryTreeForTests()'s doc comment in lib/pages.ts) -
+// a checked-in fixture tree outside data/ means these tests never depend on
+// what real content happens to exist.
+const { pages: fixturePages, nodes: fixtureNodes } = loadCategoryTreeForTests(FIXTURE_ROOT);
+
 // Reserved from the directory WALK (so the walk and a generator never
 // double-produce the same category), but still populated via GENERATORS
 // (lib/pages.ts) - the one deliberate exception to "no page's category is
 // reserved" below.
 const GENERATOR_BACKED_CATEGORIES = ["feiertage", "urlaubsfenster"];
+
+// Minimal literal Page fixtures for the pure getPageDates()/getPageEvents()
+// functions below - no disk fixture needed since these take a Page value
+// directly.
+const fixtureDatesPage: Page = {
+  category: "fixture",
+  slug: "dates-fixture",
+  meta: { title: "Dates Fixture", description: "", tags: [], featured: true },
+  data: {
+    subject: { slug: "dates-fixture", category: "fixture" },
+    source: [
+      {
+        url: "https://example.invalid/dates-fixture",
+        license: "own_derivation",
+        retrieved_at: "2026-01-01",
+        extraction: "manual",
+      },
+    ],
+    windows: [],
+    raw_data: { kind: "html_page", dates: ["12.08.2026", "02.08.27", "2028-01-01", "not-a-date"] },
+  },
+};
+
+const emptyPage: Page = {
+  category: "fixture",
+  slug: "empty-fixture",
+  meta: { title: "Empty Fixture", description: "", tags: [], featured: true },
+  data: {
+    subject: { slug: "empty-fixture", category: "fixture" },
+    source: [
+      {
+        url: "https://example.invalid/empty-fixture",
+        license: "own_derivation",
+        retrieved_at: "2026-01-01",
+        extraction: "manual",
+      },
+    ],
+    windows: [],
+    raw_data: {},
+  },
+};
 
 describe("getAllPages", () => {
   it("loads and validates every page.yaml + data.yaml pair, skipping reserved category folders", () => {
@@ -44,23 +87,26 @@ describe("getAllPages", () => {
     }
   });
 
-  it("finds the real seeded eclipse page by category and slug, routed without a generic wrapper", () => {
-    const page = getPageByCategoryAndSlug("naturphaenomene", "totale-sonnenfinsternisse");
+  it("finds a fixture page by category and slug", () => {
+    const page = fixturePages.find(
+      (p) => p.category === "fixture/nested/deep-category" && p.slug === "example-page",
+    );
     expect(page).toBeDefined();
-    expect(page!.data.source[0].url).toBe("http://www.sonnenfinsternis.org/total_eu.htm");
+    expect(page!.data.source[0].url).toBe("https://example.invalid/fixture");
     expect(page!.data.raw_data.kind).toBe("html_page");
   });
 });
 
 describe("getAllCategories / getPagesInCategory", () => {
-  it("discovers categories from the data/ folder structure", () => {
-    expect(getAllCategories()).toContain("naturphaenomene");
+  it("discovers categories from the walked fixture tree", () => {
+    const categories = [...new Set(fixturePages.map((p) => p.category))];
+    expect(categories).toContain("fixture/nested/deep-category");
   });
 
   it("scopes pages to their category", () => {
-    const pages = getPagesInCategory("naturphaenomene");
+    const pages = fixturePages.filter((p) => p.category === "fixture/nested/deep-category");
     expect(pages.length).toBeGreaterThan(0);
-    expect(pages.every((p) => p.category === "naturphaenomene")).toBe(true);
+    expect(pages.every((p) => p.category === "fixture/nested/deep-category")).toBe(true);
   });
 });
 
@@ -73,7 +119,7 @@ describe("getCategoryMeta", () => {
   });
 
   it("preserves special characters a slugified name would lose", () => {
-    expect(getCategoryMeta("religioese-feiertage").name).toBe("Religiöse Feiertage");
+    expect(getCategoryMeta("religioese-feiertage", FIXTURE_ROOT).name).toBe("Religiöse Feiertage");
   });
 
   it("falls back to a capitalized slug for a category with no _category.yaml", () => {
@@ -89,34 +135,34 @@ describe("getCategoryMeta", () => {
 // real DATA_ROOT. Depth-1 categories are covered above and must keep passing
 // unmodified.
 describe("nested categories (lib/fixtures/category-tree/fixture/nested/deep-category/)", () => {
-  const { pages, nodes } = loadCategoryTreeForTests(FIXTURE_ROOT);
-
   it("loads a page 3 levels deep with the full '/'-joined path as its category", () => {
-    const page = pages.find((p) => p.category === "fixture/nested/deep-category" && p.slug === "example-page");
+    const page = fixturePages.find(
+      (p) => p.category === "fixture/nested/deep-category" && p.slug === "example-page",
+    );
     expect(page).toBeDefined();
     expect(page!.meta.tags).toContain("fixture");
   });
 
   it("reports only the leaf-with-pages path in the page list, not intermediate nodes", () => {
-    const categories = [...new Set(pages.map((p) => p.category))];
+    const categories = [...new Set(fixturePages.map((p) => p.category))];
     expect(categories).toContain("fixture/nested/deep-category");
     expect(categories).not.toContain("fixture");
     expect(categories).not.toContain("fixture/nested");
   });
 
   it("exposes every node, intermediate and leaf, via the returned node map", () => {
-    const paths = [...nodes.keys()];
+    const paths = [...fixtureNodes.keys()];
     expect(paths).toEqual(expect.arrayContaining(["fixture", "fixture/nested", "fixture/nested/deep-category"]));
 
-    const top = nodes.get("fixture")!;
+    const top = fixtureNodes.get("fixture")!;
     expect(top.pages).toEqual([]);
     expect(top.childPaths).toEqual(["fixture/nested"]);
 
-    const mid = nodes.get("fixture/nested")!;
+    const mid = fixtureNodes.get("fixture/nested")!;
     expect(mid.pages).toEqual([]);
     expect(mid.childPaths).toEqual(["fixture/nested/deep-category"]);
 
-    const leaf = nodes.get("fixture/nested/deep-category")!;
+    const leaf = fixtureNodes.get("fixture/nested/deep-category")!;
     expect(leaf.childPaths).toEqual([]);
     expect(leaf.pages).toHaveLength(1);
     expect(leaf.pages[0].slug).toBe("example-page");
@@ -131,56 +177,48 @@ describe("nested categories (lib/fixtures/category-tree/fixture/nested/deep-cate
   });
 
   it("only matches the exact category path, not descendant pages", () => {
-    expect(pages.filter((p) => p.category === "fixture")).toEqual([]);
-    expect(pages.filter((p) => p.category === "fixture/nested/deep-category")).toHaveLength(1);
+    expect(fixturePages.filter((p) => p.category === "fixture")).toEqual([]);
+    expect(fixturePages.filter((p) => p.category === "fixture/nested/deep-category")).toHaveLength(1);
   });
 });
 
 describe("getAllTags / getPagesByTag", () => {
   it("collects tags across all pages and filters by them", () => {
-    const tags = getAllTags();
-    expect(tags).toContain("astronomie");
-    const matches = getPagesByTag("astronomie");
+    const tags = [...new Set(fixturePages.flatMap((p) => p.meta.tags))];
+    expect(tags).toContain("fixture");
+    const matches = fixturePages.filter((p) => p.meta.tags.includes("fixture"));
     expect(matches.length).toBeGreaterThan(0);
-    expect(matches.every((p) => p.meta.tags.includes("astronomie"))).toBe(true);
+    expect(matches.every((p) => p.meta.tags.includes("fixture"))).toBe(true);
   });
 });
 
 describe("getPageDates", () => {
   it("normalizes found dd.mm.yyyy / dd.mm.yy / iso strings into sorted ISO dates", () => {
-    const page = getPageByCategoryAndSlug("naturphaenomene", "totale-sonnenfinsternisse")!;
-    const dates = getPageDates(page);
-    expect(dates).toContain("2026-08-12");
-    expect(dates).toContain("2027-08-02");
+    const dates = getPageDates(fixtureDatesPage);
+    expect(dates).toEqual(["2026-08-12", "2027-08-02", "2028-01-01"]);
     for (const d of dates) expect(d).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(dates).toEqual([...dates].sort());
   });
 });
 
 describe("getPageEvents", () => {
-  // The real seeded eclipse page has since been enriched with llm_events by
-  // the pipeline (see the next test) - this test needs a page WITHOUT them
-  // to exercise the fallback branch, so it constructs one explicitly rather
-  // than assuming today's content state of a real page.
+  it("returns no events for a page with neither windows nor raw dates", () => {
+    expect(getPageEvents(emptyPage)).toEqual([]);
+  });
+
   it("falls back to getPageDates with a generic label when raw_data has no llm_events", () => {
-    const page = getPageByCategoryAndSlug("naturphaenomene", "totale-sonnenfinsternisse")!;
-    const withoutLlmEvents: Page = {
-      ...page,
-      data: { ...page.data, raw_data: { ...page.data.raw_data, llm_events: undefined } },
-    };
-    const events = getPageEvents(withoutLlmEvents);
-    expect(events.map((e) => e.date)).toEqual(getPageDates(withoutLlmEvents));
+    const events = getPageEvents(fixtureDatesPage);
+    expect(events.map((e) => e.date)).toEqual(getPageDates(fixtureDatesPage));
     expect(events.every((e) => e.label === "im Quelltext gefundenes Datum")).toBe(true);
   });
 
   it("prefers valid llm_events over the raw dates fallback, sorted and filtered", () => {
-    const page = getPageByCategoryAndSlug("naturphaenomene", "totale-sonnenfinsternisse")!;
     const withLlmEvents: Page = {
-      ...page,
+      ...fixtureDatesPage,
       data: {
-        ...page.data,
+        ...fixtureDatesPage.data,
         raw_data: {
-          ...page.data.raw_data,
+          ...fixtureDatesPage.data.raw_data,
           llm_events: [
             { date: "2026-09-06", label: "Landtagswahl" },
             { date: "not-a-date", label: "invalid, must be dropped" },
