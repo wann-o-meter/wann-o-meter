@@ -17,7 +17,7 @@ jobs:
       - run: bun run build
       - uses: peaceiris/actions-gh-pages@v4
         with:
-          personal_token: ${{ secrets.PAGES_DEPLOY_TOKEN }}
+          deploy_key: ${{ secrets.PAGES_DEPLOY_KEY }}
           external_repository: wann-o-meter/wann-o-meter.github.io
           publish_branch: main
           publish_dir: dist
