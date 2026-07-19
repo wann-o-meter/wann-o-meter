@@ -1,0 +1,29 @@
+subject:
+  slug: apfel
+  name: Apfel
+  category: saisonkalender
+windows:
+  - type: main_season
+    name: Hauptsaison
+    year: null
+    from: --08
+    to: --11
+    precision: approximate
+    ics: false
+  - type: stored_produce
+    name: Lagerware
+    year: null
+    from: --12
+    to: --04
+    precision: approximate
+    ics: false
+source:
+  url: https://www.bzfe.de/kueche-und-alltag/einkaufen/der-saisonkalender
+  license: dl_de_by
+  license_note: >-
+    Bundeszentrum fuer Ernaehrung (BZfE, nachgeordnete Einrichtung der BLE/BMEL). Monatsangaben
+    aus dem oeffentlich bekannten BZfE-Saisonkalender, quer geprueft gegen mehrere
+    Verbraucherportale, nicht live aus dem interaktiven Widget gescrapt (das liefert keinen
+    Text-Export).
+  retrieved_at: '2026-07-12'
+  extraction: manual

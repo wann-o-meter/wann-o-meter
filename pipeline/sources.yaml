@@ -1,0 +1,38 @@
+# Registry wiederkehrender Quellen (core/runner.py liest das). Nur Quellen,
+# die den fetch -> extract -> validate -> merge -> PR-Lebenszyklus
+# durchlaufen - einmalige Batch-Verarbeitungen (DWD) gehoeren nach tools/,
+# nicht hierher (siehe PLAN.md Abschnitt 7 / pipeline/README.md).
+#
+# strategie: parser|llm|scraper - Entscheidungsregel in PLAN.md Abschnitt 7.
+# Dass jede Quelle hier deklariert sein MUSS, ist die Lizenz-Systematik
+# (Abschnitt 6) als erzwungener Prozess statt Konvention.
+
+schulferien_kmk:
+  kategorie: schulferien
+  url: https://www.kmk.org/service/ferien.html
+  # official_par5 = "Amtliche Werke (§5 UrhG)" (PLAN.md Abschnitt 6, Punkt 1) -
+  # muss dem licenseSchema-Enum in lib/schema.ts woertlich entsprechen, da
+  # core/generic_source.py diesen Wert direkt in jede data.yaml uebernimmt.
+  lizenz: official_par5
+  rhythmus: jaehrlich
+  strategie: llm
+  # [type, year] statt des generischen Default [type] - die Seite hat pro
+  # Bundesland mehrere Jahre an Zeitfenstern (siehe data/schulferien/*/data.yaml).
+  # Ein Default von nur [type] wuerde bei einem "--jahr 2029"-Lauf die bereits
+  # gespeicherten 2026/2027-Fenster ueberschreiben statt sie zu ergaenzen.
+  replace_key: [type, year]
+  # Verankert die subject.slug-Vokabeln, damit ein LLM-Lauf immer dieselben
+  # 16 vorhandenen data/schulferien/{code}/-Ordner trifft statt Geschwister-
+  # Ordner mit abweichender Schreibweise (z.B. "baden-wuerttemberg") anzulegen.
+  extraction_hint: >
+    This page lists German public school holiday date ranges (e.g.
+    Osterferien, Pfingstferien, Sommerferien, Herbstferien, Weihnachtsferien)
+    for the school year around {jahr}. It covers all 16 German Bundeslaender.
+    Treat each Bundesland as one separate subject. subject.slug MUST be
+    exactly one of: bw, by, be, bb, hb, hh, he, mv, ni, nw, rp, sh, sl, sn,
+    st, th (lowercase ISO 3166-2:DE Bundesland code - never invent a
+    different spelling). subject.name = "Schulferien <voller
+    Bundesland-Name>" (e.g. "Schulferien Baden-Württemberg").
+  license_note: >
+    Ferientermine der Kultusministerkonferenz (KMK), zusammengestellt aus den
+    Meldungen der Kultusministerien der Laender fuer das Schuljahr {jahr}.

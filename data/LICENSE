@@ -1,0 +1,21 @@
+The curated dataset in this directory (/data) - holiday/school-holiday/
+vacation-window/season/preset facts, whether hand-authored or computed - is
+licensed under the Creative Commons Attribution 4.0 International License
+(CC BY 4.0).
+
+To view a copy of this license, visit
+https://creativecommons.org/licenses/by/4.0/legalcode
+
+You are free to share and adapt this data for any purpose, including
+commercially, as long as you give appropriate credit (a link back to the
+originating page, or to https://wannometer.de, is sufficient), indicate
+if changes were made, and don't imply we endorse your use.
+
+This license applies to the compiled/curated dataset itself. Where a
+data.yaml entry's `source` cites a third-party origin (e.g. an official
+government or Kultusministerkonferenz source), that origin's own license
+also applies - see the "Quelle & Stand" section on the corresponding page,
+or the `source` block in the YAML file itself.
+
+Code (/lib, /src, /pipeline, everything outside /data) is licensed
+separately under MIT - see ../LICENSE.

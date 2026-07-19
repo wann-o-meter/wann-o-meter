@@ -1,0 +1,31 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { allPresets, calendarUrl } from "../../../lib/presets";
+
+const presets = allPresets();
+---
+
+<Layout title="Presets" description="Kuratierte Kalender-Ansichten für konkrete Fragen.">
+  <h1>Presets</h1>
+  <p>Kuratierte Ebenen-Kombinationen für konkrete Fragen, jede eine eigene Seite.</p>
+
+  <ul class="rows">
+    {
+      presets.map((p) => (
+        <li>
+          <a href={`/presets/${p.slug}/`}>{p.name}</a>
+          <a class="direct" href={calendarUrl(p)}>
+            direkt im Kalender öffnen →
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</Layout>
+
+<style>
+  .direct {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+</style>

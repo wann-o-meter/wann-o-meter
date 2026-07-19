@@ -1,0 +1,12 @@
+subject:
+  slug: example-page
+  category: fixture/nested/deep-category
+source:
+  url: https://example.invalid/fixture
+  license: own_derivation
+  retrieved_at: '2026-07-12'
+  extraction: manual
+raw_data:
+  kind: html_page
+  dates:
+  - 2027-03-15

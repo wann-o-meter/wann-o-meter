@@ -1,0 +1,88 @@
+---
+// Year filter + newest/oldest sort toggle for a dated list or table on a
+// subject detail page. Shared by Feiertage, Urlaubsfenster, and the generic
+// pages route ([...path].astro) - Saisonkalender has no year dimension
+// (recurring month windows, deduped to one row per type) so it doesn't use
+// this. Expects the page to wrap its rows/table-body in id="year-rows",
+// with each row carrying data-year - works for both <li> and <tr> since the
+// script only ever queries by attribute, not tag.
+interface Props {
+  years: number[];
+}
+const { years } = Astro.props;
+---
+
+{
+  years.length > 1 && (
+    <p class="year-filter">
+      <button type="button" class="year-btn active" data-year="all">
+        Alle
+      </button>
+      {years.map((y) => (
+        <button type="button" class="year-btn" data-year={y}>
+          {y}
+        </button>
+      ))}
+    </p>
+  )
+}
+
+<p class="sort-toggle">
+  <button type="button" id="sort-toggle" class="year-btn">↓ Neueste zuerst</button>
+</p>
+
+<script>
+  const yearButtons = document.querySelectorAll<HTMLButtonElement>(".year-filter .year-btn");
+  const rows = document.querySelectorAll<HTMLElement>("#year-rows [data-year]");
+  for (const button of yearButtons) {
+    button.addEventListener("click", () => {
+      for (const b of yearButtons) b.classList.toggle("active", b === button);
+      const year = button.dataset.year;
+      for (const row of rows) {
+        row.hidden = year !== "all" && row.dataset.year !== year;
+      }
+    });
+  }
+
+  // Rows are pre-sorted ascending at build time - "sorting" is just
+  // reversing DOM order, no comparator needed.
+  const sortToggle = document.getElementById("sort-toggle");
+  const container = document.getElementById("year-rows");
+  let descending = false;
+  sortToggle?.addEventListener("click", () => {
+    descending = !descending;
+    sortToggle.textContent = descending ? "↑ Älteste zuerst" : "↓ Neueste zuerst";
+    container?.append(...[...container.children].reverse());
+  });
+</script>
+
+<style>
+  .sort-toggle {
+    margin: 0 0 1rem;
+  }
+  .year-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1rem 0;
+  }
+  .year-btn {
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.82rem;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: none;
+    color: var(--muted);
+  }
+  .year-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .year-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+</style>

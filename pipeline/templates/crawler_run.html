@@ -1,0 +1,537 @@
+{% extends "_base.html" %}
+
+{% block title %}Wann-Plattform • Crawler • {{ run.run_id }}{% endblock %}
+
+{% block header_actions %}
+    {% if run.status == "running" %}
+    <form action="/stop" method="post" style="margin:0;">
+        <button type="submit" class="btn btn-danger btn-sm">Stop Crawler</button>
+    </form>
+    {% elif run.status == "stopped" %}
+    <form action="/crawler/runs/{{ run.run_id }}/resume" method="post" style="margin:0;">
+        <button type="submit" class="btn btn-primary btn-sm" {% if state.is_running %}disabled title="Another crawl is already running"{% endif %}>Resume Crawler</button>
+    </form>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+        <p style="margin-top:0;"><a href="/crawler">&larr; All Runs</a></p>
+
+        <div class="grid">
+            <div>
+                <div class="card" id="stats-card"
+                     {% if run.status == "running" %}hx-get="/crawler/runs/{{ run.run_id }}/stats-fragment" hx-trigger="every 3s" hx-swap="innerHTML"{% endif %}>
+{% include "_run_stats_content.html" %}
+                </div>
+            </div>
+
+            <div class="card" style="flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
+                    <h3 class="section-title" style="margin:0;">Discovered Pages
+                        <span style="font-size:0.85rem; color:var(--muted); font-weight:400;">({{ run.discovered_count }})</span>
+                    </h3>
+                    <span style="display:flex; align-items:center; gap:0.75rem;">
+                        <label style="display:flex; align-items:center; gap:0.35rem; font-size:0.85rem; font-weight:400; cursor:pointer;">
+                            <input type="checkbox" id="only-dates-filter">
+                            Only pages with dates
+                        </label>
+                        <button type="button" id="scrape-all-discovered-btn" class="btn btn-primary btn-sm" title="Scrapes every discovered page that hasn't been scraped or rejected yet">
+                            Scrape All
+                        </button>
+                        <button
+                            hx-get="/crawler/runs/{{ run.run_id }}/discovered"
+                            hx-target="#discovered-table"
+                            hx-swap="outerHTML"
+                            class="btn btn-sm">
+                            Refresh
+                        </button>
+                    </span>
+                </div>
+                <div style="margin-bottom:1rem;">
+                    <input type="text" id="keyword-filter" placeholder="Filter by keyword, e.g. prüfungstermine (searches title + preview text)" style="width:100%; font-family:var(--font-mono); font-size:0.85rem;">
+                </div>
+
+                {% include "_discovered_table.html" %}
+            </div>
+        </div>
+
+        <!-- SCRAPED PAGES -->
+        <div class="card" style="margin-top:2rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                <h3 class="section-title" style="margin:0;">Scraped ({{ scraped|length }})</h3>
+                <div style="display:flex; gap:0.5rem;">
+                    <button type="button" id="rescrape-all-btn" class="btn btn-primary btn-sm" title="Re-scrapes every already-scraped URL from THIS run and flags which ones actually changed since last time">
+                        Re-scrape All
+                    </button>
+                    <button
+                        hx-get="/crawler/runs/{{ run.run_id }}/scraped-table"
+                        hx-target="#scraped-table"
+                        hx-swap="outerHTML"
+                        class="btn btn-sm">
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <details style="margin-bottom:1rem; font-size:0.85rem;">
+                <summary style="cursor:pointer; color:var(--muted);">Not sure which category or license to pick?</summary>
+                <div style="margin-top:0.6rem; color:var(--muted); line-height:1.5;">
+                    <p style="margin:0 0 0.5rem;">
+                        <strong>Category:</strong> reuse an existing one shown in the suggestions if the topic fits
+                        (e.g. an election like "Bundestagswahl" fits under <code>politik</code>) - a new, near-duplicate
+                        category per page makes content harder to find. When in doubt, pick the broader existing bucket.
+                        Type a "/"-separated path (e.g. <code>Sport/Fußball/Bundesliga</code>) to nest under a
+                        hierarchy - up to 4 levels deep.
+                    </p>
+                    <p style="margin:0;">
+                        <strong>License:</strong> pick the option whose description matches your source, not an
+                        abstract legal term - most government/official sources are either "Official work" (laws,
+                        regulations, official notices) or an official open-data portal. If a private source's terms
+                        are unclear, do not create the page yet; ask the site owner first (see PLAN.md section 6).
+                    </p>
+                </div>
+            </details>
+
+            {% include "_scraped_table.html" %}
+        </div>
+
+        <datalist id="category-suggestions">
+            {% for category in category_suggestions %}
+            <option value="{{ category }}">
+            {% endfor %}
+        </datalist>
+
+        <datalist id="tag-suggestions">
+            {% for tag in tag_suggestions %}
+            <option value="{{ tag }}">
+            {% endfor %}
+        </datalist>
+
+        <!-- CREATED PAGES (this run) -->
+        <div class="card" style="margin-top:2rem;">
+            <h3 class="section-title">Pages Created From This Run ({{ pages|length }})</h3>
+            {% include "_pages_table.html" %}
+        </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const RUN_ID = "{{ run.run_id }}";
+
+        // Shared by every /suggest-* button below (title/category/tags) and
+        // by suggestAllForForm() - one POST-and-unwrap shape instead of
+        // three near-identical fetch().then() chains.
+        function fetchSuggestion(endpoint, url) {
+            return fetch(endpoint, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({url: url})
+            }).then((res) => res.json().then((body) => ({ ok: res.ok, body }))).then(({ ok, body }) => {
+                if (!ok) throw new Error(body.error || "Unknown error");
+                return body;
+            });
+        }
+
+        // Create Page fields (title/category/tags/license) previously lived
+        // only in the DOM - the periodic htmx outerHTML swap of #scraped-table
+        // (see pollScrapedTableUntilDone below and the manual Refresh button)
+        // and a plain page reload both wiped out LLM suggestions and manual
+        // edits with no way to get them back. Persisted to localStorage per
+        // URL instead, saved on every edit and restored after every render.
+        const SCRAPE_FORM_STORAGE_PREFIX = 'wann-admin-scrape-form:';
+
+        function scrapeFormFields(form) {
+            return {
+                title: form.querySelector('input[name="title"]'),
+                category: form.querySelector('input[name="category"]'),
+                tags: form.querySelector('input[name="tags"]'),
+                license: form.querySelector('select[name="license"]'),
+            };
+        }
+
+        function saveScrapeFormValues(form) {
+            const url = form.querySelector('input[name="url"]').value;
+            const fields = scrapeFormFields(form);
+            localStorage.setItem(SCRAPE_FORM_STORAGE_PREFIX + url, JSON.stringify({
+                title: fields.title.value,
+                category: fields.category.value,
+                tags: fields.tags.value,
+                license: fields.license.value,
+            }));
+        }
+
+        function restoreScrapeFormValues() {
+            document.querySelectorAll('#scraped-table form[action="/create-page"]').forEach(function (form) {
+                const url = form.querySelector('input[name="url"]').value;
+                const raw = localStorage.getItem(SCRAPE_FORM_STORAGE_PREFIX + url);
+                if (!raw) return;
+                const saved = JSON.parse(raw);
+                const fields = scrapeFormFields(form);
+                fields.title.value = saved.title;
+                fields.category.value = saved.category;
+                fields.tags.value = saved.tags;
+                fields.license.value = saved.license;
+            });
+        }
+
+        // Manual typing/select changes.
+        document.addEventListener('input', function (e) {
+            const form = e.target.closest('#scraped-table form[action="/create-page"]');
+            if (form) saveScrapeFormValues(form);
+        });
+        document.addEventListener('change', function (e) {
+            const form = e.target.closest('#scraped-table form[action="/create-page"]');
+            if (form) saveScrapeFormValues(form);
+        });
+        // Page actually got created - stop carrying its draft forward.
+        document.addEventListener('submit', function (e) {
+            const form = e.target.closest('#scraped-table form[action="/create-page"]');
+            if (form) localStorage.removeItem(SCRAPE_FORM_STORAGE_PREFIX + form.querySelector('input[name="url"]').value);
+        });
+        restoreScrapeFormValues();
+        document.body.addEventListener('htmx:afterSwap', restoreScrapeFormValues);
+
+        // Fills title+category+tags for one create-page form via the same
+        // three endpoints as their individual "Suggest X" buttons - used by
+        // both the "Suggest All" and "Auto" buttons below.
+        function suggestAllForForm(form, url) {
+            const titleInput = form.querySelector('input[name="title"]');
+            const categoryInput = form.querySelector('input[name="category"]');
+            const tagsInput = form.querySelector('input[name="tags"]');
+            return Promise.all([
+                fetchSuggestion('/suggest-title', url).then((body) => { titleInput.value = body.title; }),
+                fetchSuggestion('/suggest-category', url).then((body) => { categoryInput.value = body.category; }),
+                fetchSuggestion('/suggest-tags', url).then((body) => { tagsInput.value = body.tags.join(', '); }),
+            ]).then(() => saveScrapeFormValues(form));
+        }
+
+        // A scrape (see POST /accept-and-scrape) starts a background thread
+        // and returns immediately - the result only used to show up after a
+        // manual full page reload. Poll the Scraped table for a bounded
+        // window instead so it appears on its own. Bounded (not continuous
+        // like the Discovered table's hx-trigger="every 5s") to avoid
+        // polling forever - each swap is harmless to in-progress Create Page
+        // drafts now (see restoreScrapeFormValues above).
+        let scrapedTablePollTimer = null;
+        function pollScrapedTableUntilDone() {
+            if (scrapedTablePollTimer) return; // already polling
+            let attempts = 0;
+            scrapedTablePollTimer = setInterval(function () {
+                attempts += 1;
+                htmx.ajax('GET', `/crawler/runs/${RUN_ID}/scraped-table`, { target: '#scraped-table', swap: 'outerHTML' });
+                if (attempts >= 10) {
+                    clearInterval(scrapedTablePollTimer);
+                    scrapedTablePollTimer = null;
+                }
+            }, 2000);
+        }
+
+        // /accept-and-scrape itself returns almost instantly (the real work
+        // runs in a detached background thread - see main.py) - polls
+        // /scrape-status for the URL's ACTUAL completion/error instead of
+        // tying the button's disabled/"Running…" state to that near-instant
+        // response, which used to make it flash back to normal well before
+        // the real scrape (and any error it hit) was done.
+        function pollScrapeStatusUntilDone(url, button) {
+            let attempts = 0;
+            const timer = setInterval(function () {
+                attempts += 1;
+                fetch(`/scrape-status?url=${encodeURIComponent(url)}`)
+                    .then((res) => res.json())
+                    .then((status) => {
+                        if (status.error) {
+                            clearInterval(timer);
+                            button.disabled = false;
+                            button.textContent = "Scrape";
+                            alert("Scraper failed: " + status.error);
+                        } else if (status.done) {
+                            clearInterval(timer);
+                            button.disabled = false;
+                            button.textContent = "Scrape";
+                            pollScrapedTableUntilDone();
+                        } else if (attempts >= 30) {
+                            clearInterval(timer);
+                            button.disabled = false;
+                            button.textContent = "Scrape";
+                            alert("Still running in the background - check the Scraped table again shortly.");
+                        }
+                    })
+                    .catch(() => {}); // transient network hiccup - next tick retries
+            }, 1500);
+        }
+
+        function pollRescrapeAllUntilDone(button) {
+            const timer = setInterval(function () {
+                fetch('/rescrape-status').then((res) => res.json()).then((status) => {
+                    if (status.total > 0) {
+                        button.textContent = `Re-scraping ${status.done}/${status.total}…`;
+                    }
+                    if (!status.running) {
+                        clearInterval(timer);
+                        button.disabled = false;
+                        button.textContent = "Re-scrape All";
+                        pollScrapedTableUntilDone();
+                        if (status.changed_urls.length > 0) {
+                            alert(`${status.changed_urls.length} page(s) changed since last scrape:\n` + status.changed_urls.join('\n'));
+                        } else {
+                            alert("Re-scraped everything - nothing changed.");
+                        }
+                    }
+                }).catch(() => {}); // transient network hiccup - next tick retries
+            }, 2000);
+        }
+
+        // Same shape as pollRescrapeAllUntilDone, but for /scrape-all - a
+        // different URL set (discovered, not yet scraped/rejected) through
+        // the same rescrape_state/rescrape-status batch machinery, so
+        // there's no "changed" comparison to report, just a count. Also
+        // refreshes the Discovered table since each scraped row flips from
+        // Scrape/Reject buttons to a status badge as the batch runs.
+        function pollScrapeAllDiscoveredUntilDone(button) {
+            const timer = setInterval(function () {
+                fetch('/rescrape-status').then((res) => res.json()).then((status) => {
+                    if (status.total > 0) {
+                        button.textContent = `Scraping ${status.done}/${status.total}…`;
+                    }
+                    if (!status.running) {
+                        clearInterval(timer);
+                        button.disabled = false;
+                        button.textContent = "Scrape All";
+                        pollScrapedTableUntilDone();
+                        htmx.ajax('GET', `/crawler/runs/${RUN_ID}/discovered`, { target: '#discovered-table', swap: 'outerHTML' });
+                    }
+                }).catch(() => {}); // transient network hiccup - next tick retries
+            }, 2000);
+        }
+
+        // Delegated (on document, not per-button) so buttons that appear
+        // later via an htmx swap (Refresh, or the poll above) keep working
+        // without re-binding listeners after every swap.
+        document.addEventListener('click', function (e) {
+            const scrapeAllDiscoveredBtn = e.target.closest('#scrape-all-discovered-btn');
+            if (scrapeAllDiscoveredBtn) {
+                scrapeAllDiscoveredBtn.disabled = true;
+                scrapeAllDiscoveredBtn.textContent = "Starting…";
+                fetch(`/crawler/runs/${RUN_ID}/scrape-all`, { method: 'POST' }).then((res) => res.json().then((body) => ({ ok: res.ok, body }))).then(({ ok, body }) => {
+                    if (!ok) throw new Error(body.error || "Unknown error");
+                    pollScrapeAllDiscoveredUntilDone(scrapeAllDiscoveredBtn);
+                }).catch((err) => {
+                    scrapeAllDiscoveredBtn.disabled = false;
+                    scrapeAllDiscoveredBtn.textContent = "Scrape All";
+                    alert("Failed to start scrape: " + err.message);
+                });
+                return;
+            }
+
+            const autoAcceptToggleBtn = e.target.closest('#auto-accept-toggle-btn');
+            if (autoAcceptToggleBtn) {
+                autoAcceptToggleBtn.disabled = true;
+                fetch(`/crawler/runs/${RUN_ID}/auto-accept-dated`, { method: 'POST' }).then((res) => res.json()).then((body) => {
+                    autoAcceptToggleBtn.textContent = `Auto-scrape dated pages: ${body.auto_accept_dated ? 'On' : 'Off'}`;
+                    autoAcceptToggleBtn.classList.toggle('btn-primary', body.auto_accept_dated);
+                }).catch(() => {
+                    alert("Failed to toggle auto-scrape.");
+                }).finally(() => {
+                    autoAcceptToggleBtn.disabled = false;
+                });
+                return;
+            }
+
+            const rescrapeAllBtn = e.target.closest('#rescrape-all-btn');
+            if (rescrapeAllBtn) {
+                rescrapeAllBtn.disabled = true;
+                rescrapeAllBtn.textContent = "Starting…";
+                fetch(`/crawler/runs/${RUN_ID}/rescrape-all`, { method: 'POST' }).then((res) => res.json().then((body) => ({ ok: res.ok, body }))).then(({ ok, body }) => {
+                    if (!ok) throw new Error(body.error || "Unknown error");
+                    pollRescrapeAllUntilDone(rescrapeAllBtn);
+                }).catch((err) => {
+                    rescrapeAllBtn.disabled = false;
+                    rescrapeAllBtn.textContent = "Re-scrape All";
+                    alert("Failed to start re-scrape: " + err.message);
+                });
+                return;
+            }
+
+            const scrapeBtn = e.target.closest('.scrape-btn');
+            if (scrapeBtn) {
+                // Discovered -> Scrape in one click (see POST /accept-and-scrape) -
+                // no more switching to the Accepted table for a separate
+                // "Run Scraper" click.
+                const url = scrapeBtn.dataset.url;
+                const runId = scrapeBtn.dataset.runId;
+                scrapeBtn.disabled = true;
+                scrapeBtn.textContent = "Running…";
+                fetch('/accept-and-scrape', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: new URLSearchParams({run_id: runId, url: url})
+                }).then((res) => res.json().then((body) => ({ ok: res.ok, body }))).then(({ ok, body }) => {
+                    if (!ok) throw new Error(body.error || "Unknown error");
+                    pollScrapeStatusUntilDone(url, scrapeBtn);
+                }).catch((err) => {
+                    scrapeBtn.disabled = false;
+                    scrapeBtn.textContent = "Scrape";
+                    alert("Failed to start scraper: " + err.message);
+                });
+                return;
+            }
+
+            const extractBtn = e.target.closest('.extract-llm-btn');
+            if (extractBtn) {
+                const url = extractBtn.dataset.url;
+                extractBtn.disabled = true;
+                extractBtn.textContent = "Extracting…";
+                fetch('/extract-llm', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: new URLSearchParams({url: url})
+                }).then((res) => res.json().then((body) => ({ ok: res.ok, body }))).then(({ ok, body }) => {
+                    if (!ok) throw new Error(body.error || "Unknown error");
+                    alert(`Found ${body.count} event(s). Saved into the scraped YAML - view it or Create Page to include them.`);
+                }).catch((err) => {
+                    alert("LLM extraction failed: " + err.message);
+                }).finally(() => {
+                    extractBtn.disabled = false;
+                    extractBtn.textContent = "Extract LLM";
+                });
+                return;
+            }
+
+            const suggestBtn = e.target.closest('.suggest-tags-btn');
+            if (suggestBtn) {
+                const url = suggestBtn.dataset.url;
+                const tagsInput = suggestBtn.closest('form').querySelector('input[name="tags"]');
+                suggestBtn.disabled = true;
+                suggestBtn.textContent = "Suggesting…";
+                fetchSuggestion('/suggest-tags', url).then((body) => {
+                    tagsInput.value = body.tags.join(', ');
+                    saveScrapeFormValues(suggestBtn.closest('form'));
+                }).catch((err) => {
+                    alert("Tag suggestion failed: " + err.message);
+                }).finally(() => {
+                    suggestBtn.disabled = false;
+                    suggestBtn.textContent = "Suggest Tags";
+                });
+                return;
+            }
+
+            const suggestTitleBtn = e.target.closest('.suggest-title-btn');
+            if (suggestTitleBtn) {
+                const url = suggestTitleBtn.dataset.url;
+                const titleInput = suggestTitleBtn.closest('form').querySelector('input[name="title"]');
+                suggestTitleBtn.disabled = true;
+                suggestTitleBtn.textContent = "Suggesting…";
+                fetchSuggestion('/suggest-title', url).then((body) => {
+                    titleInput.value = body.title;
+                    saveScrapeFormValues(suggestTitleBtn.closest('form'));
+                }).catch((err) => {
+                    alert("Title suggestion failed: " + err.message);
+                }).finally(() => {
+                    suggestTitleBtn.disabled = false;
+                    suggestTitleBtn.textContent = "Suggest Title";
+                });
+                return;
+            }
+
+            const suggestCategoryBtn = e.target.closest('.suggest-category-btn');
+            if (suggestCategoryBtn) {
+                const url = suggestCategoryBtn.dataset.url;
+                const categoryInput = suggestCategoryBtn.closest('form').querySelector('input[name="category"]');
+                suggestCategoryBtn.disabled = true;
+                suggestCategoryBtn.textContent = "Suggesting…";
+                fetchSuggestion('/suggest-category', url).then((body) => {
+                    categoryInput.value = body.category;
+                    saveScrapeFormValues(suggestCategoryBtn.closest('form'));
+                }).catch((err) => {
+                    alert("Category suggestion failed: " + err.message);
+                }).finally(() => {
+                    suggestCategoryBtn.disabled = false;
+                    suggestCategoryBtn.textContent = "Suggest Category";
+                });
+                return;
+            }
+
+            const suggestAllBtn = e.target.closest('.suggest-all-btn');
+            if (suggestAllBtn) {
+                const form = suggestAllBtn.closest('form');
+                suggestAllBtn.disabled = true;
+                suggestAllBtn.textContent = "Suggesting…";
+                suggestAllForForm(form, suggestAllBtn.dataset.url).catch((err) => {
+                    alert("Suggestion failed: " + err.message);
+                }).finally(() => {
+                    suggestAllBtn.disabled = false;
+                    suggestAllBtn.textContent = "Suggest All";
+                });
+                return;
+            }
+
+            const autoCreateBtn = e.target.closest('.auto-create-btn');
+            if (autoCreateBtn) {
+                const form = autoCreateBtn.closest('form');
+                autoCreateBtn.disabled = true;
+                autoCreateBtn.textContent = "Suggesting…";
+                suggestAllForForm(form, autoCreateBtn.dataset.url).then(() => {
+                    const licenseSelect = form.querySelector('select[name="license"]');
+                    if (licenseSelect.value) {
+                        form.requestSubmit();
+                    } else {
+                        licenseSelect.focus();
+                        alert("Title/category/tags filled in - pick a license to finish (not auto-selected, see the license help text above).");
+                    }
+                }).catch((err) => {
+                    alert("Auto-fill failed: " + err.message);
+                }).finally(() => {
+                    autoCreateBtn.disabled = false;
+                    autoCreateBtn.textContent = "Auto";
+                });
+                return;
+            }
+        });
+
+        // Keyboard shortcut: press "r" to refresh discovered table
+        document.addEventListener('keydown', function (e) {
+            if (e.key === "r" && document.activeElement.tagName === "BODY") {
+                htmx.ajax('GET', `/crawler/runs/${RUN_ID}/discovered`, { target: '#discovered-table', swap: 'outerHTML' });
+            }
+        });
+
+        // Combines "only pages with dates" and the keyword box - both are
+        // client-side row visibility filters (has-dates is already computed
+        // server-side in crawl_page() via the same date regex the scraper
+        // itself uses; the keyword match is against data-search-text, the
+        // page's title+preview lowercased once at render time rather than
+        // re-lowercasing on every keystroke). A seed's group header row also
+        // hides once every page under it is filtered out, so an empty seed
+        // group doesn't just show a bare "Seed (N pages)" label with
+        // nothing under it. Re-applied after every htmx swap of the
+        // Discovered table (periodic poll, manual Refresh, or the "r"
+        // shortcut below), since a fresh render would otherwise reset every
+        // row back to visible.
+        const onlyDatesFilter = document.getElementById('only-dates-filter');
+        const keywordFilter = document.getElementById('keyword-filter');
+        function applyDiscoveredFilters() {
+            const onlyDates = onlyDatesFilter.checked;
+            const keyword = keywordFilter.value.trim().toLowerCase();
+            let currentGroupRow = null;
+            let currentGroupHasVisibleRow = false;
+            document.querySelectorAll('#discovered-table tbody > tr').forEach(function (row) {
+                if (row.classList.contains('seed-group-row')) {
+                    if (currentGroupRow) currentGroupRow.hidden = !currentGroupHasVisibleRow;
+                    currentGroupRow = row;
+                    currentGroupHasVisibleRow = false;
+                    return;
+                }
+                if (!('hasDates' in row.dataset)) return; // not a page row (e.g. the empty-state row)
+                const matchesDates = !onlyDates || row.dataset.hasDates === 'true';
+                const matchesKeyword = !keyword || (row.dataset.searchText || '').includes(keyword);
+                const visible = matchesDates && matchesKeyword;
+                row.hidden = !visible;
+                if (visible) currentGroupHasVisibleRow = true;
+            });
+            if (currentGroupRow) currentGroupRow.hidden = !currentGroupHasVisibleRow;
+        }
+        onlyDatesFilter.addEventListener('change', applyDiscoveredFilters);
+        keywordFilter.addEventListener('input', applyDiscoveredFilters);
+        document.body.addEventListener('htmx:afterSwap', applyDiscoveredFilters);
+    </script>
+{% endblock %}

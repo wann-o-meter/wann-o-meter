@@ -1,0 +1,109 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { getAllPages, getAllTags } from "../../../lib/pages";
+
+const pages = getAllPages().sort((a, b) => a.meta.title.localeCompare(b.meta.title, "de"));
+const tags = getAllTags();
+---
+
+<Layout title="Themen" description="Alle Seiten aus akzeptierten Quellen durchsuchen, ueber alle Themenbereiche hinweg.">
+  <p class="back"><a href="/">&larr; wann</a></p>
+  <h1>Themen</h1>
+  <p>Alle Seiten aus akzeptierten Quellen, themenbereichsuebergreifend durchsuchbar.</p>
+
+  <input
+    type="search"
+    id="search-input"
+    placeholder="Titel oder Tag suchen…"
+    aria-label="Seiten durchsuchen"
+  />
+
+  {
+    tags.length > 0 && (
+      <p class="tags">
+        {tags.map((tag) => (
+          <button type="button" class="badge tag-filter" data-tag={tag}>{tag}</button>
+        ))}
+      </p>
+    )
+  }
+
+  <ul class="rows" id="results">
+    {
+      pages.map((p) => (
+        <li data-title={p.meta.title.toLowerCase()} data-tags={p.meta.tags.join(" ").toLowerCase()}>
+          <a href={`/${p.category}/${p.slug}/`}>{p.meta.title}</a>
+          <span class="meta">{p.category}{p.meta.tags.length > 0 && ` · ${p.meta.tags.join(", ")}`}</span>
+        </li>
+      ))
+    }
+  </ul>
+  <p id="no-results" hidden>Keine Treffer.</p>
+</Layout>
+
+<script>
+  // Plain-vanilla substring filter - no framework, no build step needed for
+  // this. Pagefind (PLAN.md section 7) is explicitly deferred until >50
+  // pages; this dataset is nowhere near that yet.
+  const search = document.getElementById("search-input") as HTMLInputElement;
+  const results = document.getElementById("results")!;
+  const noResults = document.getElementById("no-results")!;
+  const entries = Array.from(results.querySelectorAll("li"));
+  const tagButtons = document.querySelectorAll<HTMLButtonElement>(".tag-filter");
+
+  let activeTag: string | null = null;
+
+  function apply() {
+    const query = search.value.trim().toLowerCase();
+    let visibleCount = 0;
+    for (const entry of entries) {
+      const title = entry.dataset.title ?? "";
+      const tags = entry.dataset.tags ?? "";
+      const matchesQuery = query === "" || title.includes(query) || tags.includes(query);
+      const matchesTag = activeTag === null || tags.split(" ").includes(activeTag);
+      const show = matchesQuery && matchesTag;
+      entry.hidden = !show;
+      if (show) visibleCount++;
+    }
+    noResults.hidden = visibleCount > 0;
+  }
+
+  search.addEventListener("input", apply);
+  for (const button of tagButtons) {
+    button.addEventListener("click", () => {
+      activeTag = activeTag === button.dataset.tag ? null : (button.dataset.tag ?? null);
+      for (const b of tagButtons) b.classList.toggle("active", b === button && activeTag !== null);
+      apply();
+    });
+  }
+</script>
+
+<style>
+  .back {
+    font-size: 0.9rem;
+  }
+  #search-input {
+    width: 100%;
+    max-width: 24rem;
+    margin: 1rem 0;
+    display: block;
+  }
+  .tags {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .tag-filter {
+    cursor: pointer;
+    font: inherit;
+  }
+  .tag-filter.active {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .meta {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+</style>

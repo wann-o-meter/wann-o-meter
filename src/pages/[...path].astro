@@ -1,0 +1,239 @@
+---
+// Merged category-overview + page-detail route for the generic YAML-driven
+// pages system (lib/pages.ts). A single [...path] catch-all is required
+// here (not two separate [category]/index.astro + [category]/[slug].astro
+// files, as before nesting existed) because Astro rest params must be the
+// LAST dynamic segment in a route - with an arbitrary-depth category tree
+// there's no fixed number of leading segments to give their own named
+// param. Static routes (/feiertage/, /kalender/, ...) always win over this
+// catch-all regardless of file placement (Astro's route-priority order:
+// static > dynamic > rest params), so RESERVED_CATEGORIES is still the only
+// thing keeping a data/ folder from shadowing them.
+//
+// getStaticPaths() emits one entry per category NODE (both intermediate,
+// e.g. "sport", and leaf-with-pages, e.g. "sport/fussball/bundesliga" - see
+// getAllCategoryNodes()) rendering the category-overview template, plus one
+// entry per PAGE rendering the page-detail template - same two templates
+// [category]/index.astro and [category]/[slug].astro used to render,
+// unchanged in substance, just merged into one file with an N-level
+// breadcrumb instead of a fixed 2-level one.
+import Layout from "../layouts/Layout.astro";
+import DateListControls from "../components/DateListControls.astro";
+import SourceList from "../components/SourceList.astro";
+import {
+  getAllCategoryNodes,
+  getAllPages,
+  getCategoryMeta,
+  getPageEvents,
+} from "../../lib/pages";
+import type { CategoryNode, Page } from "../../lib/pages";
+import { breadcrumbNode, datasetNode, eventNode, graph } from "../../lib/structured-data";
+import { formatDate, toDate } from "../../lib/format-date";
+
+type CategoryProps = { kind: "category"; node: CategoryNode };
+type PageProps = { kind: "page"; page: Page };
+
+export function getStaticPaths() {
+  const categoryEntries = getAllCategoryNodes().map((node) => ({
+    params: { path: node.path },
+    props: { kind: "category" as const, node } satisfies CategoryProps,
+  }));
+  const pageEntries = getAllPages().map((p) => ({
+    params: { path: `${p.category}/${p.slug}` },
+    props: { kind: "page" as const, page: p } satisfies PageProps,
+  }));
+  return [...categoryEntries, ...pageEntries];
+}
+
+const props = Astro.props as CategoryProps | PageProps;
+
+// Breadcrumb ancestors shared by both kinds: every prefix of the category's
+// segments, each resolved to its own display name via getCategoryMeta() -
+// works at any depth (1 for the existing depth-1 categories, up to 4).
+function ancestorCrumbs(segments: string[]) {
+  return segments.map((_, i) => {
+    const ancestorPath = segments.slice(0, i + 1).join("/");
+    return {
+      name: getCategoryMeta(ancestorPath).name,
+      url: new URL(`/${ancestorPath}/`, Astro.site).href,
+    };
+  });
+}
+
+function buildCategoryView(node: CategoryNode) {
+  const categoryMeta = getCategoryMeta(node.path);
+  const sortedPages = [...node.pages].sort((a, b) => a.meta.title.localeCompare(b.meta.title, "de"));
+  const childCategories = node.childPaths
+    .map((childPath) => ({ path: childPath, meta: getCategoryMeta(childPath) }))
+    .sort((a, b) => a.meta.name.localeCompare(b.meta.name, "de"));
+  const parentPath = node.segments.slice(0, -1).join("/");
+  const backHref = parentPath ? `/${parentPath}/` : "/";
+  const backLabel = parentPath ? getCategoryMeta(parentPath).name : "Wann-O-Meter";
+  const description = categoryMeta.description || `Seiten im Themenbereich "${categoryMeta.name}".`;
+  const pageUrl = new URL(`/${node.path}/`, Astro.site).href;
+  const structuredData = graph([
+    breadcrumbNode([{ name: "Wann-O-Meter", url: new URL("/", Astro.site).href }, ...ancestorCrumbs(node.segments)]),
+    datasetNode({
+      name: categoryMeta.name,
+      description,
+      url: pageUrl,
+      distributions: [{ url: new URL("/api/v1/calendar.json", Astro.site).href, encodingFormat: "application/json" }],
+    }),
+  ]);
+  return { node, categoryMeta, sortedPages, childCategories, backHref, backLabel, description, structuredData };
+}
+
+function buildPageView(page: Page) {
+  const { category, meta, data } = page;
+  const rawData = data.raw_data as Record<string, unknown>;
+  const events = getPageEvents(page);
+  const years = [...new Set(events.map((f) => toDate(f.date).getFullYear()))].sort();
+  const preview = typeof rawData.clean_markdown_preview === "string" ? rawData.clean_markdown_preview : "";
+  const columns = Array.isArray(rawData.columns) ? (rawData.columns as string[]) : [];
+  const rowsPreview = Array.isArray(rawData.rows_preview) ? (rawData.rows_preview as Record<string, string>[]) : [];
+  const segments = category.split("/");
+  const pageUrl = new URL(`/${category}/${page.slug}/`, Astro.site).href;
+  const categoryName = getCategoryMeta(category).name;
+  const description = meta.description || meta.title;
+  const structuredData = graph([
+    breadcrumbNode([
+      { name: "Wann-O-Meter", url: new URL("/", Astro.site).href },
+      ...ancestorCrumbs(segments),
+      { name: meta.title, url: pageUrl },
+    ]),
+    ...(events.length > 0
+      ? [
+          datasetNode({
+            name: meta.title,
+            description,
+            url: pageUrl,
+            distributions: [
+              { url: new URL(`/api/v1/${category}/${page.slug}.json`, Astro.site).href, encodingFormat: "application/json" },
+              { url: new URL(`/feeds/${category}/${page.slug}.ics`, Astro.site).href, encodingFormat: "text/calendar" },
+            ],
+          }),
+          ...events.map((e) => eventNode({ name: e.label, startDate: e.date, url: pageUrl })),
+        ]
+      : []),
+  ]);
+  return { page, category, meta, data, events, years, preview, columns, rowsPreview, categoryName, description, structuredData };
+}
+
+const categoryView = props.kind === "category" ? buildCategoryView(props.node) : null;
+const pageView = props.kind === "page" ? buildPageView(props.page) : null;
+---
+
+{
+  categoryView && (
+    <Layout title={categoryView.categoryMeta.name} description={categoryView.description} structuredData={categoryView.structuredData}>
+      <p class="back"><a href={categoryView.backHref}>&larr; {categoryView.backLabel}</a></p>
+      <h1>{categoryView.categoryMeta.name}</h1>
+
+      {
+        categoryView.childCategories.length > 0 && (
+          <ul class="cards">
+            {categoryView.childCategories.map((c) => <li><a href={`/${c.path}/`}>{c.meta.name}</a></li>)}
+          </ul>
+        )
+      }
+
+      {
+        categoryView.sortedPages.length > 0 && (
+          <ul class="cards">
+            {categoryView.sortedPages.map((p) => (
+              <li><a href={`/${categoryView.node.path}/${p.slug}/`}>{p.meta.title}</a></li>
+            ))}
+          </ul>
+        )
+      }
+    </Layout>
+  )
+}
+
+{
+  pageView && (
+    <Layout title={pageView.meta.title} description={pageView.description} structuredData={pageView.structuredData}>
+      <p class="back"><a href={`/${pageView.category}/`}>&larr; {pageView.categoryName}</a></p>
+      <h1>{pageView.meta.title}</h1>
+      {pageView.meta.description && <p>{pageView.meta.description}</p>}
+
+      {
+        pageView.meta.tags.length > 0 && (
+          <p class="tags">
+            {pageView.meta.tags.map((tag) => (
+              <a class="badge" href={`/themen/${tag}/`}>{tag}</a>
+            ))}
+          </p>
+        )
+      }
+
+      <p class="actions">
+        <a href={`/api/v1/${pageView.category}/${pageView.page.slug}.json`}>JSON</a>
+        {pageView.events.length > 0 && <> · <a href={`/feeds/${pageView.category}/${pageView.page.slug}.ics`}>ICS-Kalender abonnieren</a></>}
+      </p>
+
+      {
+        pageView.events.length > 0 && (
+          <>
+            <h2>Gefundene Daten</h2>
+            <DateListControls years={pageView.years} />
+            <ul class="rows" id="year-rows">
+              {pageView.events.map((e) => (
+                <li id={e.date} data-year={toDate(e.date).getFullYear()}>
+                  <a
+                    class="date"
+                    href={`/kalender/?day=${e.date}&layers=${pageView.category.replace(/\//g, "-")}--${pageView.page.slug}`}
+                  >
+                    {formatDate(e.date)}{e.to && ` – ${formatDate(e.to)}`}
+                  </a>
+                  <span>{e.label}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )
+      }
+
+      {
+        pageView.columns.length > 0 && pageView.rowsPreview.length > 0 && (
+          <>
+            <h2>Tabelle (Auszug)</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>{pageView.columns.map((c) => <th>{c}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {pageView.rowsPreview.map((row) => (
+                    <tr>{pageView.columns.map((c) => <td>{row[c]}</td>)}</tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )
+      }
+
+      {
+        pageView.preview && (
+          <>
+            <h2>Inhalt (Auszug)</h2>
+            <p>{pageView.preview}</p>
+          </>
+        )
+      }
+
+      <SourceList sources={pageView.data.source} />
+    </Layout>
+  )
+}
+
+<style>
+  .tags .badge {
+    margin: 0 0.4rem 0.4rem 0;
+    text-decoration: none;
+  }
+  .actions {
+    margin: 1rem 0 1.5rem;
+  }
+</style>

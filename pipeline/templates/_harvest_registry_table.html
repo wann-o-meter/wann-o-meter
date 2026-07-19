@@ -1,0 +1,56 @@
+<div id="harvest-registry-table">
+{% if harvest_registries %}
+<div class="scroll-box">
+    <table>
+        <thead>
+            <tr>
+                <th>Entity Class</th>
+                <th>Target Kinds</th>
+                <th style="width:90px;">Count</th>
+                <th style="width:150px;">Fetched At</th>
+                <th style="width:240px;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in harvest_registries %}
+            <tr>
+                <td>{{ row.entity_class }}</td>
+                <td>{{ row.target_kinds|join(", ") }}</td>
+                <td>{{ row.count if row.count is not none else "-" }}</td>
+                <td style="font-size:0.8rem; color:var(--muted); font-family:var(--font-mono);">
+                    {{ row.fetched_at[:19] if row.fetched_at else "never" }}
+                </td>
+                <td>
+                    <div style="display:flex; flex-wrap:wrap; gap:0.35rem; align-items:center;">
+                        <button type="button" class="btn btn-primary btn-sm harvest-registry-btn"
+                                data-entity-class="{{ row.entity_class }}"
+                                {% if row.running %}disabled{% endif %}>
+                            {% if row.running %}Fetching…{% else %}Fetch Registry{% endif %}
+                        </button>
+                        {% if row.count is not none %}
+                        <a href="/harvest/registries/{{ row.entity_class }}" target="_blank" class="btn btn-sm" style="text-decoration:none; display:inline-block;">
+                            View JSON
+                        </a>
+                        {% endif %}
+                        {% if row.error %}
+                        <span class="badge badge-accent" title="{{ row.error }}">Error</span>
+                        {% endif %}
+                        <button type="button" class="btn btn-sm"
+                                hx-post="/harvest/registries/{{ row.entity_class }}/delete"
+                                hx-target="#harvest-registry-table"
+                                hx-swap="outerHTML"
+                                hx-confirm="Delete registry '{{ row.entity_class }}'? This removes it from registries.yaml and deletes its fetched data."
+                                {% if row.running %}disabled{% endif %}>
+                            Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="empty-hint">No entity classes configured (pipeline/config/registries.yaml).</p>
+{% endif %}
+</div>

@@ -1,0 +1,12 @@
+slug: bruecktage-by
+name: Brückentage Bayern
+description: >-
+  Feiertage und Schulferien Bayern übereinandergelegt. So sieht man auf einen
+  Blick, welche Feiertage frei liegen und welche in die Schulferien fallen.
+  Für einzelne, konkret berechnete Brückentage-Vorschläge siehe die
+  Subjekt-Seite Bayern.
+layers:
+  - holiday
+  - school_holidays
+region: BY
+mode: overlay

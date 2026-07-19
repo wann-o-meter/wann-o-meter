@@ -1,0 +1,192 @@
+{% extends "_base.html" %}
+
+{% block title %}Wann-Plattform • Harvest{% endblock %}
+
+{% block content %}
+        <!-- HARVEST REGISTRIES -->
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                <h3 class="section-title" style="margin:0;">Harvest Registries</h3>
+                <button
+                    hx-get="/harvest/registry-table"
+                    hx-target="#harvest-registry-table"
+                    hx-swap="outerHTML"
+                    class="btn btn-sm">
+                    Refresh
+                </button>
+            </div>
+            <p style="font-size:0.85rem; color:var(--muted); margin:0 0 0.75rem;">
+                Entity-first harvest pipeline (Stage 1): fetches a known entity class's registry
+                (e.g. all German universities from Wikidata) into
+                <code>pipeline/data/registries/&lt;entity_class&gt;.json</code>. Configured in
+                <code>pipeline/config/registries.yaml</code>. Once fetched, a registry's domains can seed a
+                <a href="/crawler">Crawler</a> run.
+            </p>
+
+            <details style="margin-bottom:1rem;">
+                <summary style="cursor:pointer; font-size:0.85rem; color:var(--muted);">Add a registry (Wikidata SPARQL)</summary>
+                <form action="/harvest/registries/config" method="post" style="margin-top:0.75rem;">
+                    <div style="display:flex; gap:0.75rem;">
+                        <div style="flex:1;">
+                            <label class="field-label">Entity Class</label>
+                            <input type="text" name="entity_class" placeholder="museum_de" pattern="[a-z][a-z0-9_]*" required style="width:100%;">
+                        </div>
+                        <div style="flex:2;">
+                            <label class="field-label">Target Kinds (comma-separated)</label>
+                            <input type="text" name="target_kinds" placeholder="oeffnungszeiten, sonderausstellungen" required style="width:100%;">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="field-label">Wikidata SPARQL Query</label>
+                        <div style="font-size:0.8rem; color:var(--muted); margin-bottom:0.3rem;">
+                            Skeleton pre-filled below - only the Wikidata class ID (<code>wd:Q3918</code>, currently
+                            "university") usually needs to change. Test the query on
+                            <a href="https://query.wikidata.org" target="_blank">query.wikidata.org</a> before submitting here.
+                        </div>
+                        <div class="inline-form" style="margin-bottom:0.5rem;">
+                            <input type="text" id="wikidata-search-input" placeholder="Search Wikidata class, e.g. museum, hospital" style="flex:1;">
+                            <button type="button" id="wikidata-search-btn" class="btn btn-sm">Search Class</button>
+                        </div>
+                        <div id="wikidata-search-results" style="margin-bottom:0.5rem;"></div>
+                        <textarea name="sparql" rows="8" required style="width:100%; font-family:var(--font-mono); font-size:0.85rem;">SELECT ?item ?itemLabel ?website ?regionISO WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q3918 .   # <-- change Q3918 to your entity's Wikidata class
+  ?item wdt:P17 wd:Q183 .              # country: Germany
+  ?item wdt:P856 ?website .            # official website
+  OPTIONAL { ?item wdt:P131* ?region . ?region wdt:P300 ?regionISO . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "de". }
+}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm" style="align-self:flex-start;">Add Registry</button>
+                </form>
+            </details>
+
+            {% include "_harvest_registry_table.html" %}
+        </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // /harvest/registry returns almost instantly (the real fetch runs in
+        // a detached background thread - see main.py) - polls
+        // /harvest/registry-status for actual completion, then re-renders
+        // the whole table from the server so count/fetched_at/button state
+        // all come from one source of truth instead of being patched in JS.
+        function pollHarvestRegistryUntilDone(entityClass) {
+            let attempts = 0;
+            const timer = setInterval(function () {
+                attempts += 1;
+                fetch(`/harvest/registry-status?entity_class=${encodeURIComponent(entityClass)}`)
+                    .then((res) => res.json())
+                    .then((status) => {
+                        if (!status.running || attempts >= 60) {
+                            clearInterval(timer);
+                            if (status.error) alert("Registry fetch failed: " + status.error);
+                            htmx.ajax('GET', '/harvest/registry-table', { target: '#harvest-registry-table', swap: 'outerHTML' });
+                        }
+                    })
+                    .catch(() => {}); // transient network hiccup - next tick retries
+            }, 2000);
+        }
+
+        document.addEventListener('click', function (e) {
+            const wikidataSearchBtn = e.target.closest('#wikidata-search-btn');
+            if (wikidataSearchBtn) {
+                const term = document.getElementById('wikidata-search-input').value.trim();
+                const resultsDiv = document.getElementById('wikidata-search-results');
+                resultsDiv.replaceChildren();
+                if (!term) return;
+                const status = document.createElement('span');
+                status.style.cssText = 'color:var(--muted); font-size:0.85rem;';
+                status.textContent = 'Searching…';
+                resultsDiv.appendChild(status);
+                fetch(`/harvest/wikidata-search?q=${encodeURIComponent(term)}`)
+                    .then((res) => res.json().then((body) => ({ ok: res.ok, body })))
+                    .then(({ ok, body }) => {
+                        if (!ok) throw new Error(body.error || "Search failed");
+                        resultsDiv.replaceChildren();
+                        if (body.length === 0) {
+                            const empty = document.createElement('span');
+                            empty.style.cssText = 'color:var(--muted); font-size:0.85rem;';
+                            empty.textContent = 'No matches.';
+                            resultsDiv.appendChild(empty);
+                            return;
+                        }
+                        // Built via DOM APIs (not innerHTML) - label/description come
+                        // from Wikidata, an external source, so they're treated as
+                        // untrusted text rather than interpolated as HTML.
+                        body.forEach(function (item) {
+                            const resultBtn = document.createElement('button');
+                            resultBtn.type = 'button';
+                            resultBtn.className = 'btn btn-sm wikidata-result-btn';
+                            resultBtn.style.cssText = 'display:block; width:100%; text-align:left; margin-bottom:0.25rem;';
+                            resultBtn.dataset.qid = item.id;
+                            const idPart = document.createElement('strong');
+                            idPart.textContent = item.id;
+                            resultBtn.appendChild(idPart);
+                            resultBtn.appendChild(document.createTextNode(' — ' + item.label));
+                            if (item.description) {
+                                const descPart = document.createElement('span');
+                                descPart.style.color = 'var(--muted)';
+                                descPart.textContent = ' (' + item.description + ')';
+                                resultBtn.appendChild(descPart);
+                            }
+                            resultsDiv.appendChild(resultBtn);
+                        });
+                    })
+                    .catch((err) => {
+                        resultsDiv.replaceChildren();
+                        const errSpan = document.createElement('span');
+                        errSpan.style.color = 'var(--accent)';
+                        errSpan.textContent = err.message;
+                        resultsDiv.appendChild(errSpan);
+                    });
+                return;
+            }
+
+            const wikidataResultBtn = e.target.closest('.wikidata-result-btn');
+            if (wikidataResultBtn) {
+                const qid = wikidataResultBtn.dataset.qid;
+                const textarea = document.querySelector('textarea[name="sparql"]');
+                textarea.value = textarea.value.replace(/wd:Q\d+/, `wd:${qid}`);
+                const resultsDiv = document.getElementById('wikidata-search-results');
+                resultsDiv.replaceChildren();
+                const confirmMsg = document.createElement('span');
+                confirmMsg.style.cssText = 'color:var(--muted); font-size:0.85rem;';
+                confirmMsg.textContent = `Inserted ${qid} into the query.`;
+                resultsDiv.appendChild(confirmMsg);
+                return;
+            }
+
+            const harvestBtn = e.target.closest('.harvest-registry-btn');
+            if (harvestBtn) {
+                const entityClass = harvestBtn.dataset.entityClass;
+                harvestBtn.disabled = true;
+                harvestBtn.textContent = "Fetching…";
+                fetch('/harvest/registry', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: new URLSearchParams({entity_class: entityClass})
+                }).then((res) => res.json().then((body) => ({ ok: res.ok, body }))).then(({ ok, body }) => {
+                    if (!ok) throw new Error(body.error || "Unknown error");
+                    pollHarvestRegistryUntilDone(entityClass);
+                }).catch((err) => {
+                    harvestBtn.disabled = false;
+                    harvestBtn.textContent = "Fetch Registry";
+                    alert("Failed to start registry fetch: " + err.message);
+                });
+                return;
+            }
+        });
+
+        // The search box lives inside the Add Registry <form> (next to the
+        // SPARQL field it fills in) - without this, Enter in a text input
+        // submits the nearest form's first submit button by default, which
+        // here would prematurely POST /harvest/registries/config.
+        document.getElementById('wikidata-search-input').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('wikidata-search-btn').click();
+            }
+        });
+    </script>
+{% endblock %}

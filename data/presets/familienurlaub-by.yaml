@@ -1,0 +1,12 @@
+slug: familienurlaub-by
+name: Familienurlaub-Planung Bayern
+description: >-
+  Alle drei Ebenen aktiv für Bayern: Feiertage, Schulferien und
+  Gemüsesaison zusammen im Blick, etwa um einen Urlaub um die Schulferien
+  herum mit einer erntereichen Jahreszeit zu verbinden.
+layers:
+  - holiday
+  - school_holidays
+  - produce
+region: BY
+mode: overlay

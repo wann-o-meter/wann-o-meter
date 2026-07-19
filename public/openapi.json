@@ -1,0 +1,200 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "wann API",
+    "version": "1.0.0",
+    "description": "Structured, machine-readable calendar data for Germany and beyond: public holidays, optimal vacation windows (bridge days), seasonal produce, and curated civic-data topic pages. No authentication, no rate limit - please cache responses instead of re-fetching the same URL repeatedly. Every entry carries a `source` block with the origin URL, license, and retrieval date; cite the original source per that license, not this API. See /llms.txt for a plain-text overview of the same data.",
+    "license": {
+      "name": "CC BY 4.0 (the underlying dataset - code serving this API is MIT)",
+      "url": "https://creativecommons.org/licenses/by/4.0/legalcode"
+    }
+  },
+  "servers": [{ "url": "/" }],
+  "paths": {
+    "/api/v1/calendar.json": {
+      "get": {
+        "summary": "Calendar catalog",
+        "description": "Every layer/subject on the site as a lightweight index (no event data) - the single entry point to discover everything else below. Fetch a specific entry's full data via /api/v1/calendar/{id}.json.",
+        "operationId": "getCalendarCatalog",
+        "responses": {
+          "200": {
+            "description": "Array of catalog entries",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/CalendarCatalogEntry" } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/calendar/{id}.json": {
+      "get": {
+        "summary": "One calendar layer's full data",
+        "description": "id is the catalog entry's `id` field from /api/v1/calendar.json (category and slug joined with \"--\", e.g. \"feiertage--de-nw\").",
+        "operationId": "getCalendarEntry",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "feiertage--de-nw" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Full calendar entry, including materialized date windows",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CalendarEntry" } } }
+          },
+          "404": { "description": "Unknown id" }
+        }
+      }
+    },
+    "/api/v1/{categoryPath}.json": {
+      "get": {
+        "summary": "One page's raw data",
+        "description": "categoryPath is `{category}/{slug}` - category may itself be several \"/\"-joined segments for nested topics (e.g. \"religioese-feiertage/islamische-feiertage\"). Mirrors the page's own URL one-to-one: the page at /{category}/{slug}/ has its JSON at /api/v1/{category}/{slug}.json.",
+        "operationId": "getPageData",
+        "parameters": [
+          {
+            "name": "categoryPath",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Full \"{category}/{slug}\" path, slashes included",
+            "example": "saisonkalender/erdbeere"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The page's validated data plus derived events",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Page" } } }
+          },
+          "404": { "description": "Unknown category/slug" }
+        }
+      }
+    },
+    "/feeds/{categoryPath}.ics": {
+      "get": {
+        "summary": "Subscribable ICS calendar feed for one page",
+        "description": "Same categoryPath addressing as /api/v1/{categoryPath}.json. Only pages with at least one event have a feed.",
+        "operationId": "getPageIcs",
+        "parameters": [
+          {
+            "name": "categoryPath",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "feiertage/de-nw"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "iCalendar (RFC 5545) feed",
+            "content": { "text/calendar": { "schema": { "type": "string" } } }
+          },
+          "404": { "description": "Unknown category/slug, or the page has no events" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CalendarCatalogEntry": {
+        "type": "object",
+        "required": ["id", "group", "label", "url", "feedUrl"],
+        "properties": {
+          "id": { "type": "string", "description": "Opaque identifier, category and slug joined with \"--\"" },
+          "group": { "type": "string", "description": "Display name of the entry's category" },
+          "label": { "type": "string", "description": "Page title" },
+          "url": { "type": "string", "description": "Path to the human-readable page" },
+          "feedUrl": { "type": "string", "description": "Path to the entry's ICS feed" }
+        }
+      },
+      "CalendarWindow": {
+        "type": "object",
+        "required": ["from", "to", "description"],
+        "properties": {
+          "from": { "type": "string", "format": "date" },
+          "to": { "type": "string", "format": "date" },
+          "description": { "type": "string" }
+        }
+      },
+      "CalendarEntry": {
+        "allOf": [
+          { "$ref": "#/components/schemas/CalendarCatalogEntry" },
+          {
+            "type": "object",
+            "required": ["windows"],
+            "properties": {
+              "windows": { "type": "array", "items": { "$ref": "#/components/schemas/CalendarWindow" } }
+            }
+          }
+        ]
+      },
+      "Source": {
+        "type": "object",
+        "required": ["url", "license", "retrieved_at", "extraction"],
+        "properties": {
+          "url": { "type": "string", "format": "uri", "description": "Origin the fact was retrieved from - cite this, not the wann API" },
+          "license": {
+            "type": "string",
+            "enum": ["official_par5", "dl_de_by", "cc_by", "tos_checked", "permission_granted", "own_derivation"]
+          },
+          "license_note": { "type": "string", "nullable": true },
+          "retrieved_at": { "type": "string", "format": "date" },
+          "extraction": { "type": "string", "enum": ["manual", "llm", "parser"] },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "contributed_by": { "type": "string", "description": "GitHub handle of whoever suggested this source, if any" }
+        }
+      },
+      "PageEvent": {
+        "type": "object",
+        "required": ["date", "label"],
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "to": { "type": "string", "format": "date", "description": "Only present for a multi-day window, when it differs from `date`" },
+          "label": { "type": "string" }
+        }
+      },
+      "Page": {
+        "type": "object",
+        "required": ["category", "slug", "meta", "data", "events"],
+        "properties": {
+          "category": { "type": "string" },
+          "slug": { "type": "string" },
+          "meta": {
+            "type": "object",
+            "required": ["title", "description", "tags", "featured"],
+            "properties": {
+              "title": { "type": "string" },
+              "description": { "type": "string" },
+              "tags": { "type": "array", "items": { "type": "string" } },
+              "featured": { "type": "boolean" }
+            }
+          },
+          "data": {
+            "type": "object",
+            "required": ["subject", "source", "windows", "raw_data"],
+            "properties": {
+              "subject": {
+                "type": "object",
+                "properties": { "slug": { "type": "string" }, "category": { "type": "string" } }
+              },
+              "source": { "type": "array", "items": { "$ref": "#/components/schemas/Source" } },
+              "windows": {
+                "type": "array",
+                "description": "Curated/computed calendar-style facts (Feiertage, Urlaubsfenster, Schulferien, Saisonkalender). Empty for scraped content pages, which populate raw_data instead.",
+                "items": { "type": "object" }
+              },
+              "raw_data": {
+                "type": "object",
+                "description": "Arbitrary scraped content (shape depends on the source), empty for calendar-style pages"
+              }
+            }
+          },
+          "events": {
+            "type": "array",
+            "description": "Derived, display-ready date list - resolved from `data.windows` if present, otherwise from raw_data's LLM-extracted or regex-found dates",
+            "items": { "$ref": "#/components/schemas/PageEvent" }
+          }
+        }
+      }
+    }
+  }
+}
