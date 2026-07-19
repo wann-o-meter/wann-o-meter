@@ -77,6 +77,21 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
       import { formatTodayLabel } from "../../lib/date-display";
       const el = document.getElementById("today-indicator");
       if (el) el.textContent = formatTodayLabel();
+
+      // Cmd+K (Mac) / Ctrl+K (everyone else) jumps to the homepage search,
+      // same target as the "Durchsuchen" nav link - focuses it directly if
+      // we're already on "/", otherwise navigates there.
+      document.addEventListener("keydown", (e) => {
+        if (e.key.toLowerCase() !== "k" || !(e.metaKey || e.ctrlKey)) return;
+        e.preventDefault();
+        const input = document.getElementById("search-input");
+        if (input instanceof HTMLInputElement) {
+          input.focus({ preventScroll: true });
+          input.scrollIntoView({ block: "center", behavior: "smooth" });
+        } else {
+          window.location.href = "/#search-input";
+        }
+      });
     </script>
   </body>
 </html>
