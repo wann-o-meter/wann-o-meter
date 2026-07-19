@@ -47,7 +47,7 @@ function buildPage(
     slug,
     meta: parsePageMeta({
       title: name,
-      description: `Gesetzliche Feiertage fuer ${name}.${nextHolidayBlurb(windows)}`,
+      description: `Gesetzliche Feiertage für ${name}.${nextHolidayBlurb(windows)}`,
       featured,
     }),
     data: parsePageData({

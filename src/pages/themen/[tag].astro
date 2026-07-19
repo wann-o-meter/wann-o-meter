@@ -22,7 +22,7 @@ const { pages } = Astro.props;
 const sorted = [...pages].sort((a, b) => a.meta.title.localeCompare(b.meta.title, "de"));
 ---
 
-<Layout title={`Themen: ${tag}`} description={`Alle Seiten mit dem Tag "${tag}", ueber alle Themenbereiche hinweg.`}>
+<Layout title={`Themen: ${tag}`} description={`Alle Seiten mit dem Tag "${tag}", über alle Themenbereiche hinweg.`}>
   <p class="back"><a href="/themen/">&larr; Themen</a></p>
   <h1>Themen: {tag}</h1>
 

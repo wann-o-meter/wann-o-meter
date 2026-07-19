@@ -14,8 +14,8 @@ source:
   url: https://www.bzfe.de/kueche-und-alltag/einkaufen/der-saisonkalender
   license: dl_de_by
   license_note: >-
-    Bundeszentrum fuer Ernaehrung (BZfE, nachgeordnete Einrichtung der BLE/BMEL). Monatsangaben
-    aus dem oeffentlich bekannten BZfE-Saisonkalender, quer geprueft gegen mehrere
+    Bundeszentrum für Ernährung (BZfE, nachgeordnete Einrichtung der BLE/BMEL). Monatsangaben
+    aus dem öffentlich bekannten BZfE-Saisonkalender, quer geprüft gegen mehrere
     Verbraucherportale, nicht live aus dem interaktiven Widget gescrapt (das liefert keinen
     Text-Export).
   retrieved_at: '2026-07-12'

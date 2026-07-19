@@ -55,7 +55,7 @@ source:
   - url: https://www.kmk.org/service/ferienregelung/ferienkalender.html
     license: official_par5
     license_note: >-
-      Amtlicher .ics-Download der KMK fuer Rheinland-Pfalz, Schuljahr 2026/2027 (liefert die
+      Amtlicher .ics-Download der KMK für Rheinland-Pfalz, Schuljahr 2026/2027 (liefert die
       2027-Daten).
     retrieved_at: '2026-07-11'
     extraction: manual
