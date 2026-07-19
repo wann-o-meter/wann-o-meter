@@ -1,0 +1,10 @@
+slug: saisonal-einkaufen
+name: Saisonal einkaufen
+description: >-
+  Nur die Gemüsesaison-Ebene aktiv: wann heimisches Obst und Gemüse
+  Hauptsaison hat oder als Lagerware verfügbar ist. Bundesland-unabhängig,
+  gilt bundesweit.
+layers:
+  - produce
+region: BY
+mode: overlay

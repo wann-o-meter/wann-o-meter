@@ -1,0 +1,58 @@
+                <div id="discovered-table" class="scroll-box tall" hx-get="/crawler/runs/{{ run_id }}/discovered" hx-trigger="every 5s" hx-swap="outerHTML">
+                    <table class="compact">
+                        <thead>
+                            <tr>
+                                <th style="width:38%;">Page</th>
+                                <th style="width:8%;">Date</th>
+                                <th style="width:34%;">Preview</th>
+                                <th style="width:20%; text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for group in discovered_groups %}
+                            <tr class="seed-group-row">
+                                <td colspan="4" style="background:var(--paper-raised); font-weight:600; font-size:0.8rem;">
+                                    {{ group.seed }} <span style="font-weight:400; color:var(--muted);">({{ group.pages|length }} page{{ "s" if group.pages|length != 1 else "" }})</span>
+                                </td>
+                            </tr>
+                            {% for page in group.pages %}
+                            <tr data-has-dates="{{ 'true' if page.has_dates else 'false' }}"
+                                data-search-text="{{ (page.title ~ ' ' ~ page.preview)|lower }}">
+                                <td>
+                                    <div style="font-weight:600;">{{ page.title }}</div>
+                                    <div class="url"><a href="{{ page.url }}" target="_blank">{{ page.url }}</a></div>
+                                </td>
+                                <td>
+                                    {% if page.date_count %}
+                                    <span class="badge" title="Found {{ page.date_count }} date-like pattern(s) in the page text">{{ page.date_count }} date{{ "s" if page.date_count != 1 else "" }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="preview clamp-1">{{ page.preview }}</div>
+                                </td>
+                                <td style="text-align:right; white-space:nowrap;">
+                                    {% if page.status != "accepted" and page.status != "rejected" %}
+                                        <button type="button" class="btn btn-primary btn-sm scrape-btn" data-run-id="{{ run_id }}" data-url="{{ page.url }}">
+                                            Scrape
+                                        </button>
+                                        <form action="/reject" method="post" style="display:inline; margin-left:0.3rem;">
+                                            <input type="hidden" name="run_id" value="{{ run_id }}">
+                                            <input type="hidden" name="url" value="{{ page.url }}">
+                                            <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                                        </form>
+                                    {% else %}
+                                        <span class="badge">{{ page.status|capitalize }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="4" style="text-align:center; padding:2rem; color:var(--muted);">
+                                    No pages discovered yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>

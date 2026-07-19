@@ -1,0 +1,162 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+  wide?: boolean;
+  // Pre-built JSON-LD document from lib/structured-data.ts's graph() - kept
+  // as a plain prop instead of a named slot so every page can pass it
+  // without needing to know about <script> placement.
+  structuredData?: object;
+}
+const { title, description, wide = false, structuredData } = Astro.props;
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+const pageTitle = `${title} · Wann-O-Meter`;
+const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, als Kalender-Abo.";
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" href="/favicon.svg" />
+
+    <meta property="og:site_name" content="Wann-O-Meter" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={ogDescription} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={new URL("/og-image.png", Astro.site).href} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={ogDescription} />
+    <meta name="twitter:image" content={new URL("/og-image.png", Astro.site).href} />
+
+    {structuredData && (
+      <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+    )}
+  </head>
+  <body>
+    <header>
+      <div class:list={["wrap", "header-bar", { wide }]}>
+        <a href="/" class="brand">Wann-<span class="brand-accent">O</span>-Meter</a>
+        <span id="today-indicator" class="today-indicator"></span>
+        <nav>
+          <a href="/kalender/">Kalender</a>
+          <a href="/#search-input">Durchsuchen</a>
+        </nav>
+      </div>
+    </header>
+    <main class:list={["wrap", { wide }]}>
+      <slot />
+    </main>
+    <footer>
+      <div class:list={["wrap", "footer-bar", { wide }]}>
+        <p>
+          Alle Seiten, Einzel-Kalender-Feeds (ICS) und JSON-Daten sind kostenlos und bleiben es -
+          fuer private Nutzung. Kommerzielle Volumen-Nutzung nur nach Vereinbarung.
+        </p>
+        <p>Angaben ohne Gewaehr. Quelle &amp; Stand stehen bei jedem Zeitfenster dabei.</p>
+        <p><a href="/impressum">Impressum</a> &middot; <a href="/datenschutz">Datenschutz</a></p>
+      </div>
+    </footer>
+
+    <script>
+      // Client-side, not Astro frontmatter: this is a static build, so a
+      // date computed at build time would freeze at whenever the site was
+      // last built, not update as real days/weeks pass for a visitor.
+      import { formatTodayLabel } from "../../lib/date-display";
+      const el = document.getElementById("today-indicator");
+      if (el) el.textContent = formatTodayLabel();
+    </script>
+  </body>
+</html>
+
+<style>
+  .wrap {
+    max-width: 62rem;
+    margin: 0 auto;
+    padding-left: 1.75rem;
+    padding-right: 1.75rem;
+  }
+  .wrap.wide {
+    max-width: 88rem;
+  }
+  @media (max-width: 30rem) {
+    .wrap {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
+
+  header {
+    border-bottom: 1px solid var(--line);
+  }
+  .header-bar {
+    padding-top: 1.1rem;
+    padding-bottom: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.5rem;
+  }
+  .brand {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 1.05rem;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .brand .brand-accent {
+    color: var(--accent);
+  }
+  .today-indicator {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1.3rem;
+    font-size: 0.9rem;
+  }
+  nav a {
+    color: var(--ink);
+    text-decoration: none;
+    padding: 0.3rem 0;
+  }
+  nav a:hover {
+    color: var(--accent);
+  }
+
+  main {
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+  }
+
+  footer {
+    margin-top: 3rem;
+    border-top: 1px solid var(--line);
+  }
+  .footer-bar {
+    padding-top: 1.25rem;
+    padding-bottom: 2rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .footer-bar p {
+    margin: 0 0 0.4rem;
+  }
+</style>

@@ -1,0 +1,252 @@
+{% extends "_base.html" %}
+
+{% block title %}Wann-Plattform • Crawler{% endblock %}
+
+{% block header_actions %}
+    {% if state.is_running %}
+    <form action="/stop" method="post" style="margin:0;">
+        <button type="submit" class="btn btn-danger btn-sm">Stop Crawler</button>
+    </form>
+    {% endif %}
+    <form action="/delete-unscraped" method="post" style="margin:0;"
+          onsubmit="return confirm('Delete all not-yet-scraped Discovered/Accepted/Rejected entries across every run? Already scraped YAML files are kept.');">
+        <button type="submit" class="btn btn-danger btn-sm">Delete Unscraped</button>
+    </form>
+{% endblock %}
+
+{% block extra_style %}
+        .chip-input {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            align-items: center;
+            padding: 0.5rem;
+            border: 1px solid var(--line);
+            background: var(--paper);
+        }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            background: var(--paper-raised);
+            border: 1px solid var(--line);
+            padding: 0.15rem 0.5rem;
+        }
+        .chip-remove {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--muted);
+            padding: 0;
+            font-size: 1rem;
+            line-height: 1;
+        }
+        .chip-remove:hover { color: var(--accent); }
+        #seed-chip-text {
+            flex: 1;
+            min-width: 200px;
+            border: none;
+            padding: 0.2rem;
+        }
+{% endblock %}
+
+{% block content %}
+        <!-- START A NEW CRAWL -->
+        <div class="card">
+            <h3 class="section-title">Start a Crawl</h3>
+
+            <form action="/start" method="post" id="start-crawl-form">
+                <div>
+                    <label class="field-label">Seed Domains</label>
+                    <div class="chip-input" id="seed-chip-input">
+                        <input type="text" id="seed-chip-text" placeholder="Type a domain, press Enter…">
+                    </div>
+                    <textarea name="seeds" id="seed-chip-hidden" hidden></textarea>
+                </div>
+
+                {% if harvest_registries %}
+                <div>
+                    <label class="field-label">Or seed from a Harvest Registry</label>
+                    <select name="entity_class" style="width:100%;">
+                        <option value="">— none, use seeds above —</option>
+                        {% for registry in harvest_registries %}
+                        <option value="{{ registry.entity_class }}">{{ registry.entity_class }} ({{ registry.count }} entities)</option>
+                        {% endfor %}
+                    </select>
+                    <div style="font-size:0.8rem; color:var(--muted); margin-top:0.3rem;">
+                        Adds every domain from the selected registry as a seed, on top of anything typed above.
+                        Fetch a registry first on the <a href="/">Harvest</a> page.
+                    </div>
+                </div>
+                {% endif %}
+
+                <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.85rem; font-weight:400; cursor:pointer;">
+                    <input type="checkbox" name="auto_accept_dated">
+                    Auto-scrape pages that contain a date
+                </label>
+
+                <div style="display:flex; gap:1rem; align-items:end;">
+                    <div style="flex:1; max-width:220px;">
+                        <label class="field-label">Pages Per Seed</label>
+                        <input type="number" name="pages_per_seed" value="150" min="0" style="width:100%;" title="Each seed gets its own budget - 300 seeds x 150 = up to 45,000 pages total. Leave empty or 0 for unlimited (crawl each seed to exhaustion; stop manually with Stop Crawler).">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="height:42px;" {% if state.is_running %}disabled title="A crawl is already running"{% endif %}>
+                        Start Crawler
+                    </button>
+                </div>
+                <div style="font-size:0.8rem; color:var(--muted);">
+                    Applies PER seed, not total. Leave empty or 0 to crawl each seed until it runs out of
+                    same-domain pages to follow - use Stop Crawler to cut it off manually.
+                </div>
+            </form>
+        </div>
+
+        <!-- RUNS LIST -->
+        <div class="card" style="margin-top:2rem;">
+            <h3 class="section-title" style="margin-bottom:1rem;">Crawl Runs ({{ runs|length }})</h3>
+            {% if runs %}
+                <div class="scroll-box tall">
+                    <table class="compact">
+                        <thead>
+                            <tr>
+                                <th>Run</th>
+                                <th>Seeds</th>
+                                <th style="width:90px;">Status</th>
+                                <th style="width:220px;">Pages</th>
+                                <th style="width:150px;">Started</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for run in runs %}
+                            <tr>
+                                <td>
+                                    <a href="/crawler/runs/{{ run.run_id }}">{{ run.run_id }}</a>
+                                    {% if run.source_entity_class %}
+                                    <div style="font-size:0.75rem; color:var(--muted);">from {{ run.source_entity_class }}</div>
+                                    {% endif %}
+                                </td>
+                                <td><span class="clamp-1">{{ run.seeds|join(", ") }}</span></td>
+                                <td>
+                                    {% if run.status == "running" %}<span class="running">Running</span>
+                                    {% elif run.status == "stopped" %}<span class="badge">Stopped</span>
+                                    {% else %}<span class="badge">Done</span>{% endif %}
+                                </td>
+                                <td>{{ run.discovered_count }} found · {{ run.accepted_count }} queued for scrape</td>
+                                <td style="font-size:0.8rem; color:var(--muted); font-family:var(--font-mono);">{{ run.started_at[:19] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+            <p class="empty-hint">No crawl runs yet. Start one above.</p>
+            {% endif %}
+        </div>
+
+        <datalist id="category-suggestions">
+            {% for category in category_suggestions %}
+            <option value="{{ category }}">
+            {% endfor %}
+        </datalist>
+
+        <datalist id="tag-suggestions">
+            {% for tag in tag_suggestions %}
+            <option value="{{ tag }}">
+            {% endfor %}
+        </datalist>
+
+        <!-- ALL CREATED PAGES -->
+        <div class="card" style="margin-top:2rem;">
+            <h3 class="section-title">All Created Pages ({{ pages|length }})</h3>
+            {% include "_pages_table.html" %}
+        </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // Chip-style seed input: type a domain, press Enter, it becomes a
+        // removable chip - purely a frontend affordance over the same
+        // newline-joined seeds textarea /start already expects (main.py's
+        // start_crawler splits on splitlines()), so the backend contract
+        // doesn't change at all.
+        (function () {
+            const wrap = document.getElementById('seed-chip-input');
+            const text = document.getElementById('seed-chip-text');
+            const hidden = document.getElementById('seed-chip-hidden');
+            const seeds = [];
+
+            function sync() {
+                hidden.value = seeds.join('\n');
+            }
+
+            function addChip(value) {
+                value = value.trim();
+                if (!value || seeds.includes(value)) return;
+                seeds.push(value);
+                const chip = document.createElement('span');
+                chip.className = 'chip';
+                chip.dataset.value = value;
+                chip.append(value);
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'chip-remove';
+                remove.setAttribute('aria-label', `Remove ${value}`);
+                remove.textContent = '×';
+                remove.addEventListener('click', function () {
+                    const i = seeds.indexOf(value);
+                    if (i !== -1) seeds.splice(i, 1);
+                    chip.remove();
+                    sync();
+                });
+                chip.append(remove);
+                wrap.insertBefore(chip, text);
+                sync();
+            }
+
+            text.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addChip(text.value);
+                    text.value = '';
+                } else if (e.key === 'Backspace' && text.value === '' && seeds.length > 0) {
+                    // Backspace on an empty field edits the last chip instead
+                    // of silently doing nothing - matches how chip inputs
+                    // elsewhere (e.g. email "To:" fields) behave.
+                    const last = seeds[seeds.length - 1];
+                    wrap.querySelector(`.chip[data-value="${CSS.escape(last)}"]`)?.remove();
+                    seeds.pop();
+                    text.value = last;
+                    sync();
+                }
+            });
+            // A pasted or comma/newline-separated block of domains shouldn't
+            // need one Enter press per line - split eagerly. Splits on
+            // newline/comma first, not bare whitespace, so an "@handle
+            // https://..." line (see data/community-sources.txt) survives as
+            // one chip instead of the handle and URL splitting apart; a
+            // line that isn't handle-prefixed still splits further on
+            // whitespace, so a space-separated blob of plain domains works
+            // exactly as before.
+            text.addEventListener('paste', function (e) {
+                const pasted = (e.clipboardData || window.clipboardData).getData('text');
+                if (!/[\s,]/.test(pasted)) return; // single value - let the default paste happen
+                e.preventDefault();
+                pasted.split(/[\n,]+/).forEach(function (line) {
+                    line = line.trim();
+                    if (!line) return;
+                    if (line.startsWith('@')) addChip(line);
+                    else line.split(/\s+/).forEach(addChip);
+                });
+            });
+            wrap.addEventListener('click', function (e) {
+                if (e.target === wrap) text.focus();
+            });
+            document.getElementById('start-crawl-form').addEventListener('submit', function () {
+                addChip(text.value);
+                text.value = '';
+            });
+        })();
+    </script>
+{% endblock %}

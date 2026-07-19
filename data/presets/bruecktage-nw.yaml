@@ -1,0 +1,12 @@
+slug: bruecktage-nw
+name: Brückentage Nordrhein-Westfalen
+description: >-
+  Feiertage und Schulferien Nordrhein-Westfalen übereinandergelegt. So sieht
+  man auf einen Blick, welche Feiertage frei liegen und welche in die
+  Schulferien fallen. Für einzelne, konkret berechnete
+  Brückentage-Vorschläge siehe die Subjekt-Seite Nordrhein-Westfalen.
+layers:
+  - holiday
+  - school_holidays
+region: NW
+mode: overlay

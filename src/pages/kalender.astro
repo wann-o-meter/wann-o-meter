@@ -1,0 +1,17 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Kalender from "../components/Kalender.vue";
+---
+
+<Layout
+  title="Ebenen-Kalender"
+  description="Feiertage, Schulferien und Gemüsesaison als Ebenen im Kalender - hinzufügen, ansehen, als ICS abonnieren."
+  wide
+>
+  <h1>Ebenen-Kalender</h1>
+  <p>
+    Ebenen suchen und hinzufügen. Jede Kombination ist eine URL, jede Ebene einzeln als ICS
+    abonnierbar.
+  </p>
+  <Kalender client:load />
+</Layout>

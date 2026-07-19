@@ -1,0 +1,159 @@
+{% if pages %}
+<div style="margin-bottom:0.75rem; display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
+    <input type="search" id="pages-filter" placeholder="Filter by title, category or tag…" style="flex:1; min-width:200px; max-width:24rem;">
+    <span id="bulk-actions" style="display:none; gap:0.4rem; align-items:center; font-size:0.85rem;">
+        <span id="bulk-count" style="color:var(--muted);"></span>
+        <input type="text" id="bulk-add-tag" placeholder="tag to add" list="tag-suggestions" style="width:110px;">
+        <button type="button" id="bulk-add-tag-btn" class="btn btn-sm">Add Tag</button>
+        <button type="button" id="bulk-delete-btn" class="btn btn-danger btn-sm">Delete Selected</button>
+    </span>
+</div>
+<div class="scroll-box">
+    <table class="compact" id="pages-table">
+        <thead>
+            <tr>
+                <th style="width:28px;"><input type="checkbox" id="pages-select-all"></th>
+                <th>Title</th>
+                <th style="width:120px;">Category</th>
+                <th>Source</th>
+                <th style="width:120px;">License</th>
+                <th style="width:300px;">Files</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for page in pages %}
+            <tr data-search-text="{{ (page.title ~ ' ' ~ page.category ~ ' ' ~ page.tags|join(' '))|lower }}"
+                data-category="{{ page.category }}" data-slug="{{ page.slug }}">
+                <td><input type="checkbox" class="page-select" value="{{ page.category }}/{{ page.slug }}"></td>
+                <td>
+                    {{ page.title }}
+                    <div class="preview">/{{ page.category }}/{{ page.slug }}/{% if page.tags %} · {{ page.tags|join(", ") }}{% endif %}</div>
+                </td>
+                <td>{{ page.category }}</td>
+                <td><span class="url"><a href="{{ page.url }}" target="_blank">{{ page.url }}</a></span></td>
+                <td>{{ page.lizenz }}</td>
+                <td>
+                    <a href="/page-data/{{ page.category }}/{{ page.slug }}" target="_blank" class="btn btn-sm" style="text-decoration:none; display:inline-block;">data.yaml</a>
+                    <a href="/page-meta/{{ page.category }}/{{ page.slug }}" target="_blank" class="btn btn-sm" style="text-decoration:none; display:inline-block;">page.yaml</a>
+                    <button type="button" class="btn btn-sm edit-toggle-btn" data-target="edit-row-{{ loop.index }}">Edit</button>
+                    <form action="/pages/{{ page.category }}/{{ page.slug }}/delete" method="post" style="display:inline;"
+                          onsubmit="return confirm('Delete /{{ page.category }}/{{ page.slug }}/ - this removes data.yaml and page.yaml permanently. Continue?');">
+                        <input type="hidden" name="return_to" value="{{ request.url.path }}">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            <tr class="edit-row" id="edit-row-{{ loop.index }}" hidden>
+                <td colspan="6">
+                    <form action="/pages/{{ page.category }}/{{ page.slug }}/edit" method="post" class="inline-form" style="padding:0.5rem 0;">
+                        <input type="hidden" name="return_to" value="{{ request.url.path }}">
+                        <div>
+                            <label class="field-label">Title</label><br>
+                            <input type="text" name="title" value="{{ page.title }}" required style="width:170px;">
+                        </div>
+                        <div>
+                            <label class="field-label">Description</label><br>
+                            <input type="text" name="description" value="{{ page.description }}" style="width:220px;">
+                        </div>
+                        <div>
+                            <label class="field-label">Category</label><br>
+                            <input type="text" name="category" list="category-suggestions" value="{{ page.category_display }}" required style="width:160px;" title="Changing this moves the page's folder, so its URL changes too.">
+                        </div>
+                        <div>
+                            <label class="field-label">Tags</label><br>
+                            <input type="text" name="tags" list="tag-suggestions" value="{{ page.tags|join(', ') }}" style="width:150px;">
+                        </div>
+                        <div>
+                            <label class="field-label">License</label><br>
+                            <select name="license" required class="license-select">
+                                {% for option in license_options %}
+                                <option value="{{ option.value }}" {{ 'selected' if option.value == page.lizenz else '' }}>{{ option.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                        <button type="button" class="btn btn-sm edit-toggle-btn" data-target="edit-row-{{ loop.index }}">Cancel</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    // Same plain-substring filter pattern as _run_detail's discovered-table filter
+    // and src/pages/themen/index.astro - no framework needed for this.
+    (function () {
+        const filter = document.getElementById('pages-filter');
+        const rows = document.querySelectorAll('#pages-table tbody tr:not(.edit-row)');
+        filter.addEventListener('input', function () {
+            const query = filter.value.trim().toLowerCase();
+            rows.forEach(function (row) {
+                row.hidden = query !== '' && !(row.dataset.searchText || '').includes(query);
+            });
+        });
+    })();
+
+    // Selection + bulk actions (Add Tag / Delete Selected) - checkboxes only,
+    // no separate "bulk edit mode" toggle needed since the checkboxes are
+    // always there and the action bar just hides itself at zero selected.
+    (function () {
+        const selectAll = document.getElementById('pages-select-all');
+        const checkboxes = () => Array.from(document.querySelectorAll('.page-select'));
+        const bulkActions = document.getElementById('bulk-actions');
+        const bulkCount = document.getElementById('bulk-count');
+
+        function selected() {
+            return checkboxes().filter((cb) => cb.checked).map((cb) => cb.value);
+        }
+        function refresh() {
+            const n = selected().length;
+            bulkActions.style.display = n > 0 ? 'flex' : 'none';
+            bulkCount.textContent = `${n} selected`;
+        }
+        selectAll.addEventListener('change', function () {
+            checkboxes().forEach((cb) => { cb.checked = selectAll.checked; });
+            refresh();
+        });
+        document.addEventListener('change', function (e) {
+            if (e.target.classList.contains('page-select')) refresh();
+        });
+
+        document.getElementById('bulk-delete-btn').addEventListener('click', function () {
+            const paths = selected();
+            if (paths.length === 0) return;
+            if (!confirm(`Delete ${paths.length} page(s) permanently? This removes their data.yaml and page.yaml.`)) return;
+            Promise.all(paths.map((path) => fetch(`/pages/${path}/delete`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({return_to: window.location.pathname}),
+            }))).then(() => window.location.reload())
+                .catch(() => alert("Some deletes may have failed - reloading to check current state."))
+                .finally(() => window.location.reload());
+        });
+
+        document.getElementById('bulk-add-tag-btn').addEventListener('click', function () {
+            const tag = document.getElementById('bulk-add-tag').value.trim();
+            const paths = selected();
+            if (!tag || paths.length === 0) return;
+            Promise.all(paths.map((path) => fetch(`/pages/${path}/add-tag`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({tag: tag}),
+            }))).then(() => window.location.reload())
+                .catch(() => alert("Some tag updates may have failed - reloading to check current state."))
+                .finally(() => window.location.reload());
+        });
+    })();
+
+    document.addEventListener('click', function (e) {
+        const editToggleBtn = e.target.closest('.edit-toggle-btn');
+        if (editToggleBtn) {
+            const target = document.getElementById(editToggleBtn.dataset.target);
+            if (target) target.hidden = !target.hidden;
+        }
+    });
+</script>
+{% else %}
+<p class="empty-hint">No pages created yet.</p>
+{% endif %}

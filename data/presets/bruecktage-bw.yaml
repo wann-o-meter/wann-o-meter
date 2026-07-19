@@ -1,0 +1,12 @@
+slug: bruecktage-bw
+name: Brückentage Baden-Württemberg
+description: >-
+  Feiertage und Schulferien Baden-Württemberg übereinandergelegt. So sieht man
+  auf einen Blick, welche Feiertage frei liegen und welche in die Schulferien
+  fallen. Für einzelne, konkret berechnete Brückentage-Vorschläge siehe die
+  Subjekt-Seite Baden-Württemberg.
+layers:
+  - holiday
+  - school_holidays
+region: BW
+mode: overlay

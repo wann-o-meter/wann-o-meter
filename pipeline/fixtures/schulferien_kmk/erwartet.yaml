@@ -1,0 +1,43 @@
+# Erwartetes Ergebnis der Multi-Subjekt-LLM-Extraktion auf raw_sample.html,
+# fuer Schuljahr 2028. Von Hand geschrieben (kein echter Modell-Call in
+# dieser Umgebung) - steht testweise fuer eine "aufgezeichnete Modell-
+# Antwort" (siehe pipeline/README.md). Zwei Bundeslaender (nicht alle 16),
+# um core.extraction.extract_subjects' Subjekt-Split-Mechanismus zu testen -
+# Vollstaendigkeit ueber alle 16 Bundeslaender ist Sache eines echten
+# End-to-End-Laufs, nicht dieser Unit-Fixture. Testet die deterministische
+# Maschinerie (Store-Merge, Validierung), nicht die Extraktion selbst.
+- subject:
+    slug: bw
+    name: Schulferien Baden-Württemberg
+  ranges:
+    - start: "2028-03-27"
+      end: "2028-04-08"
+      label: Osterferien
+    - start: "2028-05-23"
+      end: "2028-06-02"
+      label: Pfingstferien
+    - start: "2028-07-27"
+      end: "2028-09-09"
+      label: Sommerferien
+    - start: "2028-10-30"
+      end: "2028-11-03"
+      label: Herbstferien
+    - start: "2028-12-23"
+      end: "2029-01-05"
+      label: Weihnachtsferien
+- subject:
+    slug: by
+    name: Schulferien Bayern
+  ranges:
+    - start: "2028-04-03"
+      end: "2028-04-15"
+      label: Osterferien
+    - start: "2028-08-01"
+      end: "2028-09-12"
+      label: Sommerferien
+    - start: "2028-11-02"
+      end: "2028-11-03"
+      label: Herbstferien
+    - start: "2028-12-23"
+      end: "2029-01-05"
+      label: Weihnachtsferien

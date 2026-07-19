@@ -1,0 +1,22 @@
+# Suggest a source for wann to scrape.
+#
+# One entry per line:
+#   @your-github-handle https://example.com/the-page-you-found
+#
+# The handle is optional - a plain URL works too:
+#   https://example.com/the-page-you-found
+#
+# How this gets used: this file isn't read automatically. An operator
+# pastes lines from here into the crawler's "Start a Crawl" seed box
+# (pipeline/main.py's admin dashboard), which crawls the URL, extracts
+# it, and lets a human review the result before it becomes a page - same
+# review gate as everything else in this repo (GitHub PR, no auto-merge).
+# If you're credited with an "@handle", it gets carried through and shown
+# on the resulting page's "Quelle & Stand" section once the page is
+# created (lib/schema.ts's Source.contributed_by).
+#
+# Prefer to skip the crawl step? Author the data.yaml/page.yaml pair
+# yourself and open a PR directly - see CONTRIBUTING.md.
+#
+# Lines starting with "#" (like this one) and blank lines are ignored.
+
