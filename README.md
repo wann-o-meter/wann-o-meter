@@ -1,16 +1,17 @@
 # Wann-O-Meter
 
-„Wann ist der beste Zeitpunkt fuer X?" - ein Kalender, auf den man geprüfte Zeitschichten legt.
-Siehe [PLAN.md](./PLAN.md) fuer die Produktverfassung.
+„Wann ist der beste Zeitpunkt fuer X?" - ein Kalender, auf den man geprüfte Zeitschichten legt,
+mit Quellenangabe statt generiertem Text. Jede Seite und jede Ebene beantwortet eine Frage nach
+einem Datum oder Zeitraum; keine zeitlosen Ratgeber-Artikel.
 
-V1 = der **Ebenen-Kalender** (`/kalender`): jede Ebene einzeln hinzufuegbar und entfernbar -
+Der **Ebenen-Kalender** (`/kalender`): jede Ebene einzeln hinzufuegbar und entfernbar -
 Feiertage pro Bundesland (alle 16) oder Land (>200, ueber date-holidays), Schulferien pro
 Bundesland UND Ferientyp (Sommer/Herbst/Weihnachten/Ostern/Pfingsten/Winter je einzeln), plus
 Gemüsesaison. Overlay-Modus: beliebig viele Ebenen gleichzeitig, jede Kombination eine URL, jede
 Ebene einzeln als ICS abonnierbar. Presets sind kuratierte, vorbelegte Kalender-URLs als eigene
 Landingpages.
 
-## Architektur: Definition vs. Materialisierung (PLAN.md Abschnitt 5.1)
+## Architektur: Definition vs. Materialisierung
 
 - **Definitionsschicht** (`/data/{kategorie}/{subjekt}.yaml`): handgepflegte/Pipeline-Fakten im
   Zod-validierten Format aus `lib/schema.ts`. Schulferien (dekretiert, KMK, ein `typ` pro
@@ -59,7 +60,7 @@ uv run python -m core.runner schulferien_kmk --jahr 2028
 Kreislauf: Fetch -> LLM-Extraktion -> Validierung gegen `lib/schema.ts` -> YAML-Aenderung auf
 einem Branch -> Pull Request. GitHub ist die Freigabe-Queue - kein Auto-Merge, kein eigenes
 Review-Tool. Siehe `pipeline/README.md` fuer die Pipeline-Struktur (core/sources/tools) und die
-Extraktions-Strategie pro Quelle (PLAN.md Abschnitt 7).
+Extraktions-Strategie pro Quelle.
 
 ## Bekannte Datenluecke
 
