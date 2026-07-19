@@ -91,8 +91,7 @@ source:
     license: official_par5
     license_note: >-
       Ferientermine der Kultusministerkonferenz (KMK), zusammengestellt aus den Meldungen der
-      Kultusministerien der Laender. 2026-Daten uebernommen aus internem Datenbestand
-      (Buerotoolbox), stichprobenartig gegen die Feiertage geprueft.
+      Kultusministerien der Laender.
     retrieved_at: '2026-07-11'
     extraction: manual
   - url: https://www.kmk.org/service/ferienregelung/ferienkalender.html
