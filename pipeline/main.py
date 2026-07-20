@@ -21,7 +21,7 @@ import time
 from datetime import date, datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Set
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urldefrag, urljoin, urlparse
 
 import httpx
 import trafilatura
@@ -311,6 +311,21 @@ def is_blacklisted(url: str) -> bool:
     domain = urlparse(url).netloc.lower()
     return any(bad in domain for bad in BLACKLISTED_DOMAINS)
 
+
+def _classify_content_type(content_type: str) -> str:
+    """Coarse file-type bucket for the Discovered Pages table's type filter,
+    keyed off the response's real Content-Type header (a URL's extension -
+    or lack of one - can't be trusted, e.g. NASA's SEatlas.html#1 anchors)."""
+    mime = content_type.split(";")[0].strip().lower()
+    if mime in ("text/html", "application/xhtml+xml"):
+        return "html"
+    if mime == "application/pdf":
+        return "pdf"
+    if mime.startswith("image/"):
+        return "image"
+    return "other"
+
+
 async def crawl_page(client: httpx.AsyncClient, url: str) -> Optional[tuple[dict, str, str]]:
     """Fetch and analyze one page. Returns (result, resolved_url, html) so callers
     don't have to fetch the same page again to extract links."""
@@ -321,8 +336,28 @@ async def crawl_page(client: httpx.AsyncClient, url: str) -> Optional[tuple[dict
         if resp.status_code != 200:
             return None
 
-        html = resp.text
         resolved_url = str(resp.url)
+        content_type = resp.headers.get("content-type", "text/html")
+        file_type = _classify_content_type(content_type)
+
+        if file_type != "html":
+            # A PDF/image/other binary resource - nothing to title/preview/
+            # date-extract from it, and decoding it as text would just be
+            # wasted work producing garbage.
+            result = {
+                "url": resolved_url,
+                "title": _fallback_title_from_url(resolved_url),
+                "preview": "",
+                "discovered_at": datetime.now().isoformat(),
+                "status": "pending",
+                "has_dates": False,
+                "date_count": 0,
+                "content_type": content_type,
+                "file_type": file_type,
+            }
+            return result, resolved_url, ""
+
+        html = resp.text
         soup = BeautifulSoup(html, "html.parser")
 
         title = (soup.title.string or "").strip() if soup.title else ""
@@ -343,6 +378,8 @@ async def crawl_page(client: httpx.AsyncClient, url: str) -> Optional[tuple[dict
             "status": "pending",
             "has_dates": date_count > 0,
             "date_count": date_count,
+            "content_type": content_type,
+            "file_type": file_type,
         }
         return result, resolved_url, html
     except Exception:
@@ -404,7 +441,10 @@ async def _crawl_one_seed(client: httpx.AsyncClient, run: SeedRun, seed: str) ->
         try:
             soup = BeautifulSoup(html, "html.parser")
             for a in soup.find_all("a", href=True):
-                new_url = urljoin(resolved_url, a["href"])
+                # Strip the fragment - "#1"/"#2" anchors on the same page are
+                # not distinct pages, and left in they make the crawler queue
+                # and re-crawl identical content under N different URLs.
+                new_url, _ = urldefrag(urljoin(resolved_url, a["href"]))
                 new_parsed = urlparse(new_url)
                 if (new_parsed.netloc == domain and
                     new_url not in visited and

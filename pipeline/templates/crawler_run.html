@@ -35,13 +35,20 @@
                             <input type="checkbox" id="only-dates-filter">
                             Only pages with dates
                         </label>
+                        <select id="type-filter" style="font-size:0.85rem;">
+                            <option value="">All types</option>
+                            <option value="html">HTML</option>
+                            <option value="pdf">PDF</option>
+                            <option value="image">Image</option>
+                            <option value="other">Other</option>
+                        </select>
                         <button type="button" id="scrape-all-discovered-btn" class="btn btn-primary btn-sm" title="Scrapes every discovered page that hasn't been scraped or rejected yet">
                             Scrape All
                         </button>
                         <button
                             hx-get="/crawler/runs/{{ run.run_id }}/discovered"
                             hx-target="#discovered-table"
-                            hx-swap="outerHTML"
+                            hx-swap="innerHTML"
                             class="btn btn-sm">
                             Refresh
                         </button>
@@ -51,7 +58,10 @@
                     <input type="text" id="keyword-filter" placeholder="Filter by keyword, e.g. prüfungstermine (searches title + preview text)" style="width:100%; font-family:var(--font-mono); font-size:0.85rem;">
                 </div>
 
-                {% include "_discovered_table.html" %}
+                <div id="discovered-table" class="scroll-box tall"
+                     hx-get="/crawler/runs/{{ run.run_id }}/discovered" hx-trigger="every 5s" hx-swap="innerHTML">
+                    {% include "_discovered_table.html" %}
+                </div>
             </div>
         </div>
 
@@ -298,7 +308,7 @@
                         button.disabled = false;
                         button.textContent = "Scrape All";
                         pollScrapedTableUntilDone();
-                        htmx.ajax('GET', `/crawler/runs/${RUN_ID}/discovered`, { target: '#discovered-table', swap: 'outerHTML' });
+                        htmx.ajax('GET', `/crawler/runs/${RUN_ID}/discovered`, { target: '#discovered-table', swap: 'innerHTML' });
                     }
                 }).catch(() => {}); // transient network hiccup - next tick retries
             }, 2000);
@@ -491,7 +501,7 @@
         // Keyboard shortcut: press "r" to refresh discovered table
         document.addEventListener('keydown', function (e) {
             if (e.key === "r" && document.activeElement.tagName === "BODY") {
-                htmx.ajax('GET', `/crawler/runs/${RUN_ID}/discovered`, { target: '#discovered-table', swap: 'outerHTML' });
+                htmx.ajax('GET', `/crawler/runs/${RUN_ID}/discovered`, { target: '#discovered-table', swap: 'innerHTML' });
             }
         });
 
@@ -509,9 +519,11 @@
         // row back to visible.
         const onlyDatesFilter = document.getElementById('only-dates-filter');
         const keywordFilter = document.getElementById('keyword-filter');
+        const typeFilter = document.getElementById('type-filter');
         function applyDiscoveredFilters() {
             const onlyDates = onlyDatesFilter.checked;
             const keyword = keywordFilter.value.trim().toLowerCase();
+            const type = typeFilter.value;
             let currentGroupRow = null;
             let currentGroupHasVisibleRow = false;
             document.querySelectorAll('#discovered-table tbody > tr').forEach(function (row) {
@@ -524,7 +536,8 @@
                 if (!('hasDates' in row.dataset)) return; // not a page row (e.g. the empty-state row)
                 const matchesDates = !onlyDates || row.dataset.hasDates === 'true';
                 const matchesKeyword = !keyword || (row.dataset.searchText || '').includes(keyword);
-                const visible = matchesDates && matchesKeyword;
+                const matchesType = !type || row.dataset.fileType === type;
+                const visible = matchesDates && matchesKeyword && matchesType;
                 row.hidden = !visible;
                 if (visible) currentGroupHasVisibleRow = true;
             });
@@ -532,6 +545,7 @@
         }
         onlyDatesFilter.addEventListener('change', applyDiscoveredFilters);
         keywordFilter.addEventListener('input', applyDiscoveredFilters);
+        typeFilter.addEventListener('change', applyDiscoveredFilters);
         document.body.addEventListener('htmx:afterSwap', applyDiscoveredFilters);
     </script>
 {% endblock %}

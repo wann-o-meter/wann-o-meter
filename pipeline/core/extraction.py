@@ -31,7 +31,11 @@ SYSTEM_PROMPT = (
     "oder nur eine Jahreszahl ohne Tag/Monat) - lass ihn komplett aus der Antwort weg. "
     "Erfinde NIEMALS einen Tag oder Monat, den der Text nicht explizit nennt - insbesondere "
     "ist '01' als Platzhalter-Tag/Monat (z.B. \"2028-01-01\" fuer einen Eintrag, der nur "
-    "'2028' oder 'Herbst 2028' sagt) IMMER falsch. Im Zweifel: Eintrag weglassen statt raten."
+    "'2028' oder 'Herbst 2028' sagt) IMMER falsch. Der gegebene Text ist die EINZIGE Quelle: "
+    "ergaenze KEIN Ereignis und KEIN Datum aus Hintergrundwissen, selbst wenn du das Thema "
+    "erkennst (z.B. bekannte Feiertage, Ereignisse oder ein Datumsmuster) und glaubst, "
+    "weitere Termine zu kennen, die im Text nicht stehen. Im Zweifel: Eintrag weglassen "
+    "statt raten oder ergaenzen."
 )
 
 
