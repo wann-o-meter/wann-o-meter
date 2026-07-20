@@ -225,10 +225,22 @@ _IMAGE_MAGIC = (
     (b"\xff\xd8\xff", "image/jpeg"),
 )
 
+VISION_SYSTEM_PROMPT = (
+    "Du transkribierst Bilder wortgetreu. Das Bild ist die EINZIGE Quelle. "
+    "Erfinde, ergaenze oder vervollstaendige NIEMALS Text, Zahlen oder "
+    "Datumsangaben aus Hintergrundwissen - auch nicht, wenn du das Motiv "
+    "erkennst (z.B. eine bekannte Karte, Grafik oder Tabelle) und glaubst, "
+    "den vollstaendigen Inhalt zu kennen. Gib nur wieder, was im Bild "
+    "tatsaechlich lesbar abgebildet ist. Ist ein Datum, eine Zahl oder ein "
+    "Textabschnitt nicht eindeutig lesbar, schreibe '[nicht lesbar]' an "
+    "dieser Stelle statt zu raten oder aus Kontext zu schliessen."
+)
+
 VISION_PROMPT = (
-    "Beschreibe den Inhalt dieses Bildes auf Deutsch. Gib insbesondere jeden "
-    "sichtbaren Text, jede Beschriftung/Legende sowie alle erkennbaren "
-    "Datums- und Zeitangaben vollstaendig wieder, statt sie zusammenzufassen."
+    "Transkribiere den sichtbaren Inhalt dieses Bildes auf Deutsch. Gib "
+    "insbesondere jeden sichtbaren Text, jede Beschriftung/Legende sowie "
+    "alle erkennbaren Datums- und Zeitangaben vollstaendig wieder, statt sie "
+    "zusammenzufassen - und nur das, was tatsaechlich im Bild steht."
 )
 
 # Anthropic (the default provider) hard-rejects a base64 image over 5MB;
@@ -256,7 +268,7 @@ def extract_image(content: bytes, mime_type: str) -> Dict[str, Any]:
             "size_bytes": len(content),
         }
     try:
-        text = call_llm_vision(content, mime_type, VISION_PROMPT)
+        text = call_llm_vision(content, mime_type, VISION_PROMPT, system=VISION_SYSTEM_PROMPT)
     except LlmError as e:
         return {"kind": "unsupported_binary", "reason": f"vision extraction failed: {e}", "size_bytes": len(content)}
     return {
