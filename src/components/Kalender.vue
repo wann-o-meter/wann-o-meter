@@ -514,10 +514,12 @@ function matchesForDay(iso: string): Match[] {
 // already has the fields for when that lands), so the only honest thing to
 // plot today is density - how many days per bucket a layer is active - which
 // still surfaces seasonality/clustering that the true/false calendar marks
-// don't make visible at a glance. Bucket size is user-chosen (month/week/day)
-// via graphGranularity - the underlying windows are already day-precision
-// (see Layer.windows), so this is just a different grouping of the same data.
-type Granularity = "month" | "week" | "day";
+// don't make visible at a glance. Bucket size is user-chosen (month/week) via
+// graphGranularity - the underlying windows are already day-precision (see
+// Layer.windows), so this is just a different grouping of the same data.
+// Day-level buckets (365 near-empty slivers, no useful axis) were tried and
+// dropped - week is already the finest granularity worth looking at.
+type Granularity = "month" | "week";
 const graphGranularity = ref<Granularity>("month");
 
 function isActiveDay(layer: Layer, iso: string): boolean {
@@ -539,9 +541,9 @@ interface GraphBucket {
   total: number;
 }
 
-// All ISO dates in the given year, in order - the shared base that week/day
-// buckets group differently. Not used for month buckets, which already have
-// a cheap dedicated path (activeDaysInMonth) that doesn't need this array.
+// All ISO dates in the given year, in order - only used to build
+// yearWeekGroups below (month buckets have their own cheap dedicated path,
+// activeDaysInMonth, that doesn't need this).
 function isoDatesOfYear(y: number): string[] {
   const dates: string[] = [];
   for (let m = 0; m < 12; m++) {
@@ -553,29 +555,42 @@ function isoDatesOfYear(y: number): string[] {
   return dates;
 }
 
-function weekBuckets(layer: Layer, dates: string[]): GraphBucket[] {
-  // Grouped by the ISO week's Monday - a year's first/last week can be
-  // partial (fewer than 7 days actually fall in `dates`), which is fine:
-  // the bar's height is count/total of that bucket, not count/7.
+// Every Monday-Sunday week touching the year, with the (possibly partial -
+// see below) list of that week's days that actually fall in it. Computed
+// once per year regardless of layer count, since every layer's week buckets
+// and the shared x-axis group both need the exact same weeks.
+const yearWeekGroups = computed(() => {
   const byMonday = new Map<string, string[]>();
-  for (const iso of dates) {
+  for (const iso of isoDatesOfYear(year.value)) {
     const monday = isoFromDate(mondayOf(new Date(`${iso}T00:00:00`)));
     if (!byMonday.has(monday)) byMonday.set(monday, []);
     byMonday.get(monday)!.push(iso);
   }
-  return [...byMonday.entries()].map(([monday, days]) => ({
-    label: `KW ${isoWeekNumber(new Date(`${monday}T00:00:00`))}`,
-    count: days.filter((iso) => isActiveDay(layer, iso)).length,
-    total: days.length,
+  return [...byMonday.entries()].map(([mondayIso, days]) => ({ mondayIso, days }));
+});
+
+// A week's "month" is the month of its first in-year day, not of its Monday -
+// the year's first/last week is partial (a year's own isoDatesOfYear() never
+// includes the adjacent year's days, see above), so for e.g. the week
+// Monday=Dec 29 whose only in-year days are Jan 1-4, this reports January
+// (what the bar and its axis label are actually mostly showing), not
+// December (which contributed zero days to this bucket).
+function weekMonthIndex0(days: string[]): number {
+  return Number(days[0].slice(5, 7)) - 1;
+}
+
+function weekBuckets(layer: Layer): GraphBucket[] {
+  return yearWeekGroups.value.map((w) => ({
+    // Both month and week in the label (not just "KW 29") since the week
+    // view's x-axis only groups by month, not by individual week - the
+    // week number would otherwise be invisible except on hover.
+    label: `${MONTH_NAMES[weekMonthIndex0(w.days)]}, KW ${isoWeekNumber(new Date(`${w.mondayIso}T00:00:00`))}`,
+    count: w.days.filter((iso) => isActiveDay(layer, iso)).length,
+    total: w.days.length,
   }));
 }
 
-function dayBuckets(layer: Layer, dates: string[]): GraphBucket[] {
-  return dates.map((iso) => ({ label: iso, count: isActiveDay(layer, iso) ? 1 : 0, total: 1 }));
-}
-
 const graphRows = computed(() => {
-  const dates = graphGranularity.value === "month" ? [] : isoDatesOfYear(year.value);
   return layers.value
     .filter((l) => l.visible)
     .map((l) => {
@@ -586,21 +601,36 @@ const graphRows = computed(() => {
               count: activeDaysInMonth(l, monthIndex0),
               total: daysInMonth(monthIndex0),
             }))
-          : graphGranularity.value === "week"
-            ? weekBuckets(l, dates)
-            : dayBuckets(l, dates);
+          : weekBuckets(l);
       return { layer: l, buckets };
     });
 });
 
-// Grid columns for the bar rows, shared by every row (bucket count is the
-// same across layers) - a plain 1fr split for month's fixed 12 columns, a
-// floor width for week/day so a sparse year doesn't squeeze hundreds of
-// bars into invisible slivers (the container scrolls horizontally instead).
+// Grid columns for the bar rows (and the x-axis row below, which must line
+// up with them exactly) - a plain 1fr split for month's fixed 12 columns, a
+// floor width for week so a year's ~52 columns don't squeeze into invisible
+// slivers (the container scrolls horizontally instead).
 const graphBarsColumns = computed(() => {
   const n = graphRows.value[0]?.buckets.length ?? 12;
-  const minPx = graphGranularity.value === "day" ? 2 : graphGranularity.value === "week" ? 5 : 0;
-  return minPx > 0 ? `repeat(${n}, minmax(${minPx}px, 1fr))` : `repeat(${n}, 1fr)`;
+  return graphGranularity.value === "week" ? `repeat(${n}, minmax(5px, 1fr))` : `repeat(${n}, 1fr)`;
+});
+
+// The x-axis: one label per month, each spanning however many of the grid's
+// columns belong to it - 1 column each for month granularity (trivial, one
+// bucket per month already), a run-length-encoded span of weeks for week
+// granularity (a month is ~4-5 consecutive week-columns).
+const graphAxisGroups = computed(() => {
+  if (graphGranularity.value === "month") {
+    return MONTH_NAMES.map((name) => ({ label: name.slice(0, 3), span: 1 }));
+  }
+  const groups: { label: string; span: number }[] = [];
+  for (const w of yearWeekGroups.value) {
+    const label = MONTH_NAMES[weekMonthIndex0(w.days)].slice(0, 3);
+    const last = groups[groups.length - 1];
+    if (last && last.label === label) last.span++;
+    else groups.push({ label, span: 1 });
+  }
+  return groups;
 });
 
 onMounted(async () => {
@@ -775,7 +805,6 @@ onMounted(async () => {
           <div class="granularity-toggle">
             <button type="button" :class="{ active: graphGranularity === 'month' }" @click="graphGranularity = 'month'">Monat</button>
             <button type="button" :class="{ active: graphGranularity === 'week' }" @click="graphGranularity = 'week'">Woche</button>
-            <button type="button" :class="{ active: graphGranularity === 'day' }" @click="graphGranularity = 'day'">Tag</button>
           </div>
           <p v-if="graphRows.length === 0" class="no-layers">Keine sichtbaren Ebenen ausgewählt.</p>
           <template v-else>
@@ -800,10 +829,10 @@ onMounted(async () => {
                 </div>
               </div>
             </div>
-            <div v-if="graphGranularity === 'month'" class="graph-months-row">
+            <div class="graph-months-row">
               <span class="graph-row-label-spacer" />
-              <div class="graph-months">
-                <span v-for="name in MONTH_NAMES" :key="name">{{ name.slice(0, 3) }}</span>
+              <div class="graph-months" :style="{ gridTemplateColumns: graphBarsColumns }">
+                <span v-for="(group, i) in graphAxisGroups" :key="i" :style="{ gridColumn: `span ${group.span}` }">{{ group.label }}</span>
               </div>
             </div>
           </template>
@@ -1450,13 +1479,16 @@ onMounted(async () => {
 .graph-months {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
   gap: 3px;
+  overflow-x: auto;
 }
 .graph-months span {
   text-align: center;
   font-size: 0.65rem;
   color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .embed-bar {
