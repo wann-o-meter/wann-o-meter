@@ -132,3 +132,18 @@ export type Preset = z.infer<typeof presetSchema>;
 export function parsePreset(doc: unknown): Preset {
   return presetSchema.parse(doc);
 }
+
+// Homepage H1 rotator (src/pages/index.astro): one sentence template per
+// category, containing a literal "{subject}" placeholder that
+// lib/homepage-questions.ts fills in with a real subject from that
+// category's data (a produce name, a Bundesland, ...) - decreed wording,
+// same "curated as YAML" treatment as presets above.
+export const homepageQuestionTemplatesSchema = z.object({
+  templates: z.record(z.string(), z.string().min(1).refine((s) => s.includes("{subject}"), "template must contain a {subject} placeholder")),
+});
+
+export type HomepageQuestionTemplates = z.infer<typeof homepageQuestionTemplatesSchema>["templates"];
+
+export function parseHomepageQuestionTemplates(doc: unknown): HomepageQuestionTemplates {
+  return homepageQuestionTemplatesSchema.parse(doc).templates;
+}

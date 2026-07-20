@@ -1,0 +1,10 @@
+# Sentence templates for the homepage H1 rotator (src/pages/index.astro).
+# {subject} is filled in per real subject of that category by
+# lib/homepage-questions.ts - e.g. saisonkalender's "Erdbeere" becomes
+# "Wann ist Erdbeersaison?". Only categories that lib/homepage-questions.ts
+# knows how to build a clean {subject} for have a template here.
+templates:
+  saisonkalender: "Wann ist {subject}?"
+  schulferien: "Wann sind Schulferien in {subject}?"
+  feiertage: "Wann ist der nächste Feiertag in {subject}?"
+  urlaubsfenster: "Wann lohnt sich ein Brückentag in {subject}?"

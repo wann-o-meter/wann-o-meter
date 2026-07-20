@@ -14,12 +14,17 @@ function upcomingWindow(entry: CalendarEntry, today: string): CalendarWindow | u
   return [...entry.windows].filter((w) => w.from > today).sort((a, b) => a.from.localeCompare(b.from))[0];
 }
 
+// "Erdbeere" -> "Erdbeersaison", not "Erdbeeresaison" - the only produce name
+// ending in "e" (see data/saisonkalender/*/data.yaml). Shared with
+// lib/homepage-questions.ts's rotator so both phrasings stay in sync.
+export function seasonNoun(produceLabel: string): string {
+  const stem = produceLabel.endsWith("e") ? produceLabel.slice(0, -1) : produceLabel;
+  return `${stem}saison`;
+}
+
 function describe(entry: CalendarEntry, w: CalendarWindow): string {
   if (entry.id.startsWith("saisonkalender--")) {
-    // "Erdbeere" -> "Erdbeersaison", not "Erdbeeresaison" - the only produce
-    // name ending in "e" (see data/saisonkalender/*/data.yaml).
-    const stem = entry.label.endsWith("e") ? entry.label.slice(0, -1) : entry.label;
-    return w.description === "Hauptsaison" ? `${stem}saison` : `${entry.label} als Lagerware`;
+    return w.description === "Hauptsaison" ? seasonNoun(entry.label) : `${entry.label} als Lagerware`;
   }
   if (entry.id.startsWith("feiertage--de-")) return `Feiertag in ${entry.label.replace(/^Deutschland – /, "")}`;
   return `Brückenfenster in ${entry.label}`; // urlaubsfenster--*
