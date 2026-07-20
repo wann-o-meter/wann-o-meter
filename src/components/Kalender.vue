@@ -64,6 +64,11 @@ interface CalendarEntryResponse {
 // month/week navigation the way those two are.
 type View = "year" | "month" | "week" | "graph";
 
+// Set by src/pages/kalender/embed.astro (the standalone iframe-embeddable
+// page, no header/footer/nav chrome) - hides the "Einbetten" button there,
+// since offering to embed a page that's already an embed is pointless.
+const props = defineProps<{ embed?: boolean }>();
+
 const today = new Date();
 const todayIso = isoFromDate(today);
 
@@ -83,6 +88,9 @@ const yearInputEl = ref<HTMLInputElement | null>(null);
 const catalog = ref<CatalogEntry[]>([]);
 const layerSearch = ref("");
 const expandedGroups = ref<Set<string>>(new Set());
+
+const showEmbed = ref(false);
+const copied = ref(false);
 
 const availableOptions = computed<CatalogEntry[]>(() => {
   const activeIds = new Set(layers.value.map((l) => l.id));
@@ -199,6 +207,10 @@ function removeLayer(id: string) {
   layers.value = layers.value.filter((l) => l.id !== id);
 }
 
+function resetLayers() {
+  layers.value = [];
+}
+
 // Set right before a "drill into a more specific view" mutation (openMonth,
 // openWeek, the breadcrumbs' "go up a level" clicks) so the resulting
 // writeUrl() call pushes a real history entry instead of replacing - without
@@ -210,7 +222,10 @@ function removeLayer(id: string) {
 // more annoying than helpful.
 let pushNextUrlWrite = false;
 
-function writeUrl() {
+// Shared by writeUrl() (this page's own address bar) and embedUrl below (a
+// link to the standalone /kalender/embed/ page with the same state) - both
+// need the exact same "what does the current view look like" query string.
+function currentParams(): URLSearchParams {
   const params = new URLSearchParams();
   params.set("year", String(year.value));
   if (view.value !== "year") params.set("view", view.value);
@@ -220,14 +235,42 @@ function writeUrl() {
   if (view.value === "month" || view.value === "week") params.set("month", String(activeMonth.value + 1));
   if (view.value === "week") params.set("weekstart", weekStart.value);
   if (layers.value.length) params.set("layers", layers.value.map((l) => l.id).join(","));
+  return params;
+}
 
-  const url = `${window.location.pathname}?${params}`;
+function writeUrl() {
+  const url = `${window.location.pathname}?${currentParams()}`;
   if (pushNextUrlWrite) {
     window.history.pushState(null, "", url);
     pushNextUrlWrite = false;
   } else {
     window.history.replaceState(null, "", url);
   }
+}
+
+// Same query string writeUrl() puts in this page's own address bar, just
+// pointed at the standalone embed page instead of wherever /kalender/ is
+// currently mounted - so an embed made from a preset landing page still
+// links to /kalender/embed/, not e.g. /presets/foo/embed/.
+const embedUrl = computed(() => {
+  if (typeof window === "undefined") return "";
+  return `${window.location.origin}/kalender/embed/?${currentParams()}`;
+});
+
+function toggleEmbedPanel() {
+  showEmbed.value = !showEmbed.value;
+}
+
+async function copyEmbedUrl() {
+  await navigator.clipboard.writeText(embedUrl.value);
+  copied.value = true;
+  setTimeout(() => {
+    copied.value = false;
+  }, 1500);
+}
+
+function selectEmbedUrl(e: Event) {
+  (e.target as HTMLInputElement).select();
 }
 
 // Reads the current URL and resets EVERY piece of state to match - not just
@@ -299,11 +342,6 @@ async function loadFromUrlOrDefault() {
 
 function daysInMonth(monthIndex0: number): number {
   return new Date(year.value, monthIndex0 + 1, 0).getDate();
-}
-
-function leadingBlanks(monthIndex0: number): number {
-  const weekday = new Date(year.value, monthIndex0, 1).getDay(); // 0=Sun..6=Sat
-  return (weekday + 6) % 7; // Mon=0
 }
 
 function isoDate(monthIndex0: number, day: number): string {
@@ -403,9 +441,13 @@ function commitYear() {
   editingYear.value = false;
 }
 
-const monthWeeks = computed(() => {
-  const lastDay = new Date(year.value, activeMonth.value + 1, 0);
-  let monday = mondayOf(new Date(year.value, activeMonth.value, 1));
+// Full Monday-Sunday weeks covering a month (including the leading/trailing
+// days of adjacent months a week straddles) - shared by month view (its own
+// month) and the year view (every month's mini-grid, so week numbers show
+// up there too instead of just in month view).
+function weeksOfMonth(monthIndex0: number): { mondayIso: string; number: number; days: string[] }[] {
+  const lastDay = new Date(year.value, monthIndex0 + 1, 0);
+  let monday = mondayOf(new Date(year.value, monthIndex0, 1));
   const weeks: { mondayIso: string; number: number; days: string[] }[] = [];
   while (monday <= lastDay) {
     const days = Array.from({ length: 7 }, (_, i) => {
@@ -418,7 +460,9 @@ const monthWeeks = computed(() => {
     monday.setDate(monday.getDate() + 7);
   }
   return weeks;
-});
+}
+
+const monthWeeks = computed(() => weeksOfMonth(activeMonth.value));
 
 const currentWeekDays = computed(() => {
   const start = new Date(`${weekStart.value}T00:00:00`);
@@ -574,7 +618,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="calendar calendar-layout">
+  <div class="calendar">
+    <div class="calendar-layout">
     <div class="main-area">
       <p v-if="loading">Lädt…</p>
 
@@ -600,25 +645,28 @@ onMounted(async () => {
               {{ name }}
             </h3>
             <div class="weekdays">
+              <span class="week-col-header">KW</span>
               <span v-for="wd in WEEKDAY_NAMES" :key="wd">{{ wd }}</span>
             </div>
-            <div class="days">
-              <span v-for="n in leadingBlanks(monthIndex0)" :key="`blank-${n}`" class="empty" />
+            <div v-for="week in weeksOfMonth(monthIndex0)" :key="week.mondayIso" class="day-week">
+              <button type="button" class="week-number mini" title="Woche öffnen" @click="openWeek(week.mondayIso)">
+                {{ week.number }}
+              </button>
               <span
-                v-for="day in daysInMonth(monthIndex0)"
-                :key="day"
+                v-for="dayIso in week.days"
+                :key="dayIso"
                 class="day"
-                :class="{ today: isoDate(monthIndex0, day) === todayIso }"
+                :class="{ today: dayIso === todayIso, 'other-month': Number(dayIso.slice(5, 7)) - 1 !== monthIndex0 }"
                 role="button"
                 tabindex="0"
-                :title="[...matchesForDay(isoDate(monthIndex0, day)).map((m) => m.title), 'Woche öffnen'].join(', ')"
-                @click="openWeekForDay(isoDate(monthIndex0, day))"
-                @keydown.enter="openWeekForDay(isoDate(monthIndex0, day))"
+                :title="[...matchesForDay(dayIso).map((m) => m.title), 'Woche öffnen'].join(', ')"
+                @click="openWeekForDay(dayIso)"
+                @keydown.enter="openWeekForDay(dayIso)"
               >
-                {{ day }}
+                {{ Number(dayIso.slice(8)) }}
                 <span class="marks">
                   <a
-                    v-for="(match, i) in matchesForDay(isoDate(monthIndex0, day))"
+                    v-for="(match, i) in matchesForDay(dayIso)"
                     :key="i"
                     class="mark"
                     :href="match.url"
@@ -773,6 +821,9 @@ onMounted(async () => {
         <button type="button" :disabled="year >= YEAR_MAX" @click="year++"><ChevronRight :size="16" /></button>
       </div>
 
+      <div v-if="layers.length > 0" class="layer-list-actions">
+        <button type="button" class="reset-layers" @click="resetLayers">Alle entfernen</button>
+      </div>
       <ul class="layer-list">
         <template v-for="grp in groupedLayers" :key="grp.group">
           <li class="layer-group-header">
@@ -823,6 +874,16 @@ onMounted(async () => {
         </div>
       </div>
     </aside>
+    </div>
+
+    <div v-if="!props.embed" class="embed-bar">
+      <button type="button" @click="toggleEmbedPanel">Einbetten</button>
+      <div v-if="showEmbed" class="embed-panel">
+        <label for="embed-url">Link zum Einbetten</label>
+        <input id="embed-url" type="text" readonly :value="embedUrl" @click="selectEmbedUrl" />
+        <button type="button" @click="copyEmbedUrl">{{ copied ? "Kopiert!" : "Kopieren" }}</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -941,6 +1002,19 @@ onMounted(async () => {
 }
 .year-nav button:not(:disabled):hover,
 .view-nav button:not(:disabled):hover {
+  color: var(--accent);
+}
+
+.layer-list-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.reset-layers {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  color: var(--muted);
+}
+.reset-layers:hover {
   color: var(--accent);
 }
 
@@ -1120,15 +1194,21 @@ onMounted(async () => {
   color: var(--accent);
 }
 .weekdays,
-.days {
+.day-week {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: 1.4rem repeat(7, 1fr);
   gap: 2px;
+}
+.day-week {
+  margin-bottom: 2px;
 }
 .weekdays span {
   text-align: center;
   color: var(--muted);
   font-size: 0.68rem;
+}
+.week-col-header {
+  font-family: var(--font-mono);
 }
 .day {
   text-align: center;
@@ -1144,8 +1224,9 @@ onMounted(async () => {
   background: var(--accent);
   color: var(--accent-ink);
 }
-.empty {
-  visibility: hidden;
+.day.other-month {
+  color: var(--muted);
+  opacity: 0.5;
 }
 .marks {
   display: flex;
@@ -1216,6 +1297,11 @@ onMounted(async () => {
 .week-number:hover {
   color: var(--accent);
   background: var(--paper-raised);
+}
+.week-number.mini {
+  background: none;
+  font-size: 0.62rem;
+  padding: 0;
 }
 .day-cell {
   background: var(--paper);
@@ -1363,6 +1449,30 @@ onMounted(async () => {
   text-align: center;
   font-size: 0.65rem;
   color: var(--muted);
+}
+
+.embed-bar {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+.embed-panel {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.embed-panel label {
+  width: 100%;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.embed-panel input {
+  flex: 1;
+  min-width: 14rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
 }
 
 @media (max-width: 60rem) {
