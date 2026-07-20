@@ -21,7 +21,7 @@ import time
 from datetime import date, datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Set
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urldefrag, urljoin, urlparse
 
 import httpx
 import trafilatura
@@ -404,7 +404,10 @@ async def _crawl_one_seed(client: httpx.AsyncClient, run: SeedRun, seed: str) ->
         try:
             soup = BeautifulSoup(html, "html.parser")
             for a in soup.find_all("a", href=True):
-                new_url = urljoin(resolved_url, a["href"])
+                # Strip the fragment - "#1"/"#2" anchors on the same page are
+                # not distinct pages, and left in they make the crawler queue
+                # and re-crawl identical content under N different URLs.
+                new_url, _ = urldefrag(urljoin(resolved_url, a["href"]))
                 new_parsed = urlparse(new_url)
                 if (new_parsed.netloc == domain and
                     new_url not in visited and
