@@ -274,16 +274,6 @@ th {
   font-variant-numeric: tabular-nums;
 }
 
-/* Urlaubsfenster's single best-ratio window (see .best-badge below) - the
-   :target rule above is the same idea (a distinguished row) triggered on
-   arrival instead of on data. */
-.rows li.best {
-  background: var(--paper-raised);
-}
-.best-badge {
-  color: var(--accent);
-}
-
 .cta {
   display: inline-block;
   padding: 0.6rem 1rem;

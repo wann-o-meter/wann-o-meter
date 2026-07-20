@@ -88,13 +88,6 @@ function buildPageView(page: Page) {
   const rawData = data.raw_data as Record<string, unknown>;
   const events = getPageEvents(page);
   const years = [...new Set(events.map((f) => toDate(f.date).getFullYear()))].sort();
-  // Urlaubsfenster's only current use of PageEvent.value (its efficiency
-  // metric, totalDaysOff / requiredVacationDays) - highlights the single
-  // best-ratio window instead of resorting the (otherwise chronological)
-  // list, so "when's my next window" stays scannable while still rewarding
-  // a glance for the best one. Ties keep chronological order (earliest
-  // wins) since sort() is stable and events arrives date-sorted.
-  const bestEventDate = [...events].filter((e) => e.value !== undefined).sort((a, b) => (b.value ?? 0) - (a.value ?? 0))[0]?.date;
   const preview = typeof rawData.clean_markdown_preview === "string" ? rawData.clean_markdown_preview : "";
   const columns = Array.isArray(rawData.columns) ? (rawData.columns as string[]) : [];
   const rowsPreview = Array.isArray(rawData.rows_preview) ? (rawData.rows_preview as Record<string, string>[]) : [];
@@ -123,7 +116,7 @@ function buildPageView(page: Page) {
         ]
       : []),
   ]);
-  return { page, category, meta, data, events, years, bestEventDate, preview, columns, rowsPreview, categoryName, description, structuredData };
+  return { page, category, meta, data, events, years, preview, columns, rowsPreview, categoryName, description, structuredData };
 }
 
 const categoryView = props.kind === "category" ? buildCategoryView(props.node) : null;
@@ -186,8 +179,7 @@ const pageView = props.kind === "page" ? buildPageView(props.page) : null;
             <DateListControls years={pageView.years} />
             <ul class="rows" id="year-rows">
               {pageView.events.map((e) => (
-                <li id={e.date} data-year={toDate(e.date).getFullYear()} class:list={{ best: e.date === pageView.bestEventDate }}>
-                  {e.date === pageView.bestEventDate && <span class="best-badge" title="Bestes Verhältnis freie Tage/Urlaubstag">★</span>}
+                <li id={e.date} data-year={toDate(e.date).getFullYear()}>
                   <a
                     class="date"
                     href={`/kalender/?day=${e.date}&layers=${pageView.category.replace(/\//g, "-")}--${pageView.page.slug}`}
