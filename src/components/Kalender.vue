@@ -224,22 +224,31 @@ let pushNextUrlWrite = false;
 
 // Shared by writeUrl() (this page's own address bar) and embedUrl below (a
 // link to the standalone /kalender/embed/ page with the same state) - both
-// need the exact same "what does the current view look like" query string.
-function currentParams(): URLSearchParams {
+// need the same "what does the current view look like" query string, just
+// with `live` toggling whether year/month/weekstart are the concrete
+// current values (the page's own URL, a link to exactly this moment) or the
+// literal string "current" (the embed link - loadFromUrlOrDefault() below
+// already falls back to today's actual year/month/weekstart for any value
+// that doesn't parse as a real one, e.g. Number("current") is NaN, so this
+// needs no special-casing there: an embedded widget just always shows
+// "now" instead of freezing at whatever date the embed link was copied on).
+function buildParams(live: boolean): URLSearchParams {
   const params = new URLSearchParams();
-  params.set("year", String(year.value));
+  params.set("year", live ? "current" : String(year.value));
   if (view.value !== "year") params.set("view", view.value);
   // 1-indexed in the URL (month=3 -> March) even though activeMonth is
   // 0-indexed internally (JS Date convention) - a raw 0-index would read as
   // April to anyone reading/writing the URL by hand.
-  if (view.value === "month" || view.value === "week") params.set("month", String(activeMonth.value + 1));
-  if (view.value === "week") params.set("weekstart", weekStart.value);
+  if (view.value === "month" || view.value === "week") {
+    params.set("month", live ? "current" : String(activeMonth.value + 1));
+  }
+  if (view.value === "week") params.set("weekstart", live ? "current" : weekStart.value);
   if (layers.value.length) params.set("layers", layers.value.map((l) => l.id).join(","));
   return params;
 }
 
 function writeUrl() {
-  const url = `${window.location.pathname}?${currentParams()}`;
+  const url = `${window.location.pathname}?${buildParams(false)}`;
   if (pushNextUrlWrite) {
     window.history.pushState(null, "", url);
     pushNextUrlWrite = false;
@@ -248,13 +257,12 @@ function writeUrl() {
   }
 }
 
-// Same query string writeUrl() puts in this page's own address bar, just
-// pointed at the standalone embed page instead of wherever /kalender/ is
+// Points at the standalone embed page instead of wherever /kalender/ is
 // currently mounted - so an embed made from a preset landing page still
 // links to /kalender/embed/, not e.g. /presets/foo/embed/.
 const embedUrl = computed(() => {
   if (typeof window === "undefined") return "";
-  return `${window.location.origin}/kalender/embed/?${currentParams()}`;
+  return `${window.location.origin}/kalender/embed/?${buildParams(true)}`;
 });
 
 function toggleEmbedPanel() {
