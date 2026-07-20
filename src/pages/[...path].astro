@@ -77,7 +77,14 @@ function buildCategoryView(node: CategoryNode) {
       name: categoryMeta.name,
       description,
       url: pageUrl,
-      distributions: [{ url: new URL("/api/v1/calendar.json", Astro.site).href, encodingFormat: "application/json" }],
+      // Only leaf categories (pages of their own) have an all.json - a pure
+      // intermediate node (e.g. "sport" with only child categories) has
+      // nothing of its own to bundle, so it lists no distribution at all
+      // rather than pointing at one that 404s.
+      distributions:
+        sortedPages.length > 0
+          ? [{ url: new URL(`/api/v1/${node.path}/all.json`, Astro.site).href, encodingFormat: "application/json" }]
+          : [],
     }),
   ]);
   return { node, categoryMeta, sortedPages, childCategories, backHref, backLabel, description, structuredData };
@@ -116,7 +123,7 @@ function buildPageView(page: Page) {
         ]
       : []),
   ]);
-  return { page, category, meta, data, events, years, preview, columns, rowsPreview, categoryName, description, structuredData };
+  return { page, category, meta, data, events, years, preview, columns, rowsPreview, categoryName, description, structuredData, pageUrl };
 }
 
 const categoryView = props.kind === "category" ? buildCategoryView(props.node) : null;
@@ -223,7 +230,7 @@ const pageView = props.kind === "page" ? buildPageView(props.page) : null;
         )
       }
 
-      <SourceList sources={pageView.data.source} />
+      <SourceList sources={pageView.data.source} pageTitle={pageView.meta.title} pageUrl={pageView.pageUrl} />
     </Layout>
   )
 }

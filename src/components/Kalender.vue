@@ -460,23 +460,95 @@ function matchesForDay(iso: string): Match[] {
 // The "graph" view's data: no numeric value/unit is populated on any window
 // yet (checked across data/**/*.yaml - lib/schema.ts's MaterializedWindow
 // already has the fields for when that lands), so the only honest thing to
-// plot today is density - how many days per month a layer is active - which
+// plot today is density - how many days per bucket a layer is active - which
 // still surfaces seasonality/clustering that the true/false calendar marks
-// don't make visible at a glance.
+// don't make visible at a glance. Bucket size is user-chosen (month/week/day)
+// via graphGranularity - the underlying windows are already day-precision
+// (see Layer.windows), so this is just a different grouping of the same data.
+type Granularity = "month" | "week" | "day";
+const graphGranularity = ref<Granularity>("month");
+
+function isActiveDay(layer: Layer, iso: string): boolean {
+  return layer.windows.some((w) => w.start <= iso && iso <= w.end);
+}
+
 function activeDaysInMonth(layer: Layer, monthIndex0: number): number {
   const total = daysInMonth(monthIndex0);
   let count = 0;
   for (let day = 1; day <= total; day++) {
-    const iso = isoDate(monthIndex0, day);
-    if (layer.windows.some((w) => w.start <= iso && iso <= w.end)) count++;
+    if (isActiveDay(layer, isoDate(monthIndex0, day))) count++;
   }
   return count;
 }
 
+interface GraphBucket {
+  label: string;
+  count: number;
+  total: number;
+}
+
+// All ISO dates in the given year, in order - the shared base that week/day
+// buckets group differently. Not used for month buckets, which already have
+// a cheap dedicated path (activeDaysInMonth) that doesn't need this array.
+function isoDatesOfYear(y: number): string[] {
+  const dates: string[] = [];
+  for (let m = 0; m < 12; m++) {
+    const total = new Date(y, m + 1, 0).getDate();
+    for (let day = 1; day <= total; day++) {
+      dates.push(`${y}-${String(m + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
+    }
+  }
+  return dates;
+}
+
+function weekBuckets(layer: Layer, dates: string[]): GraphBucket[] {
+  // Grouped by the ISO week's Monday - a year's first/last week can be
+  // partial (fewer than 7 days actually fall in `dates`), which is fine:
+  // the bar's height is count/total of that bucket, not count/7.
+  const byMonday = new Map<string, string[]>();
+  for (const iso of dates) {
+    const monday = isoFromDate(mondayOf(new Date(`${iso}T00:00:00`)));
+    if (!byMonday.has(monday)) byMonday.set(monday, []);
+    byMonday.get(monday)!.push(iso);
+  }
+  return [...byMonday.entries()].map(([monday, days]) => ({
+    label: `KW ${isoWeekNumber(new Date(`${monday}T00:00:00`))}`,
+    count: days.filter((iso) => isActiveDay(layer, iso)).length,
+    total: days.length,
+  }));
+}
+
+function dayBuckets(layer: Layer, dates: string[]): GraphBucket[] {
+  return dates.map((iso) => ({ label: iso, count: isActiveDay(layer, iso) ? 1 : 0, total: 1 }));
+}
+
 const graphRows = computed(() => {
+  const dates = graphGranularity.value === "month" ? [] : isoDatesOfYear(year.value);
   return layers.value
     .filter((l) => l.visible)
-    .map((l) => ({ layer: l, counts: MONTH_NAMES.map((_, monthIndex0) => activeDaysInMonth(l, monthIndex0)) }));
+    .map((l) => {
+      const buckets: GraphBucket[] =
+        graphGranularity.value === "month"
+          ? MONTH_NAMES.map((name, monthIndex0) => ({
+              label: name.slice(0, 3),
+              count: activeDaysInMonth(l, monthIndex0),
+              total: daysInMonth(monthIndex0),
+            }))
+          : graphGranularity.value === "week"
+            ? weekBuckets(l, dates)
+            : dayBuckets(l, dates);
+      return { layer: l, buckets };
+    });
+});
+
+// Grid columns for the bar rows, shared by every row (bucket count is the
+// same across layers) - a plain 1fr split for month's fixed 12 columns, a
+// floor width for week/day so a sparse year doesn't squeeze hundreds of
+// bars into invisible slivers (the container scrolls horizontally instead).
+const graphBarsColumns = computed(() => {
+  const n = graphRows.value[0]?.buckets.length ?? 12;
+  const minPx = graphGranularity.value === "day" ? 2 : graphGranularity.value === "week" ? 5 : 0;
+  return minPx > 0 ? `repeat(${n}, minmax(${minPx}px, 1fr))` : `repeat(${n}, 1fr)`;
 });
 
 onMounted(async () => {
@@ -644,6 +716,11 @@ onMounted(async () => {
               <ChevronRight :size="18" />
             </button>
           </div>
+          <div class="granularity-toggle">
+            <button type="button" :class="{ active: graphGranularity === 'month' }" @click="graphGranularity = 'month'">Monat</button>
+            <button type="button" :class="{ active: graphGranularity === 'week' }" @click="graphGranularity = 'week'">Woche</button>
+            <button type="button" :class="{ active: graphGranularity === 'day' }" @click="graphGranularity = 'day'">Tag</button>
+          </div>
           <p v-if="graphRows.length === 0" class="no-layers">Keine sichtbaren Ebenen ausgewählt.</p>
           <template v-else>
             <div class="graph-rows">
@@ -652,22 +729,22 @@ onMounted(async () => {
                   <span class="dot" :style="{ background: row.layer.color }" />
                   <span class="layer-label-text">{{ row.layer.label }}</span>
                 </span>
-                <div class="graph-bars">
+                <div class="graph-bars" :style="{ gridTemplateColumns: graphBarsColumns }">
                   <div
-                    v-for="(count, monthIndex0) in row.counts"
-                    :key="monthIndex0"
+                    v-for="(bucket, i) in row.buckets"
+                    :key="i"
                     class="graph-bar-slot"
-                    :title="`${MONTH_NAMES[monthIndex0]}: ${count} Tag(e)`"
+                    :title="`${bucket.label}: ${bucket.count}/${bucket.total} Tag(e)`"
                   >
                     <div
                       class="graph-bar"
-                      :style="{ height: `${(count / daysInMonth(monthIndex0)) * 100}%`, background: row.layer.color }"
+                      :style="{ height: `${(bucket.count / bucket.total) * 100}%`, background: row.layer.color }"
                     />
                   </div>
                 </div>
               </div>
             </div>
-            <div class="graph-months-row">
+            <div v-if="graphGranularity === 'month'" class="graph-months-row">
               <span class="graph-row-label-spacer" />
               <div class="graph-months">
                 <span v-for="name in MONTH_NAMES" :key="name">{{ name.slice(0, 3) }}</span>
@@ -795,6 +872,22 @@ onMounted(async () => {
 }
 .graph-toggle {
   margin-left: auto;
+}
+
+.granularity-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+.granularity-toggle button {
+  font-size: 0.78rem;
+  padding: 0.25rem 0.7rem;
+}
+.granularity-toggle button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .year-nav {
@@ -1240,9 +1333,9 @@ onMounted(async () => {
 .graph-bars {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
   gap: 3px;
   height: 3rem;
+  overflow-x: auto;
 }
 .graph-bar-slot {
   height: 100%;

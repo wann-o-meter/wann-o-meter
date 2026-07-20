@@ -1,11 +1,14 @@
 ---
 import type { License, Source } from "../../lib/schema";
 import { formatDate } from "../../lib/format-date";
+import { reportSourceIssueUrl } from "../../lib/github-issue";
 
 interface Props {
   sources: Source[];
+  pageTitle: string;
+  pageUrl: string;
 }
-const { sources } = Astro.props;
+const { sources, pageTitle, pageUrl } = Astro.props;
 
 const LICENSE_LABELS: Record<License, string> = {
   official_par5: "Amtliches Werk (§5 UrhG)",
@@ -31,6 +34,7 @@ const LICENSE_LABELS: Record<License, string> = {
           </span>
         )}
         {q.license_note && <p class="note">{q.license_note}</p>}
+        <a class="report-link" href={reportSourceIssueUrl(pageTitle, pageUrl, q.url)}>Fehler bei dieser Quelle melden</a>
       </li>
     ))
   }

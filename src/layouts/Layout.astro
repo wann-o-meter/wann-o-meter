@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { newSourceIssueUrl } from "../../lib/github-issue";
 
 interface Props {
   title: string;
@@ -21,6 +22,15 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>
+      // Applies a saved light/dark override before first paint, so there's
+      // no flash of the wrong theme - runs synchronously as the very first
+      // thing in <head>. No override stored (or "system") means the
+      // prefers-color-scheme media query in global.css decides, same as
+      // before this toggle existed.
+      const t = localStorage.getItem("theme");
+      if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+    </script>
     <title>{pageTitle}</title>
     {description && <meta name="description" content={description} />}
     <link rel="canonical" href={canonicalUrl} />
@@ -58,6 +68,7 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
           <a href="/kalender/">Kalender</a>
           <a href="/#search-input">Durchsuchen</a>
         </nav>
+        <button type="button" id="theme-toggle" class="theme-toggle" title="Farbschema wechseln (System/Hell/Dunkel)"></button>
       </div>
     </header>
     <main class:list={["wrap", { wide }]}>
@@ -70,7 +81,10 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
           für private Nutzung. Kommerzielle Volumen-Nutzung nur nach Vereinbarung.
         </p>
         <p>Angaben ohne Gewähr. Quelle &amp; Stand stehen bei jedem Zeitfenster dabei.</p>
-        <p><a href="/impressum">Impressum</a> &middot; <a href="/datenschutz">Datenschutz</a></p>
+        <p>
+          <a href="/impressum">Impressum</a> &middot; <a href="/datenschutz">Datenschutz</a> &middot;{" "}
+          <a href={newSourceIssueUrl()}>Quelle vorschlagen</a>
+        </p>
       </div>
     </footer>
 
@@ -87,6 +101,36 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
         const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
         el.href = `/kalender/?day=${iso}`;
       }
+
+      // Light/dark/system toggle. "system" is the implicit default (no
+      // localStorage entry, no data-theme attribute) - global.css's
+      // prefers-color-scheme media query decides. Explicit "light"/"dark"
+      // pin the theme via [data-theme] regardless of the OS setting; the
+      // <script is:inline> above in <head> already applied any saved
+      // override before first paint, this just keeps the button in sync
+      // and lets it cycle through the three states.
+      const THEME_LABELS = { system: "System", light: "Hell", dark: "Dunkel" };
+      const themeToggle = document.getElementById("theme-toggle");
+      function currentTheme() {
+        const t = localStorage.getItem("theme");
+        return t === "light" || t === "dark" ? t : "system";
+      }
+      function renderThemeToggle() {
+        if (themeToggle) themeToggle.textContent = THEME_LABELS[currentTheme()];
+      }
+      renderThemeToggle();
+      themeToggle?.addEventListener("click", () => {
+        const order = ["system", "light", "dark"];
+        const next = order[(order.indexOf(currentTheme()) + 1) % order.length];
+        if (next === "system") {
+          localStorage.removeItem("theme");
+          delete document.documentElement.dataset.theme;
+        } else {
+          localStorage.setItem("theme", next);
+          document.documentElement.dataset.theme = next;
+        }
+        renderThemeToggle();
+      });
 
       // Cmd+K (Mac) / Ctrl+K (everyone else) jumps to the homepage search,
       // same target as the "Durchsuchen" nav link - focuses it directly if
@@ -168,6 +212,10 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
   }
   nav a:hover {
     color: var(--accent);
+  }
+  .theme-toggle {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
   }
 
   main {
