@@ -3,8 +3,14 @@ import Layout from "../layouts/Layout.astro";
 import { getAllContent } from "../../lib/all-content";
 import type { ContentCard } from "../../lib/all-content";
 import { graph, websiteNode } from "../../lib/structured-data";
+import { homepageQuestions } from "../../lib/homepage-questions";
 
 const cards = [...getAllContent()].sort((a, b) => a.title.localeCompare(b.title, "de"));
+
+// H1 rotator (client-side, see script below): real example questions the
+// site can answer, built from data/homepage-questions.yaml's per-category
+// templates - see lib/homepage-questions.ts.
+const rotatingQuestions = homepageQuestions();
 const tags = [...new Set([...cards.flatMap((c) => c.tags)].map((t) => t.toLowerCase()))].sort((a, b) => a.localeCompare(b, "de"))
 
 // Google-SERP-like clustering: one result group per type, most relevant
@@ -35,10 +41,15 @@ const structuredData = graph([
   description={homeDescription}
   structuredData={structuredData}
 >
-  <h1>Wann ist der beste Zeitpunkt für X?</h1>
+  <h1 id="h1-rotator">Wann ist der beste Zeitpunkt?</h1>
   <p class="lead">
     Ein Kalender, auf den man geprüfte Zeitschichten legt. Jede Kombination teilbar als URL,
     jede Ebene einzeln abonnierbar als ICS-Feed.
+  </p>
+  <p class="today-teaser">
+    <a id="today-teaser-link" href="/kalender/">
+      Was heute (nicht) Saison hat, Feiertag ist oder ansteht — im Kalender nachsehen.
+    </a>
   </p>
   <p><a class="cta" href="/kalender/">Ebenen-Kalender öffnen →</a></p>
 
@@ -95,6 +106,17 @@ const structuredData = graph([
   .lead {
     font-size: 1.05rem;
     max-width: 34rem;
+  }
+  .today-teaser {
+    margin: 0 0 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+  .today-teaser a {
+    color: var(--muted);
+  }
+  .today-teaser a:hover {
+    color: var(--accent);
   }
   .cta {
     margin: 0.5rem 0 1rem;
@@ -224,4 +246,54 @@ const structuredData = graph([
   }
   focusSearchIfTargeted();
   window.addEventListener("hashchange", focusSearchIfTargeted);
+</script>
+
+<script>
+  import { pickTodayTeaser } from "../../lib/today-teaser";
+
+  const teaserLink = document.getElementById("today-teaser-link");
+  if (teaserLink instanceof HTMLAnchorElement) {
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    fetch("/api/v1/today-feed.json")
+      .then((r) => r.json())
+      .then((entries) => {
+        const teaser = pickTodayTeaser(entries, today);
+        // No hit (or the fetch/parse below failed) -> keep the static
+        // default text/href already in the template, never show nothing.
+        if (!teaser) return;
+        teaserLink.textContent = teaser.text;
+        teaserLink.href = `/kalender/?day=${teaser.day}&layers=${teaser.entryId}`;
+      })
+      .catch(() => {});
+  }
+</script>
+
+<script define:vars={{ questions: rotatingQuestions }}>
+  // Cycles the H1 through real questions the site can answer - the static
+  // generic H1 (set in the template) is the no-JS/SEO fallback. Skipped
+  // entirely for prefers-reduced-motion (WCAG 2.2.2: no unpausable
+  // auto-updating text).
+  const h1 = document.getElementById("h1-rotator");
+  if (h1 && questions.length > 0 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    let q = questions
+    setInterval(() => {
+      const i = Math.floor(Math.random() * q.length);
+      h1.textContent = questions[i];
+      // Web Animations API, not a CSS class toggle - a class-based
+      // @keyframes animation doesn't replay on repeated triggers without a
+      // reflow hack; .animate() just restarts. Slides up into place from
+      // below with a slight overshoot ("small bounce") via the easing curve.
+      h1.animate(
+        [
+          { transform: "translateY(0.6em)", opacity: 0 },
+          { transform: "translateY(-0.06em)", opacity: 1, offset: 0.7 },
+          { transform: "translateY(0)", opacity: 1 },
+        ],
+        { duration: 450, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" },
+      );
+      q = questions.filter((_, j) => j !== i);
+      if (q.length === 0) q = questions;
+    }, 3000);
+  }
 </script>

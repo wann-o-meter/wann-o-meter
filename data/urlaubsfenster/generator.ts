@@ -24,6 +24,8 @@ export function generate(): Page[] {
         precision: "exact" as const,
         ics: true,
         name: `Mit ${w.requiredVacationDays} Urlaubstag${w.requiredVacationDays === 1 ? "" : "en"} vom ${formatDate(w.from)} bis ${formatDate(w.to)} frei (${w.totalDaysOff} Tage am Stück).`,
+        value: w.efficiency,
+        unit: "Tage frei/Urlaubstag",
       })),
     );
     return {

@@ -28,7 +28,7 @@ import {
 } from "../../lib/pages";
 import type { CategoryNode, Page } from "../../lib/pages";
 import { breadcrumbNode, datasetNode, eventNode, graph } from "../../lib/structured-data";
-import { formatDate, toDate } from "../../lib/format-date";
+import { formatDateWithWeekday, toDate } from "../../lib/format-date";
 
 type CategoryProps = { kind: "category"; node: CategoryNode };
 type PageProps = { kind: "page"; page: Page };
@@ -184,7 +184,7 @@ const pageView = props.kind === "page" ? buildPageView(props.page) : null;
                     class="date"
                     href={`/kalender/?day=${e.date}&layers=${pageView.category.replace(/\//g, "-")}--${pageView.page.slug}`}
                   >
-                    {formatDate(e.date)}{e.to && ` – ${formatDate(e.to)}`}
+                    {formatDateWithWeekday(e.date)}{e.to && ` – ${formatDateWithWeekday(e.to)}`}
                   </a>
                   <span>{e.label}</span>
                 </li>
