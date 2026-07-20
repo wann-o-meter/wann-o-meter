@@ -64,6 +64,11 @@ interface CalendarEntryResponse {
 // month/week navigation the way those two are.
 type View = "year" | "month" | "week" | "graph";
 
+// Set by src/pages/kalender/embed.astro (the standalone iframe-embeddable
+// page, no header/footer/nav chrome) - hides the "Einbetten" button there,
+// since offering to embed a page that's already an embed is pointless.
+const props = defineProps<{ embed?: boolean }>();
+
 const today = new Date();
 const todayIso = isoFromDate(today);
 
@@ -83,6 +88,9 @@ const yearInputEl = ref<HTMLInputElement | null>(null);
 const catalog = ref<CatalogEntry[]>([]);
 const layerSearch = ref("");
 const expandedGroups = ref<Set<string>>(new Set());
+
+const showEmbed = ref(false);
+const copied = ref(false);
 
 const availableOptions = computed<CatalogEntry[]>(() => {
   const activeIds = new Set(layers.value.map((l) => l.id));
@@ -199,6 +207,10 @@ function removeLayer(id: string) {
   layers.value = layers.value.filter((l) => l.id !== id);
 }
 
+function resetLayers() {
+  layers.value = [];
+}
+
 // Set right before a "drill into a more specific view" mutation (openMonth,
 // openWeek, the breadcrumbs' "go up a level" clicks) so the resulting
 // writeUrl() call pushes a real history entry instead of replacing - without
@@ -210,24 +222,63 @@ function removeLayer(id: string) {
 // more annoying than helpful.
 let pushNextUrlWrite = false;
 
-function writeUrl() {
+// Shared by writeUrl() (this page's own address bar) and embedUrl below (a
+// link to the standalone /kalender/embed/ page with the same state) - both
+// need the same "what does the current view look like" query string, just
+// with `live` toggling whether year/month/weekstart are the concrete
+// current values (the page's own URL, a link to exactly this moment) or the
+// literal string "current" (the embed link - loadFromUrlOrDefault() below
+// already falls back to today's actual year/month/weekstart for any value
+// that doesn't parse as a real one, e.g. Number("current") is NaN, so this
+// needs no special-casing there: an embedded widget just always shows
+// "now" instead of freezing at whatever date the embed link was copied on).
+function buildParams(live: boolean): URLSearchParams {
   const params = new URLSearchParams();
-  params.set("year", String(year.value));
+  params.set("year", live ? "current" : String(year.value));
   if (view.value !== "year") params.set("view", view.value);
   // 1-indexed in the URL (month=3 -> March) even though activeMonth is
   // 0-indexed internally (JS Date convention) - a raw 0-index would read as
   // April to anyone reading/writing the URL by hand.
-  if (view.value === "month" || view.value === "week") params.set("month", String(activeMonth.value + 1));
-  if (view.value === "week") params.set("weekstart", weekStart.value);
+  if (view.value === "month" || view.value === "week") {
+    params.set("month", live ? "current" : String(activeMonth.value + 1));
+  }
+  if (view.value === "week") params.set("weekstart", live ? "current" : weekStart.value);
   if (layers.value.length) params.set("layers", layers.value.map((l) => l.id).join(","));
+  return params;
+}
 
-  const url = `${window.location.pathname}?${params}`;
+function writeUrl() {
+  const url = `${window.location.pathname}?${buildParams(false)}`;
   if (pushNextUrlWrite) {
     window.history.pushState(null, "", url);
     pushNextUrlWrite = false;
   } else {
     window.history.replaceState(null, "", url);
   }
+}
+
+// Points at the standalone embed page instead of wherever /kalender/ is
+// currently mounted - so an embed made from a preset landing page still
+// links to /kalender/embed/, not e.g. /presets/foo/embed/.
+const embedUrl = computed(() => {
+  if (typeof window === "undefined") return "";
+  return `${window.location.origin}/kalender/embed/?${buildParams(true)}`;
+});
+
+function toggleEmbedPanel() {
+  showEmbed.value = !showEmbed.value;
+}
+
+async function copyEmbedUrl() {
+  await navigator.clipboard.writeText(embedUrl.value);
+  copied.value = true;
+  setTimeout(() => {
+    copied.value = false;
+  }, 1500);
+}
+
+function selectEmbedUrl(e: Event) {
+  (e.target as HTMLInputElement).select();
 }
 
 // Reads the current URL and resets EVERY piece of state to match - not just
@@ -299,11 +350,6 @@ async function loadFromUrlOrDefault() {
 
 function daysInMonth(monthIndex0: number): number {
   return new Date(year.value, monthIndex0 + 1, 0).getDate();
-}
-
-function leadingBlanks(monthIndex0: number): number {
-  const weekday = new Date(year.value, monthIndex0, 1).getDay(); // 0=Sun..6=Sat
-  return (weekday + 6) % 7; // Mon=0
 }
 
 function isoDate(monthIndex0: number, day: number): string {
@@ -403,9 +449,13 @@ function commitYear() {
   editingYear.value = false;
 }
 
-const monthWeeks = computed(() => {
-  const lastDay = new Date(year.value, activeMonth.value + 1, 0);
-  let monday = mondayOf(new Date(year.value, activeMonth.value, 1));
+// Full Monday-Sunday weeks covering a month (including the leading/trailing
+// days of adjacent months a week straddles) - shared by month view (its own
+// month) and the year view (every month's mini-grid, so week numbers show
+// up there too instead of just in month view).
+function weeksOfMonth(monthIndex0: number): { mondayIso: string; number: number; days: string[] }[] {
+  const lastDay = new Date(year.value, monthIndex0 + 1, 0);
+  let monday = mondayOf(new Date(year.value, monthIndex0, 1));
   const weeks: { mondayIso: string; number: number; days: string[] }[] = [];
   while (monday <= lastDay) {
     const days = Array.from({ length: 7 }, (_, i) => {
@@ -418,7 +468,9 @@ const monthWeeks = computed(() => {
     monday.setDate(monday.getDate() + 7);
   }
   return weeks;
-});
+}
+
+const monthWeeks = computed(() => weeksOfMonth(activeMonth.value));
 
 const currentWeekDays = computed(() => {
   const start = new Date(`${weekStart.value}T00:00:00`);
@@ -460,23 +512,125 @@ function matchesForDay(iso: string): Match[] {
 // The "graph" view's data: no numeric value/unit is populated on any window
 // yet (checked across data/**/*.yaml - lib/schema.ts's MaterializedWindow
 // already has the fields for when that lands), so the only honest thing to
-// plot today is density - how many days per month a layer is active - which
+// plot today is density - how many days per bucket a layer is active - which
 // still surfaces seasonality/clustering that the true/false calendar marks
-// don't make visible at a glance.
+// don't make visible at a glance. Bucket size is user-chosen (month/week) via
+// graphGranularity - the underlying windows are already day-precision (see
+// Layer.windows), so this is just a different grouping of the same data.
+// Day-level buckets (365 near-empty slivers, no useful axis) were tried and
+// dropped - week is already the finest granularity worth looking at.
+type Granularity = "month" | "week";
+const graphGranularity = ref<Granularity>("month");
+
+function isActiveDay(layer: Layer, iso: string): boolean {
+  return layer.windows.some((w) => w.start <= iso && iso <= w.end);
+}
+
 function activeDaysInMonth(layer: Layer, monthIndex0: number): number {
   const total = daysInMonth(monthIndex0);
   let count = 0;
   for (let day = 1; day <= total; day++) {
-    const iso = isoDate(monthIndex0, day);
-    if (layer.windows.some((w) => w.start <= iso && iso <= w.end)) count++;
+    if (isActiveDay(layer, isoDate(monthIndex0, day))) count++;
   }
   return count;
+}
+
+interface GraphBucket {
+  label: string;
+  count: number;
+  total: number;
+}
+
+// All ISO dates in the given year, in order - only used to build
+// yearWeekGroups below (month buckets have their own cheap dedicated path,
+// activeDaysInMonth, that doesn't need this).
+function isoDatesOfYear(y: number): string[] {
+  const dates: string[] = [];
+  for (let m = 0; m < 12; m++) {
+    const total = new Date(y, m + 1, 0).getDate();
+    for (let day = 1; day <= total; day++) {
+      dates.push(`${y}-${String(m + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
+    }
+  }
+  return dates;
+}
+
+// Every Monday-Sunday week touching the year, with the (possibly partial -
+// see below) list of that week's days that actually fall in it. Computed
+// once per year regardless of layer count, since every layer's week buckets
+// and the shared x-axis group both need the exact same weeks.
+const yearWeekGroups = computed(() => {
+  const byMonday = new Map<string, string[]>();
+  for (const iso of isoDatesOfYear(year.value)) {
+    const monday = isoFromDate(mondayOf(new Date(`${iso}T00:00:00`)));
+    if (!byMonday.has(monday)) byMonday.set(monday, []);
+    byMonday.get(monday)!.push(iso);
+  }
+  return [...byMonday.entries()].map(([mondayIso, days]) => ({ mondayIso, days }));
+});
+
+// A week's "month" is the month of its first in-year day, not of its Monday -
+// the year's first/last week is partial (a year's own isoDatesOfYear() never
+// includes the adjacent year's days, see above), so for e.g. the week
+// Monday=Dec 29 whose only in-year days are Jan 1-4, this reports January
+// (what the bar and its axis label are actually mostly showing), not
+// December (which contributed zero days to this bucket).
+function weekMonthIndex0(days: string[]): number {
+  return Number(days[0].slice(5, 7)) - 1;
+}
+
+function weekBuckets(layer: Layer): GraphBucket[] {
+  return yearWeekGroups.value.map((w) => ({
+    // Both month and week in the label (not just "KW 29") since the week
+    // view's x-axis only groups by month, not by individual week - the
+    // week number would otherwise be invisible except on hover.
+    label: `${MONTH_NAMES[weekMonthIndex0(w.days)]}, KW ${isoWeekNumber(new Date(`${w.mondayIso}T00:00:00`))}`,
+    count: w.days.filter((iso) => isActiveDay(layer, iso)).length,
+    total: w.days.length,
+  }));
 }
 
 const graphRows = computed(() => {
   return layers.value
     .filter((l) => l.visible)
-    .map((l) => ({ layer: l, counts: MONTH_NAMES.map((_, monthIndex0) => activeDaysInMonth(l, monthIndex0)) }));
+    .map((l) => {
+      const buckets: GraphBucket[] =
+        graphGranularity.value === "month"
+          ? MONTH_NAMES.map((name, monthIndex0) => ({
+              label: name.slice(0, 3),
+              count: activeDaysInMonth(l, monthIndex0),
+              total: daysInMonth(monthIndex0),
+            }))
+          : weekBuckets(l);
+      return { layer: l, buckets };
+    });
+});
+
+// Grid columns for the bar rows (and the x-axis row below, which must line
+// up with them exactly) - a plain 1fr split for month's fixed 12 columns, a
+// floor width for week so a year's ~52 columns don't squeeze into invisible
+// slivers (the container scrolls horizontally instead).
+const graphBarsColumns = computed(() => {
+  const n = graphRows.value[0]?.buckets.length ?? 12;
+  return graphGranularity.value === "week" ? `repeat(${n}, minmax(5px, 1fr))` : `repeat(${n}, 1fr)`;
+});
+
+// The x-axis: one label per month, each spanning however many of the grid's
+// columns belong to it - 1 column each for month granularity (trivial, one
+// bucket per month already), a run-length-encoded span of weeks for week
+// granularity (a month is ~4-5 consecutive week-columns).
+const graphAxisGroups = computed(() => {
+  if (graphGranularity.value === "month") {
+    return MONTH_NAMES.map((name) => ({ label: name.slice(0, 3), span: 1 }));
+  }
+  const groups: { label: string; span: number }[] = [];
+  for (const w of yearWeekGroups.value) {
+    const label = MONTH_NAMES[weekMonthIndex0(w.days)].slice(0, 3);
+    const last = groups[groups.length - 1];
+    if (last && last.label === label) last.span++;
+    else groups.push({ label, span: 1 });
+  }
+  return groups;
 });
 
 onMounted(async () => {
@@ -502,7 +656,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="calendar calendar-layout">
+  <div class="calendar">
+    <div class="calendar-layout">
     <div class="main-area">
       <p v-if="loading">Lädt…</p>
 
@@ -528,25 +683,28 @@ onMounted(async () => {
               {{ name }}
             </h3>
             <div class="weekdays">
+              <span class="week-col-header">KW</span>
               <span v-for="wd in WEEKDAY_NAMES" :key="wd">{{ wd }}</span>
             </div>
-            <div class="days">
-              <span v-for="n in leadingBlanks(monthIndex0)" :key="`blank-${n}`" class="empty" />
+            <div v-for="week in weeksOfMonth(monthIndex0)" :key="week.mondayIso" class="day-week">
+              <button type="button" class="week-number mini" title="Woche öffnen" @click="openWeek(week.mondayIso)">
+                {{ week.number }}
+              </button>
               <span
-                v-for="day in daysInMonth(monthIndex0)"
-                :key="day"
+                v-for="dayIso in week.days"
+                :key="dayIso"
                 class="day"
-                :class="{ today: isoDate(monthIndex0, day) === todayIso }"
+                :class="{ today: dayIso === todayIso, 'other-month': Number(dayIso.slice(5, 7)) - 1 !== monthIndex0 }"
                 role="button"
                 tabindex="0"
-                :title="[...matchesForDay(isoDate(monthIndex0, day)).map((m) => m.title), 'Woche öffnen'].join(', ')"
-                @click="openWeekForDay(isoDate(monthIndex0, day))"
-                @keydown.enter="openWeekForDay(isoDate(monthIndex0, day))"
+                :title="[...matchesForDay(dayIso).map((m) => m.title), 'Woche öffnen'].join(', ')"
+                @click="openWeekForDay(dayIso)"
+                @keydown.enter="openWeekForDay(dayIso)"
               >
-                {{ day }}
+                {{ Number(dayIso.slice(8)) }}
                 <span class="marks">
                   <a
-                    v-for="(match, i) in matchesForDay(isoDate(monthIndex0, day))"
+                    v-for="(match, i) in matchesForDay(dayIso)"
                     :key="i"
                     class="mark"
                     :href="match.url"
@@ -644,6 +802,10 @@ onMounted(async () => {
               <ChevronRight :size="18" />
             </button>
           </div>
+          <div class="granularity-toggle">
+            <button type="button" :class="{ active: graphGranularity === 'month' }" @click="graphGranularity = 'month'">Monat</button>
+            <button type="button" :class="{ active: graphGranularity === 'week' }" @click="graphGranularity = 'week'">Woche</button>
+          </div>
           <p v-if="graphRows.length === 0" class="no-layers">Keine sichtbaren Ebenen ausgewählt.</p>
           <template v-else>
             <div class="graph-rows">
@@ -652,16 +814,16 @@ onMounted(async () => {
                   <span class="dot" :style="{ background: row.layer.color }" />
                   <span class="layer-label-text">{{ row.layer.label }}</span>
                 </span>
-                <div class="graph-bars">
+                <div class="graph-bars" :style="{ gridTemplateColumns: graphBarsColumns }">
                   <div
-                    v-for="(count, monthIndex0) in row.counts"
-                    :key="monthIndex0"
+                    v-for="(bucket, i) in row.buckets"
+                    :key="i"
                     class="graph-bar-slot"
-                    :title="`${MONTH_NAMES[monthIndex0]}: ${count} Tag(e)`"
+                    :title="`${bucket.label}: ${bucket.count}/${bucket.total} Tag(e)`"
                   >
                     <div
                       class="graph-bar"
-                      :style="{ height: `${(count / daysInMonth(monthIndex0)) * 100}%`, background: row.layer.color }"
+                      :style="{ height: `${(bucket.count / bucket.total) * 100}%`, background: row.layer.color }"
                     />
                   </div>
                 </div>
@@ -669,8 +831,8 @@ onMounted(async () => {
             </div>
             <div class="graph-months-row">
               <span class="graph-row-label-spacer" />
-              <div class="graph-months">
-                <span v-for="name in MONTH_NAMES" :key="name">{{ name.slice(0, 3) }}</span>
+              <div class="graph-months" :style="{ gridTemplateColumns: graphBarsColumns }">
+                <span v-for="(group, i) in graphAxisGroups" :key="i" :style="{ gridColumn: `span ${group.span}` }">{{ group.label }}</span>
               </div>
             </div>
           </template>
@@ -696,6 +858,9 @@ onMounted(async () => {
         <button type="button" :disabled="year >= YEAR_MAX" @click="year++"><ChevronRight :size="16" /></button>
       </div>
 
+      <div v-if="layers.length > 0" class="layer-list-actions">
+        <button type="button" class="reset-layers" @click="resetLayers">Alle entfernen</button>
+      </div>
       <ul class="layer-list">
         <template v-for="grp in groupedLayers" :key="grp.group">
           <li class="layer-group-header">
@@ -746,6 +911,16 @@ onMounted(async () => {
         </div>
       </div>
     </aside>
+    </div>
+
+    <div v-if="!props.embed" class="embed-bar">
+      <button type="button" @click="toggleEmbedPanel">Einbetten</button>
+      <div v-if="showEmbed" class="embed-panel">
+        <label for="embed-url">Link zum Einbetten</label>
+        <input id="embed-url" type="text" readonly :value="embedUrl" @click="selectEmbedUrl" />
+        <button type="button" @click="copyEmbedUrl">{{ copied ? "Kopiert!" : "Kopieren" }}</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -795,6 +970,22 @@ onMounted(async () => {
 }
 .graph-toggle {
   margin-left: auto;
+}
+
+.granularity-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+.granularity-toggle button {
+  font-size: 0.78rem;
+  padding: 0.25rem 0.7rem;
+}
+.granularity-toggle button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .year-nav {
@@ -848,6 +1039,19 @@ onMounted(async () => {
 }
 .year-nav button:not(:disabled):hover,
 .view-nav button:not(:disabled):hover {
+  color: var(--accent);
+}
+
+.layer-list-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.reset-layers {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  color: var(--muted);
+}
+.reset-layers:hover {
   color: var(--accent);
 }
 
@@ -1027,15 +1231,21 @@ onMounted(async () => {
   color: var(--accent);
 }
 .weekdays,
-.days {
+.day-week {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: 1.4rem repeat(7, 1fr);
   gap: 2px;
+}
+.day-week {
+  margin-bottom: 2px;
 }
 .weekdays span {
   text-align: center;
   color: var(--muted);
   font-size: 0.68rem;
+}
+.week-col-header {
+  font-family: var(--font-mono);
 }
 .day {
   text-align: center;
@@ -1051,8 +1261,9 @@ onMounted(async () => {
   background: var(--accent);
   color: var(--accent-ink);
 }
-.empty {
-  visibility: hidden;
+.day.other-month {
+  color: var(--muted);
+  opacity: 0.5;
 }
 .marks {
   display: flex;
@@ -1123,6 +1334,11 @@ onMounted(async () => {
 .week-number:hover {
   color: var(--accent);
   background: var(--paper-raised);
+}
+.week-number.mini {
+  background: none;
+  font-size: 0.62rem;
+  padding: 0;
 }
 .day-cell {
   background: var(--paper);
@@ -1240,9 +1456,9 @@ onMounted(async () => {
 .graph-bars {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
   gap: 3px;
   height: 3rem;
+  overflow-x: auto;
 }
 .graph-bar-slot {
   height: 100%;
@@ -1263,13 +1479,40 @@ onMounted(async () => {
 .graph-months {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
   gap: 3px;
+  overflow-x: auto;
 }
 .graph-months span {
   text-align: center;
   font-size: 0.65rem;
   color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.embed-bar {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+.embed-panel {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.embed-panel label {
+  width: 100%;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.embed-panel input {
+  flex: 1;
+  min-width: 14rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
 }
 
 @media (max-width: 60rem) {

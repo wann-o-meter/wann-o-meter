@@ -1,0 +1,34 @@
+---
+// Standalone iframe target - no header/nav/footer chrome, no search-engine
+// indexing (it's a duplicate of /kalender/, not a page of its own worth
+// ranking). State (year/view/layers/...) comes entirely from URL params,
+// the same ones Kalender.vue's own writeUrl()/loadFromUrlOrDefault() already
+// read/write for the regular page - see the "Einbetten" button there, which
+// builds a link into this page with the current params attached.
+import "../../styles/global.css";
+import Kalender from "../../components/Kalender.vue";
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ebenen-Kalender · Wann-O-Meter</title>
+    <meta name="robots" content="noindex" />
+    <script is:inline>
+      // Same pre-paint theme script as Layout.astro - see that file for why.
+      const t = localStorage.getItem("theme");
+      if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+    </script>
+  </head>
+  <body>
+    <Kalender client:load embed />
+  </body>
+</html>
+
+<style is:global>
+  body {
+    padding: 0.75rem;
+  }
+</style>

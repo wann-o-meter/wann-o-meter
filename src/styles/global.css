@@ -22,8 +22,12 @@
   --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
+/* System default (no explicit choice) still follows the OS. An explicit
+   [data-theme] (see the toggle button in Layout.astro) overrides it either
+   way - "light" opts out of a dark OS via :not() below, "dark" is repeated
+   as its own selector so it applies even on a light OS. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --paper: #17181a;
     --paper-raised: #1f2022;
     --ink: #edebe6;
@@ -32,6 +36,23 @@
     --accent: #e07f68;
     --accent-ink: #17181a;
   }
+}
+:root[data-theme="dark"] {
+  --paper: #17181a;
+  --paper-raised: #1f2022;
+  --ink: #edebe6;
+  --muted: #a3a299;
+  --line: #38372f;
+  --accent: #e07f68;
+  --accent-ink: #17181a;
+}
+/* Keeps native form controls/scrollbars (color-scheme: light dark's job)
+   in sync with an explicit override too, not just the custom properties. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 * {
@@ -177,6 +198,15 @@ th {
   font-family: var(--font-mono);
   color: var(--muted);
   font-size: 0.85rem;
+}
+.source-item .report-link {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.source-item .report-link:hover {
+  color: var(--accent);
 }
 
 .badge {

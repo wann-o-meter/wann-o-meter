@@ -1,11 +1,12 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { feedbackIssueUrl, feedbackMailtoUrl } from "../../lib/github-issue";
 ---
 
-<Layout title="Impressum" description="Anbieterkennzeichnung gemäß § 5 TMG, § 18 Abs. 2 MStV.">
+<Layout title="Impressum" description="Anbieterkennzeichnung gemäß § 5 DDG, § 18 Abs. 2 MStV.">
   <h1>Impressum</h1>
 
-  <h2>Angaben gemäß § 5 TMG, § 18 Abs. 2 MStV</h2>
+  <h2>Angaben gemäß § 5 DDG, § 18 Abs. 2 MStV</h2>
   <p>
     Josef Müller<br />
     Obere Gasse 15<br />
@@ -18,6 +19,13 @@ import Layout from "../layouts/Layout.astro";
 
   <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
   <p>Josef Müller (Anschrift wie oben)</p>
+
+  <h2>Feedback</h2>
+  <p>
+    Fehler gefunden, Idee für eine neue Ebene oder sonstiges Feedback? Per{" "}
+    <a href={feedbackMailtoUrl()}>E-Mail</a> oder als{" "}
+    <a href={feedbackIssueUrl()}>GitHub-Issue</a>.
+  </p>
 
   <p><a href="/datenschutz/">Datenschutzerklärung</a></p>
 </Layout>

@@ -103,6 +103,13 @@ const structuredData = graph([
 </Layout>
 
 <style>
+  /* Reserves space for 2 lines (h1's line-height: 1.25) up front - the
+     rotator swaps in questions of varying length, some wrapping to a
+     second line and some not, which otherwise shifts the whole page up
+     and down on every rotation (worst on mobile's narrower width). */
+  #h1-rotator {
+    min-height: 2.5em;
+  }
   .lead {
     font-size: 1.05rem;
     max-width: 34rem;
