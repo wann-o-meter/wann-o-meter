@@ -1,9 +1,93 @@
-<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 128 128">
-    <path d="M50.4 78.5a75.1 75.1 0 0 0-28.5 6.9l24.2-65.7c.7-2 1.9-3.2 3.4-3.2h29c1.5 0 2.7 1.2 3.4 3.2l24.2 65.7s-11.6-7-28.5-7L67 45.5c-.4-1.7-1.6-2.8-2.9-2.8-1.3 0-2.5 1.1-2.9 2.7L50.4 78.5Zm-1.1 28.2Zm-4.2-20.2c-2 6.6-.6 15.8 4.2 20.2a17.5 17.5 0 0 1 .2-.7 5.5 5.5 0 0 1 5.7-4.5c2.8.1 4.3 1.5 4.7 4.7.2 1.1.2 2.3.2 3.5v.4c0 2.7.7 5.2 2.2 7.4a13 13 0 0 0 5.7 4.9v-.3l-.2-.3c-1.8-5.6-.5-9.5 4.4-12.8l1.5-1a73 73 0 0 0 3.2-2.2 16 16 0 0 0 6.8-11.4c.3-2 .1-4-.6-6l-.8.6-1.6 1a37 37 0 0 1-22.4 2.7c-5-.7-9.7-2-13.2-6.2Z" />
-    <style>
-        path { fill: #000; }
-        @media (prefers-color-scheme: dark) {
-            path { fill: #FFF; }
-        }
-    </style>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000"><metadata><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><rdf:Description><dc:creator>RealFaviconGenerator</dc:creator><dc:source>https://realfavicongenerator.net</dc:source></rdf:Description></rdf:RDF></metadata><style>
+    #light-icon {
+      display: inline;
+    }
+    #dark-icon {
+      display: none;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      #light-icon {
+        display: none;
+      }
+      #dark-icon {
+        display: inline;
+      }
+    }
+  </style><g id="light-icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000"><g><g transform="matrix(2.550239722533918,0,0,2.550239722533918,5.684341886080802e-14,33.24237478322971)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="253.95 263.95 392.12 366.05" width="392.12" height="366.05"><defs>
+    <clipPath id="topFace">
+      <polygon points="450,270 640,365 450,460 260,365"></polygon>
+    </clipPath>
+    <clipPath id="centerBand">
+      <rect x="394" y="0" width="112" height="900"></rect>
+    </clipPath>
+  </defs><g>
+    <polygon points="450,386 640,481 450,576 260,481" fill="#F2EBD9" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+    <polygon points="260,481 450,576 450,604 260,509" fill="#E4DABE" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+    <polygon points="450,576 640,481 640,509 450,604" fill="#D6C9A6" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+  </g><g>
+    <polygon points="450,328 640,423 450,518 260,423" fill="#F2EBD9" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+    <polygon points="260,423 450,518 450,546 260,451" fill="#E4DABE" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+    <polygon points="450,518 640,423 640,451 450,546" fill="#D6C9A6" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+  </g><path d="M268,310 L336,310 L394,520 L420,390 L480,390 L506,520 L564,310 L632,310 L534,630 L478,630 L450,468 L422,630 L366,630 Z" fill="#1A1A1A"></path><g>
+    <!-- top face -->
+    <polygon points="450,270 640,365 450,460 260,365" fill="#D9603B" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+    <!-- abstract grid, clipped to top face -->
+    <g clip-path="url(#topFace)" stroke="#B04326" stroke-width="2.5" opacity="0.85">
+      <line x1="308" y1="341" x2="498" y2="436"></line>
+      <line x1="355" y1="317" x2="545" y2="412"></line>
+      <line x1="403" y1="294" x2="593" y2="389"></line>
+      <line x1="450" y1="270" x2="640" y2="365"></line>
+      <line x1="403" y1="436" x2="593" y2="341"></line>
+      <line x1="355" y1="412" x2="545" y2="317"></line>
+      <line x1="308" y1="389" x2="498" y2="294"></line>
+      <line x1="260" y1="365" x2="450" y2="270"></line>
+    </g>
+    <!-- highlighted date cell -->
+    <polygon points="536,331 560,343 536,355 512,343" fill="#F2EBD9" stroke="#B04326" stroke-width="2"></polygon>
+    <!-- white accent line near upper edge -->
+    <line x1="372" y1="296" x2="520" y2="370" stroke="#F7F1E2" stroke-width="4" stroke-linecap="round" opacity="0.9"></line>
+    <!-- side faces -->
+    <polygon points="260,365 450,460 450,488 260,393" fill="#C24E2C" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+    <polygon points="450,460 640,365 640,393 450,488" fill="#A63E22" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+  </g><g clip-path="url(#centerBand)">
+    <path d="M268,310 L336,310 L394,520 L420,390 L480,390 L506,520 L564,310 L632,310 L534,630 L478,630 L450,468 L422,630 L366,630 Z" fill="#1A1A1A"></path>
+  </g></svg></g></g></svg></g><g id="dark-icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000"><g clip-path="url(#SvgjsClipPath1232)"><rect width="1000" height="1000" fill="#ffffff"></rect><g transform="matrix(2.550239722533918,0,0,2.550239722533918,5.684341886080802e-14,33.24237478322971)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="253.95 263.95 392.12 366.05" width="392.12" height="366.05"><defs>
+    <clipPath id="topFace">
+      <polygon points="450,270 640,365 450,460 260,365"></polygon>
+    </clipPath>
+    <clipPath id="centerBand">
+      <rect x="394" y="0" width="112" height="900"></rect>
+    </clipPath>
+  <clipPath id="SvgjsClipPath1232"><rect width="1000" height="1000" x="0" y="0" rx="150" ry="150"></rect></clipPath></defs><g>
+    <polygon points="450,386 640,481 450,576 260,481" fill="#F2EBD9" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+    <polygon points="260,481 450,576 450,604 260,509" fill="#E4DABE" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+    <polygon points="450,576 640,481 640,509 450,604" fill="#D6C9A6" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+  </g><g>
+    <polygon points="450,328 640,423 450,518 260,423" fill="#F2EBD9" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+    <polygon points="260,423 450,518 450,546 260,451" fill="#E4DABE" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+    <polygon points="450,518 640,423 640,451 450,546" fill="#D6C9A6" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+  </g><path d="M268,310 L336,310 L394,520 L420,390 L480,390 L506,520 L564,310 L632,310 L534,630 L478,630 L450,468 L422,630 L366,630 Z" fill="#1A1A1A"></path><g>
+    <!-- top face -->
+    <polygon points="450,270 640,365 450,460 260,365" fill="#D9603B" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+    <!-- abstract grid, clipped to top face -->
+    <g clip-path="url(#topFace)" stroke="#B04326" stroke-width="2.5" opacity="0.85">
+      <line x1="308" y1="341" x2="498" y2="436"></line>
+      <line x1="355" y1="317" x2="545" y2="412"></line>
+      <line x1="403" y1="294" x2="593" y2="389"></line>
+      <line x1="450" y1="270" x2="640" y2="365"></line>
+      <line x1="403" y1="436" x2="593" y2="341"></line>
+      <line x1="355" y1="412" x2="545" y2="317"></line>
+      <line x1="308" y1="389" x2="498" y2="294"></line>
+      <line x1="260" y1="365" x2="450" y2="270"></line>
+    </g>
+    <!-- highlighted date cell -->
+    <polygon points="536,331 560,343 536,355 512,343" fill="#F2EBD9" stroke="#B04326" stroke-width="2"></polygon>
+    <!-- white accent line near upper edge -->
+    <line x1="372" y1="296" x2="520" y2="370" stroke="#F7F1E2" stroke-width="4" stroke-linecap="round" opacity="0.9"></line>
+    <!-- side faces -->
+    <polygon points="260,365 450,460 450,488 260,393" fill="#C24E2C" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+    <polygon points="450,460 640,365 640,393 450,488" fill="#A63E22" stroke="#1A1A1A" stroke-width="5" stroke-linejoin="round"></polygon>
+  </g><g clip-path="url(#centerBand)">
+    <path d="M268,310 L336,310 L394,520 L420,390 L480,390 L506,520 L564,310 L632,310 L534,630 L478,630 L450,468 L422,630 L366,630 Z" fill="#1A1A1A"></path>
+  </g></svg></g></g></svg></g></svg>
