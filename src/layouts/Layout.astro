@@ -1,6 +1,6 @@
 ---
 import "../styles/global.css";
-import { newSourceIssueUrl } from "../../lib/github-issue";
+import { feedbackIssueUrl, feedbackMailtoUrl, newSourceIssueUrl } from "../../lib/github-issue";
 
 interface Props {
   title: string;
@@ -83,7 +83,9 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
         <p>Angaben ohne Gewähr. Quelle &amp; Stand stehen bei jedem Zeitfenster dabei.</p>
         <p>
           <a href="/impressum">Impressum</a> &middot; <a href="/datenschutz">Datenschutz</a> &middot;{" "}
-          <a href={newSourceIssueUrl()}>Quelle vorschlagen</a>
+          <a href={newSourceIssueUrl()}>Quelle vorschlagen</a> &middot;{" "}
+          <a href={feedbackMailtoUrl()}>Feedback per Mail</a> &middot;{" "}
+          <a href={feedbackIssueUrl()}>Feedback auf GitHub</a>
         </p>
       </div>
     </footer>
