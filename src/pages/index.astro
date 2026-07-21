@@ -65,9 +65,11 @@ const previewLayers = "feiertage--de-by,schulferien--by,saisonkalender--spargel"
   <p><a class="cta" href="/kalender/">Ebenen-Kalender öffnen →</a></p>
 
   <iframe
+    id="preview-frame"
     class="preview"
     title="Vorschau: Feiertage Bayern, Schulferien Bayern und Spargel-Saison im Kalender"
     src={`/kalender/embed/?year=current&view=month&month=current&sidebar=0&layers=${previewLayers}`}
+    scrolling="no"
     loading="lazy"
   ></iframe>
 
@@ -143,7 +145,12 @@ const previewLayers = "feiertage--de-by,schulferien--by,saisonkalender--spargel"
     display: block;
     width: 100%;
     max-width: 40rem;
-    height: 26rem;
+    /* Height is set in JS from the embedded page's actual content (see
+       script below) - a month is 4-6 weeks depending on how it falls, so
+       any fixed height either scrolls (6-week months) or leaves dead space
+       (4-week months); this starts at a 5-week-ish guess purely to avoid a
+       zero-height flash before that JS runs. */
+    height: 22rem;
     margin: 0 0 1.5rem;
     border: 1px solid var(--line);
   }
@@ -311,6 +318,30 @@ const previewLayers = "feiertage--de-by,schulferien--by,saisonkalender--spargel"
         teaserLink.href = `/kalender/?day=${teaser.day}&layers=${teaser.entryId}`;
       })
       .catch(() => {});
+  }
+</script>
+
+<script>
+  // Fits the preview iframe to its actual content instead of guessing a
+  // fixed size - a month is 4-6 weeks depending on how it falls, so any
+  // fixed height either scrolls or leaves dead space, and the calendar's
+  // real shape is landscape (wide grid, short height), not square. Same
+  // origin (/kalender/embed/), so contentDocument is readable directly, no
+  // postMessage needed. ResizeObserver (not just a one-shot read on load)
+  // because the embed's own Vue app still has to fetch its catalog/layer
+  // data after the iframe's `load` event fires, so the real height only
+  // settles a moment later.
+  const previewFrame = document.getElementById("preview-frame");
+  if (previewFrame instanceof HTMLIFrameElement) {
+    previewFrame.addEventListener("load", () => {
+      const doc = previewFrame.contentDocument;
+      if (!doc) return;
+      const fit = () => {
+        previewFrame.style.height = `${doc.documentElement.scrollHeight}px`;
+      };
+      fit();
+      new ResizeObserver(fit).observe(doc.documentElement);
+    });
   }
 </script>
 
