@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import { getAllContent } from "../../lib/all-content";
 import type { ContentCard } from "../../lib/all-content";
+import { getCategoryMeta } from "../../lib/pages";
 import { graph, websiteNode } from "../../lib/structured-data";
 import { homepageQuestions } from "../../lib/homepage-questions";
 
@@ -25,6 +26,7 @@ for (const card of cards) {
 }
 const groups = [...groupsByType.entries()].map(([type, items]) => ({
   type,
+  description: getCategoryMeta(items[0].category).description,
   items: [...items].sort((a, b) => Number(b.featured) - Number(a.featured)),
   moreCount: items.filter((i) => !i.featured).length,
 }));
@@ -34,17 +36,26 @@ const homeDescription =
 const structuredData = graph([
   websiteNode({ name: "Wann-O-Meter", url: new URL("/", Astro.site).href, description: homeDescription }),
 ]);
+
+// Preview under the hero (Bayern, since it's the one worked example the
+// homepage copy below also names) - reuses the standalone embed page
+// (src/pages/kalender/embed.astro) instead of building a static render:
+// the calendar only ever has real data client-side (fetched from
+// /api/v1/calendar.json), so a server-rendered snapshot would show nothing
+// without a separate build-time render pipeline.
+const previewLayers = "feiertage--de-by,schulferien--by,saisonkalender--spargel";
 ---
 
 <Layout
-  title="Wann ist der beste Zeitpunkt?"
+  title="Wann ist was?"
   description={homeDescription}
   structuredData={structuredData}
 >
-  <h1 id="h1-rotator">Wann ist der beste Zeitpunkt?</h1>
-  <p class="lead">
-    Ein Kalender, auf den man geprüfte Zeitschichten legt. Jede Kombination teilbar als URL,
-    jede Ebene einzeln abonnierbar als ICS-Feed.
+  <h1 id="h1-rotator">Wann ist was?</h1>
+  <p class="lead">{homeDescription}</p>
+  <p class="lead-example">
+    Beispiel: Feiertage Bayern + Schulferien Bayern + Spargel-Saison — alles in einem Kalender,
+    einzeln abonnierbar.
   </p>
   <p class="today-teaser">
     <a id="today-teaser-link" href="/kalender/">
@@ -52,6 +63,13 @@ const structuredData = graph([
     </a>
   </p>
   <p><a class="cta" href="/kalender/">Ebenen-Kalender öffnen →</a></p>
+
+  <iframe
+    class="preview"
+    title="Vorschau: Feiertage Bayern, Schulferien Bayern und Spargel-Saison im Kalender"
+    src={`/kalender/embed/?year=current&view=month&month=current&sidebar=0&layers=${previewLayers}`}
+    loading="lazy"
+  ></iframe>
 
   <h2>Alle Themen durchsuchen</h2>
   <input
@@ -78,11 +96,12 @@ const structuredData = graph([
           <h2>
             {group.type} <span class="count">{group.items.length}</span>
           </h2>
+          {group.description && <p class="group-description">{group.description}</p>}
           <ul class="cards narrow">
             {group.items.map((c) => (
               <li
                 data-title={c.title.toLowerCase()}
-                data-tags={c.tags.join(" ").toLowerCase()}
+                data-tags={c.tags.join(",").toLowerCase()}
                 data-featured={String(c.featured)}
                 hidden={!c.featured}
               >
@@ -113,6 +132,20 @@ const structuredData = graph([
   .lead {
     font-size: 1.05rem;
     max-width: 34rem;
+  }
+  .lead-example {
+    margin: 0 0 1rem;
+    max-width: 34rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .preview {
+    display: block;
+    width: 100%;
+    max-width: 40rem;
+    height: 26rem;
+    margin: 0 0 1.5rem;
+    border: 1px solid var(--line);
   }
   .today-teaser {
     margin: 0 0 1rem;
@@ -152,6 +185,11 @@ const structuredData = graph([
     display: flex;
     align-items: baseline;
     gap: 0.5rem;
+  }
+  .group-description {
+    margin: -0.5rem 0 0.75rem;
+    color: var(--muted);
+    font-size: 0.85rem;
   }
   .count {
     color: var(--muted);
@@ -203,7 +241,7 @@ const structuredData = graph([
         const tags = entry.dataset.tags ?? "";
         const isFeatured = entry.dataset.featured === "true";
         const matchesQuery = query === "" || title.includes(query) || tags.includes(query);
-        const matchesTag = activeTag === null || tags.split(" ").includes(activeTag);
+        const matchesTag = activeTag === null || tags.split(",").includes(activeTag);
         const collapsed = !searchActive && !isFeatured && !expandedGroups.has(groupName);
         const show = matchesQuery && matchesTag && !collapsed;
         entry.hidden = !show;

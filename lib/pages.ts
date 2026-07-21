@@ -28,6 +28,7 @@ import { generate as generateFeiertage } from "../data/feiertage/generator";
 import { generate as generateUrlaubsfenster } from "../data/urlaubsfenster/generator";
 import { materializeRawWindow, rollingYears } from "./materialization";
 import { MAX_CATEGORY_DEPTH, parseCategoryMeta, parsePageData, parsePageMeta } from "./pages-schema";
+import { STATES } from "./states";
 import type { CategoryMeta, PageData, PageMeta } from "./pages-schema";
 
 const DATA_ROOT = join(process.cwd(), "data");
@@ -72,6 +73,32 @@ export interface Page {
   data: PageData;
 }
 
+// The Bundesland a page is about, derived from the slug each generator/
+// folder already assigns (data/feiertage/generator.ts's "de-{code}", a
+// data/schulferien/{code} folder, data/urlaubsfenster/generator.ts's
+// "{code}") - not hand-authored, so it can never drift the way a manually
+// maintained page.yaml tags: list could (and did: every schulferien/
+// saisonkalender page.yaml used to carry a tags: list that just repeated its
+// own category name, adding no filter value). Folded into meta.tags below,
+// which doubles this as the one cross-category facet /themen/{state}/ and
+// the homepage's tag filter both get for free: e.g. "Bayern" surfaces its
+// Feiertage, Schulferien and Urlaubsfenster pages together.
+function stateTag(category: string, slug: string): string | undefined {
+  const code =
+    category === "feiertage"
+      ? (slug.startsWith("de-") ? slug.slice(3) : undefined)
+      : category === "schulferien" || category === "urlaubsfenster"
+        ? slug
+        : undefined;
+  return code ? STATES[code.toUpperCase()] : undefined;
+}
+
+function withStateTag(page: Page): Page {
+  const tag = stateTag(page.category, page.slug);
+  if (!tag || page.meta.tags.includes(tag)) return page;
+  return { ...page, meta: { ...page.meta, tags: [...page.meta.tags, tag] } };
+}
+
 // One node per category directory, both intermediate ("sport", with no
 // pages of its own, only child categories) and leaf ("sport/fussball/
 // bundesliga", which directly holds pages) - src/pages/[...path].astro's
@@ -107,7 +134,7 @@ function walkCategory(segments: string[], dir: string, nodes: Map<string, Catego
     if (existsSync(metaPath) && existsSync(dataPath)) {
       const meta = parsePageMeta(load(readFileSync(metaPath, "utf-8")));
       const data = parsePageData(load(readFileSync(dataPath, "utf-8")));
-      const page: Page = { category: path, slug: entry.name, meta, data };
+      const page = withStateTag({ category: path, slug: entry.name, meta, data });
       directPages.push(page);
       allPages.push(page);
       continue;
@@ -149,7 +176,7 @@ function loadAll(): LoadResult {
   const { pages: walked, nodes } = walkRoot(DATA_ROOT, (name) => !RESERVED_CATEGORIES.includes(name));
 
   const generated = Object.entries(GENERATORS).flatMap(([category, generate]) => {
-    const pages = generate();
+    const pages = generate().map(withStateTag);
     nodes.set(category, { path: category, segments: [category], childPaths: [], pages });
     return pages;
   });

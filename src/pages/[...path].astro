@@ -93,7 +93,16 @@ function buildCategoryView(node: CategoryNode) {
 function buildPageView(page: Page) {
   const { category, meta, data } = page;
   const rawData = data.raw_data as Record<string, unknown>;
-  const events = getPageEvents(page);
+  // getPageEvents() sorts chronologically, right for every other category
+  // (a calendar-style read of "what's next") - but the "-O-Meter" framing is
+  // earned specifically here: Urlaubsfenster's whole pitch is "which window
+  // gets you the most days off per vacation day taken", so its list leads
+  // with the best ratio (PageEvent.value, see lib/pages.ts) instead of the
+  // next chronological date.
+  const events =
+    category === "urlaubsfenster"
+      ? [...getPageEvents(page)].sort((a, b) => (b.value ?? 0) - (a.value ?? 0))
+      : getPageEvents(page);
   const years = [...new Set(events.map((f) => toDate(f.date).getFullYear()))].sort();
   const preview = typeof rawData.clean_markdown_preview === "string" ? rawData.clean_markdown_preview : "";
   const columns = Array.isArray(rawData.columns) ? (rawData.columns as string[]) : [];

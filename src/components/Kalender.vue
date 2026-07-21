@@ -92,6 +92,15 @@ const expandedGroups = ref<Set<string>>(new Set());
 const showEmbed = ref(false);
 const copied = ref(false);
 
+// "sidebar=0" drops the layer list/search entirely (read in
+// loadFromUrlOrDefault() below, alongside every other URL-driven bit of
+// state) - meant for a small, fixed preview iframe (see src/pages/index.astro's
+// homepage preview), where the sidebar's own 60rem stacking breakpoint kicks
+// in well before a narrow iframe's width, otherwise pushing the layer list
+// ABOVE the actual calendar grid instead of beside it - so a short preview
+// never scrolls far enough to show a single date.
+const hideSidebar = ref(false);
+
 const availableOptions = computed<CatalogEntry[]>(() => {
   const activeIds = new Set(layers.value.map((l) => l.id));
   return catalog.value.filter((entry) => !activeIds.has(entry.id));
@@ -288,6 +297,7 @@ function selectEmbedUrl(e: Event) {
 // current state rather than merely patch it.
 async function loadFromUrlOrDefault() {
   const params = new URLSearchParams(window.location.search);
+  hideSidebar.value = params.get("sidebar") === "0";
 
   const y = Number(params.get("year"));
   year.value = y >= YEAR_MIN && y <= YEAR_MAX ? y : today.getFullYear();
@@ -840,7 +850,7 @@ onMounted(async () => {
       </template>
     </div>
 
-    <aside class="sidebar">
+    <aside v-if="!hideSidebar" class="sidebar">
       <div v-if="view === 'year'" class="year-nav">
         <button type="button" :disabled="year <= YEAR_MIN" @click="year--"><ChevronLeft :size="16" /></button>
         <input

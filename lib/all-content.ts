@@ -8,6 +8,7 @@ export interface ContentCard {
   description: string;
   url: string;
   type: string;
+  category: string;
   tags: string[];
   featured: boolean;
 }
@@ -28,6 +29,7 @@ export function getAllContent(): ContentCard[] {
       description: p.meta.description,
       url: `/${p.category}/${p.slug}/`,
       type: categoryName,
+      category: p.category,
       tags: [categoryName, ...p.meta.tags],
       featured: p.meta.featured ?? false
     };
