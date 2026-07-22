@@ -1,7 +1,10 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { ArrowUpRight, Calendar, Search } from "@lucide/astro";
+import HeroCalendarPreview from "../components/HeroCalendarPreview.vue";
 import { getAllContent } from "../../lib/all-content";
 import type { ContentCard } from "../../lib/all-content";
+import { getCategoryMeta } from "../../lib/pages";
 import { graph, websiteNode } from "../../lib/structured-data";
 import { homepageQuestions } from "../../lib/homepage-questions";
 
@@ -25,6 +28,7 @@ for (const card of cards) {
 }
 const groups = [...groupsByType.entries()].map(([type, items]) => ({
   type,
+  description: getCategoryMeta(items[0].category).description,
   items: [...items].sort((a, b) => Number(b.featured) - Number(a.featured)),
   moreCount: items.filter((i) => !i.featured).length,
 }));
@@ -34,32 +38,49 @@ const homeDescription =
 const structuredData = graph([
   websiteNode({ name: "Wann-O-Meter", url: new URL("/", Astro.site).href, description: homeDescription }),
 ]);
+
+// Preview under the hero (Bayern, since it's the one worked example the
+// homepage copy below also names) - HeroCalendarPreview resolves the actual
+// window data itself client-side (same /api/v1/calendar/{id}.json route the
+// real calendar uses), and swaps to whichever layers the H1 rotator (script
+// below) is currently naming.
+const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender--spargel"];
 ---
 
 <Layout
-  title="Wann ist der beste Zeitpunkt?"
+  title="Wann ist was?"
   description={homeDescription}
   structuredData={structuredData}
 >
-  <h1 id="h1-rotator">Wann ist der beste Zeitpunkt?</h1>
-  <p class="lead">
-    Ein Kalender, auf den man geprüfte Zeitschichten legt. Jede Kombination teilbar als URL,
-    jede Ebene einzeln abonnierbar als ICS-Feed.
-  </p>
-  <p class="today-teaser">
-    <a id="today-teaser-link" href="/kalender/">
-      Was heute (nicht) Saison hat, Feiertag ist oder ansteht — im Kalender nachsehen.
-    </a>
-  </p>
-  <p><a class="cta" href="/kalender/">Ebenen-Kalender öffnen →</a></p>
+  <div class="hero">
+    <div class="hero-text">
+      <h1 id="h1-rotator">Wann ist was?</h1>
+      <p class="lead">{homeDescription}</p>
+      <p class="lead-example">
+        Beispiel: Feiertage Bayern + Schulferien Bayern + Spargel-Saison — alles in einem
+        Kalender, einzeln abonnierbar.
+      </p>
+      <p class="today-teaser">
+        <a id="today-teaser-link" href="/kalender/">
+          Was heute (nicht) Saison hat, Feiertag ist oder ansteht — im Kalender nachsehen.
+        </a>
+      </p>
+      <p><a class="cta" href="/kalender/"><Calendar size={16} /> Ebenen-Kalender öffnen <ArrowUpRight size={16} /></a></p>
+    </div>
+
+    <HeroCalendarPreview initialLayerIds={previewLayerIds} client:visible />
+  </div>
 
   <h2>Alle Themen durchsuchen</h2>
-  <input
-    type="search"
-    id="search-input"
-    placeholder="Titel oder Tag suchen…"
-    aria-label="Seiten durchsuchen"
-  />
+  <div class="search-wrap">
+    <Search size={16} class="search-icon" aria-hidden="true" />
+    <input
+      type="search"
+      id="search-input"
+      placeholder="Titel oder Tag suchen…"
+      aria-label="Seiten durchsuchen"
+    />
+  </div>
 
   {
     tags.length > 0 && (
@@ -78,11 +99,12 @@ const structuredData = graph([
           <h2>
             {group.type} <span class="count">{group.items.length}</span>
           </h2>
+          {group.description && <p class="group-description">{group.description}</p>}
           <ul class="cards narrow">
             {group.items.map((c) => (
               <li
                 data-title={c.title.toLowerCase()}
-                data-tags={c.tags.join(" ").toLowerCase()}
+                data-tags={c.tags.join(",").toLowerCase()}
                 data-featured={String(c.featured)}
                 hidden={!c.featured}
               >
@@ -103,16 +125,37 @@ const structuredData = graph([
 </Layout>
 
 <style>
-  /* Reserves space for 2 lines (h1's line-height: 1.25) up front - the
-     rotator swaps in questions of varying length, some wrapping to a
-     second line and some not, which otherwise shifts the whole page up
-     and down on every rotation (worst on mobile's narrower width). */
+  /* Rough 2-line fallback for the no-JS/pre-hydration paint - the rotator
+     script below measures and overrides this with the exact height the
+     tallest question needs once it runs, since some questions wrap to 3
+     lines at this column's width and a fixed guess would still shift. */
   #h1-rotator {
     min-height: 2.5em;
+  }
+  .hero {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+  .hero-text {
+    flex: 1;
+    min-width: 0;
+  }
+  @media (max-width: 45rem) {
+    .hero {
+      flex-direction: column;
+    }
   }
   .lead {
     font-size: 1.05rem;
     max-width: 34rem;
+  }
+  .lead-example {
+    margin: 0 0 1rem;
+    max-width: 34rem;
+    color: var(--muted);
+    font-size: 0.9rem;
   }
   .today-teaser {
     margin: 0 0 1rem;
@@ -128,10 +171,23 @@ const structuredData = graph([
   .cta {
     margin: 0.5rem 0 1rem;
   }
-  #search-input {
+  .search-wrap {
+    position: relative;
     width: 100%;
     max-width: 24rem;
     margin: 1rem 0;
+  }
+  .search-icon {
+    position: absolute;
+    left: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+  }
+  #search-input {
+    width: 100%;
+    padding-left: 2.1rem;
     display: block;
   }
   .tags {
@@ -152,6 +208,11 @@ const structuredData = graph([
     display: flex;
     align-items: baseline;
     gap: 0.5rem;
+  }
+  .group-description {
+    margin: -0.5rem 0 0.75rem;
+    color: var(--muted);
+    font-size: 0.85rem;
   }
   .count {
     color: var(--muted);
@@ -203,7 +264,7 @@ const structuredData = graph([
         const tags = entry.dataset.tags ?? "";
         const isFeatured = entry.dataset.featured === "true";
         const matchesQuery = query === "" || title.includes(query) || tags.includes(query);
-        const matchesTag = activeTag === null || tags.split(" ").includes(activeTag);
+        const matchesTag = activeTag === null || tags.split(",").includes(activeTag);
         const collapsed = !searchActive && !isFeatured && !expandedGroups.has(groupName);
         const show = matchesQuery && matchesTag && !collapsed;
         entry.hidden = !show;
@@ -283,10 +344,50 @@ const structuredData = graph([
   // auto-updating text).
   const h1 = document.getElementById("h1-rotator");
   if (h1 && questions.length > 0 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    // Reserves exactly the height the tallest question needs to wrap to at
+    // the H1's *actual* current width - the CSS min-height below is only a
+    // rough fallback (2 lines), which the longer combined Schulferien+
+    // Feiertage questions can exceed, especially now that the H1 shares the
+    // row with the calendar preview and has less width than it used to.
+    // Measured with a detached clone instead of a fixed lookup table so it
+    // stays correct across font-loading, zoom, and viewport width, none of
+    // which a precomputed table could account for.
+    function reserveH1Height() {
+      const probe = document.createElement("h1");
+      probe.className = h1.className;
+      Object.assign(probe.style, {
+        position: "absolute",
+        visibility: "hidden",
+        pointerEvents: "none",
+        minHeight: "0",
+        margin: "0",
+        width: `${h1.getBoundingClientRect().width}px`,
+      });
+      document.body.appendChild(probe);
+      let max = 0;
+      for (const question of questions) {
+        probe.textContent = question.text;
+        max = Math.max(max, probe.offsetHeight);
+      }
+      document.body.removeChild(probe);
+      h1.style.minHeight = `${max}px`;
+    }
+    reserveH1Height();
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(reserveH1Height, 200);
+    });
+
     let q = questions
     setInterval(() => {
       const i = Math.floor(Math.random() * q.length);
-      h1.textContent = questions[i];
+      const question = questions[i];
+      h1.textContent = question.text;
+      // Tells HeroCalendarPreview.vue which layers this sentence is about -
+      // a CustomEvent instead of a shared Vue parent, so this script can
+      // keep owning the static-H1/reduced-motion fallback untouched.
+      window.dispatchEvent(new CustomEvent("homepage-rotate", { detail: { layerIds: question.layerIds } }));
       // Web Animations API, not a CSS class toggle - a class-based
       // @keyframes animation doesn't replay on repeated triggers without a
       // reflow hack; .animate() just restarts. Slides up into place from

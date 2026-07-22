@@ -305,7 +305,9 @@ th {
 }
 
 .cta {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   padding: 0.6rem 1rem;
   border: 1px solid var(--ink);
   color: var(--ink);
@@ -320,4 +322,37 @@ th {
 /* Back-to-category link at the top of every subject/page detail view. */
 .back {
   font-size: 0.9rem;
+}
+
+/* Native cross-document view transitions (browser feature, not an Astro
+   one - the site stays a plain MPA, every full-page navigation just gets a
+   crossfade instead of a hard cut). Deliberately NOT Astro's <ClientRouter />:
+   that turns navigation into client-side SPA routing, which would silently
+   break every "wire up the DOM once on load" script sitewide (theme toggle,
+   search/tag filters, the H1 rotator's setInterval, ...) since those scripts
+   only run once per page load and same-origin transitions no longer trigger
+   one. This rule has none of that risk - unsupported browsers just navigate
+   as before, no fallback code needed. */
+@view-transition {
+  navigation: auto;
+}
+/* Without this, <main class="wrap"> is just part of the flat root
+   crossfade - old and new page are two static-width screenshots faded into
+   each other, so the 62rem -> 88rem jump between a normal page and a
+   `wide` one (e.g. /kalender/) still reads as a hard snap even with the
+   fade. Naming it gives it its own view-transition group, which the browser
+   animates as a single element moving/resizing between its old and new
+   box - the margin change actually morphs instead of cutting. Scoped to
+   the <main> tag specifically (not the header/footer bars that also carry
+   .wrap) since a view-transition-name must be unique per element on the
+   page - selecting by plain .wrap would collide across all three. */
+main.wrap {
+  view-transition-name: page-wrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

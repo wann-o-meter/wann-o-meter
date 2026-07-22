@@ -8,3 +8,4 @@ templates:
   schulferien: "Wann sind Schulferien in {subject}?"
   feiertage: "Wann ist der nächste Feiertag in {subject}?"
   urlaubsfenster: "Wann lohnt sich ein Brückentag in {subject}?"
+  schulferien_feiertage: "Wann sind Schulferien und Feiertage in {subject}?"

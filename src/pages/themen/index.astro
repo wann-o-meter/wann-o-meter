@@ -1,5 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import { Search } from "@lucide/astro";
 import { getAllPages, getAllTags } from "../../../lib/pages";
 
 const pages = getAllPages().sort((a, b) => a.meta.title.localeCompare(b.meta.title, "de"));
@@ -11,12 +12,15 @@ const tags = getAllTags();
   <h1>Themen</h1>
   <p>Alle Seiten aus akzeptierten Quellen, themenbereichsübergreifend durchsuchbar.</p>
 
-  <input
-    type="search"
-    id="search-input"
-    placeholder="Titel oder Tag suchen…"
-    aria-label="Seiten durchsuchen"
-  />
+  <div class="search-wrap">
+    <Search size={16} class="search-icon" aria-hidden="true" />
+    <input
+      type="search"
+      id="search-input"
+      placeholder="Titel oder Tag suchen…"
+      aria-label="Seiten durchsuchen"
+    />
+  </div>
 
   {
     tags.length > 0 && (
@@ -82,10 +86,23 @@ const tags = getAllTags();
   .back {
     font-size: 0.9rem;
   }
-  #search-input {
+  .search-wrap {
+    position: relative;
     width: 100%;
     max-width: 24rem;
     margin: 1rem 0;
+  }
+  .search-icon {
+    position: absolute;
+    left: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+  }
+  #search-input {
+    width: 100%;
+    padding-left: 2.1rem;
     display: block;
   }
   .tags {
