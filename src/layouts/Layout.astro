@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { ArrowUpRight, Calendar, Monitor, Moon, Search, Sun } from "@lucide/astro";
 import { feedbackIssueUrl, feedbackMailtoUrl, newSourceIssueUrl } from "../../lib/github-issue";
 
 interface Props {
@@ -13,6 +14,9 @@ interface Props {
 }
 const { title, description, wide = false, structuredData } = Astro.props;
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+// The arrow reads as "go here" - pointless (and a little odd) to show it
+// while already on /kalender/ or one of its sub-pages (e.g. /kalender/embed/).
+const onKalenderPage = Astro.url.pathname.startsWith("/kalender");
 const pageTitle = `${title} · Wann-O-Meter`;
 const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, als Kalender-Abo.";
 ---
@@ -65,10 +69,15 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
         <a href="/" class="brand">Wann-<span class="brand-accent">O</span>-Meter</a>
         <a id="today-indicator" class="today-indicator" href="/kalender/"></a>
         <nav>
-          <a href="/kalender/">Kalender</a>
-          <a href="/#search-input">Durchsuchen</a>
+          <a href="/kalender/"><Calendar size={16} /> Kalender {!onKalenderPage && <ArrowUpRight size={14} />}</a>
+          <span class="nav-divider" aria-hidden="true"></span>
+          <a href="/#search-input"><Search size={16} /> Durchsuchen</a>
         </nav>
-        <button type="button" id="theme-toggle" class="theme-toggle" title="Farbschema wechseln (System/Hell/Dunkel)"></button>
+        <button type="button" id="theme-toggle" class="theme-toggle" title="Farbschema wechseln (System/Hell/Dunkel)">
+          <Monitor size={16} data-theme-icon="system" class="active" />
+          <Sun size={16} data-theme-icon="light" />
+          <Moon size={16} data-theme-icon="dark" />
+        </button>
       </div>
     </header>
     <main class:list={["wrap", { wide }]}>
@@ -118,7 +127,18 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
         return t === "light" || t === "dark" ? t : "system";
       }
       function renderThemeToggle() {
-        if (themeToggle) themeToggle.textContent = THEME_LABELS[currentTheme()];
+        if (!themeToggle) return;
+        const t = currentTheme();
+        // Icon-only now (see the 3 <Monitor|Sun|Moon> in the template above) -
+        // toggle which one is visible instead of swapping text, and carry the
+        // same state in aria-label since there's no visible text left for it.
+        // A CSS class instead of the `hidden` attribute/IDL property - that
+        // property's reflection onto SVG elements is inconsistent enough
+        // across browsers that it silently left all three icons visible.
+        themeToggle.setAttribute("aria-label", `Farbschema: ${THEME_LABELS[t]}`);
+        for (const icon of themeToggle.querySelectorAll("[data-theme-icon]")) {
+          icon.classList.toggle("active", icon.getAttribute("data-theme-icon") === t);
+        }
       }
       renderThemeToggle();
       themeToggle?.addEventListener("click", () => {
@@ -203,11 +223,20 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
   }
   nav {
     display: flex;
+    align-items: center;
     flex-wrap: wrap;
     gap: 0.3rem 1.3rem;
     font-size: 0.9rem;
   }
+  .nav-divider {
+    width: 1px;
+    height: 1em;
+    background: var(--line);
+  }
   nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     color: var(--ink);
     text-decoration: none;
     padding: 0.3rem 0;
@@ -216,8 +245,15 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
     color: var(--accent);
   }
   .theme-toggle {
-    font-size: 0.8rem;
-    padding: 0.3rem 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem;
+  }
+  .theme-toggle [data-theme-icon] {
+    display: none;
+  }
+  .theme-toggle [data-theme-icon].active {
+    display: block;
   }
 
   main {

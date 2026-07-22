@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from "vue";
-import { ChevronLeft, ChevronRight, X } from "lucide-vue-next";
+import { CalendarDays, ChartNoAxesColumn, ChevronLeft, ChevronRight, Search, Trash2, X } from "lucide-vue-next";
 import { MONTH_NAMES, WEEKDAY_NAMES_LONG, isoWeekNumber } from "../../lib/date-display";
+import { daysInMonth, isoDate, isoFromDate, matchesForDay, mondayOf } from "../../lib/date-grid";
+import { COLORS } from "../../lib/calendar-colors";
+import MonthGrid from "./MonthGrid.vue";
 
 // Overlay mode (PLAN.md 4.2): layers render stacked, no set operations
 // (intersections are explicitly NOT V1). The component has no knowledge of
@@ -10,15 +13,6 @@ import { MONTH_NAMES, WEEKDAY_NAMES_LONG, isoWeekNumber } from "../../lib/date-d
 // with dates) is just a CatalogEntry from /api/v1/calendar.json. Adding a
 // new content type to the calendar means extending lib/calendar-sources.ts
 // server-side; nothing here needs to change.
-
-const WEEKDAY_NAMES = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-
-// Muted "ink" colors instead of bright marker colors - matches the site's
-// paper/document tone (see src/styles/global.css).
-const COLORS = [
-  "#3c5a80", "#6b7d3d", "#8a5a2b", "#5c4a72", "#2f7565",
-  "#9c4f3c", "#4a5a6b", "#7d5a3c", "#3c6b6b", "#6b3c52",
-];
 
 // ponytail: no data-driven lower bound is known (holiday/vacation data goes
 // back further than any constant here could track) - 1900 is just a sane
@@ -91,15 +85,6 @@ const expandedGroups = ref<Set<string>>(new Set());
 
 const showEmbed = ref(false);
 const copied = ref(false);
-
-// "sidebar=0" drops the layer list/search entirely (read in
-// loadFromUrlOrDefault() below, alongside every other URL-driven bit of
-// state) - meant for a small, fixed preview iframe (see src/pages/index.astro's
-// homepage preview), where the sidebar's own 60rem stacking breakpoint kicks
-// in well before a narrow iframe's width, otherwise pushing the layer list
-// ABOVE the actual calendar grid instead of beside it - so a short preview
-// never scrolls far enough to show a single date.
-const hideSidebar = ref(false);
 
 const availableOptions = computed<CatalogEntry[]>(() => {
   const activeIds = new Set(layers.value.map((l) => l.id));
@@ -297,7 +282,6 @@ function selectEmbedUrl(e: Event) {
 // current state rather than merely patch it.
 async function loadFromUrlOrDefault() {
   const params = new URLSearchParams(window.location.search);
-  hideSidebar.value = params.get("sidebar") === "0";
 
   const y = Number(params.get("year"));
   year.value = y >= YEAR_MIN && y <= YEAR_MAX ? y : today.getFullYear();
@@ -358,25 +342,6 @@ async function loadFromUrlOrDefault() {
   );
 }
 
-function daysInMonth(monthIndex0: number): number {
-  return new Date(year.value, monthIndex0 + 1, 0).getDate();
-}
-
-function isoDate(monthIndex0: number, day: number): string {
-  return `${year.value}-${String(monthIndex0 + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-}
-
-function isoFromDate(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function mondayOf(d: Date): Date {
-  const copy = new Date(d);
-  const weekday = (copy.getDay() + 6) % 7; // Mon=0
-  copy.setDate(copy.getDate() - weekday);
-  return copy;
-}
-
 function formatShort(iso: string): string {
   const [, m, d] = iso.split("-");
   return `${d}.${m}.`;
@@ -410,6 +375,29 @@ function toggleGraphView() {
   pushNextUrlWrite = true;
   view.value = view.value === "graph" ? "year" : "graph";
 }
+
+// Jumps to "now" in whatever unit the active view actually shows - the year
+// in year/graph view, the month (+ year) in month view, this week in week
+// view. openWeek() already resets a drilled-into selectedDay, so week is
+// delegated to it instead of duplicating that reset here.
+function goToToday() {
+  if (view.value === "week") {
+    openWeek(isoFromDate(mondayOf(today)));
+    return;
+  }
+  pushNextUrlWrite = true;
+  year.value = today.getFullYear();
+  if (view.value === "month") activeMonth.value = today.getMonth();
+}
+
+// Hides the "Heute" button once it would be a no-op - same unit goToToday()
+// itself jumps by (year in year/graph view, month in month view, this week
+// in week view).
+const isAtToday = computed(() => {
+  if (view.value === "week") return weekStart.value === isoFromDate(mondayOf(today));
+  if (year.value !== today.getFullYear()) return false;
+  return view.value !== "month" || activeMonth.value === today.getMonth();
+});
 
 function openWeekForDay(dayIso: string) {
   openWeek(isoFromDate(mondayOf(new Date(`${dayIso}T00:00:00`))));
@@ -459,29 +447,6 @@ function commitYear() {
   editingYear.value = false;
 }
 
-// Full Monday-Sunday weeks covering a month (including the leading/trailing
-// days of adjacent months a week straddles) - shared by month view (its own
-// month) and the year view (every month's mini-grid, so week numbers show
-// up there too instead of just in month view).
-function weeksOfMonth(monthIndex0: number): { mondayIso: string; number: number; days: string[] }[] {
-  const lastDay = new Date(year.value, monthIndex0 + 1, 0);
-  let monday = mondayOf(new Date(year.value, monthIndex0, 1));
-  const weeks: { mondayIso: string; number: number; days: string[] }[] = [];
-  while (monday <= lastDay) {
-    const days = Array.from({ length: 7 }, (_, i) => {
-      const day = new Date(monday);
-      day.setDate(day.getDate() + i);
-      return isoFromDate(day);
-    });
-    weeks.push({ mondayIso: isoFromDate(monday), number: isoWeekNumber(monday), days });
-    monday = new Date(monday);
-    monday.setDate(monday.getDate() + 7);
-  }
-  return weeks;
-}
-
-const monthWeeks = computed(() => weeksOfMonth(activeMonth.value));
-
 const currentWeekDays = computed(() => {
   const start = new Date(`${weekStart.value}T00:00:00`);
   return Array.from({ length: 7 }, (_, i) => {
@@ -497,27 +462,6 @@ const weekRangeText = computed(() => {
   const days = currentWeekDays.value;
   return `${formatShort(days[0])}–${formatShort(days[6])} ${days[6].slice(0, 4)}`;
 });
-
-interface Match {
-  color: string;
-  title: string;
-  url: string;
-}
-
-function matchesForDay(iso: string): Match[] {
-  const matches: Match[] = [];
-  for (const layer of layers.value) {
-    if (!layer.visible) continue;
-    for (const w of layer.windows) {
-      if (w.start <= iso && iso <= w.end) {
-        // Fragment points at the matching row on the target page (see the
-        // :target highlight in the detail pages).
-        matches.push({ color: layer.color, title: `${layer.label}: ${w.description}`, url: `${layer.url}#${w.start}` });
-      }
-    }
-  }
-  return matches;
-}
 
 // The "graph" view's data: no numeric value/unit is populated on any window
 // yet (checked across data/**/*.yaml - lib/schema.ts's MaterializedWindow
@@ -537,10 +481,10 @@ function isActiveDay(layer: Layer, iso: string): boolean {
 }
 
 function activeDaysInMonth(layer: Layer, monthIndex0: number): number {
-  const total = daysInMonth(monthIndex0);
+  const total = daysInMonth(year.value, monthIndex0);
   let count = 0;
   for (let day = 1; day <= total; day++) {
-    if (isActiveDay(layer, isoDate(monthIndex0, day))) count++;
+    if (isActiveDay(layer, isoDate(year.value, monthIndex0, day))) count++;
   }
   return count;
 }
@@ -609,7 +553,7 @@ const graphRows = computed(() => {
           ? MONTH_NAMES.map((name, monthIndex0) => ({
               label: name.slice(0, 3),
               count: activeDaysInMonth(l, monthIndex0),
-              total: daysInMonth(monthIndex0),
+              total: daysInMonth(year.value, monthIndex0),
             }))
           : weekBuckets(l);
       return { layer: l, buckets };
@@ -669,22 +613,37 @@ onMounted(async () => {
   <div class="calendar">
     <div class="calendar-layout">
     <div class="main-area">
-      <p v-if="loading">Lädt…</p>
+      <div v-if="loading" class="skeleton" aria-hidden="true">
+        <div class="skeleton-bar skeleton-breadcrumbs"></div>
+        <div class="months">
+          <div v-for="n in 12" :key="n" class="month">
+            <div class="skeleton-bar skeleton-month-title"></div>
+            <div class="skeleton-bar skeleton-month-body"></div>
+          </div>
+        </div>
+      </div>
+      <p v-if="loading" class="sr-only">Kalender lädt…</p>
 
       <template v-else>
         <nav class="breadcrumbs">
-          <button type="button" @click="goToYearView">{{ year }}</button>
+          <button type="button" class="crumb" @click="goToYearView">{{ year }}</button>
           <template v-if="view === 'month' || view === 'week'">
             <ChevronRight :size="14" />
-            <button type="button" @click="goToMonthView">{{ MONTH_NAMES[activeMonth] }}</button>
+            <button type="button" class="crumb" @click="goToMonthView">{{ MONTH_NAMES[activeMonth] }}</button>
           </template>
           <template v-if="view === 'week'">
             <ChevronRight :size="14" />
             <span>KW {{ currentWeekNumber }}</span>
           </template>
-          <button type="button" class="graph-toggle" @click="toggleGraphView">
-            {{ view === "graph" ? "← Kalender" : "Verteilung ansehen" }}
-          </button>
+          <div class="breadcrumb-actions">
+            <button v-if="!isAtToday" type="button" class="action-button" title="Zu heute springen" @click="goToToday">
+              <CalendarDays :size="14" /> Heute
+            </button>
+            <button type="button" class="action-button" @click="toggleGraphView">
+              <template v-if="view === 'graph'"><ChevronLeft :size="14" /> Kalender</template>
+              <template v-else><ChartNoAxesColumn :size="14" /> Verteilung ansehen</template>
+            </button>
+          </div>
         </nav>
 
         <div v-if="view === 'year'" class="months">
@@ -692,38 +651,15 @@ onMounted(async () => {
             <h3 role="button" tabindex="0" @click="openMonth(monthIndex0)" @keydown.enter="openMonth(monthIndex0)">
               {{ name }}
             </h3>
-            <div class="weekdays">
-              <span class="week-col-header">KW</span>
-              <span v-for="wd in WEEKDAY_NAMES" :key="wd">{{ wd }}</span>
-            </div>
-            <div v-for="week in weeksOfMonth(monthIndex0)" :key="week.mondayIso" class="day-week">
-              <button type="button" class="week-number mini" title="Woche öffnen" @click="openWeek(week.mondayIso)">
-                {{ week.number }}
-              </button>
-              <span
-                v-for="dayIso in week.days"
-                :key="dayIso"
-                class="day"
-                :class="{ today: dayIso === todayIso, 'other-month': Number(dayIso.slice(5, 7)) - 1 !== monthIndex0 }"
-                role="button"
-                tabindex="0"
-                :title="[...matchesForDay(dayIso).map((m) => m.title), 'Woche öffnen'].join(', ')"
-                @click="openWeekForDay(dayIso)"
-                @keydown.enter="openWeekForDay(dayIso)"
-              >
-                {{ Number(dayIso.slice(8)) }}
-                <span class="marks">
-                  <a
-                    v-for="(match, i) in matchesForDay(dayIso)"
-                    :key="i"
-                    class="mark"
-                    :href="match.url"
-                    :title="match.title"
-                    :style="{ background: match.color }"
-                  />
-                </span>
-              </span>
-            </div>
+            <MonthGrid
+              :year="year"
+              :month-index0="monthIndex0"
+              :layers="layers"
+              :today-iso="todayIso"
+              variant="mini"
+              @day-click="openWeekForDay"
+              @week-click="openWeek"
+            />
           </div>
         </div>
 
@@ -737,43 +673,14 @@ onMounted(async () => {
               <ChevronRight :size="18" />
             </button>
           </div>
-          <div class="month-grid-header">
-            <span class="week-number-header">KW</span>
-            <span v-for="wd in WEEKDAY_NAMES" :key="wd">{{ wd }}</span>
-          </div>
-          <div
-            v-for="week in monthWeeks"
-            :key="week.mondayIso"
-            class="week-row"
-            role="button"
-            tabindex="0"
-            title="Diese Woche öffnen"
-            @click="openWeek(week.mondayIso)"
-            @keydown.enter="openWeek(week.mondayIso)"
-          >
-            <button type="button" class="week-number" title="Diese Woche öffnen" @click.stop="openWeek(week.mondayIso)">
-              {{ week.number }}
-            </button>
-            <span
-              v-for="dayIso in week.days"
-              :key="dayIso"
-              class="day-cell"
-              :class="{ 'other-month': Number(dayIso.slice(5, 7)) - 1 !== activeMonth, today: dayIso === todayIso }"
-              :title="matchesForDay(dayIso).map((m) => m.title).join(', ')"
-            >
-              <span class="day-number">{{ Number(dayIso.slice(8)) }}</span>
-              <span class="marks">
-                <a
-                  v-for="(match, i) in matchesForDay(dayIso)"
-                  :key="i"
-                  class="mark"
-                  :href="match.url"
-                  :title="match.title"
-                  :style="{ background: match.color }"
-                />
-              </span>
-            </span>
-          </div>
+          <MonthGrid
+            :year="year"
+            :month-index0="activeMonth"
+            :layers="layers"
+            :today-iso="todayIso"
+            variant="full"
+            @week-click="openWeek"
+          />
         </div>
 
         <div v-else-if="view === 'week'" class="week-view">
@@ -790,13 +697,13 @@ onMounted(async () => {
             <div v-for="(dayIso, i) in currentWeekDays" :key="dayIso" class="day-column" :class="{ today: dayIso === todayIso, selected: dayIso === selectedDay }">
               <h4>{{ WEEKDAY_NAMES_LONG[i] }} <span class="day-number">{{ Number(dayIso.slice(8)) }}</span></h4>
               <ul class="event-list">
-                <li v-for="(match, j) in matchesForDay(dayIso)" :key="j">
+                <li v-for="(match, j) in matchesForDay(dayIso, layers)" :key="j">
                   <a :href="match.url" class="event-link">
                     <span class="dot" :style="{ background: match.color }" />
                     {{ match.title }}
                   </a>
                 </li>
-                <li v-if="matchesForDay(dayIso).length === 0" class="no-events">–</li>
+                <li v-if="matchesForDay(dayIso, layers).length === 0" class="no-events">–</li>
               </ul>
             </div>
           </div>
@@ -850,7 +757,7 @@ onMounted(async () => {
       </template>
     </div>
 
-    <aside v-if="!hideSidebar" class="sidebar">
+    <aside class="sidebar">
       <div v-if="view === 'year'" class="year-nav">
         <button type="button" :disabled="year <= YEAR_MIN" @click="year--"><ChevronLeft :size="16" /></button>
         <input
@@ -869,7 +776,7 @@ onMounted(async () => {
       </div>
 
       <div v-if="layers.length > 0" class="layer-list-actions">
-        <button type="button" class="reset-layers" @click="resetLayers">Alle entfernen</button>
+        <button type="button" class="reset-layers" @click="resetLayers"><Trash2 :size="14" /> Alle entfernen</button>
       </div>
       <ul class="layer-list">
         <template v-for="grp in groupedLayers" :key="grp.group">
@@ -900,11 +807,14 @@ onMounted(async () => {
       </ul>
 
       <div class="add-layer">
-        <input
-          v-model="layerSearch"
-          type="search"
-          placeholder='Direkt suchen und hinzufügen ("Bayern", "Sommerferien", "Sonnenfinsternis" …)'
-        />
+        <div class="layer-search-wrap">
+          <Search :size="14" class="search-icon" aria-hidden="true" />
+          <input
+            v-model="layerSearch"
+            type="search"
+            placeholder='Direkt suchen und hinzufügen ("Bayern", "Sommerferien", "Sonnenfinsternis" …)'
+          />
+        </div>
         <div class="search-results">
           <div v-for="grp in groupedOptions" :key="grp.group" class="search-group-block">
             <h4 class="search-group-title">{{ grp.group }} <span class="search-group-count">({{ grp.total }})</span></h4>
@@ -967,7 +877,7 @@ onMounted(async () => {
   font-family: var(--font-mono);
   font-size: 0.85rem;
 }
-.breadcrumbs button {
+.breadcrumbs .crumb {
   cursor: pointer;
   background: none;
   border: none;
@@ -975,11 +885,30 @@ onMounted(async () => {
   font: inherit;
   color: inherit;
 }
-.breadcrumbs button:hover {
+.breadcrumbs .crumb:hover {
   color: var(--accent);
 }
-.graph-toggle {
+/* Heute/Verteilung ansehen are actions, not breadcrumb trail - kept as
+   plain bordered buttons (the global `button` default look, not reset to
+   text-only like .crumb above) so they read as clickable controls instead
+   of blending into the trail's plain-text year/month/week links. */
+.breadcrumb-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-left: auto;
+}
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--ink);
+}
+.action-button:hover {
+  color: var(--accent);
 }
 
 .granularity-toggle {
@@ -1057,6 +986,9 @@ onMounted(async () => {
   justify-content: flex-end;
 }
 .reset-layers {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   font-size: 0.75rem;
   padding: 0.2rem 0.5rem;
   color: var(--muted);
@@ -1151,6 +1083,21 @@ onMounted(async () => {
   padding-top: 1.25rem;
   border-top: 1px solid var(--line);
 }
+.layer-search-wrap {
+  position: relative;
+}
+.layer-search-wrap .search-icon {
+  position: absolute;
+  left: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+.layer-search-wrap input {
+  width: 100%;
+  padding-left: 1.9rem;
+}
 .search-results {
   max-height: 22rem;
   overflow-y: auto;
@@ -1240,57 +1187,50 @@ onMounted(async () => {
 .month h3:hover {
   color: var(--accent);
 }
-.weekdays,
-.day-week {
-  display: grid;
-  grid-template-columns: 1.4rem repeat(7, 1fr);
-  gap: 2px;
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
-.day-week {
-  margin-bottom: 2px;
+
+/* Mimics the default year view's own layout (.months/.month above) instead
+   of a generic spinner, so there's no layout jump once real data replaces
+   it - the common case (no view= in the URL) resolves to this exact shape. */
+.skeleton-breadcrumbs {
+  width: 8rem;
+  height: 0.85rem;
+  margin-bottom: 1rem;
 }
-.weekdays span {
-  text-align: center;
-  color: var(--muted);
-  font-size: 0.68rem;
+.skeleton-month-title {
+  width: 5rem;
+  height: 0.7rem;
+  margin-bottom: 0.6rem;
 }
-.week-col-header {
-  font-family: var(--font-mono);
+.skeleton-month-body {
+  height: 8rem;
 }
-.day {
-  text-align: center;
-  padding: 0.2rem 0;
-  cursor: pointer;
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-.day:hover {
+.skeleton-bar {
   background: var(--paper-raised);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
 }
-.day.today {
-  background: var(--accent);
-  color: var(--accent-ink);
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
-.day.other-month {
-  color: var(--muted);
-  opacity: 0.5;
-}
-.marks {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 1px;
-  min-height: 0.3rem;
-  margin-top: 0.15rem;
-}
-.mark {
-  width: 0.3rem;
-  height: 0.3rem;
-  display: inline-block;
-}
-.mark:hover {
-  outline: 1px solid var(--ink);
-  outline-offset: 1px;
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-bar {
+    animation: none;
+    opacity: 0.7;
+  }
 }
 
 .view-nav {
@@ -1308,74 +1248,8 @@ onMounted(async () => {
   text-align: center;
 }
 
-.month-grid-header,
-.week-row {
-  display: grid;
-  grid-template-columns: 2.5rem repeat(7, 1fr);
-  gap: 2px;
-}
-.month-grid-header {
-  margin-bottom: 2px;
-}
-.month-grid-header span {
-  text-align: center;
-  color: var(--muted);
-  font-size: 0.7rem;
-}
-.week-number-header {
-  font-family: var(--font-mono);
-}
-.week-row {
-  background: var(--line);
-  margin-bottom: 2px;
-  cursor: pointer;
-}
-.week-row:hover .day-cell {
-  background: var(--paper-raised);
-}
-.week-number {
-  background: var(--paper);
-  border: none;
-  cursor: pointer;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-}
-.week-number:hover {
-  color: var(--accent);
-  background: var(--paper-raised);
-}
-.week-number.mini {
-  background: none;
-  font-size: 0.62rem;
-  padding: 0;
-}
-.day-cell {
-  background: var(--paper);
-  min-height: 4rem;
-  padding: 0.4rem;
-  display: flex;
-  flex-direction: column;
-  font-family: var(--font-mono);
-}
-.day-cell.other-month {
-  color: var(--muted);
-  opacity: 0.5;
-}
-.day-cell.today {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-.day-cell.today .day-number {
-  color: var(--accent);
-  font-weight: 600;
-}
 .day-number {
   font-variant-numeric: tabular-nums;
-}
-.day-cell .marks {
-  justify-content: flex-start;
-  margin-top: auto;
 }
 
 .week-days {

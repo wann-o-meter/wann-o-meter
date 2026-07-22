@@ -1,5 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { ArrowUpRight, Calendar, Search } from "@lucide/astro";
+import HeroCalendarPreview from "../components/HeroCalendarPreview.vue";
 import { getAllContent } from "../../lib/all-content";
 import type { ContentCard } from "../../lib/all-content";
 import { getCategoryMeta } from "../../lib/pages";
@@ -38,12 +40,11 @@ const structuredData = graph([
 ]);
 
 // Preview under the hero (Bayern, since it's the one worked example the
-// homepage copy below also names) - reuses the standalone embed page
-// (src/pages/kalender/embed.astro) instead of building a static render:
-// the calendar only ever has real data client-side (fetched from
-// /api/v1/calendar.json), so a server-rendered snapshot would show nothing
-// without a separate build-time render pipeline.
-const previewLayers = "feiertage--de-by,schulferien--by,saisonkalender--spargel";
+// homepage copy below also names) - HeroCalendarPreview resolves the actual
+// window data itself client-side (same /api/v1/calendar/{id}.json route the
+// real calendar uses), and swaps to whichever layers the H1 rotator (script
+// below) is currently naming.
+const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender--spargel"];
 ---
 
 <Layout
@@ -51,35 +52,35 @@ const previewLayers = "feiertage--de-by,schulferien--by,saisonkalender--spargel"
   description={homeDescription}
   structuredData={structuredData}
 >
-  <h1 id="h1-rotator">Wann ist was?</h1>
-  <p class="lead">{homeDescription}</p>
-  <p class="lead-example">
-    Beispiel: Feiertage Bayern + Schulferien Bayern + Spargel-Saison — alles in einem Kalender,
-    einzeln abonnierbar.
-  </p>
-  <p class="today-teaser">
-    <a id="today-teaser-link" href="/kalender/">
-      Was heute (nicht) Saison hat, Feiertag ist oder ansteht — im Kalender nachsehen.
-    </a>
-  </p>
-  <p><a class="cta" href="/kalender/">Ebenen-Kalender öffnen →</a></p>
+  <div class="hero">
+    <div class="hero-text">
+      <h1 id="h1-rotator">Wann ist was?</h1>
+      <p class="lead">{homeDescription}</p>
+      <p class="lead-example">
+        Beispiel: Feiertage Bayern + Schulferien Bayern + Spargel-Saison — alles in einem
+        Kalender, einzeln abonnierbar.
+      </p>
+      <p class="today-teaser">
+        <a id="today-teaser-link" href="/kalender/">
+          Was heute (nicht) Saison hat, Feiertag ist oder ansteht — im Kalender nachsehen.
+        </a>
+      </p>
+      <p><a class="cta" href="/kalender/"><Calendar size={16} /> Ebenen-Kalender öffnen <ArrowUpRight size={16} /></a></p>
+    </div>
 
-  <iframe
-    id="preview-frame"
-    class="preview"
-    title="Vorschau: Feiertage Bayern, Schulferien Bayern und Spargel-Saison im Kalender"
-    src={`/kalender/embed/?year=current&view=month&month=current&sidebar=0&layers=${previewLayers}`}
-    scrolling="no"
-    loading="lazy"
-  ></iframe>
+    <HeroCalendarPreview initialLayerIds={previewLayerIds} client:visible />
+  </div>
 
   <h2>Alle Themen durchsuchen</h2>
-  <input
-    type="search"
-    id="search-input"
-    placeholder="Titel oder Tag suchen…"
-    aria-label="Seiten durchsuchen"
-  />
+  <div class="search-wrap">
+    <Search size={16} class="search-icon" aria-hidden="true" />
+    <input
+      type="search"
+      id="search-input"
+      placeholder="Titel oder Tag suchen…"
+      aria-label="Seiten durchsuchen"
+    />
+  </div>
 
   {
     tags.length > 0 && (
@@ -124,12 +125,27 @@ const previewLayers = "feiertage--de-by,schulferien--by,saisonkalender--spargel"
 </Layout>
 
 <style>
-  /* Reserves space for 2 lines (h1's line-height: 1.25) up front - the
-     rotator swaps in questions of varying length, some wrapping to a
-     second line and some not, which otherwise shifts the whole page up
-     and down on every rotation (worst on mobile's narrower width). */
+  /* Rough 2-line fallback for the no-JS/pre-hydration paint - the rotator
+     script below measures and overrides this with the exact height the
+     tallest question needs once it runs, since some questions wrap to 3
+     lines at this column's width and a fixed guess would still shift. */
   #h1-rotator {
     min-height: 2.5em;
+  }
+  .hero {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+  .hero-text {
+    flex: 1;
+    min-width: 0;
+  }
+  @media (max-width: 45rem) {
+    .hero {
+      flex-direction: column;
+    }
   }
   .lead {
     font-size: 1.05rem;
@@ -140,19 +156,6 @@ const previewLayers = "feiertage--de-by,schulferien--by,saisonkalender--spargel"
     max-width: 34rem;
     color: var(--muted);
     font-size: 0.9rem;
-  }
-  .preview {
-    display: block;
-    width: 100%;
-    max-width: 40rem;
-    /* Height is set in JS from the embedded page's actual content (see
-       script below) - a month is 4-6 weeks depending on how it falls, so
-       any fixed height either scrolls (6-week months) or leaves dead space
-       (4-week months); this starts at a 5-week-ish guess purely to avoid a
-       zero-height flash before that JS runs. */
-    height: 22rem;
-    margin: 0 0 1.5rem;
-    border: 1px solid var(--line);
   }
   .today-teaser {
     margin: 0 0 1rem;
@@ -168,10 +171,23 @@ const previewLayers = "feiertage--de-by,schulferien--by,saisonkalender--spargel"
   .cta {
     margin: 0.5rem 0 1rem;
   }
-  #search-input {
+  .search-wrap {
+    position: relative;
     width: 100%;
     max-width: 24rem;
     margin: 1rem 0;
+  }
+  .search-icon {
+    position: absolute;
+    left: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+  }
+  #search-input {
+    width: 100%;
+    padding-left: 2.1rem;
     display: block;
   }
   .tags {
@@ -321,30 +337,6 @@ const previewLayers = "feiertage--de-by,schulferien--by,saisonkalender--spargel"
   }
 </script>
 
-<script>
-  // Fits the preview iframe to its actual content instead of guessing a
-  // fixed size - a month is 4-6 weeks depending on how it falls, so any
-  // fixed height either scrolls or leaves dead space, and the calendar's
-  // real shape is landscape (wide grid, short height), not square. Same
-  // origin (/kalender/embed/), so contentDocument is readable directly, no
-  // postMessage needed. ResizeObserver (not just a one-shot read on load)
-  // because the embed's own Vue app still has to fetch its catalog/layer
-  // data after the iframe's `load` event fires, so the real height only
-  // settles a moment later.
-  const previewFrame = document.getElementById("preview-frame");
-  if (previewFrame instanceof HTMLIFrameElement) {
-    previewFrame.addEventListener("load", () => {
-      const doc = previewFrame.contentDocument;
-      if (!doc) return;
-      const fit = () => {
-        previewFrame.style.height = `${doc.documentElement.scrollHeight}px`;
-      };
-      fit();
-      new ResizeObserver(fit).observe(doc.documentElement);
-    });
-  }
-</script>
-
 <script define:vars={{ questions: rotatingQuestions }}>
   // Cycles the H1 through real questions the site can answer - the static
   // generic H1 (set in the template) is the no-JS/SEO fallback. Skipped
@@ -352,10 +344,50 @@ const previewLayers = "feiertage--de-by,schulferien--by,saisonkalender--spargel"
   // auto-updating text).
   const h1 = document.getElementById("h1-rotator");
   if (h1 && questions.length > 0 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    // Reserves exactly the height the tallest question needs to wrap to at
+    // the H1's *actual* current width - the CSS min-height below is only a
+    // rough fallback (2 lines), which the longer combined Schulferien+
+    // Feiertage questions can exceed, especially now that the H1 shares the
+    // row with the calendar preview and has less width than it used to.
+    // Measured with a detached clone instead of a fixed lookup table so it
+    // stays correct across font-loading, zoom, and viewport width, none of
+    // which a precomputed table could account for.
+    function reserveH1Height() {
+      const probe = document.createElement("h1");
+      probe.className = h1.className;
+      Object.assign(probe.style, {
+        position: "absolute",
+        visibility: "hidden",
+        pointerEvents: "none",
+        minHeight: "0",
+        margin: "0",
+        width: `${h1.getBoundingClientRect().width}px`,
+      });
+      document.body.appendChild(probe);
+      let max = 0;
+      for (const question of questions) {
+        probe.textContent = question.text;
+        max = Math.max(max, probe.offsetHeight);
+      }
+      document.body.removeChild(probe);
+      h1.style.minHeight = `${max}px`;
+    }
+    reserveH1Height();
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(reserveH1Height, 200);
+    });
+
     let q = questions
     setInterval(() => {
       const i = Math.floor(Math.random() * q.length);
-      h1.textContent = questions[i];
+      const question = questions[i];
+      h1.textContent = question.text;
+      // Tells HeroCalendarPreview.vue which layers this sentence is about -
+      // a CustomEvent instead of a shared Vue parent, so this script can
+      // keep owning the static-H1/reduced-motion fallback untouched.
+      window.dispatchEvent(new CustomEvent("homepage-rotate", { detail: { layerIds: question.layerIds } }));
       // Web Animations API, not a CSS class toggle - a class-based
       // @keyframes animation doesn't replay on repeated triggers without a
       // reflow hack; .animate() just restarts. Slides up into place from

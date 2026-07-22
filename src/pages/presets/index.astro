@@ -1,5 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import { ArrowRight } from "@lucide/astro";
 import { allPresets, calendarUrl } from "../../../lib/presets";
 
 const presets = allPresets();
@@ -15,7 +16,7 @@ const presets = allPresets();
         <li>
           <a href={`/presets/${p.slug}/`}>{p.name}</a>
           <a class="direct" href={calendarUrl(p)}>
-            direkt im Kalender öffnen →
+            direkt im Kalender öffnen <ArrowRight size={14} />
           </a>
         </li>
       ))
@@ -25,6 +26,9 @@ const presets = allPresets();
 
 <style>
   .direct {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
     font-size: 0.85rem;
     color: var(--muted);
   }

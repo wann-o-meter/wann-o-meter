@@ -17,6 +17,7 @@
     "@astrojs/vue": "^7.0.1",
     "@fontsource/ibm-plex-mono": "^5.2.7",
     "@fontsource/ibm-plex-sans": "^5.2.8",
+    "@lucide/astro": "^1.25.0",
     "astro": "^7.0.7",
     "date-holidays": "^3.32.0",
     "js-yaml": "^5.2.1",
