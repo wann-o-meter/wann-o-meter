@@ -677,6 +677,11 @@ onMounted(async () => {
           </button>
         </nav>
 
+        <p v-if="layers.length === 0 && view !== 'graph'" class="onboarding-hint">
+          Der Kalender ist noch leer. Rechts im Suchfeld eine Ebene hinzufügen (z. B. "Bayern"
+          oder "Sommerferien"), um sie hier farbig zu sehen.
+        </p>
+
         <div v-if="view === 'year'" class="months">
           <div v-for="(name, monthIndex0) in MONTH_NAMES" :key="name" class="month">
             <h3 role="button" tabindex="0" @click="openMonth(monthIndex0)" @keydown.enter="openMonth(monthIndex0)">
@@ -970,6 +975,12 @@ onMounted(async () => {
 }
 .graph-toggle {
   margin-left: auto;
+}
+
+.onboarding-hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0 0 1rem;
 }
 
 .granularity-toggle {
