@@ -26,10 +26,28 @@ function stateName(slug: string): string | undefined {
 // A rotator entry - `layerIds` are lib/calendar-sources.ts CalendarEntry ids
 // for the exact subject the sentence names, so the homepage calendar preview
 // (src/components/HeroCalendarPreview.vue) can highlight the same thing the
-// H1 just claimed instead of the two drifting apart.
+// H1 just claimed instead of the two drifting apart. `before`/`emphasis`/
+// `after` split the sentence around its **-marked topic clause (see
+// data/homepage-questions.yaml) so the rotator can render that span in a
+// distinct style - `text` is the flat, marker-stripped sentence for the
+// static/no-JS H1 fallback and for callers that just want the words.
 export interface HomeQuestion {
   text: string;
+  before: string;
+  emphasis: string;
+  after: string;
   layerIds: string[];
+}
+
+// Fills {subject} into a template, then splits it on its one **emphasis**
+// span. A template without markers (shouldn't happen given every entry in
+// data/homepage-questions.yaml has one, but not schema-enforced) just comes
+// back as all "before", no emphasis.
+function render(template: string, subject: string): Pick<HomeQuestion, "text" | "before" | "emphasis" | "after"> {
+  const filled = template.replace("{subject}", subject);
+  const match = filled.match(/^(.*?)\*\*(.*?)\*\*(.*)$/s);
+  const [, before, emphasis, after] = match ?? [, filled, "", ""];
+  return { text: before + emphasis + after, before, emphasis, after };
 }
 
 /**
@@ -47,7 +65,7 @@ export function homepageQuestions(): HomeQuestion[] {
   for (const p of getAllPages()) {
     if (p.category === "saisonkalender" && t.saisonkalender) {
       questions.push({
-        text: t.saisonkalender.replace("{subject}", seasonNoun(p.meta.title)),
+        ...render(t.saisonkalender, seasonNoun(p.meta.title)),
         layerIds: [`saisonkalender--${p.slug}`],
       });
       continue;
@@ -56,7 +74,7 @@ export function homepageQuestions(): HomeQuestion[] {
       const name = stateName(p.slug);
       if (name) {
         questions.push({
-          text: t.schulferien.replace("{subject}", name),
+          ...render(t.schulferien, name),
           layerIds: [`schulferien--${p.slug}`],
         });
       }
@@ -66,7 +84,7 @@ export function homepageQuestions(): HomeQuestion[] {
       const name = stateName(p.slug);
       if (name) {
         questions.push({
-          text: t.urlaubsfenster.replace("{subject}", name),
+          ...render(t.urlaubsfenster, name),
           layerIds: [`urlaubsfenster--${p.slug}`],
         });
       }
@@ -76,7 +94,7 @@ export function homepageQuestions(): HomeQuestion[] {
       const name = stateName(p.slug);
       if (name) {
         questions.push({
-          text: t.feiertage.replace("{subject}", name),
+          ...render(t.feiertage, name),
           layerIds: [`feiertage--${p.slug}`],
         });
       }
@@ -91,7 +109,7 @@ export function homepageQuestions(): HomeQuestion[] {
     for (const [code, name] of Object.entries(STATES)) {
       const slug = code.toLowerCase();
       questions.push({
-        text: t.schulferien_feiertage.replace("{subject}", name),
+        ...render(t.schulferien_feiertage, name),
         layerIds: [`feiertage--de-${slug}`, `schulferien--${slug}`],
       });
     }

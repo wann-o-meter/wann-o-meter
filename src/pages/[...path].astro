@@ -104,6 +104,13 @@ function buildPageView(page: Page) {
       ? [...getPageEvents(page)].sort((a, b) => (b.value ?? 0) - (a.value ?? 0))
       : getPageEvents(page);
   const years = [...new Set(events.map((f) => toDate(f.date).getFullYear()))].sort();
+  // Soonest upcoming entry, chronologically - independent of `events`'
+  // display order above (Urlaubsfenster's own best-ratio-first sort isn't
+  // "what's next"). Build-time "now" (same tradeoff data/feiertage/
+  // generator.ts's own nextHolidayBlurb already makes): a build cycle stale
+  // is still more useful than nothing, and this is a static site.
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const nextEvent = [...events].filter((e) => e.date >= todayIso).sort((a, b) => a.date.localeCompare(b.date))[0];
   const preview = typeof rawData.clean_markdown_preview === "string" ? rawData.clean_markdown_preview : "";
   const columns = Array.isArray(rawData.columns) ? (rawData.columns as string[]) : [];
   const rowsPreview = Array.isArray(rawData.rows_preview) ? (rawData.rows_preview as Record<string, string>[]) : [];
@@ -132,7 +139,7 @@ function buildPageView(page: Page) {
         ]
       : []),
   ]);
-  return { page, category, meta, data, events, years, preview, columns, rowsPreview, categoryName, description, structuredData, pageUrl };
+  return { page, category, meta, data, events, years, nextEvent, preview, columns, rowsPreview, categoryName, description, structuredData, pageUrl };
 }
 
 const categoryView = props.kind === "category" ? buildCategoryView(props.node) : null;
@@ -174,6 +181,20 @@ const pageView = props.kind === "page" ? buildPageView(props.page) : null;
       {pageView.meta.description && <p>{pageView.meta.description}</p>}
 
       {
+        pageView.nextEvent && (
+          <p class="next-event">
+            Nächster Termin:{" "}
+            <a
+              class="link-button"
+              href={`/kalender/?day=${pageView.nextEvent.date}&layers=${pageView.category.replace(/\//g, "-")}--${pageView.page.slug}`}
+            >
+              {pageView.nextEvent.label} · {formatDateWithWeekday(pageView.nextEvent.date)}
+            </a>
+          </p>
+        )
+      }
+
+      {
         pageView.meta.tags.length > 0 && (
           <p class="tags">
             {pageView.meta.tags.map((tag) => (
@@ -184,8 +205,10 @@ const pageView = props.kind === "page" ? buildPageView(props.page) : null;
       }
 
       <p class="actions">
-        <a href={`/api/v1/${pageView.category}/${pageView.page.slug}.json`}>JSON</a>
-        {pageView.events.length > 0 && <> · <a href={`/feeds/${pageView.category}/${pageView.page.slug}.ics`}>ICS-Kalender abonnieren</a></>}
+        <a class="link-button" href={`/api/v1/${pageView.category}/${pageView.page.slug}.json`}>JSON</a>
+        {pageView.events.length > 0 && (
+          <a class="link-button" href={`/feeds/${pageView.category}/${pageView.page.slug}.ics`}>ICS-Kalender abonnieren</a>
+        )}
       </p>
 
       {
@@ -196,13 +219,13 @@ const pageView = props.kind === "page" ? buildPageView(props.page) : null;
             <ul class="rows" id="year-rows">
               {pageView.events.map((e) => (
                 <li id={e.date} data-year={toDate(e.date).getFullYear()}>
+                  <span>{e.label}</span>
                   <a
-                    class="date"
+                    class="date link-button"
                     href={`/kalender/?day=${e.date}&layers=${pageView.category.replace(/\//g, "-")}--${pageView.page.slug}`}
                   >
                     {formatDateWithWeekday(e.date)}{e.to && ` – ${formatDateWithWeekday(e.to)}`}
                   </a>
-                  <span>{e.label}</span>
                 </li>
               ))}
             </ul>
@@ -245,11 +268,17 @@ const pageView = props.kind === "page" ? buildPageView(props.page) : null;
 }
 
 <style>
+  .next-event {
+    color: var(--muted);
+  }
   .tags .badge {
     margin: 0 0.4rem 0.4rem 0;
     text-decoration: none;
   }
   .actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
     margin: 1rem 0 1.5rem;
   }
 </style>

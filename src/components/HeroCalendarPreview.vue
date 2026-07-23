@@ -15,7 +15,7 @@
 // CustomEvent instead of a shared Vue parent - the rotator already owns
 // text swapping; this just also listens for which layers that sentence
 // is about.
-import { onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { type DayLayer, matchesForDay, weeksOfMonth } from "../../lib/date-grid";
 import { COLORS } from "../../lib/calendar-colors";
 
@@ -23,11 +23,20 @@ const WEEKDAY_NAMES = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
 const props = defineProps<{ initialLayerIds: string[] }>();
 
-const today = new Date();
-const year = today.getFullYear();
-const monthIndex0 = today.getMonth();
-const todayIso = `${year}-${String(monthIndex0 + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-const weeks = weeksOfMonth(year, monthIndex0);
+// A ref, not a one-off `new Date()` at setup - this component is a
+// long-lived Vue island (mounted once per page view), so a plain constant
+// would freeze "today" at whatever it was when the tab was opened and
+// silently go stale across a real midnight (a tab left open overnight
+// would keep highlighting yesterday). Re-read on visibilitychange instead
+// of polling - cheap, and the standard way to catch a wall-clock jump
+// while the tab was backgrounded/asleep.
+const now = ref(new Date());
+const year = computed(() => now.value.getFullYear());
+const monthIndex0 = computed(() => now.value.getMonth());
+const todayIso = computed(
+  () => `${year.value}-${String(monthIndex0.value + 1).padStart(2, "0")}-${String(now.value.getDate()).padStart(2, "0")}`,
+);
+const weeks = computed(() => weeksOfMonth(year.value, monthIndex0.value));
 
 const layerIds = ref<string[]>(props.initialLayerIds);
 const layers = ref<DayLayer[]>([]);
@@ -71,14 +80,22 @@ function onRotate(e: Event) {
   loadLayers(ids);
 }
 
+function onVisibilityChange() {
+  if (document.visibilityState === "visible") now.value = new Date();
+}
+
 onMounted(() => {
   loadLayers(layerIds.value);
   window.addEventListener("homepage-rotate", onRotate);
+  document.addEventListener("visibilitychange", onVisibilityChange);
 });
-onUnmounted(() => window.removeEventListener("homepage-rotate", onRotate));
+onUnmounted(() => {
+  window.removeEventListener("homepage-rotate", onRotate);
+  document.removeEventListener("visibilitychange", onVisibilityChange);
+});
 
 function isOtherMonth(dayIso: string): boolean {
-  return Number(dayIso.slice(5, 7)) - 1 !== monthIndex0;
+  return Number(dayIso.slice(5, 7)) - 1 !== monthIndex0.value;
 }
 
 // Background shade scales with how many layers hit this day - a day two
