@@ -88,6 +88,23 @@ def test_mistral_request_shape_and_response_parsing(monkeypatch):
     assert kwargs["json"]["temperature"] == 0
 
 
+def test_openrouter_request_shape_and_response_parsing(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "openrouter")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    with patch("httpx.post") as mock_post:
+        mock_post.return_value = _fake_response(
+            json_body={"choices": [{"message": {"content": "hello back"}}]}
+        )
+        result = llm.call_llm("hi", system="be terse")
+
+    assert result == "hello back"
+    args, kwargs = mock_post.call_args
+    assert args[0] == "https://openrouter.ai/api/v1/chat/completions"
+    assert kwargs["headers"]["Authorization"] == "Bearer test-key"
+    assert kwargs["json"]["messages"][0] == {"role": "system", "content": "be terse"}
+    assert kwargs["json"]["temperature"] == 0
+
+
 def test_google_request_shape_and_response_parsing(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "google")
     monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
@@ -184,3 +201,26 @@ def test_mistral_vision_request_shape_and_response_parsing(monkeypatch):
     assert args[0] == "https://api.mistral.ai/v1/chat/completions"
     content = kwargs["json"]["messages"][0]["content"]
     assert content[1]["image_url"]["url"].startswith("data:image/gif;base64,")
+
+
+def test_openrouter_vision_request_shape_and_response_parsing(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "openrouter")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    with patch("httpx.post") as mock_post:
+        mock_post.return_value = _fake_response(
+            json_body={"choices": [{"message": {"content": "a map"}}]}
+        )
+        result = llm.call_llm_vision(b"gifbytes", "image/gif", "describe this")
+
+    assert result == "a map"
+    args, kwargs = mock_post.call_args
+    assert args[0] == "https://openrouter.ai/api/v1/chat/completions"
+    content = kwargs["json"]["messages"][0]["content"]
+    assert content[1]["image_url"]["url"].startswith("data:image/gif;base64,")
+
+
+def test_missing_openrouter_key_raises(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "openrouter")
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    with pytest.raises(llm.LlmError, match="OPENROUTER_API_KEY"):
+        llm.call_llm("hi")

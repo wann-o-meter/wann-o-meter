@@ -3,7 +3,10 @@
 # durchlaufen - einmalige Batch-Verarbeitungen (DWD) gehoeren nach tools/,
 # nicht hierher (siehe PLAN.md Abschnitt 7 / pipeline/README.md).
 #
-# strategie: parser|llm|scraper - Entscheidungsregel in PLAN.md Abschnitt 7.
+# strategie: parser|llm|llm_season|scraper - Entscheidungsregel in PLAN.md
+# Abschnitt 7. llm_season ist wie llm, aber fuer Quellen, deren Information
+# als Farbe/Hervorhebung auf einem Bild oder PDF kodiert ist (z.B. ein
+# Saisonkalender) statt als Text - siehe core/generic_source.py:extract_season.
 # Dass jede Quelle hier deklariert sein MUSS, ist die Lizenz-Systematik
 # (Abschnitt 6) als erzwungener Prozess statt Konvention.
 
