@@ -234,14 +234,25 @@ VISION_SYSTEM_PROMPT = (
     "den vollstaendigen Inhalt zu kennen. Gib nur wieder, was im Bild "
     "tatsaechlich lesbar abgebildet ist. Ist ein Datum, eine Zahl oder ein "
     "Textabschnitt nicht eindeutig lesbar, schreibe '[nicht lesbar]' an "
-    "dieser Stelle statt zu raten oder aus Kontext zu schliessen."
+    "dieser Stelle statt zu raten oder aus Kontext zu schliessen. Farben und "
+    "Hervorhebungen (siehe unten) sind Teil dessen, was tatsaechlich im Bild "
+    "steht, und zu beschreiben ist kein Erfinden - beschreibe nur, was du "
+    "siehst, nicht was du daraus ueber Bedeutung/Ursache vermutest."
 )
 
 VISION_PROMPT = (
     "Transkribiere den sichtbaren Inhalt dieses Bildes auf Deutsch. Gib "
     "insbesondere jeden sichtbaren Text, jede Beschriftung/Legende sowie "
     "alle erkennbaren Datums- und Zeitangaben vollstaendig wieder, statt sie "
-    "zusammenzufassen - und nur das, was tatsaechlich im Bild steht."
+    "zusammenzufassen - und nur das, was tatsaechlich im Bild steht. "
+    "Enthaelt das Bild eine Tabelle, Leiste oder Aufzaehlung, bei der "
+    "einzelne Eintraege (z.B. Monatszahlen 1-12) durch Hintergrundfarbe oder "
+    "sonstige visuelle Hervorhebung markiert sind, beschreibe das explizit "
+    "und pro Gruppe/Objekt getrennt - z.B. 'Aepfel: 1-4 gruen, 5-8 orange, "
+    "9-12 gruen' oder 'Aprikosen: nur 6-8 orange hervorgehoben, Rest grau'. "
+    "Diese Hervorhebung traegt oft die eigentliche Information (z.B. "
+    "Erntesaison) und darf nicht ausgelassen werden, nur weil sie keine Zahl "
+    "oder kein Text im engeren Sinn ist."
 )
 
 # Anthropic (the default provider) hard-rejects a base64 image over 5MB;
