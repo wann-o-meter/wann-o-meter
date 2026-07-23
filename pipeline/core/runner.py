@@ -4,8 +4,10 @@ can implement extract(): a sources/<id>.py adapter module (escape hatch for
 genuinely bespoke logic, e.g. a Strategie-1 parser), or - the common case for
 strategie: llm sources, and the only path schulferien_kmk uses now - no
 Python at all: core/generic_source.py drives extraction purely from the
-source's sources.yaml config (url, extraction_hint). Run from within
-pipeline/:
+source's sources.yaml config (url, extraction_hint). strategie: llm_season
+is the same idea for sources whose actual info is color-coded on an image/
+PDF (e.g. a Saisonkalender) instead of literal text - see generic_source.
+extract_season(). Run from within pipeline/:
 
     python -m core.runner schulferien_kmk --jahr 2028
 """
@@ -71,9 +73,11 @@ def run(source_id: str, params: Dict[str, str]) -> int:
             ergebnisse = [adapter.extract(raw, params)]
         elif config.get("strategie") == "llm":
             ergebnisse = generic_source.extract(config, raw, params)
+        elif config.get("strategie") == "llm_season":
+            ergebnisse = generic_source.extract_season(config, raw, params)
         else:
             print(
-                f"[runner] Kein sources/{source_id}.py gefunden und strategie != llm - "
+                f"[runner] Kein sources/{source_id}.py gefunden und strategie nicht llm/llm_season - "
                 "kein generischer Fallback moeglich.",
                 file=sys.stderr,
             )
