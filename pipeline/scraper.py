@@ -284,7 +284,10 @@ def extract_image(content: bytes, mime_type: str) -> Dict[str, Any]:
 # PDFs get no dedicated text parser: scanned Behoerden-PDFs (no text layer at
 # all) are common enough here that a text-extraction path would need a vision
 # fallback anyway - so every PDF goes through the one vision pipeline above,
-# rasterizing each page to PNG first. One code path instead of two.
+# rasterizing each page to JPEG first (not PNG - a single large-format page,
+# e.g. an A3 poster/calendar, renders to a PNG well over MAX_IMAGE_BYTES;
+# JPEG's lossy compression keeps the same page comfortably under it). One
+# code path instead of two.
 PDF_RENDER_DPI = 150
 
 # Every page is one paid vision call - cap so a huge PDF doesn't silently
@@ -305,8 +308,8 @@ def extract_pdf(content: bytes) -> Dict[str, Any]:
 
         texts = []
         for page in doc[:MAX_PDF_PAGES]:
-            png_bytes = page.get_pixmap(dpi=PDF_RENDER_DPI).tobytes("png")
-            page_result = extract_image(png_bytes, "image/png")
+            jpg_bytes = page.get_pixmap(dpi=PDF_RENDER_DPI).tobytes("jpg")
+            page_result = extract_image(jpg_bytes, "image/jpeg")
             if page_result["kind"] != "image_page":
                 return page_result  # propagate vision failure/oversized-page as-is
             texts.append(page_result["clean_markdown_full"])
