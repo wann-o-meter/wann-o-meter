@@ -1394,6 +1394,19 @@ def _text_for_llm_extraction(raw_data: dict) -> str:
     return ""
 
 
+def _unusable_reason(raw_data: dict) -> Optional[str]:
+    """None if the scrape produced real text to run the LLM on; otherwise the
+    scrape's own failure reason (e.g. "vision extraction failed: ANTHROPIC_API_KEY
+    is not set", "PDF has no extractable text"). Without this, /extract-llm and
+    the /suggest-* routes below would silently run on an empty string and come
+    back with "Found 0 events" / no tags / etc., indistinguishable from a page
+    that was genuinely read and genuinely has none - see scraper.py's
+    unsupported_binary kind."""
+    if raw_data.get("kind") == "unsupported_binary":
+        return raw_data.get("reason") or "scraped content has no usable text"
+    return None
+
+
 @app.post("/extract-llm")
 async def extract_llm(url: str = Form(...)):
     """Runs LLM-based date extraction (core/extraction.py) on an already-
@@ -1410,6 +1423,9 @@ async def extract_llm(url: str = Form(...)):
     raw_path = SCRAPED_DIR / filename
     raw_data = yaml.safe_load(raw_path.read_text(encoding="utf-8"))
     text = _text_for_llm_extraction(raw_data)
+    reason = _unusable_reason(raw_data)
+    if reason is not None:
+        return JSONResponse({"error": f"Scraped content has no usable text: {reason}"}, status_code=400)
 
     try:
         events = await asyncio.to_thread(extract_dated_events, text)
@@ -1437,6 +1453,9 @@ async def suggest_tags_route(url: str = Form(...)):
     raw_path = SCRAPED_DIR / filename
     raw_data = yaml.safe_load(raw_path.read_text(encoding="utf-8"))
     text = _text_for_llm_extraction(raw_data)
+    reason = _unusable_reason(raw_data)
+    if reason is not None:
+        return JSONResponse({"error": f"Scraped content has no usable text: {reason}"}, status_code=400)
     owning_run = _find_run_for_url(url)
     title = owning_run.discovered.get(url, {}).get("title", url) if owning_run else url
 
@@ -1463,6 +1482,9 @@ async def suggest_title_route(url: str = Form(...)):
     raw_path = SCRAPED_DIR / filename
     raw_data = yaml.safe_load(raw_path.read_text(encoding="utf-8"))
     text = _text_for_llm_extraction(raw_data)
+    reason = _unusable_reason(raw_data)
+    if reason is not None:
+        return JSONResponse({"error": f"Scraped content has no usable text: {reason}"}, status_code=400)
     owning_run = _find_run_for_url(url)
     raw_title = owning_run.discovered.get(url, {}).get("title", url) if owning_run else url
 
@@ -1489,6 +1511,9 @@ async def suggest_category_route(url: str = Form(...)):
     raw_path = SCRAPED_DIR / filename
     raw_data = yaml.safe_load(raw_path.read_text(encoding="utf-8"))
     text = _text_for_llm_extraction(raw_data)
+    reason = _unusable_reason(raw_data)
+    if reason is not None:
+        return JSONResponse({"error": f"Scraped content has no usable text: {reason}"}, status_code=400)
     owning_run = _find_run_for_url(url)
     title = owning_run.discovered.get(url, {}).get("title", url) if owning_run else url
 
