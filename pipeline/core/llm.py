@@ -14,9 +14,14 @@ Strategy 2.
 Provider + model are chosen via environment variables so this works with
 whichever provider the operator has a key for:
 
-    LLM_PROVIDER=anthropic|openai|google|mistral   (default: anthropic)
+    LLM_PROVIDER=anthropic|openai|google|mistral|openrouter   (default: anthropic)
     LLM_MODEL=<model id>                            (default: a small/cheap model per provider)
-    ANTHROPIC_API_KEY / OPENAI_API_KEY / GOOGLE_API_KEY / MISTRAL_API_KEY
+    ANTHROPIC_API_KEY / OPENAI_API_KEY / GOOGLE_API_KEY / MISTRAL_API_KEY / OPENROUTER_API_KEY
+
+openrouter is a single API proxying many providers/models (openrouter.ai) -
+OPENROUTER_MODEL selects which one (e.g. "google/gemma-4-31b-it"), since
+"a small/cheap default" doesn't mean anything for a router with hundreds of
+unrelated models behind one key.
 
 Model IDs drift over time - the defaults below are current as of this
 writing; override with LLM_MODEL if a provider has moved on.
@@ -29,10 +34,21 @@ from typing import Optional
 import httpx
 
 DEFAULT_MODELS = {
-    "anthropic": "claude-haiku-4-5-20251001",
-    "openai": "gpt-5-mini",
-    "google": "gemini-2.5-flash",
-    "mistral": "mistral-small-latest",
+    # "or" rather than dict .get(..., default): an *_MODEL var present in
+    # .env but set to "" (as OPENROUTER_MODEL was) is still "present", so
+    # os.environ.get(key, default) returns "" instead of falling back -
+    # silently sending model="" to the API. "or" falls back on any falsy
+    # value, not just a missing key.
+    "anthropic": os.environ.get("ANTHROPIC_MODEL") or "claude-haiku-4-5-20251001",
+    "openai": os.environ.get("OPENAI_MODEL") or "gpt-5-mini",
+    "google": os.environ.get("GOOGLE_MODEL") or "gemini-3-5-flash",
+    "mistral": os.environ.get("MISTRAL_MODEL") or "mistral-small-latest",
+    # google/gemma-4-31b-it: the larger dense Gemma 4 variant (vs. the 26B
+    # A4B MoE one) - chosen over it for better fine-detail vision accuracy,
+    # since a "small" model already proved unreliable at reading precise
+    # color-highlight extents (see the Saisonkalender PDF investigation).
+    # Override via OPENROUTER_MODEL for a different model on the same key.
+    "openrouter": os.environ.get("OPENROUTER_MODEL") or "google/gemma-4-31b-it",
 }
 
 REQUEST_TIMEOUT_SECONDS = 60
@@ -58,7 +74,9 @@ def call_llm(prompt: str, system: Optional[str] = None) -> str:
         return _call_google(prompt, system, model)
     if provider == "mistral":
         return _call_mistral(prompt, system, model)
-    raise LlmError(f"Unknown LLM_PROVIDER '{provider}' (expected anthropic|openai|google|mistral)")
+    if provider == "openrouter":
+        return _call_openrouter(prompt, system, model)
+    raise LlmError(f"Unknown LLM_PROVIDER '{provider}' (expected anthropic|openai|google|mistral|openrouter)")
 
 
 def call_llm_vision(image_bytes: bytes, mime_type: str, prompt: str, system: Optional[str] = None) -> str:
@@ -76,7 +94,9 @@ def call_llm_vision(image_bytes: bytes, mime_type: str, prompt: str, system: Opt
         return _call_google_vision(image_bytes, mime_type, prompt, system, model)
     if provider == "mistral":
         return _call_mistral_vision(image_bytes, mime_type, prompt, system, model)
-    raise LlmError(f"Unknown LLM_PROVIDER '{provider}' (expected anthropic|openai|google|mistral)")
+    if provider == "openrouter":
+        return _call_openrouter_vision(image_bytes, mime_type, prompt, system, model)
+    raise LlmError(f"Unknown LLM_PROVIDER '{provider}' (expected anthropic|openai|google|mistral|openrouter)")
 
 
 def _require_key(env_var: str) -> str:
@@ -289,5 +309,56 @@ def _call_mistral_vision(image_bytes: bytes, mime_type: str, prompt: str, system
     )
     if resp.status_code != 200:
         raise LlmError(f"Mistral API error {resp.status_code}: {resp.text[:300]}")
+    data = resp.json()
+    return data["choices"][0]["message"]["content"]
+
+
+def _call_openrouter(prompt: str, system: Optional[str], model: str) -> str:
+    # OpenRouter (openrouter.ai) proxies many providers behind one
+    # OpenAI-compatible Chat Completions endpoint - same request/response
+    # shape as _call_openai/_call_mistral, just routed by `model` (e.g.
+    # "google/gemma-4-31b-it") instead of a fixed provider.
+    api_key = _require_key("OPENROUTER_API_KEY")
+    messages = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
+    resp = httpx.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers={"Authorization": f"Bearer {api_key}", "content-type": "application/json"},
+        json={"model": model, "messages": messages, "temperature": 0},
+        timeout=REQUEST_TIMEOUT_SECONDS,
+    )
+    if resp.status_code != 200:
+        raise LlmError(f"OpenRouter API error {resp.status_code}: {resp.text[:300]}")
+    data = resp.json()
+    return data["choices"][0]["message"]["content"]
+
+
+def _call_openrouter_vision(image_bytes: bytes, mime_type: str, prompt: str, system: Optional[str], model: str) -> str:
+    # Same OpenAI-compatible image_url data-URL shape as _call_openai_vision/
+    # _call_mistral_vision - requires a vision-capable model on OpenRouter's
+    # side (check the model's "input_modalities" via openrouter.ai/api/v1/models
+    # before assuming a given model id supports images).
+    api_key = _require_key("OPENROUTER_API_KEY")
+    messages = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    data_url = f"data:{mime_type};base64,{base64.b64encode(image_bytes).decode('ascii')}"
+    messages.append({
+        "role": "user",
+        "content": [
+            {"type": "text", "text": prompt},
+            {"type": "image_url", "image_url": {"url": data_url}},
+        ],
+    })
+    resp = httpx.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers={"Authorization": f"Bearer {api_key}", "content-type": "application/json"},
+        json={"model": model, "messages": messages, "temperature": 0},
+        timeout=REQUEST_TIMEOUT_SECONDS,
+    )
+    if resp.status_code != 200:
+        raise LlmError(f"OpenRouter API error {resp.status_code}: {resp.text[:300]}")
     data = resp.json()
     return data["choices"][0]["message"]["content"]
