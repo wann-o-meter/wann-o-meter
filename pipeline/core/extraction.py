@@ -21,10 +21,13 @@ from typing import Any, Dict, List
 from core.llm import call_llm
 
 SYSTEM_PROMPT = (
-    "Du extrahierst Kalenderdaten aus deutschsprachigem Webseiten-Text. "
+    "Du extrahierst Kalenderdaten aus Webseiten-Text, der in JEDER Sprache vorliegen kann. "
     "Antworte AUSSCHLIESSLICH mit einem JSON-Array, keine Erklaerung, kein Markdown, "
     "kein Codeblock. Jedes Element hat genau die Felder "
     '{"date": "YYYY-MM-DD", "label": "kurze Beschreibung"}. '
+    "Das 'label' ist IMMER auf Deutsch, auch wenn der Quelltext in einer anderen Sprache "
+    "ist - uebersetze insbesondere Ereignis- und Feiertagsnamen (z.B. 'Solar Eclipse' -> "
+    "'Sonnenfinsternis', 'Good Friday' -> 'Karfreitag'), nicht nur woertlich uebernehmen. "
     "Loese relative/implizite Jahresangaben auf (z.B. eine Jahreszahl als Tabellen-"
     "ueberschrift, die fuer mehrere darunterliegende Zeilen gilt). "
     "Ueberspringe JEDEN Eintrag, der keinen konkreten Tag nennt (z.B. nur 'Herbst 2028' "
@@ -127,9 +130,11 @@ def extract_dated_events(text: str) -> List[Dict[str, str]]:
     return sorted(events, key=lambda e: e["date"])
 
 TAGS_SYSTEM_PROMPT = (
-    "Du schlaegst Tags fuer eine Wann-Frage-Seite vor. Antworte AUSSCHLIESSLICH "
-    "mit einem JSON-Array aus kurzen, kleingeschriebenen deutschen Substantiven "
-    "(z.B. \"religion\", \"sport\"), keine Erklaerung, kein Markdown, kein Codeblock. "
+    "Du schlaegst Tags fuer eine Wann-Frage-Seite vor. Titel und Text koennen in "
+    "JEDER Sprache vorliegen - die Tags sind aber IMMER kurze, kleingeschriebene "
+    "deutsche Substantive (z.B. \"religion\", \"sport\"), auch wenn der Quelltext in "
+    "einer anderen Sprache ist. Antworte AUSSCHLIESSLICH mit einem JSON-Array aus "
+    "solchen Substantiven, keine Erklaerung, kein Markdown, kein Codeblock. "
     "Bevorzuge IMMER einen der 'Bereits verwendete Tags' unten, wenn einer davon "
     "thematisch passt - erfinde nur dann ein neues Tag, wenn wirklich keines der "
     "vorhandenen passt. Hoechstens {max_tags} Tags, weniger wenn nicht so viele "
@@ -190,7 +195,10 @@ TITLE_SYSTEM_PROMPT = (
     "versehentlich doppelt. Antworte AUSSCHLIESSLICH mit dem bereinigten Titel als "
     "Klartext - keine Anfuehrungszeichen, kein Markdown, keine Erklaerung. Der bereinigte "
     "Titel nennt NUR das eigentliche Thema (z.B. 'Islamische Feiertage'), OHNE Jahreszahlen, "
-    "Datumsspannen, Organisationsnamen oder sonstigen Zusatz. Nicht mehr, nicht weniger."
+    "Datumsspannen, Organisationsnamen oder sonstigen Zusatz. Nicht mehr, nicht weniger. "
+    "Der rohe Titel kann in JEDER Sprache vorliegen - der bereinigte Titel ist IMMER auf "
+    "Deutsch, uebersetze ihn also gegebenenfalls (z.B. 'Solar Eclipse 2027 - NASA' -> "
+    "'Sonnenfinsternis')."
 )
 
 
@@ -219,9 +227,11 @@ def suggest_title(text: str, raw_title: str) -> str:
 
 
 CATEGORY_SYSTEM_PROMPT = (
-    "Du schlaegst die passende Kategorie fuer eine Wann-Frage-Seite vor. Antworte "
-    "AUSSCHLIESSLICH mit der Kategorie als Klartext (kein JSON, keine Anfuehrungszeichen, "
-    "keine Erklaerung). Bevorzuge IMMER eine der 'Bereits vorhandenen Kategorien' unten, "
+    "Du schlaegst die passende Kategorie fuer eine Wann-Frage-Seite vor. Titel und Text "
+    "koennen in JEDER Sprache vorliegen - die Kategorie ist aber IMMER auf Deutsch, auch "
+    "wenn der Quelltext in einer anderen Sprache ist. Antworte AUSSCHLIESSLICH mit der "
+    "Kategorie als Klartext (kein JSON, keine Anfuehrungszeichen, keine Erklaerung). "
+    "Bevorzuge IMMER eine der 'Bereits vorhandenen Kategorien' unten, "
     "wenn eine davon thematisch passt - erfinde nur dann eine neue Kategorie, wenn wirklich "
     "keine der vorhandenen passt. Fuer eine neue, tiefer verschachtelte Kategorie: "
     "'/'-getrennter Pfad (z.B. 'Sport/Fussball/Bundesliga')."
@@ -280,13 +290,17 @@ def _validate_ranges(items: List[Dict[str, Any]]) -> List[Dict[str, str]]:
 
 
 SUBJECT_SYSTEM_PROMPT = (
-    "Du extrahierst Datumsspannen aus deutschsprachigem Webseiten-Text, das ggf. "
-    "MEHRERE unterschiedliche Themen/Subjekte in einem Text behandelt (z.B. eine "
-    "Zeile/ein Abschnitt pro Bundesland, pro Obst-/Gemuesesorte, pro Stadt). "
+    "Du extrahierst Datumsspannen aus Webseiten-Text, der in JEDER Sprache vorliegen "
+    "kann und ggf. MEHRERE unterschiedliche Themen/Subjekte in einem Text behandelt "
+    "(z.B. eine Zeile/ein Abschnitt pro Bundesland, pro Obst-/Gemuesesorte, pro Stadt). "
     "Antworte AUSSCHLIESSLICH mit einem JSON-Array, keine Erklaerung, kein Markdown, "
     "kein Codeblock. Jedes Element hat genau die Felder "
     '{"subject": {"slug": "...", "name": "..."}, "ranges": '
     '[{"start": "YYYY-MM-DD", "end": "YYYY-MM-DD", "label": "kurze Beschreibung"}, ...]}. '
+    "'name' und 'label' sind IMMER auf Deutsch, auch wenn der Quelltext in einer anderen "
+    "Sprache ist - uebersetze insbesondere Ereignis-, Feiertags- und Themennamen (z.B. "
+    "'Solar Eclipse' -> 'Sonnenfinsternis'), nicht nur woertlich uebernehmen ('slug' bleibt "
+    "wie gewohnt ein kurzer technischer Bezeichner). "
     "Wenn der Text nur EIN Subjekt behandelt, gib trotzdem ein Array mit genau einem "
     "Element zurueck - erfinde niemals ein zweites. Loese relative/implizite "
     "Jahresangaben auf (z.B. eine Jahreszahl als Tabellenueberschrift, die fuer "
