@@ -19,6 +19,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import fitz  # PyMuPDF
 import yaml
 from bs4 import BeautifulSoup
 
@@ -280,6 +281,54 @@ def extract_image(content: bytes, mime_type: str) -> Dict[str, Any]:
     }
 
 
+# PDFs get no dedicated text parser: scanned Behoerden-PDFs (no text layer at
+# all) are common enough here that a text-extraction path would need a vision
+# fallback anyway - so every PDF goes through the one vision pipeline above,
+# rasterizing each page to PNG first. One code path instead of two.
+PDF_RENDER_DPI = 150
+
+# Every page is one paid vision call - cap so a huge PDF doesn't silently
+# fire off dozens of LLM calls.
+MAX_PDF_PAGES = 10
+
+
+def extract_pdf(content: bytes) -> Dict[str, Any]:
+    try:
+        doc = fitz.open(stream=content, filetype="pdf")
+    except Exception as e:
+        return {"kind": "unsupported_binary", "reason": f"PDF could not be opened: {e}", "size_bytes": len(content)}
+
+    try:
+        page_count = doc.page_count
+        if page_count == 0:
+            return {"kind": "unsupported_binary", "reason": "PDF has no pages", "size_bytes": len(content)}
+
+        texts = []
+        for page in doc[:MAX_PDF_PAGES]:
+            png_bytes = page.get_pixmap(dpi=PDF_RENDER_DPI).tobytes("png")
+            page_result = extract_image(png_bytes, "image/png")
+            if page_result["kind"] != "image_page":
+                return page_result  # propagate vision failure/oversized-page as-is
+            texts.append(page_result["clean_markdown_full"])
+    finally:
+        doc.close()
+
+    text = "\n\n".join(texts).strip()
+    truncated = page_count > MAX_PDF_PAGES
+    preview = text[:1500] + ("..." if len(text) > 1500 else "")
+    if truncated:
+        preview += f" (gekuerzt auf die ersten {MAX_PDF_PAGES} von {page_count} Seiten)"
+
+    return {
+        "kind": "pdf_document",
+        "page_count": page_count,
+        "dates": extract_dates(text),
+        "time_windows": extract_time_windows(text),
+        "clean_markdown_preview": preview,
+        "clean_markdown_full": text,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Dispatcher
 # ---------------------------------------------------------------------------
@@ -291,7 +340,7 @@ def extract_any(name: str, content: bytes, content_type: str = "") -> Dict[str, 
         return extract_zip(content)
 
     if content[:4] == b"%PDF":
-        return {"kind": "unsupported_binary", "reason": "PDF text extraction not implemented", "size_bytes": len(content)}
+        return extract_pdf(content)
 
     # Must run before decode_text: latin-1 decodes any byte sequence, so
     # image bytes would otherwise silently fall through to plain_text as

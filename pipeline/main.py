@@ -1379,7 +1379,7 @@ def _text_for_llm_extraction(raw_data: dict) -> str:
     docstring for why); the others are included for completeness but are
     usually already structured enough not to need this."""
     kind = raw_data.get("kind")
-    if kind in ("html_page", "image_page"):
+    if kind in ("html_page", "image_page", "pdf_document"):
         return raw_data.get("clean_markdown_full") or raw_data.get("clean_markdown_preview", "")
     if kind == "tabular_text":
         columns = raw_data.get("columns", [])
