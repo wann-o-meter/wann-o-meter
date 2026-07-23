@@ -34,7 +34,7 @@ const groups = [...groupsByType.entries()].map(([type, items]) => ({
 }));
 
 const homeDescription =
-  "Strukturierte Antworten auf Wann-Fragen, als Kalender-Abo - Feiertage, Urlaubsfenster, Saisonkalender und mehr, alles durchsuchbar.";
+  "Strukturierte Antworten auf Wann-Fragen als Kalender-Abo - Feiertage, Urlaubsfenster, Saisonkalender und mehr, frei kombinierbar und einzeln abonnierbar.";
 const structuredData = graph([
   websiteNode({ name: "Wann-O-Meter", url: new URL("/", Astro.site).href, description: homeDescription }),
 ]);
@@ -56,10 +56,6 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
     <div class="hero-text">
       <h1 id="h1-rotator">Wann ist was?</h1>
       <p class="lead">{homeDescription}</p>
-      <p class="lead-example">
-        Beispiel: Feiertage Bayern + Schulferien Bayern + Spargel-Saison — alles in einem
-        Kalender, einzeln abonnierbar.
-      </p>
       <p class="today-teaser">
         <a id="today-teaser-link" href="/kalender/">
           Was heute (nicht) Saison hat, Feiertag ist oder ansteht — im Kalender nachsehen.
@@ -151,12 +147,6 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
     font-size: 1.05rem;
     max-width: 34rem;
   }
-  .lead-example {
-    margin: 0 0 1rem;
-    max-width: 34rem;
-    color: var(--muted);
-    font-size: 0.9rem;
-  }
   .today-teaser {
     margin: 0 0 1rem;
     font-family: var(--font-mono);
@@ -232,6 +222,24 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
   }
   .more {
     margin: 0.7rem 0 2rem;
+  }
+</style>
+
+<!-- Not in the scoped <style> above: Astro's scoping works by stamping a
+     data-astro-cid-* attribute onto elements in the server-rendered markup,
+     but the rotator script (further down) builds this <em> at runtime via
+     document.createElement - it never gets that attribute, so a scoped
+     selector silently never matches it. is:global sidesteps that; #h1-rotator
+     is unique to this page so there's no leak risk in scoping it by hand. -->
+<style is:global>
+  /* The topic clause of each rotating question (see lib/homepage-questions.ts's
+     before/emphasis/after split) - a light italic serif contrast against the
+     page's sans everywhere else. System serif stack, no webfont to load for
+     one decorative accent. */
+  #h1-rotator em {
+    font-style: italic;
+    font-weight: 300;
+    font-family: Georgia, "Times New Roman", serif;
   }
 </style>
 
@@ -344,6 +352,19 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
   // auto-updating text).
   const h1 = document.getElementById("h1-rotator");
   if (h1 && questions.length > 0 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    // Renders {before, emphasis, after} (lib/homepage-questions.ts) as text +
+    // <em> + text instead of one flat string - the topic clause (e.g.
+    // "Schulferien und Feiertage in Mecklenburg-Vorpommern") reads distinctly
+    // from the generic "Wann ist/sind..." opener. Used by both the real H1
+    // update below and the height probe, so the probe measures the exact
+    // markup that'll render (italic glyphs aren't the same width as regular
+    // ones - a flat-text measurement could under/over-reserve height).
+    function renderQuestion(el, question) {
+      const em = document.createElement("em");
+      em.textContent = question.emphasis;
+      el.replaceChildren(document.createTextNode(question.before), em, document.createTextNode(question.after));
+    }
+
     // Reserves exactly the height the tallest question needs to wrap to at
     // the H1's *actual* current width - the CSS min-height below is only a
     // rough fallback (2 lines), which the longer combined Schulferien+
@@ -366,7 +387,7 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
       document.body.appendChild(probe);
       let max = 0;
       for (const question of questions) {
-        probe.textContent = question.text;
+        renderQuestion(probe, question);
         max = Math.max(max, probe.offsetHeight);
       }
       document.body.removeChild(probe);
@@ -383,7 +404,7 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
     setInterval(() => {
       const i = Math.floor(Math.random() * q.length);
       const question = questions[i];
-      h1.textContent = question.text;
+      renderQuestion(h1, question);
       // Tells HeroCalendarPreview.vue which layers this sentence is about -
       // a CustomEvent instead of a shared Vue parent, so this script can
       // keep owning the static-H1/reduced-motion fallback untouched.

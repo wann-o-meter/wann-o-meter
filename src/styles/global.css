@@ -319,6 +319,28 @@ th {
   color: var(--accent);
 }
 
+/* A smaller, secondary sibling of .cta - same bordered-button affordance
+   for links that ARE an action (subscribe, open in calendar, jump to a
+   date) but shouldn't compete with a page's one real .cta hero link.
+   Deliberately NOT applied to plain navigational/list links (content
+   cards, breadcrumbs, footer, prose) - those stay the underlined default
+   `a` look above, so the button treatment stays a signal for "this does
+   something" instead of covering every link on the site. */
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+.link-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* Back-to-category link at the top of every subject/page detail view. */
 .back {
   font-size: 0.9rem;

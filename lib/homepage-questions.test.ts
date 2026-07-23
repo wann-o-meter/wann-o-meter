@@ -20,10 +20,25 @@ describe("homepageQuestions", () => {
 
   it("pairs each question with the calendar layer id(s) it's actually about", () => {
     const questions = homepageQuestions();
-    expect(questions).toContainEqual({ text: "Wann ist Erdbeersaison?", layerIds: ["saisonkalender--erdbeere"] });
     expect(questions).toContainEqual({
-      text: "Wann sind Schulferien und Feiertage in Bayern?",
-      layerIds: ["feiertage--de-by", "schulferien--by"],
+      text: "Wann ist Erdbeersaison?",
+      before: "Wann ist ",
+      emphasis: "Erdbeersaison?",
+      after: "",
+      layerIds: ["saisonkalender--erdbeere"],
+    });
+  });
+
+  // The trailing "?" is part of the emphasized span (not left plain in
+  // `after`) - typeset in the same italic serif as the rest of the clause
+  // instead of snapping back to the page's sans right at the sentence end.
+  it("splits the emphasized clause without the generic 'Wann ist/sind...' opener, question mark included", () => {
+    const question = homepageQuestions().find((q) => q.text === "Wann sind Schulferien und Feiertage in Mecklenburg-Vorpommern?");
+    expect(question).toMatchObject({
+      before: "Wann sind ",
+      emphasis: "Schulferien und Feiertage in Mecklenburg-Vorpommern?",
+      after: "",
+      layerIds: ["feiertage--de-mv", "schulferien--mv"],
     });
   });
 });

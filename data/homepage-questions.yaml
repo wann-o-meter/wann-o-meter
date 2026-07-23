@@ -3,9 +3,12 @@
 # lib/homepage-questions.ts - e.g. saisonkalender's "Erdbeere" becomes
 # "Wann ist Erdbeersaison?". Only categories that lib/homepage-questions.ts
 # knows how to build a clean {subject} for have a template here.
+# **...** marks the span the rotator renders emphasized (the actual topic,
+# not the generic "Wann ist/sind..." opener) - lib/homepage-questions.ts
+# strips the markers for the plain-text fallback/tests.
 templates:
-  saisonkalender: "Wann ist {subject}?"
-  schulferien: "Wann sind Schulferien in {subject}?"
-  feiertage: "Wann ist der nächste Feiertag in {subject}?"
-  urlaubsfenster: "Wann lohnt sich ein Brückentag in {subject}?"
-  schulferien_feiertage: "Wann sind Schulferien und Feiertage in {subject}?"
+  saisonkalender: "Wann ist **{subject}?**"
+  schulferien: "Wann sind **Schulferien in {subject}?**"
+  feiertage: "Wann ist **der nächste Feiertag in {subject}?**"
+  urlaubsfenster: "Wann lohnt sich **ein Brückentag in {subject}?**"
+  schulferien_feiertage: "Wann sind **Schulferien und Feiertage in {subject}?**"
