@@ -87,6 +87,18 @@ export const rawWindowSchema = withValueUnitCheck(
     value: z.number().optional(),
     unit: z.string().optional(),
     source_urls: z.array(z.url()).min(1).optional(),
+    // Stamped by the pipeline's review-state diff (core/review_state.py) when
+    // a later crawl re-confirms an already-approved window is unchanged -
+    // not surfaced anywhere yet, purely a pipeline-side freshness record.
+    last_verified: z.iso.date().optional(),
+    // Raw RFC 5545 RRULE string, captured verbatim from an ICS VEVENT
+    // (core/ics.py). Not expanded here or in materializeRawWindow - stored
+    // for a future generator.ts step to expand into concrete windows.
+    rrule: z.string().optional(),
+    // Free-text LOCATION/DESCRIPTION/URL from an ICS VEVENT (core/ics.py),
+    // combined into one field rather than three - deliberately unstructured
+    // (not surfaced on a page yet), just captured so it isn't lost.
+    notes: z.string().optional(),
   }),
 );
 

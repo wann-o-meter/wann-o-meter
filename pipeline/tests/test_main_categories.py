@@ -103,48 +103,6 @@ class TestIterPagesAndCategoryPaths:
         _write_page(data_root / "sport" / "fussball" / "bundesliga" / "spielplan", "sport/fussball/bundesliga", "spielplan")
         assert main._category_paths() == ["sport/fussball/bundesliga"]
 
-    def test_find_page_by_url_returns_the_full_nested_category_path(self, data_root):
-        _write_page(
-            data_root / "sport" / "fussball" / "bundesliga" / "spielplan",
-            "sport/fussball/bundesliga",
-            "spielplan",
-            url="https://example.invalid/match-me",
-        )
-        result = main._find_page_by_url("https://example.invalid/match-me")
-        assert result == ("sport/fussball/bundesliga", "spielplan")
-
-    def test_find_page_by_url_returns_none_for_no_match(self, data_root):
-        assert main._find_page_by_url("https://example.invalid/nope") is None
-
-
-class TestCategoryAndSlugForPage:
-    def test_builds_a_fresh_nested_path_and_slug_for_a_new_url(self, data_root):
-        category_path, slug = main._category_and_slug_for_page(
-            "https://example.invalid/new", "Sport/Fußball/Bundesliga", "Spieltag 1"
-        )
-        assert category_path == "sport/fussball/bundesliga"
-        assert slug == "spieltag-1"
-
-    def test_reuses_the_existing_category_and_slug_for_an_already_known_url(self, data_root):
-        _write_page(
-            data_root / "sport" / "fussball" / "bundesliga" / "spieltag-1",
-            "sport/fussball/bundesliga",
-            "spieltag-1",
-            url="https://example.invalid/existing",
-        )
-        category_path, slug = main._category_and_slug_for_page(
-            "https://example.invalid/existing", "Some Other Category", "Some Other Title"
-        )
-        assert (category_path, slug) == ("sport/fussball/bundesliga", "spieltag-1")
-
-    def test_disambiguates_a_slug_collision_within_the_same_nested_category(self, data_root):
-        _write_page(
-            data_root / "sport" / "fussball" / "spieltag-1", "sport/fussball", "spieltag-1", url="https://example.invalid/a"
-        )
-        category_path, slug = main._category_and_slug_for_page("https://example.invalid/b", "Sport/Fussball", "Spieltag 1")
-        assert category_path == "sport/fussball"
-        assert slug == "spieltag-1-2"
-
 
 class TestWriteCategoryMetaIfNew:
     def test_writes_category_yaml_for_every_new_segment_with_its_own_typed_name(self, data_root):

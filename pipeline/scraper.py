@@ -24,6 +24,7 @@ import yaml
 from bs4 import BeautifulSoup
 
 from core.fetch import Config, decode_text, fetch, fetch_bytes  # noqa: F401 (fetch/Config re-exported for callers)
+from core.ics import map_calendar
 from core.llm import LlmError, call_llm_vision
 
 
@@ -344,6 +345,20 @@ def extract_pdf(content: bytes) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# ICS: deterministic, no LLM (core/ics.py does the actual VEVENT mapping -
+# this is just the kind-sniff + result-shape wrapper, same division of
+# labor as extract_pdf/extract_image above).
+# ---------------------------------------------------------------------------
+
+def extract_ics(content: bytes) -> Dict[str, Any]:
+    try:
+        windows = map_calendar(content)
+    except Exception as e:
+        return {"kind": "unsupported_binary", "reason": f"ICS parsing failed: {e}", "size_bytes": len(content)}
+    return {"kind": "ics_feed", "event_count": len(windows), "windows": windows}
+
+
+# ---------------------------------------------------------------------------
 # Dispatcher
 # ---------------------------------------------------------------------------
 
@@ -355,6 +370,15 @@ def extract_any(name: str, content: bytes, content_type: str = "") -> Dict[str, 
 
     if content[:4] == b"%PDF":
         return extract_pdf(content)
+
+    # Before decode_text/HTML sniffing - ICS is plain text but must not be
+    # misread as an HTML page or fall through to tabular/plain-text below.
+    if (
+        content_type.lower() == "text/calendar"
+        or name.lower().endswith(".ics")
+        or content.lstrip().startswith(b"BEGIN:VCALENDAR")
+    ):
+        return extract_ics(content)
 
     # Must run before decode_text: latin-1 decodes any byte sequence, so
     # image bytes would otherwise silently fall through to plain_text as

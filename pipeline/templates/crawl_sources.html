@@ -1,0 +1,63 @@
+{% extends "_base.html" %}
+
+{% block title %}Wann-Plattform • Crawl Sources{% endblock %}
+
+{% block content %}
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                <h3 class="section-title" style="margin:0;">Crawl Sources</h3>
+                <button hx-get="/crawl-sources-table" hx-target="#crawl-sources-table" hx-swap="outerHTML" class="btn btn-sm">
+                    Refresh
+                </button>
+            </div>
+            <p style="font-size:0.85rem; color:var(--muted); margin:0 0 0.75rem;">
+                Each source is a scoped crawl config in <code>pipeline/config/crawl_sources/&lt;id&gt;.yaml</code>
+                (id, seed_url, category, scope.allowed_domains, scope.path_prefix, max_depth, formats,
+                event_type_hint, schedule) - add a new source by creating a file there, no code required.
+                Running a source crawls it within its configured scope, extracts events, and either
+                writes already-reviewed ones straight to <code>data/</code> or queues new ones for
+                <a href="/review">Review</a>.
+            </p>
+            {% include "_crawl_sources_table.html" %}
+        </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function pollCrawlSourceUntilDone(sourceId) {
+            let attempts = 0;
+            const timer = setInterval(function () {
+                attempts += 1;
+                fetch(`/crawl-sources/${encodeURIComponent(sourceId)}/status`)
+                    .then((res) => res.json())
+                    .then((status) => {
+                        if (!status.running || attempts >= 300) {
+                            clearInterval(timer);
+                            if (status.error) alert(`Crawl failed for ${sourceId}: ` + status.error);
+                            htmx.ajax('GET', '/crawl-sources-table', { target: '#crawl-sources-table', swap: 'outerHTML' });
+                        }
+                    })
+                    .catch(() => {}); // transient network hiccup - next tick retries
+            }, 2000);
+        }
+
+        document.addEventListener('click', function (e) {
+            const runBtn = e.target.closest('.crawl-source-run-btn');
+            if (!runBtn) return;
+            const sourceId = runBtn.dataset.sourceId;
+            runBtn.disabled = true;
+            runBtn.textContent = "Running…";
+            fetch(`/crawl-sources/${encodeURIComponent(sourceId)}/run`, { method: 'POST' })
+                .then((res) => res.json().then((body) => ({ ok: res.ok, body })))
+                .then(({ ok, body }) => {
+                    if (!ok) throw new Error(body.error || "Unknown error");
+                    pollCrawlSourceUntilDone(sourceId);
+                })
+                .catch((err) => {
+                    runBtn.disabled = false;
+                    runBtn.textContent = "Run";
+                    alert("Failed to start crawl: " + err.message);
+                });
+        });
+    </script>
+{% endblock %}
