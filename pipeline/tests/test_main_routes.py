@@ -31,9 +31,9 @@ def client(tmp_path, monkeypatch):
     return TestClient(main.app)
 
 
-def _stage_candidate(source_id: str, run_ts: str, subject_slug: str, event: dict, subject_name: str = None) -> dict:
+def _stage_candidate(source_id: str, run_ts: str, subject_slug: str, event: dict, subject_name: str = None, category: str = None) -> dict:
     doc_hash = staging.write_document(source_id, run_ts, "https://example.invalid/events", "text/calendar", b"BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n")
-    candidate = staging.build_candidate(source_id, subject_slug, event, doc_hash, subject_name=subject_name)
+    candidate = staging.build_candidate(source_id, subject_slug, event, doc_hash, subject_name=subject_name, category=category)
     staging.write_candidate(source_id, run_ts, candidate)
     return candidate
 
@@ -270,6 +270,37 @@ class TestBulkApprove:
         assert f'name="selected" value="test-source/{candidate["candidate_id"]}"' in response.text
         assert '/review/bulk-approve' in response.text
         assert any(f'<option value="{value}">' in response.text for value in main.LICENSE_VALUES)
+
+    def test_the_single_candidate_form_prefills_the_sources_category(self, client):
+        candidate = _stage_candidate(
+            "test-source", "20260724-000000", "sonnenfinsternis", _eclipse_event("2026-08-12"),
+            category="astronomie",
+        )
+
+        response = client.get(f"/review/test-source/{candidate['candidate_id']}")
+
+        assert response.status_code == 200
+        assert 'name="category" list="category-suggestions" value="astronomie"' in response.text
+
+    def test_a_candidate_is_filed_under_its_sources_category_not_its_slug(self, client):
+        """The aggregation case: a source configured to write into
+        data/astronomie/sonnenfinsternis/ must land there when approved in
+        bulk too. Defaulting the category to the slug would file it under
+        data/sonnenfinsternis/sonnenfinsternis/ - a different page than the
+        same source's auto-approved candidates, which is exactly the split
+        subject_slug exists to close."""
+        candidate = _stage_candidate(
+            "test-source", "20260724-000000", "sonnenfinsternis", _eclipse_event("2026-08-12"),
+            subject_name="Sonnenfinsternis", category="astronomie",
+        )
+
+        client.post(
+            "/review/bulk-approve",
+            data={"selected": [f"test-source/{candidate['candidate_id']}"], "license": "tos_checked"},
+        )
+
+        assert (main.DATA_ROOT / "astronomie" / "sonnenfinsternis" / "data.yaml").exists()
+        assert not (main.DATA_ROOT / "sonnenfinsternis").exists()
 
     def test_many_identically_named_events_each_land_as_their_own_window(self, client):
         """The case bulk approve exists for - a date-table source where every
