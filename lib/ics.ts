@@ -10,12 +10,17 @@ export interface IcsEvent {
   url?: string;
 }
 
+// ponytail: a minute-resolution window ("YYYY-MM-DDTHH:MM", see lib/date.ts)
+// is truncated to its day here - VALUE=DATE all-day events, as the header
+// says. Passing the clock time through would emit "VALUE=DATE:20260501T0630",
+// which is malformed RFC 5545. Emit a timed VEVENT instead once a source
+// actually needs the time in the feed.
 function toIcsDate(iso: string): string {
-  return iso.replaceAll("-", "");
+  return iso.slice(0, 10).replaceAll("-", "");
 }
 
 function addDay(iso: string): string {
-  const d = new Date(`${iso}T00:00:00Z`);
+  const d = new Date(`${iso.slice(0, 10)}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + 1);
   return d.toISOString().slice(0, 10);
 }
