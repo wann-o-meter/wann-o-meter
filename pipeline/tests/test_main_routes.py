@@ -197,6 +197,23 @@ def _eclipse_event(date: str) -> dict:
 
 
 class TestBulkApprove:
+    def test_the_queue_renders_a_checkbox_and_a_real_license_per_pending_candidate(self, client):
+        """The other tests here all POST, and every one of them empties the
+        queue - so they only ever render review.html's empty branch and would
+        stay green even if the form itself were broken. This one renders the
+        NON-empty branch and pins the two values the POST depends on: the
+        checkbox name _approve_one is fed from, and a license string that is
+        actually in LICENSE_VALUES (an empty <option value=""> would fail
+        every row at submit time)."""
+        candidate = _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event("2026-08-12"))
+
+        response = client.get("/review")
+
+        assert response.status_code == 200
+        assert f'name="selected" value="test-source/{candidate["candidate_id"]}"' in response.text
+        assert '/review/bulk-approve' in response.text
+        assert any(f'<option value="{value}">' in response.text for value in main.LICENSE_VALUES)
+
     def test_many_identically_named_events_each_land_as_their_own_window(self, client):
         """The case bulk approve exists for - a date-table source where every
         candidate shares a name. Guards approval.DEFAULT_REPLACE_KEY still

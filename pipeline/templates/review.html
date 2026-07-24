@@ -65,8 +65,14 @@
                 <button type="submit" class="btn btn-sm" id="bulk-approve-btn" disabled>Approve selected (<span id="selected-count">0</span>)</button>
                 <span style="font-size:0.8rem; color:var(--muted);">
                     Each row is filed under its own subject as category, same as the single-candidate form.
-                    Bulk approve skips the per-candidate source view - check the dates first.
+                    The license above is stamped on <strong>every</strong> checked row, including rows from
+                    other sources - the queue spans all of them, so check the Source column before
+                    selecting all. Bulk approve also skips the per-candidate source view, where a date is
+                    shown highlighted in its surrounding page text.
                 </span>
+                {# ponytail: one form over the whole queue, so one license covers every source in it -
+                   disclosed above rather than enforced. Scope the form per source (one form, select-all
+                   and license select per source_id group) if mixed-source queues become the norm. #}
             </div>
             </form>
             {% else %}
