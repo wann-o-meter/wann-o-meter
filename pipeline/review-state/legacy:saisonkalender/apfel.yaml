@@ -1,0 +1,26 @@
+decisions:
+  11417d235cbd15fb72f0d007b18c6140cabda291442c254a00feed4592040223:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.235187+00:00'
+    target_file: data/saisonkalender/apfel/data.yaml
+    event:
+      type: main_season
+      name: Hauptsaison
+      year: null
+      from: --08
+      to: --11
+      precision: approximate
+      ics: false
+  3eab97f061b2d9d26675e441931e2adf3267805604a4b39e0eff77bde599db1d:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.235396+00:00'
+    target_file: data/saisonkalender/apfel/data.yaml
+    event:
+      type: stored_produce
+      name: Lagerware
+      year: null
+      from: --12
+      to: --04
+      precision: approximate
+      ics: false
+disappeared: {}

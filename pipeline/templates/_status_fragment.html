@@ -2,7 +2,7 @@
      hx-get="/status-fragment" hx-trigger="every 3s" hx-swap="outerHTML"
      style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem;">
     {% if state.is_running %}
-        <span class="running">● Running{% if state.current_run_id %} ({{ state.current_run_id }}){% endif %}</span>
+        <span class="running">● Running ({{ state.running_sources | join(', ') }})</span>
     {% else %}
         <span class="idle">● Idle</span>
     {% endif %}

@@ -16,7 +16,7 @@ means, not a general-purpose extraction framework."""
 
 import json
 import re
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 from core.llm import call_llm
 
@@ -46,26 +46,56 @@ class ExtractionError(Exception):
     pass
 
 
-# Single-shot prompt/response, no chunking - a huge page (a festival/event
-# listing with hundreds of entries, not the "one page, one topic" case this
-# module targets, see the module docstring) risks the model's response
-# itself getting cut off mid-JSON by ITS OWN output-length limit, which then
-# fails to parse - a confusing failure after a slow (up to
-# REQUEST_TIMEOUT_SECONDS) round trip that looks like nothing happened. Fail
-# fast with a clear reason instead of attempting it.
+# One LLM call per chunk of at most this many chars - a huge single-shot
+# prompt (a festival/event listing with hundreds of entries, not the "one
+# page, one topic" case this module targets, see the module docstring) risks
+# the model's response itself getting cut off mid-JSON by ITS OWN
+# output-length limit, which then fails to parse - a confusing failure after
+# a slow (up to REQUEST_TIMEOUT_SECONDS) round trip that looks like nothing
+# happened. Chunking (see _split_into_chunks) keeps each individual response
+# short enough to avoid that, at the cost of one LLM call per chunk instead
+# of one per page.
 MAX_TEXT_LENGTH = 20_000
 
+# Chars of overlap between consecutive chunks - generous enough that a
+# multi-line table row or a date+label pair straddling a chunk boundary
+# still appears whole in at least one chunk. The resulting duplicate
+# entries from the overlapped region are removed by extract_dated_events's
+# own (date, label) dedup, so overlap is pure safety margin, never a
+# correctness risk.
+CHUNK_OVERLAP = 1_000
 
-def _check_length(text: str) -> None:
-    if len(text) > MAX_TEXT_LENGTH:
-        raise ExtractionError(
-            f"Page text is too large for single-shot LLM extraction "
-            f"({len(text)} chars, max {MAX_TEXT_LENGTH}) - likely a listing/index "
-            "page with many entries rather than a single topic; not attempted."
-        )
+
+def _split_into_chunks(text: str, max_length: int = MAX_TEXT_LENGTH, overlap: int = CHUNK_OVERLAP) -> List[str]:
+    """Text under max_length is returned as a single chunk (the common
+    case, and identical to the pre-chunking behavior). Otherwise splits on
+    the nearest paragraph/line break before the max_length cutoff where one
+    exists, so a chunk boundary doesn't land mid-word/mid-date - falling
+    back to a hard cut only when no such boundary is found (e.g. one huge
+    line with no whitespace)."""
+    if len(text) <= max_length:
+        return [text]
+
+    chunks = []
+    start = 0
+    n = len(text)
+    while start < n:
+        end = min(start + max_length, n)
+        if end < n:
+            boundary = text.rfind("\n\n", start, end)
+            if boundary <= start:
+                boundary = text.rfind("\n", start, end)
+            if boundary > start:
+                end = boundary
+        chunks.append(text[start:end])
+        if end >= n:
+            break
+        start = max(end - overlap, start + 1)  # always advance, even if overlap >= remaining chunk
+    return chunks
 
 
 _VAGUE_SEASON_WORDS = ("frühjahr", "fruehjahr", "sommer", "herbst", "winter")
+_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
 def _parse_json_array(raw: str) -> List[Dict[str, Any]]:
@@ -84,15 +114,11 @@ def _parse_json_array(raw: str) -> List[Dict[str, Any]]:
     return data
 
 
-def extract_dated_events(text: str) -> List[Dict[str, str]]:
-    """Returns a list of {"date": "YYYY-MM-DD", "label": str}, validated and
-    de-duplicated. Raises ExtractionError (missing config, API failure,
-    unparseable response) rather than returning empty/fabricated data on
-    failure - callers must surface that to the operator."""
-    if not text.strip():
-        return []
-    _check_length(text)
-
+def _extract_dated_events_chunk(text: str) -> List[Dict[str, str]]:
+    """One single-shot extraction call over a chunk already guaranteed to be
+    <= MAX_TEXT_LENGTH (see _split_into_chunks). Raises ExtractionError on
+    any failure, uncaught - one bad chunk fails the whole page rather than
+    silently dropping part of it."""
     prompt = f"Text:\n\n{text}\n\nExtrahiere alle Kalenderdaten als JSON-Array."
     try:
         raw = call_llm(prompt, system=SYSTEM_PROMPT)
@@ -102,14 +128,12 @@ def extract_dated_events(text: str) -> List[Dict[str, str]]:
     items = _parse_json_array(raw)
 
     events = []
-    seen = set()
-    date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
     for item in items:
         if not isinstance(item, dict):
             continue
         date = str(item.get("date", "")).strip()
         label = str(item.get("label", "")).strip()
-        if not date_pattern.match(date) or not label:
+        if not _DATE_PATTERN.match(date) or not label:
             continue
         # Despite explicit instructions not to, models reliably fabricate
         # "01-01" as a placeholder day/month for entries that only give a
@@ -121,13 +145,47 @@ def extract_dated_events(text: str) -> List[Dict[str, str]]:
         # Year's Day) is a real, common Jan-1st holiday.
         if date.endswith("-01-01") and any(season in label.lower() for season in _VAGUE_SEASON_WORDS):
             continue
-        key = (date, label)
+        events.append({"date": date, "label": label})
+
+    return events
+
+
+def extract_dated_events(text: str, on_progress: Optional[Callable[[str], None]] = None) -> List[Dict[str, str]]:
+    """Returns a list of {"date": "YYYY-MM-DD", "label": str}, validated,
+    de-duplicated and sorted. Raises ExtractionError (missing config, API
+    failure, unparseable response) rather than returning empty/fabricated
+    data on failure - callers must surface that to the operator.
+
+    Text over MAX_TEXT_LENGTH is split into overlapping chunks (see
+    _split_into_chunks), each extracted independently and merged here - the
+    overlap means the same entry can come back from two consecutive
+    chunks, which the dedup below removes same as it always has.
+
+    on_progress, if given, is called once per chunk before its LLM call -
+    a large page can turn into several slow round trips, and a caller
+    (crawl_runner.run() -> main.py's dashboard) wants to show something more
+    informative than just "Running..." for however long that takes."""
+    if not text.strip():
+        return []
+
+    chunks = _split_into_chunks(text)
+    all_events: List[Dict[str, str]] = []
+    for i, chunk in enumerate(chunks, start=1):
+        if on_progress:
+            suffix = f" (chunk {i}/{len(chunks)})" if len(chunks) > 1 else ""
+            on_progress(f"Calling LLM on {len(chunk)} chars{suffix}...")
+        all_events.extend(_extract_dated_events_chunk(chunk))
+
+    seen = set()
+    deduped = []
+    for event in sorted(all_events, key=lambda e: e["date"]):
+        key = (event["date"], event["label"])
         if key in seen:
             continue
         seen.add(key)
-        events.append({"date": date, "label": label})
+        deduped.append(event)
+    return deduped
 
-    return sorted(events, key=lambda e: e["date"])
 
 TAGS_SYSTEM_PROMPT = (
     "Du schlaegst Tags fuer eine Wann-Frage-Seite vor. Titel und Text koennen in "
@@ -326,10 +384,11 @@ def extract_subjects(text: str, hint: str) -> List[Dict[str, Any]]:
     failure (missing config, API failure, unparseable response), same
     contract as the other extract_*() functions here.
 
-    No _check_length() guard here (unlike extract_dated_events): like the
-    schulferien_kmk source this replaces, callers may pass raw, undecoded
-    HTML rather than cleaned text, so inputs are legitimately much larger for
-    the same real content."""
+    No chunking here (unlike extract_dated_events): like the schulferien_kmk
+    source this replaces, callers may pass raw, undecoded HTML rather than
+    cleaned text, so inputs are legitimately much larger for the same real
+    content - and a chunk boundary landing mid-subject would be far harder
+    to recover from than the flat date-list case chunking targets."""
     if not text.strip():
         return []
 
@@ -355,6 +414,98 @@ def extract_subjects(text: str, hint: str) -> List[Dict[str, Any]]:
         subjects.append({
             "subject": {"slug": slug, "name": name},
             "ranges": _validate_ranges(item.get("ranges") or []),
+        })
+
+    return subjects
+
+
+SEASON_SYSTEM_PROMPT = (
+    "Du extrahierst wiederkehrende JAEHRLICHE Saisonfenster (z.B. Ernte-/"
+    "Verfuegbarkeitssaison von Obst oder Gemuese) aus Text, der die farbliche "
+    "oder sonstige visuelle Hervorhebung einzelner Monate PRO OBJEKT/SORTE "
+    "BESCHREIBT (z.B. 'Aepfel: 1-4 gruen, 5-8 orange, 9-12 gruen', 'Aprikosen: "
+    "nur 6-8 orange hervorgehoben, Rest grau'). Der Text kann in JEDER Sprache "
+    "vorliegen. Antworte AUSSCHLIESSLICH mit einem JSON-Array, keine Erklaerung, "
+    "kein Markdown, kein Codeblock. Jedes Element hat genau die Felder "
+    '{"subject": {"slug": "...", "name": "..."}, "windows": '
+    '[{"type": "...", "name": "...", "from": "--MM", "to": "--MM"}, ...]}. '
+    "'name' ist auf Deutsch, 'type' ein kurzer technischer Slug (z.B. "
+    "'main_season', 'peak_season'). 'from'/'to' sind IMMER genau im Format "
+    "'--MM' (zwei Bindestriche, zweistelliger Monat 01-12) OHNE Jahr - diese "
+    "Fenster gelten JEDES Jahr gleich, nie fuer ein bestimmtes Jahr. Ein "
+    "Fenster darf ueber den Jahreswechsel gehen (z.B. '--12' bis '--02'). "
+    "Wenn mehrere Hervorhebungsstufen vorkommen (z.B. eine schwaechere Farbe "
+    "fuer die normale Saison und eine staerkere/abweichende fuer eine "
+    "Spitzensaison), gib pro Stufe ein eigenes Fenster zurueck, nicht nur "
+    "eines. NICHT hervorgehobene Monate gehoeren zu KEINEM Fenster - lass sie "
+    "weg. Erfinde KEIN Fenster, das nicht durch eine im Text beschriebene "
+    "Hervorhebung gestuetzt ist. Wenn der Text mehrere Objekte/Sorten "
+    "behandelt, gib fuer jedes ein eigenes Array-Element zurueck; behandelt er "
+    "nur eines, trotzdem ein Array mit genau einem Element."
+)
+
+_MONTH_ONLY_PATTERN = re.compile(r"^--(0[1-9]|1[0-2])$")
+
+
+def _validate_season_windows(items: List[Dict[str, Any]]) -> List[Dict[str, str]]:
+    windows = []
+    seen = set()
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        type_ = str(item.get("type", "")).strip()
+        name = str(item.get("name", "")).strip()
+        start = str(item.get("from", "")).strip()
+        end = str(item.get("to", "")).strip()
+        if not type_ or not name or not _MONTH_ONLY_PATTERN.match(start) or not _MONTH_ONLY_PATTERN.match(end):
+            continue
+        key = (type_, start, end)
+        if key in seen:
+            continue
+        seen.add(key)
+        windows.append({"type": type_, "name": name, "from": start, "to": end})
+    return windows
+
+
+def extract_season_windows(text: str, hint: str) -> List[Dict[str, Any]]:
+    """Like extract_subjects above, but for year-less RECURRING month
+    windows (RawWindow's year: null / "--MM" shape, see lib/schema.ts and
+    the hand-authored data/saisonkalender/*) instead of concrete dated
+    ranges - the right shape for e.g. "Aepfel are in season May-August every
+    year", which has no specific year attached at all. `text` is expected to
+    already describe any color-coding/highlighting in words (see
+    scraper.py's VISION_PROMPT for images/PDFs) - this function only
+    interprets that description, it does not see the image itself.
+
+    Returns a list of {"subject": {"slug": str, "name": str}, "windows":
+    [...]} (windows validated via _validate_season_windows). Raises
+    ExtractionError on failure, same contract as the other extract_*()
+    functions here."""
+    if not text.strip():
+        return []
+
+    prompt = f"{hint}\n\nText:\n\n{text}\n\nExtrahiere alle Saisonfenster als JSON-Array."
+    try:
+        raw = call_llm(prompt, system=SEASON_SYSTEM_PROMPT)
+    except Exception as e:
+        raise ExtractionError(str(e)) from e
+
+    items = _parse_json_array(raw)
+
+    subjects: List[Dict[str, Any]] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        subject = item.get("subject")
+        if not isinstance(subject, dict):
+            continue
+        slug = str(subject.get("slug", "")).strip()
+        name = str(subject.get("name", "")).strip()
+        if not slug or not name:
+            continue
+        subjects.append({
+            "subject": {"slug": slug, "name": name},
+            "windows": _validate_season_windows(item.get("windows") or []),
         })
 
     return subjects

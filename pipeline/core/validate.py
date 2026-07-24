@@ -15,6 +15,11 @@ from typing import Any, Dict
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 VALIDATE_SCRIPT = REPO_ROOT / "lib" / "validate-cli.ts"
 
+# core/approval.py now calls this synchronously from an interactive review
+# request (a human clicking Approve), not just from a batch CLI run - a
+# hung bun process must not hang that request forever.
+VALIDATE_TIMEOUT_SECONDS = 30
+
 
 class ValidationError(Exception):
     pass
@@ -22,7 +27,7 @@ class ValidationError(Exception):
 
 def pruefe_subjekt_datei(datei: Dict[str, Any]) -> None:
     """Raises ValidationError with the Zod issue list if `datei` doesn't
-    match pageDataSchema. Call this BEFORE opening a PR, not after the
+    match pageDataSchema. Call this BEFORE writing to data/, not after the
     Astro build fails on it."""
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
         json.dump(datei, f)
@@ -34,7 +39,10 @@ def pruefe_subjekt_datei(datei: Dict[str, Any]) -> None:
             capture_output=True,
             text=True,
             cwd=REPO_ROOT,
+            timeout=VALIDATE_TIMEOUT_SECONDS,
         )
+    except subprocess.TimeoutExpired as e:
+        raise ValidationError(f"Validation timed out after {VALIDATE_TIMEOUT_SECONDS}s") from e
     finally:
         Path(temp_pfad).unlink(missing_ok=True)
 

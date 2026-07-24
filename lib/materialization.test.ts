@@ -115,4 +115,20 @@ describe("materializeRawWindow", () => {
     const windows = materializeRawWindow(raw, "x", [source, secondSource], [2026]);
     expect(windows[0].source).toEqual([source, secondSource]);
   });
+
+  it("does not carry last_verified or rrule through to the materialized window (pipeline-side only, not surfaced yet)", () => {
+    const raw: RawWindow = {
+      type: "main_season",
+      year: 2026,
+      from: "2026-08-01",
+      to: "2026-09-30",
+      precision: "approximate",
+      ics: false,
+      last_verified: "2026-07-24",
+      rrule: "FREQ=YEARLY;BYMONTH=8",
+    };
+    const windows = materializeRawWindow(raw, "x", [source], [2026]);
+    expect(windows[0]).not.toHaveProperty("last_verified");
+    expect(windows[0]).not.toHaveProperty("rrule");
+  });
 });

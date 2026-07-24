@@ -1,0 +1,1874 @@
+decisions:
+  23b6d273b66d93950c923fc328a77a70f7eca1c4ec954f44a26644e03882c459:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.244248+00:00'
+    target_file: data/schulferien/bb/data.yaml
+    event:
+      type: school_holidays-autumn
+      year: 2026
+      from: '2026-10-19'
+      to: '2026-10-30'
+      precision: exact
+      ics: false
+      name: Herbstferien
+  28ac516c5fa9ce259cdc70202f1e97aea38764107b7d6c0ac1b911fa62be61bd:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.244256+00:00'
+    target_file: data/schulferien/bb/data.yaml
+    event:
+      type: school_holidays-christmas
+      year: 2026
+      from: '2026-12-23'
+      to: '2027-01-02'
+      precision: exact
+      ics: false
+      name: Weihnachtsferien
+  a7c4cf7e2da2cecba628d071be71c19b5be3e3af6812d48ca72bfe465a5675f4:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.244262+00:00'
+    target_file: data/schulferien/bb/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2026
+      from: '2026-02-01'
+      to: '2026-02-06'
+      precision: exact
+      ics: false
+      name: Winterferien
+  13f30f5250423d5951cf3e24f7f223a5219a1af958dd1ad05dfce0029383928c:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.244267+00:00'
+    target_file: data/schulferien/bb/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-22'
+      to: '2026-04-03'
+      precision: exact
+      ics: false
+      name: Osterferien
+  d71e9f5c9a7c9f776fa569aec8ca282677359436f491decef69cd015eaf5a243:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.244273+00:00'
+    target_file: data/schulferien/bb/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-18'
+      to: '2026-05-18'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  6b7c126ad211bead4c36796aa0dcd807cca21d1cdfc1304daec88c32ae0aec99:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.244278+00:00'
+    target_file: data/schulferien/bb/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2026
+      from: '2026-07-01'
+      to: '2026-08-14'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  c624fd348c5ca3acf2446345da33ad9569b31970408d78b05f5b4fa888c17166:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.244283+00:00'
+    target_file: data/schulferien/bb/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2027
+      from: '2027-02-01'
+      to: '2027-02-06'
+      precision: exact
+      ics: false
+      name: Winterferien
+  70e6be19559793c4889c9086864df87f2bfdd174a099266b3b0ddda8ebb7ead8:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.244289+00:00'
+    target_file: data/schulferien/bb/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-22'
+      to: '2027-04-03'
+      precision: exact
+      ics: false
+      name: Osterferien
+  29603f1228b39886d89311a6d1aec46796abe820dc7d559dcc3e852f7083ed98:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.244294+00:00'
+    target_file: data/schulferien/bb/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-18'
+      to: '2027-05-18'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  169109076a860d0cf31b12f33279bfa69b71ab4eade1ae07bdcec52bf50ff320:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.244304+00:00'
+    target_file: data/schulferien/bb/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2027
+      from: '2027-07-01'
+      to: '2027-08-14'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  1c28f34b01f6c8f5b65de076a6158249410b378b1d13122cdb01ae79e75f8322:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.248149+00:00'
+    target_file: data/schulferien/be/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2026
+      from: '2026-02-01'
+      to: '2026-02-06'
+      precision: exact
+      ics: false
+      name: Winterferien
+  768c4136954c2d4e458376b2ee53aa421662bbd4874791d60bbf3374c4285b4e:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.248156+00:00'
+    target_file: data/schulferien/be/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-22'
+      to: '2026-04-02'
+      precision: exact
+      ics: false
+      name: Osterferien
+  ba882411ed1ace67bfdda5fc4ec7e0b3e4d89f46f9f507e0ef9632183a71bdfa:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.248162+00:00'
+    target_file: data/schulferien/be/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-07'
+      to: '2026-05-07'
+      precision: exact
+      ics: false
+      name: Pfingstferien (1)
+  d2a176a819aa0c82b3b410a3bff623ab7656d16e61831c3a531ce60171a19ede:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.248168+00:00'
+    target_file: data/schulferien/be/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-18'
+      to: '2026-05-19'
+      precision: exact
+      ics: false
+      name: Pfingstferien (2)
+  1f8f4c550d3ade55b9a86e2f2d882a60081969b1cdbd98c35bbeac7b399faeb0:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.248173+00:00'
+    target_file: data/schulferien/be/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2026
+      from: '2026-07-01'
+      to: '2026-08-14'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  06992bff60fa4cb4dbc3e13ff2f91c5d3a36da91b732d45d9b512acac008c44d:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.248178+00:00'
+    target_file: data/schulferien/be/data.yaml
+    event:
+      type: school_holidays-autumn
+      year: 2026
+      from: '2026-10-19'
+      to: '2026-10-31'
+      precision: exact
+      ics: false
+      name: Herbstferien
+  5ee207eb6a5d99130aaf2b01e6cfcb5a45b5c3e44673fcec0e9d16ff72af7ca3:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.248183+00:00'
+    target_file: data/schulferien/be/data.yaml
+    event:
+      type: school_holidays-christmas
+      year: 2026
+      from: '2026-12-23'
+      to: '2027-01-02'
+      precision: exact
+      ics: false
+      name: Weihnachtsferien
+  f7b8019f0a51e2b4e4fb9c638973ed9cf599f5c373fc1b3ad8d91fc3ef18af1d:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.248188+00:00'
+    target_file: data/schulferien/be/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2027
+      from: '2027-02-01'
+      to: '2027-02-06'
+      precision: exact
+      ics: false
+      name: Winterferien
+  4e7fab15c1918ab7be12601d024adf684e93f6e7b5643bbe7992316410263ff6:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.248193+00:00'
+    target_file: data/schulferien/be/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-22'
+      to: '2027-04-02'
+      precision: exact
+      ics: false
+      name: Osterferien
+  2cc6329130e3e49a346c45705c58d6dfc95bc3842c003c82b9b869565ff0eb2e:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.248199+00:00'
+    target_file: data/schulferien/be/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-07'
+      to: '2027-05-07'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  1a33d5ef3f2070d6db0008574edfc35265601ff4579456f8c35bc12fc897921b:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.248204+00:00'
+    target_file: data/schulferien/be/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-18'
+      to: '2027-05-19'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  e3408aa9ea47ffbdd8c86bea069400c108abe6a3f81ce5cde770641f77e1fffa:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.248209+00:00'
+    target_file: data/schulferien/be/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2027
+      from: '2027-07-01'
+      to: '2027-08-14'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  09996e31e7ab61a6f53ee49df21bb1a17a13f929e88abaa4845c7c05d50b4609:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.251534+00:00'
+    target_file: data/schulferien/bw/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-25'
+      to: '2026-03-25'
+      precision: exact
+      ics: false
+      name: Osterferien (1)
+  8629970b650a351fa2463b8c0ad736ca5740a632b70a00d668c4106bfdc21f6a:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.251543+00:00'
+    target_file: data/schulferien/bw/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-30'
+      to: '2026-04-03'
+      precision: exact
+      ics: false
+      name: Osterferien (2)
+  4942527384c2cad5a52af92582840b0f74b20403aae4f4f2e2b758be401a0c97:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.251549+00:00'
+    target_file: data/schulferien/bw/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-18'
+      to: '2026-05-29'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  0807d1fa0d92427926b1c4063467f95772f3badd086f25611d4d7283b17d5957:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.251554+00:00'
+    target_file: data/schulferien/bw/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2026
+      from: '2026-07-29'
+      to: '2026-09-11'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  538650265c0eab6c7de75200d38e00aca29ca088352086750283b3c7654581f2:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.251559+00:00'
+    target_file: data/schulferien/bw/data.yaml
+    event:
+      type: school_holidays-autumn
+      year: 2026
+      from: '2026-10-26'
+      to: '2026-10-30'
+      precision: exact
+      ics: false
+      name: Herbstferien
+  16401eb821d5a23f8db8ff9c9d07bade3f79bcfaa35cc0cf5ceeb639c80c7b4c:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.251565+00:00'
+    target_file: data/schulferien/bw/data.yaml
+    event:
+      type: school_holidays-christmas
+      year: 2026
+      from: '2026-12-23'
+      to: '2027-01-09'
+      precision: exact
+      ics: false
+      name: Weihnachtsferien
+  7af2e27a74f891e682fb824def366eca03a4834d5a585c4aa51a726bd80248d4:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.251570+00:00'
+    target_file: data/schulferien/bw/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-25'
+      to: '2027-03-25'
+      precision: exact
+      ics: false
+      name: Osterferien
+  e669ed98ec0fc2417ba46bfa0641501c116f99012a2be5c9540e52531a145546:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.251575+00:00'
+    target_file: data/schulferien/bw/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-30'
+      to: '2027-04-03'
+      precision: exact
+      ics: false
+      name: Osterferien
+  412470fb1b745c1b0c33df10d62842618da068df1c1946412a4690bda39d2ac7:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.251580+00:00'
+    target_file: data/schulferien/bw/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-18'
+      to: '2027-05-29'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  606d2efa77675ae6b4206a788a4678b3f9ed9ab75fc797e8e0992be92744665f:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.251585+00:00'
+    target_file: data/schulferien/bw/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2027
+      from: '2027-07-29'
+      to: '2027-09-11'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  e48648d3097163f2107e37d4c479870142d89db4af3832284fd3fee3952df65f:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.254912+00:00'
+    target_file: data/schulferien/by/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2026
+      from: '2026-02-08'
+      to: '2026-02-12'
+      precision: exact
+      ics: false
+      name: Winterferien
+  9ad8bbd539e0563babf82d36bb3b0569089fd1d7ada01e4df06b0ce2b72cdb5c:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.254920+00:00'
+    target_file: data/schulferien/by/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-22'
+      to: '2026-04-02'
+      precision: exact
+      ics: false
+      name: Osterferien
+  51875d5c1efbdc6f70bb41a615be12a28d92090b660d49e0d94c2a9f4c75b4a5:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.254925+00:00'
+    target_file: data/schulferien/by/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-18'
+      to: '2026-05-28'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  366ebb1d72fe7e783addbb94d2f8e5b28873bcc13a6aa46350df7b7845faf8ea:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.254931+00:00'
+    target_file: data/schulferien/by/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2026
+      from: '2026-08-02'
+      to: '2026-09-13'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  23e0c0f078da81d682eb8309c535fa00ffd584053df371b5b75c34c0b9348074:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.254936+00:00'
+    target_file: data/schulferien/by/data.yaml
+    event:
+      type: school_holidays-autumn
+      year: 2026
+      from: '2026-11-02'
+      to: '2026-11-06'
+      precision: exact
+      ics: false
+      name: Herbstferien
+  3fd8b7ce5ca06e7e9d57b07d17e68b81c13f77b077b81fe80706f30eecf4f272:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.254941+00:00'
+    target_file: data/schulferien/by/data.yaml
+    event:
+      type: school_holidays-christmas
+      year: 2026
+      from: '2026-12-24'
+      to: '2027-01-08'
+      precision: exact
+      ics: false
+      name: Weihnachtsferien
+  85b63f05d3d15a28de58afc61cf85f18670bd7fb06d8edabda9e6ec9b5a6308a:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.254946+00:00'
+    target_file: data/schulferien/by/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-02-08'
+      to: '2027-02-12'
+      precision: exact
+      ics: false
+      name: Osterferien
+  3b5e07a534e2338e3dfa369de39007bed455b4b2cd113754ec255239d5a04b08:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.254951+00:00'
+    target_file: data/schulferien/by/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-22'
+      to: '2027-04-02'
+      precision: exact
+      ics: false
+      name: Osterferien
+  da156c2fdd0cfb5cbd72b727b3da0e5226212ff8f3ba1ad0e639a39908390ee8:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.254957+00:00'
+    target_file: data/schulferien/by/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-18'
+      to: '2027-05-28'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  fcc8b9a27e82ddd5c2c1d9ad59f80483e3a99d0e0c5c5942b6b497616e11e411:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.254962+00:00'
+    target_file: data/schulferien/by/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2027
+      from: '2027-08-02'
+      to: '2027-09-13'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  bdf287fe6fdd6577144befc1f1fec222c88800964252be5f9009d16813f5d841:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.258883+00:00'
+    target_file: data/schulferien/hb/data.yaml
+    event:
+      type: school_holidays-autumn
+      year: 2026
+      from: '2026-10-12'
+      to: '2026-10-24'
+      precision: exact
+      ics: false
+      name: Herbstferien
+  c74a07b79ba6078c3307dd2158bd2f8cffe2cae1106dcafd26d1932e2742fd40:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.258896+00:00'
+    target_file: data/schulferien/hb/data.yaml
+    event:
+      type: school_holidays-christmas
+      year: 2026
+      from: '2026-12-23'
+      to: '2027-01-09'
+      precision: exact
+      ics: false
+      name: Weihnachtsferien
+  5328d79241b3bb7c0fc4c46bc09ba6c1c205b12fe28f1fe9f5d3ca296ad1cf9a:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.258902+00:00'
+    target_file: data/schulferien/hb/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2026
+      from: '2026-02-01'
+      to: '2026-02-02'
+      precision: exact
+      ics: false
+      name: Winterferien
+  b3e90f2130b3695916f63d5cb1b3c0d71808e011d1f4481c96f058c1c89b7588:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.258907+00:00'
+    target_file: data/schulferien/hb/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-22'
+      to: '2026-04-03'
+      precision: exact
+      ics: false
+      name: Osterferien
+  5ca49946341017b20af3ecffdbbbf23d7d9a850028c02ea6495772543b5876e3:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.258912+00:00'
+    target_file: data/schulferien/hb/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-07'
+      to: '2026-05-07'
+      precision: exact
+      ics: false
+      name: Pfingstferien (1)
+  e2bb42b76d4d2181b0dc75bc19778be1da5195b1d3857c3fde4b544a0afa93f2:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.258918+00:00'
+    target_file: data/schulferien/hb/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-18'
+      to: '2026-05-18'
+      precision: exact
+      ics: false
+      name: Pfingstferien (2)
+  1ce8148ad3568765359cc8fa9d6582e9c64ff00ea1db0a0b1b1e996842d2ae2f:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.258923+00:00'
+    target_file: data/schulferien/hb/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2026
+      from: '2026-07-08'
+      to: '2026-08-18'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  9c49893c2293abcefe994e396738692c1e63ba4e6aae9542d24a2b9aad17390e:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.258929+00:00'
+    target_file: data/schulferien/hb/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2027
+      from: '2027-02-01'
+      to: '2027-02-02'
+      precision: exact
+      ics: false
+      name: Winterferien
+  7b5c06d2159776ec965f43beb7a6c1104242dc1a3ebe9884275ac5f3cf3f6218:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.258934+00:00'
+    target_file: data/schulferien/hb/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-22'
+      to: '2027-04-03'
+      precision: exact
+      ics: false
+      name: Osterferien
+  a23f6d6f4730eb264174e47127f2944fe021e621c150315c6ea922e78c2d6293:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.258939+00:00'
+    target_file: data/schulferien/hb/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-07'
+      to: '2027-05-07'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  a04650489e380d975e30b0e455ea1736995f8a0017e36c89d92b1de23e5a6e73:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.258944+00:00'
+    target_file: data/schulferien/hb/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-18'
+      to: '2027-05-18'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  d793d3345dd144f6cc1fe20f6fdcc0ac0284be366a1bf4b0fdacb5dcaf4bb806:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.258950+00:00'
+    target_file: data/schulferien/hb/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2027
+      from: '2027-07-08'
+      to: '2027-08-18'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  837063e44398fac8e16d901fd8721f707f31d1e87cd7eae508011dbb347c8488:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.261323+00:00'
+    target_file: data/schulferien/he/data.yaml
+    event:
+      type: school_holidays-autumn
+      year: 2026
+      from: '2026-10-05'
+      to: '2026-10-17'
+      precision: exact
+      ics: false
+      name: Herbstferien
+  4e1191bdf0252ac57d7ec08cacdbdf39ab945f1c055e236b079da7d8d3ba613b:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.261330+00:00'
+    target_file: data/schulferien/he/data.yaml
+    event:
+      type: school_holidays-christmas
+      year: 2026
+      from: '2026-12-23'
+      to: '2027-01-12'
+      precision: exact
+      ics: false
+      name: Weihnachtsferien
+  992d5223430b5f672ce7d85059f70b53821ebd2b3064a9fb9b66da2df25a39bb:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.261336+00:00'
+    target_file: data/schulferien/he/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-22'
+      to: '2026-04-02'
+      precision: exact
+      ics: false
+      name: Osterferien
+  c297be2aae988d12838fc5451da7f961a0fcb10203777c6fbc5cfebb37b03517:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.261341+00:00'
+    target_file: data/schulferien/he/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2026
+      from: '2026-06-28'
+      to: '2026-08-06'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  72ea258c1104b15655553a519e408a943a4b503840d7d51bc82fdaef5999dcdb:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.261346+00:00'
+    target_file: data/schulferien/he/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-22'
+      to: '2027-04-02'
+      precision: exact
+      ics: false
+      name: Osterferien
+  f80c04e077a98b9978bdd95321ae9de42d564d97caac341e79fe5384af62dc90:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.261351+00:00'
+    target_file: data/schulferien/he/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2027
+      from: '2027-06-28'
+      to: '2027-08-06'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  58e89a565b40e7e5c266957bdf82febb03339b509f766958834e7700877bdaf2:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.264636+00:00'
+    target_file: data/schulferien/hh/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2026
+      from: '2026-01-29'
+      to: '2026-01-29'
+      precision: exact
+      ics: false
+      name: Winterferien
+  8ce374aaa52744db3ed07a7e58f61156037867f8d0b4a23e4c1f06e4016bf5af:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.264643+00:00'
+    target_file: data/schulferien/hh/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-01'
+      to: '2026-03-12'
+      precision: exact
+      ics: false
+      name: Osterferien
+  2515ce60571e713f77b477f3187179b3325499f504f4c39915a16dc05266b8e4:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.264648+00:00'
+    target_file: data/schulferien/hh/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-07'
+      to: '2026-05-14'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  78306c854eb8b922ce00a24ecf5aa29dea355bffaa1b2019ec6b059164ea633c:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.264654+00:00'
+    target_file: data/schulferien/hh/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2026
+      from: '2026-07-01'
+      to: '2026-08-11'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  6c4321b337bae90ee39bcd981161099d2c443fe55436a686a469114d0c59dfab:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.264659+00:00'
+    target_file: data/schulferien/hh/data.yaml
+    event:
+      type: school_holidays-autumn
+      year: 2026
+      from: '2026-10-19'
+      to: '2026-10-30'
+      precision: exact
+      ics: false
+      name: Herbstferien
+  3989453ad0f6550c7bf885601385177053647e94ce8ca4181a007caaa72879cf:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.264664+00:00'
+    target_file: data/schulferien/hh/data.yaml
+    event:
+      type: school_holidays-christmas
+      year: 2026
+      from: '2026-12-21'
+      to: '2027-01-01'
+      precision: exact
+      ics: false
+      name: Weihnachtsferien
+  a5f2d38acac0073c972f5643c01d33ef359b0a4c7896303100f5eca167f34934:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.264669+00:00'
+    target_file: data/schulferien/hh/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2027
+      from: '2027-01-29'
+      to: '2027-01-29'
+      precision: exact
+      ics: false
+      name: Winterferien
+  aea8f2ac26a858393baf43bec8ec1c3b2a7cbfaddbdf691bd97d0ef419698390:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.264675+00:00'
+    target_file: data/schulferien/hh/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-01'
+      to: '2027-03-12'
+      precision: exact
+      ics: false
+      name: Osterferien
+  4e5af857fdc178c8cc006b028e9e777b285d541ab5905b56d9fc8dae7142a14a:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.264680+00:00'
+    target_file: data/schulferien/hh/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-07'
+      to: '2027-05-14'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  33989d901258be47836fbd9bfa7b06b313b6d963371a102b35cdc67ef801bda3:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.264685+00:00'
+    target_file: data/schulferien/hh/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2027
+      from: '2027-07-01'
+      to: '2027-08-11'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  3baf59164e393d1d59b76dd1b8bd3985122eda77301f5e7f12fd26ccd675c508:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.268471+00:00'
+    target_file: data/schulferien/mv/data.yaml
+    event:
+      type: school_holidays-autumn
+      year: 2026
+      from: '2026-10-15'
+      to: '2026-10-24'
+      precision: exact
+      ics: false
+      name: Herbstferien
+  dc06e70a006fd2e7dcea504c5418bf26e8d13516ac49b728eae7a6f48ecc57f7:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.268478+00:00'
+    target_file: data/schulferien/mv/data.yaml
+    event:
+      type: school_holidays-christmas
+      year: 2026
+      from: '2026-12-21'
+      to: '2027-01-02'
+      precision: exact
+      ics: false
+      name: Weihnachtsferien
+  bf0080bccac2dff28821e8146b1dfa9aecdbb5b6f28168ad711f5082bf7c8014:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.268483+00:00'
+    target_file: data/schulferien/mv/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2026
+      from: '2026-02-08'
+      to: '2026-02-19'
+      precision: exact
+      ics: false
+      name: Winterferien
+  1c56f90280e9873870ffc00c9624c4dc55f6279fcd347ec0b0850122269b87bf:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.268488+00:00'
+    target_file: data/schulferien/mv/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-24'
+      to: '2026-04-02'
+      precision: exact
+      ics: false
+      name: Osterferien
+  57323c7db7ccb4a768e72c81cc29dd1891a96031fd56f741534b4d3214212f0b:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.268494+00:00'
+    target_file: data/schulferien/mv/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-07'
+      to: '2026-05-07'
+      precision: exact
+      ics: false
+      name: Pfingstferien (1)
+  68781c842f0a72412e1d280999cd48087046a8783eca13c3a1cd3a82d33a5f99:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.268499+00:00'
+    target_file: data/schulferien/mv/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-14'
+      to: '2026-05-18'
+      precision: exact
+      ics: false
+      name: Pfingstferien (2)
+  2b31fb5894a5999365d27977f4b0d7bad8bd3a45ffa25ef4ab73aeadbbffff85:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.268504+00:00'
+    target_file: data/schulferien/mv/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2026
+      from: '2026-07-05'
+      to: '2026-08-14'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  6c59a803978774ce6c1b30e602b16d2b98d24a5fef031992be4c9a68c2c413bc:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.268510+00:00'
+    target_file: data/schulferien/mv/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2027
+      from: '2027-02-08'
+      to: '2027-02-19'
+      precision: exact
+      ics: false
+      name: Winterferien
+  bee8f34eb70595c563af75640e3f6143277d964c4987d7c00f3f7cb136665c79:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.268515+00:00'
+    target_file: data/schulferien/mv/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-24'
+      to: '2027-04-02'
+      precision: exact
+      ics: false
+      name: Osterferien
+  e63ba89e4406494d788731d6bf961720d1968ff0b35b25c02935f79595790865:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.268520+00:00'
+    target_file: data/schulferien/mv/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-07'
+      to: '2027-05-07'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  345783887e15dfc2feb2d2a6c1ce8e800b2b3c1963a54aa58b1d26963c26ba28:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.268525+00:00'
+    target_file: data/schulferien/mv/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-14'
+      to: '2027-05-18'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  64271bdd254d7f0822c9ade7860ccdbaebf06b9a858c74a28beb9e34d10ef7d5:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.268530+00:00'
+    target_file: data/schulferien/mv/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2027
+      from: '2027-07-05'
+      to: '2027-08-14'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  f2fdf21928b6eaa801d19919c173d2bcdad1f5fffa33109533aa5a46b0e225d5:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.272510+00:00'
+    target_file: data/schulferien/ni/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2026
+      from: '2026-02-01'
+      to: '2026-02-02'
+      precision: exact
+      ics: false
+      name: Winterferien
+  dc3a6159e4a90ae9918d7192ac8ace51f5684192dbec78f9bfa2103745ff885d:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.272518+00:00'
+    target_file: data/schulferien/ni/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-22'
+      to: '2026-04-03'
+      precision: exact
+      ics: false
+      name: Osterferien
+  6c4dd8e965d61635e31ce239e8ac536abcc794de1e08f97a9214d22c29b410e2:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.272524+00:00'
+    target_file: data/schulferien/ni/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-07'
+      to: '2026-05-07'
+      precision: exact
+      ics: false
+      name: Pfingstferien (1)
+  03063635c2f1aa7a91627345b5c1a717bf1490424aa904c70be25ad5a4c2fb21:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.272529+00:00'
+    target_file: data/schulferien/ni/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-18'
+      to: '2026-05-18'
+      precision: exact
+      ics: false
+      name: Pfingstferien (2)
+  253b8a202323b98061ad600a58e604524daabbe70e4f28a594c3d37e90d1c65f:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.272535+00:00'
+    target_file: data/schulferien/ni/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2026
+      from: '2026-07-08'
+      to: '2026-08-18'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  17210232026451ce712366365ab8fecc0c9dd0e91ce8feab1823586672dbeb14:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.272540+00:00'
+    target_file: data/schulferien/ni/data.yaml
+    event:
+      type: school_holidays-autumn
+      year: 2026
+      from: '2026-10-12'
+      to: '2026-10-24'
+      precision: exact
+      ics: false
+      name: Herbstferien
+  9a9c5d8325b0292b184529c56287f9c522703705471ad3c90d44900150160e46:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.272545+00:00'
+    target_file: data/schulferien/ni/data.yaml
+    event:
+      type: school_holidays-christmas
+      year: 2026
+      from: '2026-12-23'
+      to: '2027-01-09'
+      precision: exact
+      ics: false
+      name: Weihnachtsferien
+  818317f203903b12cc7741040b54204109465eaff1e6891c7cce8fc2e1e5d14d:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.272551+00:00'
+    target_file: data/schulferien/ni/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2027
+      from: '2027-02-01'
+      to: '2027-02-02'
+      precision: exact
+      ics: false
+      name: Winterferien
+  b961e6b9db40ea59c9febd40bc58c581b25649dcdeb1ad73febfe22002c9e9c0:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.272556+00:00'
+    target_file: data/schulferien/ni/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-22'
+      to: '2027-04-03'
+      precision: exact
+      ics: false
+      name: Osterferien
+  24f409fa66e3cb8deb202ff49dfec59907e3f486c5d18304f12a40cf9747d5ad:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.272561+00:00'
+    target_file: data/schulferien/ni/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-07'
+      to: '2027-05-07'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  e5655a1f89b43a65d54d0877cb206f9cc0650471b4ba82afc41f44930b2d6379:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.272566+00:00'
+    target_file: data/schulferien/ni/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-18'
+      to: '2027-05-18'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  1c633150b5bcb816db92d57908293543b2e494c95b4084c0dc5e131302898a72:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.272571+00:00'
+    target_file: data/schulferien/ni/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2027
+      from: '2027-07-08'
+      to: '2027-08-18'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  826ce1ae9fdb89c05c820b028821986cffddee0e83b219e7f9bf46bc9fe42a1c:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.275620+00:00'
+    target_file: data/schulferien/nw/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-22'
+      to: '2026-04-03'
+      precision: exact
+      ics: false
+      name: Osterferien
+  cd202ab3fbec88ad47498a061c047219db1ccdfc2315dd8dee9f7064faa9d9f8:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.275638+00:00'
+    target_file: data/schulferien/nw/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-18'
+      to: '2026-05-18'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  7611147390abfc7ef0eb06dc984f78824e1e892c14647754fc8a2843409f56bc:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.275645+00:00'
+    target_file: data/schulferien/nw/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2026
+      from: '2026-07-19'
+      to: '2026-08-31'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  1d524ed4b0c8a6b69145b518b903201e4755784a1a20ca982d616916b7523856:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.275651+00:00'
+    target_file: data/schulferien/nw/data.yaml
+    event:
+      type: school_holidays-autumn
+      year: 2026
+      from: '2026-10-17'
+      to: '2026-10-31'
+      precision: exact
+      ics: false
+      name: Herbstferien
+  ea8f7d564dce1c570e413b0433292755dfcd76908ed054bdd5ddc817ce74f27b:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.275657+00:00'
+    target_file: data/schulferien/nw/data.yaml
+    event:
+      type: school_holidays-christmas
+      year: 2026
+      from: '2026-12-23'
+      to: '2027-01-06'
+      precision: exact
+      ics: false
+      name: Weihnachtsferien
+  8c2623a2e32204364676b43735acb6d25b361c7b104ae969dfac146f821154cc:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.275663+00:00'
+    target_file: data/schulferien/nw/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-22'
+      to: '2027-04-03'
+      precision: exact
+      ics: false
+      name: Osterferien
+  94cc15ec63a5e0ccd76ccbfd48cad75b0de68b6b1ab968d226162c1bf97627a7:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.275669+00:00'
+    target_file: data/schulferien/nw/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-18'
+      to: '2027-05-18'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  c8a5f3316041c5e41f075b0366a547bd69b3b75e647d12693aa9cf70c8539963:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.275674+00:00'
+    target_file: data/schulferien/nw/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2027
+      from: '2027-07-19'
+      to: '2027-08-31'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  00068ab87e542f608dcbccf3c86dbd48f423a667257f664d27b365e5e9a764c1:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.278079+00:00'
+    target_file: data/schulferien/rp/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-22'
+      to: '2026-04-02'
+      precision: exact
+      ics: false
+      name: Osterferien
+  01000433b4e41136bffb8697b5f6cfcd330b5d32e13a413ce648c1ba07bd0a7c:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.278088+00:00'
+    target_file: data/schulferien/rp/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2026
+      from: '2026-06-28'
+      to: '2026-08-06'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  0d58b42dd42e59ecabb71bfc3355de512a45fad2c6c9b955f67683c99a30dbf5:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.278094+00:00'
+    target_file: data/schulferien/rp/data.yaml
+    event:
+      type: school_holidays-autumn
+      year: 2026
+      from: '2026-10-05'
+      to: '2026-10-16'
+      precision: exact
+      ics: false
+      name: Herbstferien
+  ce958126429e6df097affaeee4aa22fb9fe6dd7d9155d23e2119864ce13ffba8:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.278100+00:00'
+    target_file: data/schulferien/rp/data.yaml
+    event:
+      type: school_holidays-christmas
+      year: 2026
+      from: '2026-12-23'
+      to: '2027-01-08'
+      precision: exact
+      ics: false
+      name: Weihnachtsferien
+  38c9f0a2e4876c927cd364e3156109d142e1fb9375754313904c5602bf6bafb5:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.278105+00:00'
+    target_file: data/schulferien/rp/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-22'
+      to: '2027-04-02'
+      precision: exact
+      ics: false
+      name: Osterferien
+  ce979db8de5b34e80be018ac26a2f60a247fbda9afc21f3dff0ac1b60a522570:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.278111+00:00'
+    target_file: data/schulferien/rp/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2027
+      from: '2027-06-28'
+      to: '2027-08-06'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  9f3854603f9b76e70db616ef6104ec8d68ce0177cf5276c69a42ed82869061a7:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.280920+00:00'
+    target_file: data/schulferien/sh/data.yaml
+    event:
+      type: school_holidays-autumn
+      year: 2026
+      from: '2026-10-12'
+      to: '2026-10-24'
+      precision: exact
+      ics: false
+      name: Herbstferien
+  2dd9f5d493e6d2699abaa8f4d544016eeb7b20bd3d6db3f0e23530272e208b2b:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.280927+00:00'
+    target_file: data/schulferien/sh/data.yaml
+    event:
+      type: school_holidays-christmas
+      year: 2026
+      from: '2026-12-21'
+      to: '2027-01-06'
+      precision: exact
+      ics: false
+      name: Weihnachtsferien
+  fc0b320fd5a6f96a7eb3963c9dba1e10df5db78efcab4f6aa62cc0828b5c19d3:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.280933+00:00'
+    target_file: data/schulferien/sh/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-30'
+      to: '2026-04-10'
+      precision: exact
+      ics: false
+      name: Osterferien
+  8ebd0a8dd768b38e92ad53f1d39b1ffd9518297f8a274a1d2f05513a8f693728:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.280938+00:00'
+    target_file: data/schulferien/sh/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-07'
+      to: '2026-05-07'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  2ddcf0c10d76280042758a59e7a8d0b14dc7eb0531ccd43ac0a74c5315155036:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.280943+00:00'
+    target_file: data/schulferien/sh/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2026
+      from: '2026-07-03'
+      to: '2026-08-14'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  d24c30197b25398792f2d7c2619cd1230985e82804d8f5acbadb290f469f4786:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.280949+00:00'
+    target_file: data/schulferien/sh/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-30'
+      to: '2027-04-10'
+      precision: exact
+      ics: false
+      name: Osterferien
+  210879ebf3b2153d88bbc01a590d49d4bef4be848ccbe55c60b6c185d8eddf96:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.280954+00:00'
+    target_file: data/schulferien/sh/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-07'
+      to: '2027-05-07'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  c143779053b3cf3e5cb6d5454a4942710f69900d5fdf288735df5b9e0cf5b14d:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.280959+00:00'
+    target_file: data/schulferien/sh/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2027
+      from: '2027-07-03'
+      to: '2027-08-14'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  2d3acef25f7ebc7b2b0d3efdbbb9ef79ed39651a879a8b771097cf9ee76c89f8:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.283740+00:00'
+    target_file: data/schulferien/sl/data.yaml
+    event:
+      type: school_holidays-autumn
+      year: 2026
+      from: '2026-10-05'
+      to: '2026-10-16'
+      precision: exact
+      ics: false
+      name: Herbstferien
+  b1b3be0ecec379cc88c6cc08e83cbd993960bac326c159ea8ce7bab863e60a4f:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.283747+00:00'
+    target_file: data/schulferien/sl/data.yaml
+    event:
+      type: school_holidays-christmas
+      year: 2026
+      from: '2026-12-21'
+      to: '2026-12-31'
+      precision: exact
+      ics: false
+      name: Weihnachtsferien
+  5372d59224cc9f0c15b8e4e504a3bb8582a90a0b2e712c0cc5946c398fdcf0aa:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.283753+00:00'
+    target_file: data/schulferien/sl/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2026
+      from: '2026-02-08'
+      to: '2026-02-12'
+      precision: exact
+      ics: false
+      name: Winterferien
+  ad7f1efe02eb37fdb7bedb04cf1e2b8bacb3b080b73b8a5eaed66746d98efd15:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.283758+00:00'
+    target_file: data/schulferien/sl/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-30'
+      to: '2026-04-09'
+      precision: exact
+      ics: false
+      name: Osterferien
+  e9e61e47192e1bda549ee6851b0d71ca5ca3bc3460ede596ee9dea501d700551:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.283763+00:00'
+    target_file: data/schulferien/sl/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2026
+      from: '2026-06-28'
+      to: '2026-08-06'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  15ac693595da99df140112c430939071c7122ccc2ab9caff9d5db38b154e2240:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.283768+00:00'
+    target_file: data/schulferien/sl/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2027
+      from: '2027-02-08'
+      to: '2027-02-12'
+      precision: exact
+      ics: false
+      name: Winterferien
+  5c2de4db46136141c3f5995bb339a9ab3d5ebf62be82a39165bc523853c6b507:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.283774+00:00'
+    target_file: data/schulferien/sl/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-30'
+      to: '2027-04-09'
+      precision: exact
+      ics: false
+      name: Osterferien
+  be28220d150622bdf2509ee3d5f8cc5c3211d80af69528bc5915ff6d3f4b1ad5:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.283779+00:00'
+    target_file: data/schulferien/sl/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2027
+      from: '2027-06-28'
+      to: '2027-08-06'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  24418468e52fa9a9189bf9e889b9b66a5a6406abb0d0bb6417e8999f4873a3bc:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.287590+00:00'
+    target_file: data/schulferien/sn/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2026
+      from: '2026-02-08'
+      to: '2026-02-19'
+      precision: exact
+      ics: false
+      name: Winterferien
+  73e2705bd8c4e5b41c1ac74b7642ee23b2dfba8923f24afe78d0a398bc173c0f:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.287597+00:00'
+    target_file: data/schulferien/sn/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-26'
+      to: '2026-04-02'
+      precision: exact
+      ics: false
+      name: Osterferien
+  49c8be40d0948b632468438a9a3a4d0e69f35f5abfdf8989c49269208621a56c:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.287603+00:00'
+    target_file: data/schulferien/sn/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-07'
+      to: '2026-05-07'
+      precision: exact
+      ics: false
+      name: Pfingstferien (1)
+  8a28b4bc336a593179f64af8bd505744082f21a11336a65b95df156a5cd80adb:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.287608+00:00'
+    target_file: data/schulferien/sn/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-15'
+      to: '2026-05-18'
+      precision: exact
+      ics: false
+      name: Pfingstferien (2)
+  7f6ea45848535fd2ebbcdfe4adfe8e0ddeb52c8cbad6ec4ba2419087b0cd204e:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.287613+00:00'
+    target_file: data/schulferien/sn/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2026
+      from: '2026-07-10'
+      to: '2026-08-20'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  1a48ad7821cfa06c4f93eeb3d3c9b85a36ab39612e2ab97501139d2c59937057:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.287619+00:00'
+    target_file: data/schulferien/sn/data.yaml
+    event:
+      type: school_holidays-autumn
+      year: 2026
+      from: '2026-10-12'
+      to: '2026-10-24'
+      precision: exact
+      ics: false
+      name: Herbstferien
+  52e0ce6500eb2a9457bfdcb0062eaa78eca605e35ddd8ec62c2d333388ea6a1e:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.287624+00:00'
+    target_file: data/schulferien/sn/data.yaml
+    event:
+      type: school_holidays-christmas
+      year: 2026
+      from: '2026-12-23'
+      to: '2027-01-02'
+      precision: exact
+      ics: false
+      name: Weihnachtsferien
+  a65bfaf8e3a7b80c36a43960d36ca6ff045370f41e4dac81f8d029783016d5a6:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.287629+00:00'
+    target_file: data/schulferien/sn/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2027
+      from: '2027-02-08'
+      to: '2027-02-19'
+      precision: exact
+      ics: false
+      name: Winterferien
+  1421aa5d501b4090f66c1b1a1e5fc89d934beb7067605db319f1b56e688a9f48:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.287634+00:00'
+    target_file: data/schulferien/sn/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-26'
+      to: '2027-04-02'
+      precision: exact
+      ics: false
+      name: Osterferien
+  afcc6acbece730d0830fa8bbb41b85cc3060161f6fb4c984c2d8405fbc1806db:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.287639+00:00'
+    target_file: data/schulferien/sn/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-07'
+      to: '2027-05-07'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  10bf337449f034a0a21ac6ddf634cc8eb3bd2868bc04919e23c8d5c56588160a:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.287644+00:00'
+    target_file: data/schulferien/sn/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-15'
+      to: '2027-05-18'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  d993e066297ac3c0d594eddd10e2b3582db5b7b065c9420af4f60b1b555d2461:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.287650+00:00'
+    target_file: data/schulferien/sn/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2027
+      from: '2027-07-10'
+      to: '2027-08-20'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  18291f4f29019248c688f3a4fa061b8dc1b4253eb759e6d1b283b0c934298359:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.290925+00:00'
+    target_file: data/schulferien/st/data.yaml
+    event:
+      type: school_holidays-autumn
+      year: 2026
+      from: '2026-10-19'
+      to: '2026-10-30'
+      precision: exact
+      ics: false
+      name: Herbstferien
+  74535aceecabec8ade00be09d2e561cef7236263327d6c14b41ad3b320fc7e4e:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.290932+00:00'
+    target_file: data/schulferien/st/data.yaml
+    event:
+      type: school_holidays-christmas
+      year: 2026
+      from: '2026-12-21'
+      to: '2027-01-02'
+      precision: exact
+      ics: false
+      name: Weihnachtsferien
+  014d65642a526aacb1bf71b1cda0c43a4224799426336d74c44102cd6486f92d:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.290938+00:00'
+    target_file: data/schulferien/st/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2026
+      from: '2026-02-01'
+      to: '2026-02-06'
+      precision: exact
+      ics: false
+      name: Winterferien
+  1beb5404376556d4c56112af763f35d301a7d18a732225ecc3027f4672dd1763:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.290943+00:00'
+    target_file: data/schulferien/st/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-22'
+      to: '2026-03-27'
+      precision: exact
+      ics: false
+      name: Osterferien
+  5c857e694c3ea6582534c392715e2b98e5c3f8e7b63a1a4bc321123cededcfe5:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.290949+00:00'
+    target_file: data/schulferien/st/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-15'
+      to: '2026-05-22'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  0dc8ea20df78b64028a0162bed198f8c0f7eb91c259da744a807165043bb19bd:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.290954+00:00'
+    target_file: data/schulferien/st/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2026
+      from: '2026-07-10'
+      to: '2026-08-20'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  975baf276c1d23d0e6cba02b7136e7ff8c706f187c9406d0f9f3b0188e2d5e3c:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.290959+00:00'
+    target_file: data/schulferien/st/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2027
+      from: '2027-02-01'
+      to: '2027-02-06'
+      precision: exact
+      ics: false
+      name: Winterferien
+  a561d47554faa9352c521cc2f0bc674a867ac3bf451950f716edbeae9b79c418:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.290965+00:00'
+    target_file: data/schulferien/st/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-22'
+      to: '2027-03-27'
+      precision: exact
+      ics: false
+      name: Osterferien
+  dd112505aa07e20e4a85c5f797e288d6d7e673c6a6336d184350807eac0d93be:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.290970+00:00'
+    target_file: data/schulferien/st/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-15'
+      to: '2027-05-22'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  1eadb513bdf3357a264ddd8f11552991fc350b3a7ed504a77ed536f11e378218:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.290975+00:00'
+    target_file: data/schulferien/st/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2027
+      from: '2027-07-10'
+      to: '2027-08-20'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  7ce0eeaeab1c1e6b5949c67c268381977e70f2966a5e5c664ec77f87f20d579e:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.294402+00:00'
+    target_file: data/schulferien/th/data.yaml
+    event:
+      type: school_holidays-autumn
+      year: 2026
+      from: '2026-10-12'
+      to: '2026-10-24'
+      precision: exact
+      ics: false
+      name: Herbstferien
+  c029f68db07b975531d8aae2e0b1e1de3cf71d459bd243ae441ef3ccc012a8bb:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.294417+00:00'
+    target_file: data/schulferien/th/data.yaml
+    event:
+      type: school_holidays-christmas
+      year: 2026
+      from: '2026-12-23'
+      to: '2027-01-02'
+      precision: exact
+      ics: false
+      name: Weihnachtsferien
+  92a5bd126d587216003b10829bb2167935663ad8dbae3136c676209412344eff:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.294425+00:00'
+    target_file: data/schulferien/th/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2026
+      from: '2026-02-01'
+      to: '2026-02-06'
+      precision: exact
+      ics: false
+      name: Winterferien
+  d244394bce73ecfdcca01729d199436c98e8504619104bd0e488273829e7a739:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.294431+00:00'
+    target_file: data/schulferien/th/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2026
+      from: '2026-03-22'
+      to: '2026-04-03'
+      precision: exact
+      ics: false
+      name: Osterferien
+  2e0cca614dc903fc8f21cab3f273a15cbd148e168d79d078c2bddb3ea93ad5a5:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.294437+00:00'
+    target_file: data/schulferien/th/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2026
+      from: '2026-05-07'
+      to: '2026-05-07'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  207910a808e72a699cfeac419a759caf11b2b81c8a39fff4d9b41ba62c0f147a:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.294442+00:00'
+    target_file: data/schulferien/th/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2026
+      from: '2026-07-10'
+      to: '2026-08-20'
+      precision: exact
+      ics: false
+      name: Sommerferien
+  e6e154b2f900da1653ffe3dff90a91a1b3bce71d60cec3ef02ccdf2b521abcf5:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.294448+00:00'
+    target_file: data/schulferien/th/data.yaml
+    event:
+      type: school_holidays-winter
+      year: 2027
+      from: '2027-02-01'
+      to: '2027-02-06'
+      precision: exact
+      ics: false
+      name: Winterferien
+  b5b6a689041ac8318eab3b8aa659fd02bd317e9f1b7d64db7c06ef1787f4601f:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.294453+00:00'
+    target_file: data/schulferien/th/data.yaml
+    event:
+      type: school_holidays-easter
+      year: 2027
+      from: '2027-03-22'
+      to: '2027-04-03'
+      precision: exact
+      ics: false
+      name: Osterferien
+  188f2a055eb2910da2f6958aabeebb39af6b0e7ce336eaaf03fc20fb53156486:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.294459+00:00'
+    target_file: data/schulferien/th/data.yaml
+    event:
+      type: school_holidays-whitsun
+      year: 2027
+      from: '2027-05-07'
+      to: '2027-05-07'
+      precision: exact
+      ics: false
+      name: Pfingstferien
+  80523d0448f2a64ec77fd21fc589fada931852ccc35167aafc7e9563a846dd67:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.294465+00:00'
+    target_file: data/schulferien/th/data.yaml
+    event:
+      type: school_holidays-summer
+      year: 2027
+      from: '2027-07-10'
+      to: '2027-08-20'
+      precision: exact
+      ics: false
+      name: Sommerferien
+disappeared: {}

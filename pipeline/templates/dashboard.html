@@ -3,6 +3,21 @@
 {% block title %}Wann-Plattform • Harvest{% endblock %}
 
 {% block content %}
+        <!-- SUMMARY -->
+        <div class="card" style="margin-bottom:1.5rem; display:flex; gap:2rem; align-items:center;">
+            <div>
+                <a href="/crawl-sources" style="text-decoration:none; font-weight:600;">Crawl Sources →</a>
+            </div>
+            <div>
+                <a href="/review" style="text-decoration:none; font-weight:600;">
+                    Review Queue{% if review_queue_count %} ({{ review_queue_count }}){% endif %} →
+                </a>
+                {% if disappeared_count %}
+                <span style="color:var(--muted); font-size:0.85rem;">· {{ disappeared_count }} disappeared</span>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- HARVEST REGISTRIES -->
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
@@ -20,7 +35,7 @@
                 (e.g. all German universities from Wikidata) into
                 <code>pipeline/data/registries/&lt;entity_class&gt;.json</code>. Configured in
                 <code>pipeline/config/registries.yaml</code>. Once fetched, a registry's domains can seed a
-                <a href="/crawler">Crawler</a> run.
+                <a href="/crawl-sources">Crawl Sources</a> config.
             </p>
 
             <details style="margin-bottom:1rem;">
@@ -61,6 +76,18 @@
             </details>
 
             {% include "_harvest_registry_table.html" %}
+        </div>
+
+        <!-- CREATED PAGES -->
+        <div class="card" style="margin-top:1.5rem;">
+            <h3 class="section-title" style="margin:0 0 0.75rem;">Pages</h3>
+            <datalist id="category-suggestions">
+                {% for c in category_suggestions %}<option value="{{ c }}">{% endfor %}
+            </datalist>
+            <datalist id="tag-suggestions">
+                {% for t in tag_suggestions %}<option value="{{ t }}">{% endfor %}
+            </datalist>
+            {% include "_pages_table.html" %}
         </div>
 {% endblock %}
 

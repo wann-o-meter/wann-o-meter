@@ -1,0 +1,63 @@
+<div id="crawl-sources-table">
+{% if sources %}
+<div class="scroll-box">
+    <table class="compact">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Category</th>
+                <th>Seed URL</th>
+                <th>Scope</th>
+                <th style="width:80px;">Depth</th>
+                <th>Schedule</th>
+                <th style="width:280px;">Last Run</th>
+                <th style="width:100px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for id, source in sources.items() %}
+            <tr>
+                <td>{{ id }}</td>
+                <td>{{ source.category }}</td>
+                <td class="clamp-1"><a href="{{ source.seed_url }}" target="_blank">{{ source.seed_url }}</a></td>
+                <td>{{ source.allowed_domains | join(', ') }}{% if source.path_prefix %}{{ source.path_prefix }}{% endif %}</td>
+                <td>{{ source.max_depth }}</td>
+                <td>{{ source.schedule }}</td>
+                <td data-status-cell="{{ id }}">
+                    {% if id in running_sources %}
+                        <span class="running">Running…</span>
+                        <br><span class="crawl-source-progress" data-source-id="{{ id }}" style="font-size:0.8rem; color:var(--muted);"></span>
+                    {% elif errors.get(id) %}
+                        <span style="color:var(--accent);">Error: {{ errors[id] }}</span>
+                    {% elif last_result.get(id) %}
+                        {% set r = last_result[id] %}
+                        {{ r.documents }} docs, {{ r.candidates }} candidates,
+                        {{ r.auto_approved }} auto-approved, {{ r.needs_review }} to review
+                        {% if r.disappeared %}, {{ r.disappeared }} disappeared{% endif %}
+                        {% if r.extraction_errors %}
+                        <br><span style="color:var(--accent);">{{ r.extraction_errors | length }} extraction error(s): {{ r.extraction_errors[0] }}</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="empty-hint" style="padding:0;">never run</span>
+                    {% endif %}
+                </td>
+                <td style="white-space:nowrap;">
+                    <button type="button" class="btn btn-sm crawl-source-run-btn" data-source-id="{{ id }}"
+                            {{ 'disabled' if id in running_sources else '' }}>
+                        {{ 'Running…' if id in running_sources else 'Run' }}
+                    </button>
+                    <a href="/crawl-sources/{{ id }}/pages" class="btn btn-sm">Pages</a>
+                    <form method="post" action="/crawl-sources/{{ id }}/delete" style="display:inline;"
+                          onsubmit="return confirm('Delete crawl source \'{{ id }}\'? This only removes the config file - review-state history and any pages already written to data/ are kept.');">
+                        <button type="submit" class="btn btn-sm btn-danger" {{ 'disabled' if id in running_sources else '' }}>Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="empty-hint">No crawl sources configured yet - use the form below, or add a file under <code>pipeline/config/crawl_sources/</code> directly.</p>
+{% endif %}
+</div>

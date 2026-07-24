@@ -1,0 +1,116 @@
+{% extends "_base.html" %}
+
+{% block title %}Wann-Plattform • Review Candidate{% endblock %}
+
+{% block content %}
+<div class="grid">
+    <div>
+        <div class="card">
+            <h3 class="section-title" style="margin:0 0 0.75rem;">Candidate</h3>
+            <p style="font-size:0.85rem; color:var(--muted); margin:0 0 0.75rem;">
+                {{ source_id }} · {{ candidate.subject_slug }} · extracted {{ candidate.extracted_at }}
+            </p>
+            <p style="margin:0 0 1rem;">
+                <strong>{{ candidate.event.name or candidate.event.type }}</strong><br>
+                <span style="font-size:1.1rem;">{{ candidate.event.from }}{% if candidate.event.to != candidate.event.from %} → {{ candidate.event.to }}{% endif %}</span>
+                {% if candidate.event.year %}<span style="color:var(--muted);">({{ candidate.event.year }})</span>{% endif %}
+                <br><span style="font-size:0.85rem; color:var(--muted);">{{ candidate.event.type }} · {{ candidate.event.precision }}</span>
+            </p>
+
+            <datalist id="category-suggestions">
+                {% for c in category_suggestions %}<option value="{{ c }}">{% endfor %}
+            </datalist>
+
+            <form action="/review/{{ source_id }}/{{ candidate.candidate_id }}/approve" method="post" style="margin-bottom:1.5rem;">
+                <div class="field-label">Category</div>
+                <input type="text" name="category" list="category-suggestions" value="{{ candidate.subject_slug }}" required>
+                <div class="field-label">License</div>
+                <select name="license" required class="license-select">
+                    {% for option in license_options %}
+                    <option value="{{ option.value }}">{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">Approve as-is</button>
+            </form>
+
+            <details style="margin-bottom:1.5rem;">
+                <summary style="cursor:pointer; font-weight:600;">Modify before approving</summary>
+                <form action="/review/{{ source_id }}/{{ candidate.candidate_id }}/modify" method="post" style="margin-top:0.75rem;">
+                    <div class="field-label">Category</div>
+                    <input type="text" name="category" list="category-suggestions" value="{{ candidate.subject_slug }}" required>
+                    <div class="field-label">License</div>
+                    <select name="license" required class="license-select">
+                        {% for option in license_options %}
+                        <option value="{{ option.value }}">{{ option.label }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="field-label">Type</div>
+                    <input type="text" name="type" value="{{ candidate.event.type }}" required>
+                    <div class="field-label">Name</div>
+                    <input type="text" name="name" value="{{ candidate.event.name or '' }}">
+                    <div class="field-label">Year (blank for a recurring --MM window)</div>
+                    <input type="text" name="year" value="{{ candidate.event.year if candidate.event.year is not none else '' }}">
+                    <div class="field-label">From</div>
+                    <input type="text" name="from" value="{{ candidate.event.from }}" required>
+                    <div class="field-label">To</div>
+                    <input type="text" name="to" value="{{ candidate.event.to }}" required>
+                    <div class="field-label">Precision</div>
+                    <select name="precision">
+                        <option value="exact" {{ 'selected' if candidate.event.precision == 'exact' else '' }}>exact</option>
+                        <option value="approximate" {{ 'selected' if candidate.event.precision == 'approximate' else '' }}>approximate</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Save correction and approve</button>
+                </form>
+            </details>
+
+            <form action="/review/{{ source_id }}/{{ candidate.candidate_id }}/reject" method="post"
+                  onsubmit="return confirm('Reject this candidate? It will not be written to data/, and stays remembered so it is not requeued next run.');">
+                <button type="submit" class="btn btn-danger">Reject</button>
+            </form>
+
+            <p style="margin-top:1.5rem;">
+                <a href="/review">← Back to queue</a>
+                {% if next_candidate %}
+                · <a href="/review/{{ next_candidate.source_id }}/{{ next_candidate.candidate_id }}">Skip → Next</a>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div>
+        <div class="card">
+            <h3 class="section-title" style="margin:0 0 0.75rem;">Source Snapshot</h3>
+            <p style="font-size:0.85rem; color:var(--muted); margin:0 0 0.75rem;">
+                <a href="{{ document_meta.url }}" target="_blank">{{ document_meta.url }}</a>
+                · fetched {{ document_meta.fetched_at }}
+            </p>
+            {% if document_html %}
+            <div class="scroll-box tall">
+                <pre style="white-space:pre-wrap; font-size:0.85rem;">{{ document_html | safe }}</pre>
+            </div>
+            {% elif document_url %}
+            <iframe src="{{ document_url }}" style="width:100%; height:600px; border:1px solid var(--line);"></iframe>
+            {% else %}
+            <p class="empty-hint">No snapshot available.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // Jump straight to the highlighted date instead of making a
+        // reviewer scroll through a possibly huge snapshot to find it.
+        // Runs immediately rather than waiting on DOMContentLoaded: this
+        // script tag sits after the snapshot in the document, so the
+        // <mark> (if any) is already parsed and in the DOM by the time
+        // this executes - waiting on the event is unnecessary here, and a
+        // back/forward-cache page restore doesn't fire DOMContentLoaded
+        // at all, which would otherwise silently skip this.
+        (function () {
+            const mark = document.querySelector('.scroll-box mark');
+            if (mark) mark.scrollIntoView({ block: 'center' });
+        })();
+    </script>
+{% endblock %}

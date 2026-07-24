@@ -1,0 +1,12 @@
+# Maps a data/ category to the real sources.yaml/crawl_sources source_id
+# that (would) produce it, so a migrated window is recognized as
+# "already seen" by that source's actual future runs - content_hash is
+# source_id-independent by design (core/content_hash.py), so this mapping
+# is what makes recognition possible at all. See tools/migrate_existing.py's
+# docstring for the full reasoning, including the caveat that recognition
+# still requires a future extraction to reproduce byte-identical fields.
+#
+# Categories with no entry here get a synthetic legacy:<category>/<slug>
+# review-state file instead - honest about "never produced by any pipeline
+# run" rather than guessing a plausible-but-wrong source_id.
+schulferien: schulferien_kmk

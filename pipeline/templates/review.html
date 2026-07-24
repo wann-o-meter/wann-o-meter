@@ -1,0 +1,108 @@
+{% extends "_base.html" %}
+
+{% block title %}Wann-Plattform • Review{% endblock %}
+
+{% block content %}
+        <div class="card">
+            <h3 class="section-title" style="margin:0 0 0.75rem;">Review Queue</h3>
+            <p style="font-size:0.85rem; color:var(--muted); margin:0 0 0.75rem;">
+                Candidates a crawl or automated source extracted that have no decision yet.
+                Already-approved/modified/rejected candidates are auto-waved-through or silently
+                dropped on later runs and never reach this queue - see core/review_state.py.
+            </p>
+            {% if queue %}
+            <div class="scroll-box tall">
+                <table class="compact">
+                    <thead>
+                        <tr>
+                            <th>Source</th>
+                            <th>Subject</th>
+                            <th>Type</th>
+                            <th>Name</th>
+                            <th data-sort style="cursor:pointer;" title="Click to sort">When ⇅</th>
+                            <th style="width:80px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for candidate in queue %}
+                        <tr>
+                            <td>{{ candidate.source_id }}</td>
+                            <td>{{ candidate.subject_slug }}</td>
+                            <td>{{ candidate.event.type }}</td>
+                            <td>{{ candidate.event.name or '' }}</td>
+                            <td>
+                                {{ candidate.event.from }}{% if candidate.event.to != candidate.event.from %} – {{ candidate.event.to }}{% endif %}
+                            </td>
+                            <td>
+                                <a href="/review/{{ candidate.source_id }}/{{ candidate.candidate_id }}" class="btn btn-sm" style="text-decoration:none; display:inline-block;">
+                                    Review
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="empty-hint">Nothing pending review.</p>
+            {% endif %}
+        </div>
+
+        <div class="card" style="margin-top:1.5rem;">
+            <h3 class="section-title" style="margin:0 0 0.75rem;">Disappeared</h3>
+            <p style="font-size:0.85rem; color:var(--muted); margin:0 0 0.75rem;">
+                Previously-approved events that a later run's source no longer mentions, within
+                the scope that run actually covers (e.g. the same year) - NOT auto-deleted, since
+                the source may just be temporarily unavailable or the change may need a human
+                look before removing something from <code>data/</code>.
+            </p>
+            {% if disappeared %}
+            <div class="scroll-box">
+                <table class="compact">
+                    <thead>
+                        <tr>
+                            <th>Source</th>
+                            <th>Target File</th>
+                            <th>Detected</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in disappeared %}
+                        <tr>
+                            <td>{{ entry.source_id }}</td>
+                            <td class="clamp-1">{{ entry.target_file }}</td>
+                            <td>{{ entry.detected_at }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="empty-hint">Nothing disappeared.</p>
+            {% endif %}
+        </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // Generic click-to-sort for any <th data-sort> - string-compares
+        // that column's cell text (works as chronological sort for ISO-ish
+        // "YYYY-MM-DD" dates too, no date parsing needed).
+        document.addEventListener('click', function (e) {
+            const th = e.target.closest('th[data-sort]');
+            if (!th) return;
+            const table = th.closest('table');
+            const tbody = table.querySelector('tbody');
+            const colIndex = Array.prototype.indexOf.call(th.parentNode.children, th);
+            const ascending = th.dataset.sortDir !== 'asc';
+            const rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+            rows.sort(function (a, b) {
+                const av = a.children[colIndex].textContent.trim();
+                const bv = b.children[colIndex].textContent.trim();
+                return ascending ? av.localeCompare(bv) : bv.localeCompare(av);
+            });
+            rows.forEach(function (row) { tbody.appendChild(row); });
+            th.dataset.sortDir = ascending ? 'asc' : 'desc';
+        });
+    </script>
+{% endblock %}

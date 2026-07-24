@@ -22,13 +22,3 @@ museum_de:
     \ \"de\". }\r\n}\n"
   target_kinds:
   - oeffnungszeiten
-religion:
-  method: wikidata_sparql
-  sparql: "SELECT ?holiday ?holidayLabel ?religionLabel ?dayInYear ?partOfLabel WHERE\
-    \ {\r\n  ?holiday wdt:P31/wdt:P279* wd:Q375011 .\r\n  ?holiday wdt:P140 ?religion\
-    \ .\r\n  VALUES ?religion { wd:Q432 wd:Q5043 wd:Q9268 }\r\n  OPTIONAL { ?holiday\
-    \ wdt:P837 ?dayInYear . }\r\n  OPTIONAL { ?holiday wdt:P361 ?partOf . }\r\n  SERVICE\
-    \ wikibase:label { bd:serviceParam wikibase:language \"de\". }\r\n}\r\nORDER BY\
-    \ ?religionLabel ?holidayLabel\n"
-  target_kinds:
-  - feiertage
