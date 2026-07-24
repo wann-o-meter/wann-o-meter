@@ -333,3 +333,28 @@ class TestCreateCrawlSource:
     def test_rejects_an_out_of_range_max_depth(self, client):
         response = client.post("/crawl-sources/new", data={**FULL_NEW_SOURCE_FORM, "max_depth": "99"})
         assert response.status_code == 400
+
+
+class TestDeleteCrawlSource:
+    def test_removes_the_config_file_and_redirects(self, client, tmp_path):
+        client.post("/crawl-sources/new", data=FULL_NEW_SOURCE_FORM)
+        path = tmp_path / "crawl_sources" / "stuttgart-veranstaltungen.yaml"
+        assert path.exists()
+
+        response = client.post("/crawl-sources/stuttgart-veranstaltungen/delete", follow_redirects=False)
+
+        assert response.status_code == 303
+        assert not path.exists()
+
+    def test_404s_for_an_unknown_source(self, client):
+        response = client.post("/crawl-sources/does-not-exist/delete")
+        assert response.status_code == 404
+
+    def test_409s_while_the_source_is_running(self, client):
+        client.post("/crawl-sources/new", data=FULL_NEW_SOURCE_FORM)
+        main.state.running_sources.add("stuttgart-veranstaltungen")
+        try:
+            response = client.post("/crawl-sources/stuttgart-veranstaltungen/delete")
+            assert response.status_code == 409
+        finally:
+            main.state.running_sources.discard("stuttgart-veranstaltungen")

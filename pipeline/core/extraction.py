@@ -46,26 +46,56 @@ class ExtractionError(Exception):
     pass
 
 
-# Single-shot prompt/response, no chunking - a huge page (a festival/event
-# listing with hundreds of entries, not the "one page, one topic" case this
-# module targets, see the module docstring) risks the model's response
-# itself getting cut off mid-JSON by ITS OWN output-length limit, which then
-# fails to parse - a confusing failure after a slow (up to
-# REQUEST_TIMEOUT_SECONDS) round trip that looks like nothing happened. Fail
-# fast with a clear reason instead of attempting it.
+# One LLM call per chunk of at most this many chars - a huge single-shot
+# prompt (a festival/event listing with hundreds of entries, not the "one
+# page, one topic" case this module targets, see the module docstring) risks
+# the model's response itself getting cut off mid-JSON by ITS OWN
+# output-length limit, which then fails to parse - a confusing failure after
+# a slow (up to REQUEST_TIMEOUT_SECONDS) round trip that looks like nothing
+# happened. Chunking (see _split_into_chunks) keeps each individual response
+# short enough to avoid that, at the cost of one LLM call per chunk instead
+# of one per page.
 MAX_TEXT_LENGTH = 20_000
 
+# Chars of overlap between consecutive chunks - generous enough that a
+# multi-line table row or a date+label pair straddling a chunk boundary
+# still appears whole in at least one chunk. The resulting duplicate
+# entries from the overlapped region are removed by extract_dated_events's
+# own (date, label) dedup, so overlap is pure safety margin, never a
+# correctness risk.
+CHUNK_OVERLAP = 1_000
 
-def _check_length(text: str) -> None:
-    if len(text) > MAX_TEXT_LENGTH:
-        raise ExtractionError(
-            f"Page text is too large for single-shot LLM extraction "
-            f"({len(text)} chars, max {MAX_TEXT_LENGTH}) - likely a listing/index "
-            "page with many entries rather than a single topic; not attempted."
-        )
+
+def _split_into_chunks(text: str, max_length: int = MAX_TEXT_LENGTH, overlap: int = CHUNK_OVERLAP) -> List[str]:
+    """Text under max_length is returned as a single chunk (the common
+    case, and identical to the pre-chunking behavior). Otherwise splits on
+    the nearest paragraph/line break before the max_length cutoff where one
+    exists, so a chunk boundary doesn't land mid-word/mid-date - falling
+    back to a hard cut only when no such boundary is found (e.g. one huge
+    line with no whitespace)."""
+    if len(text) <= max_length:
+        return [text]
+
+    chunks = []
+    start = 0
+    n = len(text)
+    while start < n:
+        end = min(start + max_length, n)
+        if end < n:
+            boundary = text.rfind("\n\n", start, end)
+            if boundary <= start:
+                boundary = text.rfind("\n", start, end)
+            if boundary > start:
+                end = boundary
+        chunks.append(text[start:end])
+        if end >= n:
+            break
+        start = max(end - overlap, start + 1)  # always advance, even if overlap >= remaining chunk
+    return chunks
 
 
 _VAGUE_SEASON_WORDS = ("frühjahr", "fruehjahr", "sommer", "herbst", "winter")
+_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
 def _parse_json_array(raw: str) -> List[Dict[str, Any]]:
@@ -84,15 +114,11 @@ def _parse_json_array(raw: str) -> List[Dict[str, Any]]:
     return data
 
 
-def extract_dated_events(text: str) -> List[Dict[str, str]]:
-    """Returns a list of {"date": "YYYY-MM-DD", "label": str}, validated and
-    de-duplicated. Raises ExtractionError (missing config, API failure,
-    unparseable response) rather than returning empty/fabricated data on
-    failure - callers must surface that to the operator."""
-    if not text.strip():
-        return []
-    _check_length(text)
-
+def _extract_dated_events_chunk(text: str) -> List[Dict[str, str]]:
+    """One single-shot extraction call over a chunk already guaranteed to be
+    <= MAX_TEXT_LENGTH (see _split_into_chunks). Raises ExtractionError on
+    any failure, uncaught - one bad chunk fails the whole page rather than
+    silently dropping part of it."""
     prompt = f"Text:\n\n{text}\n\nExtrahiere alle Kalenderdaten als JSON-Array."
     try:
         raw = call_llm(prompt, system=SYSTEM_PROMPT)
@@ -102,14 +128,12 @@ def extract_dated_events(text: str) -> List[Dict[str, str]]:
     items = _parse_json_array(raw)
 
     events = []
-    seen = set()
-    date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
     for item in items:
         if not isinstance(item, dict):
             continue
         date = str(item.get("date", "")).strip()
         label = str(item.get("label", "")).strip()
-        if not date_pattern.match(date) or not label:
+        if not _DATE_PATTERN.match(date) or not label:
             continue
         # Despite explicit instructions not to, models reliably fabricate
         # "01-01" as a placeholder day/month for entries that only give a
@@ -121,13 +145,38 @@ def extract_dated_events(text: str) -> List[Dict[str, str]]:
         # Year's Day) is a real, common Jan-1st holiday.
         if date.endswith("-01-01") and any(season in label.lower() for season in _VAGUE_SEASON_WORDS):
             continue
-        key = (date, label)
+        events.append({"date": date, "label": label})
+
+    return events
+
+
+def extract_dated_events(text: str) -> List[Dict[str, str]]:
+    """Returns a list of {"date": "YYYY-MM-DD", "label": str}, validated,
+    de-duplicated and sorted. Raises ExtractionError (missing config, API
+    failure, unparseable response) rather than returning empty/fabricated
+    data on failure - callers must surface that to the operator.
+
+    Text over MAX_TEXT_LENGTH is split into overlapping chunks (see
+    _split_into_chunks), each extracted independently and merged here - the
+    overlap means the same entry can come back from two consecutive
+    chunks, which the dedup below removes same as it always has."""
+    if not text.strip():
+        return []
+
+    all_events: List[Dict[str, str]] = []
+    for chunk in _split_into_chunks(text):
+        all_events.extend(_extract_dated_events_chunk(chunk))
+
+    seen = set()
+    deduped = []
+    for event in sorted(all_events, key=lambda e: e["date"]):
+        key = (event["date"], event["label"])
         if key in seen:
             continue
         seen.add(key)
-        events.append({"date": date, "label": label})
+        deduped.append(event)
+    return deduped
 
-    return sorted(events, key=lambda e: e["date"])
 
 TAGS_SYSTEM_PROMPT = (
     "Du schlaegst Tags fuer eine Wann-Frage-Seite vor. Titel und Text koennen in "
@@ -326,10 +375,11 @@ def extract_subjects(text: str, hint: str) -> List[Dict[str, Any]]:
     failure (missing config, API failure, unparseable response), same
     contract as the other extract_*() functions here.
 
-    No _check_length() guard here (unlike extract_dated_events): like the
-    schulferien_kmk source this replaces, callers may pass raw, undecoded
-    HTML rather than cleaned text, so inputs are legitimately much larger for
-    the same real content."""
+    No chunking here (unlike extract_dated_events): like the schulferien_kmk
+    source this replaces, callers may pass raw, undecoded HTML rather than
+    cleaned text, so inputs are legitimately much larger for the same real
+    content - and a chunk boundary landing mid-subject would be far harder
+    to recover from than the flat date-list case chunking targets."""
     if not text.strip():
         return []
 

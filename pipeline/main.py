@@ -509,6 +509,27 @@ async def crawl_source_status(source_id: str):
     })
 
 
+@app.post("/crawl-sources/{source_id}/delete")
+async def delete_crawl_source(source_id: str):
+    """Removes config/crawl_sources/{source_id}.yaml only - review-state
+    history and anything already written to data/ are kept, same reasoning
+    as /pages/{path}/delete never touching review-state. A source can be
+    re-added later (see create_crawl_source) and picks its history back up
+    from review-state, since that's keyed by content_hash, not by whether
+    the config file exists."""
+    sources = crawl_config.load_all_crawl_sources()
+    source = sources.get(source_id)
+    if source is None:
+        return HTMLResponse("Not found", status_code=404)
+    if source_id in state.running_sources:
+        return HTMLResponse("This source is currently running - wait for it to finish first.", status_code=409)
+
+    source.config_path.unlink()
+    state.errors.pop(source_id, None)
+    state.last_result.pop(source_id, None)
+    return RedirectResponse("/crawl-sources", status_code=303)
+
+
 def _derive_path_prefix(seed_path: str) -> str:
     """A seed URL that points at one specific page (e.g. .../catalog/
     page.html - last segment looks like a filename) would scope the crawl

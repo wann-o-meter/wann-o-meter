@@ -7,7 +7,9 @@ FastAPI + Jinja2 SSR admin interface for the scoped crawler + review workflow.
 - **Scoped Crawler**: each source is a config file (`config/crawl_sources/<id>.yaml` -
   seed URL, allowed domains, path prefix, max depth, formats, category). Add one from the
   dashboard by pasting just the seed URL - ID/domain/category are derived from it, with an
-  Advanced section to override any of them - or hand-write the YAML file directly. Respects
+  Advanced section to override any of them - or hand-write the YAML file directly. Delete
+  removes only the config file - review-state history and anything already written to
+  `data/` are kept, so re-adding the same source later picks its history back up. Respects
   robots.txt and a per-domain rate limit.
 - **Staging + diff-based re-crawling**: every crawl's fetched documents and extracted
   candidates land in `staging/`, diffed against `review-state/` - already-approved/modified

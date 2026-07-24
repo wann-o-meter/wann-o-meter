@@ -40,11 +40,15 @@
                         <span class="empty-hint" style="padding:0;">never run</span>
                     {% endif %}
                 </td>
-                <td>
+                <td style="white-space:nowrap;">
                     <button type="button" class="btn btn-sm crawl-source-run-btn" data-source-id="{{ id }}"
                             {{ 'disabled' if id in running_sources else '' }}>
                         {{ 'Running…' if id in running_sources else 'Run' }}
                     </button>
+                    <form method="post" action="/crawl-sources/{{ id }}/delete" style="display:inline;"
+                          onsubmit="return confirm('Delete crawl source \'{{ id }}\'? This only removes the config file - review-state history and any pages already written to data/ are kept.');">
+                        <button type="submit" class="btn btn-sm btn-danger" {{ 'disabled' if id in running_sources else '' }}>Delete</button>
+                    </form>
                 </td>
             </tr>
             {% endfor %}

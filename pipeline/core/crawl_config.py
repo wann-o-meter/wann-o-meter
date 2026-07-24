@@ -72,7 +72,15 @@ def load_crawl_source(path: Path) -> CrawlSource:
     return source
 
 
-def load_all_crawl_sources(directory: Path = CRAWL_SOURCES_DIR) -> Dict[str, CrawlSource]:
+def load_all_crawl_sources(directory: Optional[Path] = None) -> Dict[str, CrawlSource]:
+    # directory=CRAWL_SOURCES_DIR as the default would bind that Path at
+    # *function definition* time - a test monkeypatching the module-level
+    # CRAWL_SOURCES_DIR afterward (the same pattern staging.STAGING_ROOT/
+    # review_state.REVIEW_STATE_ROOT rely on) would then silently keep
+    # reading the real directory. Resolving it inside the body instead
+    # reads whatever CRAWL_SOURCES_DIR currently is at call time.
+    if directory is None:
+        directory = CRAWL_SOURCES_DIR
     if not directory.exists():
         return {}
     return {p.stem: load_crawl_source(p) for p in sorted(directory.glob("*.yaml"))}
