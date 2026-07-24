@@ -18,7 +18,7 @@ import shutil
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 from urllib.parse import urlparse
 
 import uvicorn
@@ -94,6 +94,7 @@ class PipelineState:
         self.running_sources: Set[str] = set()
         self.errors: Dict[str, str] = {}
         self.last_result: Dict[str, dict] = {}
+        self.progress: Dict[str, str] = {}
 
     def to_dict(self) -> dict:
         return {
@@ -354,6 +355,46 @@ def _latest_run_ts(source_id: str) -> Optional[str]:
     return run_dirs[0] if run_dirs else None
 
 
+def _build_url_tree(urls: List[str]) -> Dict[str, Any]:
+    """Nests URLs by domain then path segment - {"children": {segment:
+    node, ...}, "urls": [...]}. "urls" on a node is non-empty only when
+    that exact path was itself crawled (not just an ancestor of a crawled
+    path); a node can have both its own urls AND children."""
+    root: Dict[str, Any] = {"children": {}, "urls": []}
+    for url in urls:
+        parsed = urlparse(url)
+        segments = [parsed.netloc] + [s for s in parsed.path.split("/") if s]
+        node = root
+        for segment in segments:
+            node = node["children"].setdefault(segment, {"children": {}, "urls": []})
+        node["urls"].append(url)
+    return root
+
+
+def _flatten_tree(node: Dict[str, Any], depth: int = 0) -> List[Dict[str, Any]]:
+    """Depth-first pre-order flattening of _build_url_tree's output into
+    {"depth", "label", "urls"} rows - simpler to render as an indented flat
+    list (CSS padding-left per row) than as a Jinja recursive macro."""
+    rows = []
+    for label in sorted(node["children"]):
+        child = node["children"][label]
+        rows.append({"depth": depth, "label": label, "urls": child["urls"]})
+        rows.extend(_flatten_tree(child, depth + 1))
+    return rows
+
+
+def _crawled_pages_tree(source_id: str) -> List[Dict[str, Any]]:
+    """Flattened rows for the crawl source's "Pages" view - what the most
+    recent run actually reached, nested under the seed URL (shown
+    separately by the caller, not as a tree row itself). Empty if the
+    source has never been run."""
+    run_ts = _latest_run_ts(source_id)
+    if run_ts is None:
+        return []
+    docs = staging.list_documents(source_id, run_ts)
+    return _flatten_tree(_build_url_tree([doc["url"] for doc in docs]))
+
+
 def _known_source_ids() -> List[str]:
     """Every source_id with either a crawl_sources/*.yaml config or an
     existing staging/ directory - the latter covers sources.yaml-based
@@ -429,17 +470,21 @@ def _load_candidate(source_id: str, run_ts: str, candidate_id: str) -> Optional[
 
 
 def _run_crawl_source_and_record(source_id: str) -> None:
+    def report(msg: str) -> None:
+        state.progress[source_id] = msg
+
     try:
         source = crawl_config.load_all_crawl_sources().get(source_id)
         if source is None:
             raise ValueError(f"Unknown crawl source '{source_id}'")
-        result = crawl_runner.run(source)
+        result = crawl_runner.run(source, on_progress=report)
         state.last_result[source_id] = result
         state.errors.pop(source_id, None)
     except Exception as e:
         state.errors[source_id] = str(e)[:300]
     finally:
         state.running_sources.discard(source_id)
+        state.progress.pop(source_id, None)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -506,6 +551,24 @@ async def crawl_source_status(source_id: str):
         "running": source_id in state.running_sources,
         "error": state.errors.get(source_id),
         "result": state.last_result.get(source_id),
+        "progress": state.progress.get(source_id),
+    })
+
+
+@app.get("/crawl-sources/{source_id}/pages", response_class=HTMLResponse)
+async def crawl_source_pages(request: Request, source_id: str):
+    """Shows which pages the most recent run actually reached, as a tree
+    nested under the seed URL - lets an operator sanity-check the crawl's
+    real scope/depth without digging through pipeline/staging/ by hand."""
+    source = crawl_config.load_all_crawl_sources().get(source_id)
+    if source is None:
+        return HTMLResponse("Not found", status_code=404)
+    return templates.TemplateResponse(request, "crawl_source_pages.html", {
+        "active_nav": "crawl-sources",
+        "state": state.to_dict(),
+        "source_id": source_id,
+        "seed_url": source.seed_url,
+        "rows": _crawled_pages_tree(source_id),
     })
 
 

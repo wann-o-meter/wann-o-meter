@@ -56,6 +56,28 @@ def test_oversized_text_is_chunked_into_multiple_llm_calls():
     ]
 
 
+def test_on_progress_reports_each_chunk_before_calling_the_llm():
+    messages = []
+    with patch("core.extraction.call_llm") as mock_call:
+        mock_call.side_effect = ["[]", "[]"]
+        extract_dated_events("x" * (MAX_TEXT_LENGTH + 1), on_progress=messages.append)
+
+    assert len(messages) == 2
+    assert "chunk 1/2" in messages[0]
+    assert "chunk 2/2" in messages[1]
+    assert str(MAX_TEXT_LENGTH) in messages[0]  # first chunk is exactly at the limit
+
+
+def test_on_progress_omits_the_chunk_suffix_for_a_single_chunk():
+    messages = []
+    with patch("core.extraction.call_llm") as mock_call:
+        mock_call.return_value = "[]"
+        extract_dated_events("short text", on_progress=messages.append)
+
+    assert len(messages) == 1
+    assert "chunk" not in messages[0]
+
+
 def test_duplicate_entries_from_the_overlapping_region_are_deduped():
     with patch("core.extraction.call_llm") as mock_call:
         mock_call.side_effect = [

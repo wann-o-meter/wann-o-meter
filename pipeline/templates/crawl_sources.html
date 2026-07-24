@@ -87,6 +87,8 @@
                 fetch(`/crawl-sources/${encodeURIComponent(sourceId)}/status`)
                     .then((res) => res.json())
                     .then((status) => {
+                        const progressEl = document.querySelector(`.crawl-source-progress[data-source-id="${CSS.escape(sourceId)}"]`);
+                        if (progressEl) progressEl.textContent = status.progress || '';
                         if (!status.running || attempts >= 300) {
                             clearInterval(timer);
                             if (status.error) alert(`Crawl failed for ${sourceId}: ` + status.error);
@@ -103,6 +105,25 @@
             const sourceId = runBtn.dataset.sourceId;
             runBtn.disabled = true;
             runBtn.textContent = "Running…";
+
+            // Rebuild the status cell immediately (not just on the next poll
+            // tick) so the progress span exists right away - this button's
+            // row was rendered before running_sources included this source,
+            // so the server-rendered markup doesn't have one yet.
+            const statusCell = document.querySelector(`[data-status-cell="${CSS.escape(sourceId)}"]`);
+            if (statusCell) {
+                statusCell.textContent = '';
+                const runningSpan = document.createElement('span');
+                runningSpan.className = 'running';
+                runningSpan.textContent = 'Running…';
+                const progressSpan = document.createElement('span');
+                progressSpan.className = 'crawl-source-progress';
+                progressSpan.dataset.sourceId = sourceId;
+                progressSpan.style.cssText = 'font-size:0.8rem; color:var(--muted); display:block;';
+                statusCell.appendChild(runningSpan);
+                statusCell.appendChild(progressSpan);
+            }
+
             fetch(`/crawl-sources/${encodeURIComponent(sourceId)}/run`, { method: 'POST' })
                 .then((res) => res.json().then((body) => ({ ok: res.ok, body })))
                 .then(({ ok, body }) => {

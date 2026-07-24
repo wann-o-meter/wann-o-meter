@@ -23,9 +23,10 @@
                 <td>{{ source.allowed_domains | join(', ') }}{% if source.path_prefix %}{{ source.path_prefix }}{% endif %}</td>
                 <td>{{ source.max_depth }}</td>
                 <td>{{ source.schedule }}</td>
-                <td>
+                <td data-status-cell="{{ id }}">
                     {% if id in running_sources %}
                         <span class="running">Running…</span>
+                        <br><span class="crawl-source-progress" data-source-id="{{ id }}" style="font-size:0.8rem; color:var(--muted);"></span>
                     {% elif errors.get(id) %}
                         <span style="color:var(--accent);">Error: {{ errors[id] }}</span>
                     {% elif last_result.get(id) %}
@@ -45,6 +46,7 @@
                             {{ 'disabled' if id in running_sources else '' }}>
                         {{ 'Running…' if id in running_sources else 'Run' }}
                     </button>
+                    <a href="/crawl-sources/{{ id }}/pages" class="btn btn-sm">Pages</a>
                     <form method="post" action="/crawl-sources/{{ id }}/delete" style="display:inline;"
                           onsubmit="return confirm('Delete crawl source \'{{ id }}\'? This only removes the config file - review-state history and any pages already written to data/ are kept.');">
                         <button type="submit" class="btn btn-sm btn-danger" {{ 'disabled' if id in running_sources else '' }}>Delete</button>

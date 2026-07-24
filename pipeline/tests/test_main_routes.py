@@ -358,3 +358,57 @@ class TestDeleteCrawlSource:
             assert response.status_code == 409
         finally:
             main.state.running_sources.discard("stuttgart-veranstaltungen")
+
+
+class TestBuildAndFlattenUrlTree:
+    def test_flattens_a_shared_domain_into_nested_path_rows(self):
+        tree = main._build_url_tree([
+            "https://example.org/veranstaltungen/2026",
+            "https://example.org/veranstaltungen/archiv",
+        ])
+        rows = main._flatten_tree(tree)
+
+        assert rows[0] == {"depth": 0, "label": "example.org", "urls": []}
+        by_label = {r["label"]: r for r in rows}
+        assert by_label["2026"]["depth"] == 2
+        assert by_label["2026"]["urls"] == ["https://example.org/veranstaltungen/2026"]
+        assert by_label["archiv"]["urls"] == ["https://example.org/veranstaltungen/archiv"]
+
+    def test_a_path_that_is_both_a_page_and_a_parent_keeps_both(self):
+        tree = main._build_url_tree([
+            "https://example.org/veranstaltungen",
+            "https://example.org/veranstaltungen/2026",
+        ])
+        rows = main._flatten_tree(tree)
+        by_label = {r["label"]: r for r in rows}
+
+        assert by_label["veranstaltungen"]["urls"] == ["https://example.org/veranstaltungen"]
+        assert by_label["2026"]["depth"] == 2
+
+    def test_empty_input_flattens_to_no_rows(self):
+        assert main._flatten_tree(main._build_url_tree([])) == []
+
+
+class TestCrawlSourcePages:
+    def test_shows_the_seed_url_and_a_tree_of_crawled_documents(self, client, tmp_path):
+        client.post("/crawl-sources/new", data=FULL_NEW_SOURCE_FORM)
+        staging.write_document(
+            "stuttgart-veranstaltungen", "20260724-000000",
+            "https://example.org/veranstaltungen/2026", "text/html", b"<html>x</html>",
+        )
+
+        response = client.get("/crawl-sources/stuttgart-veranstaltungen/pages")
+
+        assert response.status_code == 200
+        assert "example.org/veranstaltungen" in response.text or "veranstaltungen" in response.text
+        assert "2026" in response.text
+
+    def test_404s_for_an_unknown_source(self, client):
+        response = client.get("/crawl-sources/does-not-exist/pages")
+        assert response.status_code == 404
+
+    def test_shows_an_empty_hint_when_never_run(self, client):
+        client.post("/crawl-sources/new", data=FULL_NEW_SOURCE_FORM)
+        response = client.get("/crawl-sources/stuttgart-veranstaltungen/pages")
+        assert response.status_code == 200
+        assert "No run yet" in response.text

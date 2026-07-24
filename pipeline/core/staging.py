@@ -23,7 +23,7 @@ import hashlib
 import re
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import yaml
 
@@ -125,3 +125,14 @@ def write_candidate(source_id: str, run_ts: str, candidate: Dict[str, Any]) -> P
 def read_document_meta(source_id: str, run_ts: str, doc_hash: str) -> Dict[str, Any]:
     meta_path = _run_dir(source_id, run_ts) / "documents" / f"{doc_hash}.meta.yaml"
     return yaml.safe_load(meta_path.read_text(encoding="utf-8"))
+
+
+def list_documents(source_id: str, run_ts: str) -> List[Dict[str, Any]]:
+    """Every document's metadata for one run, sorted by url - used by the
+    Crawl Sources dashboard's page-tree view (main.py) to show what a crawl
+    actually reached, hierarchically under the seed URL."""
+    documents_dir = _run_dir(source_id, run_ts) / "documents"
+    if not documents_dir.exists():
+        return []
+    metas = [yaml.safe_load(p.read_text(encoding="utf-8")) for p in documents_dir.glob("*.meta.yaml")]
+    return sorted(metas, key=lambda m: m["url"])

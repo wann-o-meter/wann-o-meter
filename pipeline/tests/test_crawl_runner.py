@@ -149,7 +149,7 @@ def test_an_llm_extraction_failure_is_reported_not_silently_swallowed(monkeypatc
     )
     monkeypatch.setattr(
         crawl_runner, "extract_dated_events",
-        lambda text: (_ for _ in ()).throw(ExtractionError("LLM call failed: missing API key")),
+        lambda text, on_progress=None: (_ for _ in ()).throw(ExtractionError("LLM call failed: missing API key")),
     )
 
     result = crawl_runner.run(_source(formats=["html"]))
@@ -157,3 +157,16 @@ def test_an_llm_extraction_failure_is_reported_not_silently_swallowed(monkeypatc
     assert result["documents"] == 1
     assert result["candidates"] == 0
     assert result["extraction_errors"] == ["https://example.org/events.html: LLM call failed: missing API key"]
+
+
+def test_on_progress_is_called_with_crawl_and_per_document_updates(monkeypatch):
+    monkeypatch.setattr(
+        crawl_runner, "crawl",
+        lambda source: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
+    )
+    messages = []
+
+    crawl_runner.run(_source(), on_progress=messages.append)
+
+    assert any("Crawling" in m for m in messages)
+    assert any("Extracting document 1/1" in m for m in messages)

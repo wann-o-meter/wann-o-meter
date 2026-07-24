@@ -16,7 +16,7 @@ core/extraction.py's extract_dated_events, guided by the source's own
 event_type_hint."""
 
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 from core import approval, review_state, staging
 from core.crawl_config import CrawlSource
@@ -39,7 +39,7 @@ def _default_quelle(url: str) -> Dict[str, Any]:
     }
 
 
-def _windows_from_document(doc: CrawledDocument) -> List[Dict[str, Any]]:
+def _windows_from_document(doc: CrawledDocument, on_progress: Optional[Callable[[str], None]] = None) -> List[Dict[str, Any]]:
     """Raises ExtractionError (rather than swallowing it) if the LLM call
     itself fails, e.g. a missing API key for the configured LLM_PROVIDER -
     see run()'s per-document try/except, which turns that into a reported
@@ -55,7 +55,7 @@ def _windows_from_document(doc: CrawledDocument) -> List[Dict[str, Any]]:
         text = result.get("clean_markdown_full") or result.get("clean_markdown_preview", "")
         if not text.strip():
             return []
-        events = extract_dated_events(text)
+        events = extract_dated_events(text, on_progress=on_progress)
         return [
             {
                 "type": "event",
@@ -72,16 +72,28 @@ def _windows_from_document(doc: CrawledDocument) -> List[Dict[str, Any]]:
     return []
 
 
-def run(source: CrawlSource) -> Dict[str, Any]:
+def run(source: CrawlSource, on_progress: Optional[Callable[[str], None]] = None) -> Dict[str, Any]:
+    """on_progress, if given, is called with a short human-readable status
+    string at each meaningful step - main.py's dashboard wires this to a
+    per-source status the Crawl Sources table polls, so a slow run (several
+    LLM calls for a large chunked page) shows more than a static
+    "Running..." for however long that takes."""
+    def report(msg: str) -> None:
+        if on_progress:
+            on_progress(msg)
+
     run_ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    report(f"Crawling {source.seed_url}...")
     documents = crawl(source)
+    report(f"Crawled {len(documents)} document(s), extracting...")
 
     all_candidates: List[Dict[str, Any]] = []
     extraction_errors: List[str] = []
-    for doc in documents:
+    for i, doc in enumerate(documents, start=1):
         doc_hash = staging.write_document(source.id, run_ts, doc.url, doc.content_type, doc.content)
+        report(f"Extracting document {i}/{len(documents)}: {doc.url}")
         try:
-            windows = _windows_from_document(doc)
+            windows = _windows_from_document(doc, on_progress=report)
         except ExtractionError as e:
             extraction_errors.append(f"{doc.url}: {e}")
             continue
@@ -90,6 +102,7 @@ def run(source: CrawlSource) -> Dict[str, Any]:
             staging.write_candidate(source.id, run_ts, candidate)
             all_candidates.append(candidate)
 
+    report("Diffing against review-state...")
     state = review_state.load(source.id)
     auto_waved_through, needs_review, disappeared = review_state.diff(all_candidates, state)
 

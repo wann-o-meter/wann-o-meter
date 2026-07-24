@@ -16,7 +16,7 @@ means, not a general-purpose extraction framework."""
 
 import json
 import re
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 from core.llm import call_llm
 
@@ -150,7 +150,7 @@ def _extract_dated_events_chunk(text: str) -> List[Dict[str, str]]:
     return events
 
 
-def extract_dated_events(text: str) -> List[Dict[str, str]]:
+def extract_dated_events(text: str, on_progress: Optional[Callable[[str], None]] = None) -> List[Dict[str, str]]:
     """Returns a list of {"date": "YYYY-MM-DD", "label": str}, validated,
     de-duplicated and sorted. Raises ExtractionError (missing config, API
     failure, unparseable response) rather than returning empty/fabricated
@@ -159,12 +159,21 @@ def extract_dated_events(text: str) -> List[Dict[str, str]]:
     Text over MAX_TEXT_LENGTH is split into overlapping chunks (see
     _split_into_chunks), each extracted independently and merged here - the
     overlap means the same entry can come back from two consecutive
-    chunks, which the dedup below removes same as it always has."""
+    chunks, which the dedup below removes same as it always has.
+
+    on_progress, if given, is called once per chunk before its LLM call -
+    a large page can turn into several slow round trips, and a caller
+    (crawl_runner.run() -> main.py's dashboard) wants to show something more
+    informative than just "Running..." for however long that takes."""
     if not text.strip():
         return []
 
+    chunks = _split_into_chunks(text)
     all_events: List[Dict[str, str]] = []
-    for chunk in _split_into_chunks(text):
+    for i, chunk in enumerate(chunks, start=1):
+        if on_progress:
+            suffix = f" (chunk {i}/{len(chunks)})" if len(chunks) > 1 else ""
+            on_progress(f"Calling LLM on {len(chunk)} chars{suffix}...")
         all_events.extend(_extract_dated_events_chunk(chunk))
 
     seen = set()
