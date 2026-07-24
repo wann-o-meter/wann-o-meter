@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, toDate } from "./format-date";
+import { formatDate, formatDateWithWeekday, toDate } from "./format-date";
 
 describe("toDate", () => {
   it("parses a day-resolution date at midnight UTC", () => {
@@ -16,5 +16,15 @@ describe("toDate", () => {
 
   it("formats both resolutions as the same day", () => {
     expect(formatDate("2026-05-01T06:30")).toBe(formatDate("2026-05-01"));
+  });
+});
+
+describe("formatDateWithWeekday", () => {
+  it("shows no time for a day-resolution date", () => {
+    expect(formatDateWithWeekday("2026-05-01")).toBe("Fr., 01.05.2026");
+  });
+
+  it("appends the clock time for a minute-resolution date", () => {
+    expect(formatDateWithWeekday("2026-05-01T06:30")).toBe("Fr., 01.05.2026, 06:30 UTC");
   });
 });

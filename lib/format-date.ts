@@ -22,11 +22,16 @@ export function formatDate(iso: string): string {
 }
 
 export function formatDateWithWeekday(iso: string): string {
-  return toDate(iso).toLocaleDateString("de-DE", {
+  const day = toDate(iso).toLocaleDateString("de-DE", {
     weekday: "short",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     timeZone: "UTC",
   });
+  // Only the minute form has a clock time to show. Sliced off the source
+  // string rather than re-formatted, so what a page shows is literally what
+  // its data.yaml says - "UTC" is spelled out because that's the one thing a
+  // bare "06:30" wouldn't tell a reader (see toDate).
+  return iso.length > 10 ? `${day}, ${iso.slice(11, 16)} UTC` : day;
 }
