@@ -25,14 +25,18 @@
                 <td>{{ source.schedule }}</td>
                 <td data-status-cell="{{ id }}">
                     {% if id in running_sources %}
+                        {# Server-rendered from state.progress so a reload shows where the run
+                           actually is, not a bare "Running…" - the poll below keeps it moving. #}
+                        {% set p = progress.get(id) if progress else None %}
                         <span class="running">Running…</span>
-                        <br><span class="crawl-source-progress" data-source-id="{{ id }}" style="font-size:0.8rem; color:var(--muted);"></span>
+                        <br><span class="crawl-source-progress" data-source-id="{{ id }}" style="font-size:0.8rem; color:var(--muted);">{% if p %}<strong>{{ p.phase | capitalize }}: </strong>{{ p.detail }}{% endif %}</span>
                     {% elif errors.get(id) %}
                         <span style="color:var(--accent);">Error: {{ errors[id] }}</span>
                     {% elif last_result.get(id) %}
                         {% set r = last_result[id] %}
                         {{ r.documents }} docs, {{ r.candidates }} candidates,
-                        {{ r.auto_approved }} auto-approved, {{ r.needs_review }} to review
+                        {{ r.reconfirmed }} re-confirmed (approved in an earlier run),
+                        {{ r.needs_review }} to review
                         {% if r.disappeared %}, {{ r.disappeared }} disappeared{% endif %}
                         {% if r.extraction_errors %}
                         <br><span style="color:var(--accent);">{{ r.extraction_errors | length }} extraction error(s): {{ r.extraction_errors[0] }}</span>
@@ -46,11 +50,22 @@
                             {{ 'disabled' if id in running_sources else '' }}>
                         {{ 'Running…' if id in running_sources else 'Run' }}
                     </button>
-                    <a href="/crawl-sources/{{ id }}/pages" class="btn btn-sm">Pages</a>
+                    <button type="button" class="btn btn-sm crawl-source-pages-btn" data-source-id="{{ id }}">Pages</button>
                     <form method="post" action="/crawl-sources/{{ id }}/delete" style="display:inline;"
                           onsubmit="return confirm('Delete crawl source \'{{ id }}\'? This only removes the config file - review-state history and any pages already written to data/ are kept.');">
                         <button type="submit" class="btn btn-sm btn-danger" {{ 'disabled' if id in running_sources else '' }}>Delete</button>
                     </form>
+                </td>
+            </tr>
+            {# Per-source page list, filled by JS from /crawl-sources/{id}/status
+               (live while running, last run's rows afterwards). A row rather than
+               its own page: "which pages did this source actually reach" is only
+               ever asked about a source you're already looking at. #}
+            <tr class="crawl-source-pages-row" data-source-id="{{ id }}" hidden>
+                <td colspan="8" style="background:var(--surface-2, transparent); padding:0.5rem 0.75rem;">
+                    <div class="crawl-source-pages" data-source-id="{{ id }}">
+                        <span class="empty-hint" style="padding:0;">Loading…</span>
+                    </div>
                 </td>
             </tr>
             {% endfor %}

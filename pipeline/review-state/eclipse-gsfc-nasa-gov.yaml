@@ -1,0 +1,1814 @@
+decisions:
+  00b2072c238681e5f0aa18a67d66ac07e943ce55b024dd2968ee697feac03b31:
+    status: approved
+    decided_at: '2026-07-24T18:59:15.578114+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1956
+      from: '1956-12-02'
+      to: '1956-12-02'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  012398533adefcd62b5bfa68680003d782f19160e6e63407dc72bf3a2a61cedf:
+    status: approved
+    decided_at: '2026-07-24T19:17:32.782419+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1936
+      from: '1936-12-13'
+      to: '1936-12-13'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  0138c6e10b718eedd75a50698867bec2b71f09a29081087c07c651246cf5357b:
+    status: approved
+    decided_at: '2026-07-24T19:17:35.389120+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1968
+      from: '1968-03-28'
+      to: '1968-03-28'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  01fe6604c481050dea9471cf3a534740fd5c349ec46f19e4cfff567d2a4b2314:
+    status: approved
+    decided_at: '2026-07-24T19:17:43.004841+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1986
+      from: '1986-10-03'
+      to: '1986-10-03'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  0259489d8ad3f26f007f013eda7fccdcb4cf3a47859925688c808d8241ee6c4d:
+    status: approved
+    decided_at: '2026-07-24T19:17:46.417834+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1934
+      from: '1934-02-14'
+      to: '1934-02-14'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  027b8f59b39eb975f0b2bb0c34acc5a6a90bc8178f0a1d5c9972aa27160f20e7:
+    status: approved
+    decided_at: '2026-07-24T19:17:48.457023+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1991
+      from: '1991-01-15'
+      to: '1991-01-15'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  02daa058b995d34d8eb6af35446c33bee204a4b841c97f6a0cd7131dbd5315dc:
+    status: approved
+    decided_at: '2026-07-24T19:17:49.813838+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1949
+      from: '1949-10-21'
+      to: '1949-10-21'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  030986984b1af7cb8b1101684df6fa5bb7b1968e48766a1d669b46a8e85bbf4d:
+    status: approved
+    decided_at: '2026-07-24T19:17:52.747190+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1955
+      from: '1955-06-20'
+      to: '1955-06-20'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  05544ce69cef6b0e5be85fdfb3f07ccf87c09ca3aede56611c41bd56feacc8e9:
+    status: approved
+    decided_at: '2026-07-24T19:17:56.765001+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1939
+      from: '1939-04-19'
+      to: '1939-04-19'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  05a4643cbcecb4dcbf1cecf4e30bb48f9d4e16afbd9dfc091a32181f4f8ed355:
+    status: approved
+    decided_at: '2026-07-24T19:17:59.482076+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1980
+      from: '1980-08-10'
+      to: '1980-08-10'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  05d16e784142a2a3d5655c556cea60c6eeda692ed9780751e546e3695327c7b7:
+    status: approved
+    decided_at: '2026-07-24T19:18:03.023100+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1988
+      from: '1988-09-11'
+      to: '1988-09-11'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  0684d7c2d3bfd80b0848ecdb33cc06207dd15a7c42a23879a26d0dbc997a54d9:
+    status: approved
+    decided_at: '2026-07-24T19:18:07.117511+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1951
+      from: '1951-03-07'
+      to: '1951-03-07'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  09ab370bd67e19d3e7e37e3e04fbbcccd50f89045cb5683f719604322cfa2652:
+    status: approved
+    decided_at: '2026-07-24T19:18:07.770272+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1957
+      from: '1957-10-23'
+      to: '1957-10-23'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  0b4518adfbc729a4c2127c96311c090b7e4d8864aa747cb64f963710cda5cced:
+    status: approved
+    decided_at: '2026-07-24T19:18:08.498158+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1971
+      from: '1971-08-20'
+      to: '1971-08-20'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  0b82524a44f5e9e1f27d3eea77f9f4f5c27ed8f6048457d2d06cf973cb4078eb:
+    status: approved
+    decided_at: '2026-07-24T19:18:09.240959+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1982
+      from: '1982-01-25'
+      to: '1982-01-25'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  0c686a621c08c853f427db2fa8d35275f26f74a8f854f4094b074ba4a8f96d64:
+    status: approved
+    decided_at: '2026-07-24T19:18:10.026560+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1953
+      from: '1953-02-14'
+      to: '1953-02-14'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  1a6dda1889c15e7c7a971893ab950b04979b6f6c811a7fa948bd4e9741330128:
+    status: approved
+    decided_at: '2026-07-24T19:18:11.192883+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1973
+      from: '1973-06-30'
+      to: '1973-06-30'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  1e6eda91018458959b714c5770a72931df61768a3f6c64dac40a5c1f28089a53:
+    status: approved
+    decided_at: '2026-07-24T19:18:15.723566+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1960
+      from: '1960-09-20'
+      to: '1960-09-20'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  1fb4c9f8ca3bcd5e5eafba659864c8864c8ca14390f16c3d41fbeaaa5a43e2ac:
+    status: approved
+    decided_at: '2026-07-24T19:18:17.406833+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1960
+      from: '1960-03-27'
+      to: '1960-03-27'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  204ea23d0ac5488082ca70bfe4cc7138c7d79761d789b7d57511a804124bd430:
+    status: approved
+    decided_at: '2026-07-24T19:18:18.981753+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1933
+      from: '1933-08-21'
+      to: '1933-08-21'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  20af7d73ba3ca9cf47e2dc902ac5be55d0a8c7578c67df44bd405a189cb04761:
+    status: approved
+    decided_at: '2026-07-24T19:18:21.461274+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1974
+      from: '1974-12-13'
+      to: '1974-12-13'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  219cfa6777f1c1ee4961ce2c06c8b7f16aa498613dd1e98893dc67b167c59392:
+    status: approved
+    decided_at: '2026-07-24T19:18:23.144750+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1979
+      from: '1979-02-26'
+      to: '1979-02-26'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  22193dc884cba772198dabd374298a47028889eb33c4eda723f38fcb9afa7c46:
+    status: approved
+    decided_at: '2026-07-24T19:18:24.606526+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1964
+      from: '1964-07-09'
+      to: '1964-07-09'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  237e543bd1d9a64b7d1e4d7da892ff75b232d166bc05765cdfc654a98ea22cf3:
+    status: approved
+    decided_at: '2026-07-24T19:18:26.227055+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1950
+      from: '1950-03-18'
+      to: '1950-03-18'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  239401086394dd3955a3794fb6e00ee82f0bcbbfe33fbe5c60a5a98e5bd8dd8f:
+    status: approved
+    decided_at: '2026-07-24T19:18:27.708248+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1963
+      from: '1963-07-20'
+      to: '1963-07-20'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  2424ccdd3f04dc4dce155ecf74e4b73ebf498268045e0f4e8fa5156c91889239:
+    status: approved
+    decided_at: '2026-07-24T19:18:29.096790+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1944
+      from: '1944-07-20'
+      to: '1944-07-20'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  25ee42075e75e9400ee2a18fd3c8e8cfa9b0a8d8c68116a7eb8e36982f84c815:
+    status: approved
+    decided_at: '2026-07-24T19:18:34.908331+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1976
+      from: '1976-04-29'
+      to: '1976-04-29'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  26cca22f595267c91e9b495bfa3cb83fd20ed9fe9a37609976770ef64681364c:
+    status: approved
+    decided_at: '2026-07-24T19:18:37.936195+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1946
+      from: '1946-06-29'
+      to: '1946-06-29'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  26d59ed872b4b83c66d0bc56d2fda26ea1b19d5560b0227543a1fb4aaf0f4d4d:
+    status: approved
+    decided_at: '2026-07-24T19:18:41.347456+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1983
+      from: '1983-06-11'
+      to: '1983-06-11'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  27ca7cd5a96ba21a0688fb256e92d8d2f7858387cdc06b5963429eb07f332d69:
+    status: approved
+    decided_at: '2026-07-24T19:18:43.228289+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1961
+      from: '1961-08-11'
+      to: '1961-08-11'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  2892c23786aadb024a7012f579792268b477fdc5ed6a8fcffd9a4dd367d49679:
+    status: approved
+    decided_at: '2026-07-24T19:19:04.124438+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1999
+      from: '1999-02-16'
+      to: '1999-02-16'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  28e5ecd316bb0a9bab232c9242a319e8e1714805ec7ecae02ff30d229668e3c1:
+    status: approved
+    decided_at: '2026-07-24T19:19:06.098048+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1940
+      from: '1940-04-07'
+      to: '1940-04-07'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  2aca9f87e056702619016d8cea3b71f1bfdf8957ad574ee42f720c1e509adbb0:
+    status: approved
+    decided_at: '2026-07-24T19:19:07.666492+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1940
+      from: '1940-10-01'
+      to: '1940-10-01'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  2b526a83721c877f79975084042c72f27115fd16b58c9bd260a667f024f02bce:
+    status: approved
+    decided_at: '2026-07-24T19:19:09.837193+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1929
+      from: '1929-05-09'
+      to: '1929-05-09'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  2c44914717988915fa7c366ea2d47bb32a18255aa2e0b293e643aed2def0c5cc:
+    status: approved
+    decided_at: '2026-07-24T19:19:12.100856+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1947
+      from: '1947-05-20'
+      to: '1947-05-20'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  2d7fe745134b897a81a4b528ff3f8ede68e6d8915fe342a79d6db683421f11e9:
+    status: approved
+    decided_at: '2026-07-24T19:19:13.954077+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1971
+      from: '1971-02-25'
+      to: '1971-02-25'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  321dec829dc673c47141fa8728be1c0802c9e7ad9c6f21cebd97f8b6290e0808:
+    status: approved
+    decided_at: '2026-07-24T19:19:15.743153+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1967
+      from: '1967-05-09'
+      to: '1967-05-09'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  33461dd363788c54bd36f4d5098869d6be70d1576eb0c3d71954398a7f589d0e:
+    status: approved
+    decided_at: '2026-07-24T19:19:17.158156+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1979
+      from: '1979-08-22'
+      to: '1979-08-22'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  33fa5d6a5f672321d15554cbf4aecd31392f7c61bc5972b8deee4544fb0e4b2a:
+    status: approved
+    decided_at: '2026-07-24T19:19:33.329143+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1933
+      from: '1933-02-24'
+      to: '1933-02-24'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  363d2cfa58f458e84dbf8887ec28983aea6ae54465996d4dfdf99e7d9e5cc8e4:
+    status: approved
+    decided_at: '2026-07-24T19:19:36.635910+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1932
+      from: '1932-08-31'
+      to: '1932-08-31'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  372cc49393ff982802d9d5dff1941a71007d849ec21a0d62861526fbb89d539a:
+    status: approved
+    decided_at: '2026-07-24T19:19:38.791992+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1988
+      from: '1988-03-18'
+      to: '1988-03-18'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  39d5476e0b5645b631e5c21be5d4eb3789be426f4ba4b3907ce1d448f668d5a8:
+    status: approved
+    decided_at: '2026-07-24T19:19:40.359444+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1934
+      from: '1934-08-10'
+      to: '1934-08-10'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  3a1a84f6ed33a2880e8f90961a628db142cbb515ead835f6454c691570f73457:
+    status: approved
+    decided_at: '2026-07-24T19:19:42.057108+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1984
+      from: '1984-11-22'
+      to: '1984-11-22'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  3b1b593598887c073f37936c0b2b1df503de5d957fcaa1272302e8b2caa73009:
+    status: approved
+    decided_at: '2026-07-24T19:19:44.187592+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1939
+      from: '1939-10-12'
+      to: '1939-10-12'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  3b1e8be2efcbd9ec055009faeb15b3a5277eb6a898faa140846cec3b50d445ad:
+    status: approved
+    decided_at: '2026-07-24T19:19:46.744504+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1950
+      from: '1950-09-12'
+      to: '1950-09-12'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  3c16e26f21966d48c8873dff0cd8ef6d9e3258fcc9a6113f0edfabe6efc3d543:
+    status: approved
+    decided_at: '2026-07-24T19:19:49.433402+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1971
+      from: '1971-07-22'
+      to: '1971-07-22'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  3e3dafbd71d8fa79820905faaa16437a44e2631dde065219a8e71116a037d044:
+    status: approved
+    decided_at: '2026-07-24T19:19:54.512619+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1994
+      from: '1994-11-03'
+      to: '1994-11-03'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  3f0c947e8f4b7e29cbf78cb9f97688ae17c9bcf157d614f5ef7aae4747432af1:
+    status: approved
+    decided_at: '2026-07-24T19:19:56.506521+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1982
+      from: '1982-06-21'
+      to: '1982-06-21'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  3f6b7890747d77b0081b299958f66a6d656e7c4c19fa39ffc58ab8b13a4c80c9:
+    status: approved
+    decided_at: '2026-07-24T19:19:57.820844+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1927
+      from: '1927-01-03'
+      to: '1927-01-03'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  415c68e78e6ccb3d3666d381beecd2d40ce662d297e886cbc0aa072ff5943f22:
+    status: approved
+    decided_at: '2026-07-24T19:19:58.918623+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1921
+      from: '1921-04-08'
+      to: '1921-04-08'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  429ad2b8067b9fd9dcd05f467039d958cc5b3596592297fbe50774c2222cb08e:
+    status: approved
+    decided_at: '2026-07-24T19:19:59.920243+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1930
+      from: '1930-04-28'
+      to: '1930-04-28'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  4344045561ba1eb85e0dbd790944c179c94048628d1a986d50924477d40a1a45:
+    status: approved
+    decided_at: '2026-07-24T19:20:01.757768+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1919
+      from: '1919-05-29'
+      to: '1919-05-29'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  45f3834c73b6386a888fad8b9fd11b8125519d6673a3699d17639c404e4b9502:
+    status: approved
+    decided_at: '2026-07-24T19:20:02.681891+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1981
+      from: '1981-02-04'
+      to: '1981-02-04'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  46646099ff4e95e17e21761410a7c28ef5bccb294fb19c44ac9192698ed43361:
+    status: approved
+    decided_at: '2026-07-24T19:20:03.642893+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1982
+      from: '1982-07-20'
+      to: '1982-07-20'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  47a4b50531c3243b742407c971aa929365bb6035fe3c39cb9487653eeb70b17e:
+    status: approved
+    decided_at: '2026-07-24T19:20:04.640956+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1975
+      from: '1975-05-11'
+      to: '1975-05-11'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  4836b411fa5d1f5523fbedf1f98e4f4fb0b41d114e95f61461f685b5a7d8f83e:
+    status: approved
+    decided_at: '2026-07-24T19:20:06.018632+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1946
+      from: '1946-11-23'
+      to: '1946-11-23'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  4a7576fecf08b4571d3e8384f97604d4ffcbf6d87c19f6ac106564efe71286bc:
+    status: approved
+    decided_at: '2026-07-24T19:20:07.888980+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1921
+      from: '1921-10-01'
+      to: '1921-10-01'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  4aa363edf85591c3cad2f190debb9f9ca96352377c05f58cb99ebe8c4106fb4f:
+    status: approved
+    decided_at: '2026-07-24T19:20:09.112510+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1920
+      from: '1920-05-18'
+      to: '1920-05-18'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  56d513e1c684002e03de5561798e160063ef973ae6398b724449e8f5bb0102c1:
+    status: approved
+    decided_at: '2026-07-24T19:20:11.777354+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1995
+      from: '1995-04-29'
+      to: '1995-04-29'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  57d7a0de4bac98bfabb92d7c243b76adb5012e000c5da7d8794a355ee859944f:
+    status: approved
+    decided_at: '2026-07-24T19:20:12.361942+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1990
+      from: '1990-01-26'
+      to: '1990-01-26'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  582a912be44cce690fef84609a2952436ecb92c217b70feb77217ea83443627d:
+    status: approved
+    decided_at: '2026-07-24T19:20:13.183182+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1956
+      from: '1956-06-08'
+      to: '1956-06-08'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  5b1570db2c737ebf82c492696ec69e1e5ee23eac299fe84647727eac5272ea43:
+    status: approved
+    decided_at: '2026-07-24T19:20:13.988373+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1941
+      from: '1941-03-27'
+      to: '1941-03-27'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  5d5c42fc241d12fa425776357186e3c002c158bf4d69161d86fb97627df81bdb:
+    status: approved
+    decided_at: '2026-07-24T19:20:15.076325+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1922
+      from: '1922-03-28'
+      to: '1922-03-28'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  5dc61ef01cd0bc9d84c5548e9061519c1b28950a0655a70e8558c50f08c8d619:
+    status: approved
+    decided_at: '2026-07-24T19:20:15.811546+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1969
+      from: '1969-09-11'
+      to: '1969-09-11'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  608d61901174831ba818f9552a2cd9e97b4b3d4b76ba0dd7af0294cf589f38c6:
+    status: approved
+    decided_at: '2026-07-24T19:20:16.493475+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1978
+      from: '1978-10-02'
+      to: '1978-10-02'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  621dccd4066c24304e659ecc566e7045f81097dd1f30ebef7188d6b9be651b11:
+    status: approved
+    decided_at: '2026-07-24T19:20:17.847851+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1968
+      from: '1968-09-22'
+      to: '1968-09-22'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  63c262dc6ac978f59cac4fef95a88e0646a3a83e3ac171dbcfebdf8da4271df7:
+    status: approved
+    decided_at: '2026-07-24T19:20:18.766377+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1927
+      from: '1927-06-29'
+      to: '1927-06-29'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  66561857bbfacbee5bd6fa324c0c740007e0f86208e85cb4f197a69981f88bd4:
+    status: approved
+    decided_at: '2026-07-24T19:20:19.561221+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1977
+      from: '1977-04-18'
+      to: '1977-04-18'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  69b1a0ffaec36a9a30d999b64227343b54d728887eb550fdca8def072d6c6cd2:
+    status: approved
+    decided_at: '2026-07-24T19:20:20.361701+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1967
+      from: '1967-11-02'
+      to: '1967-11-02'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  6b0836c407045d16f1c86925e17d33dc4a5b130d6691147119ae4446b48a2afe:
+    status: approved
+    decided_at: '2026-07-24T19:20:21.155043+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1929
+      from: '1929-11-01'
+      to: '1929-11-01'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  6b6eb86ecfd633f83a7e71561c10eba84994b5a55072cd8c9284cf157d3de3f2:
+    status: approved
+    decided_at: '2026-07-24T19:20:21.902238+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1954
+      from: '1954-06-30'
+      to: '1954-06-30'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  6e74b14f3e1f27133e02e5ea3812b98045366fd937b3930f90e6ee877cb7afd5:
+    status: approved
+    decided_at: '2026-07-24T19:20:22.673399+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1935
+      from: '1935-12-25'
+      to: '1935-12-25'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  6efa1abfc04de36606e6f7b95f4a68552e1f1cecf214b7501f306bb14da83b4a:
+    status: approved
+    decided_at: '2026-07-24T19:20:23.425483+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1992
+      from: '1992-01-04'
+      to: '1992-01-04'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  71a27cadfab5477f1ef34326f81d8ef45d1056a0d65bdd1e953946bcc3ad9dcf:
+    status: approved
+    decided_at: '2026-07-24T19:20:24.081112+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1976
+      from: '1976-10-23'
+      to: '1976-10-23'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  7364330d34e466d00e988127c4fda0877ee4cc07f7bd7b347376b30ccfc35108:
+    status: approved
+    decided_at: '2026-07-24T19:20:24.806946+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1999
+      from: '1999-08-11'
+      to: '1999-08-11'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  7401f36f06a23a50c960d560424c5883fd3a74621843866d755f39ef6afa5e52:
+    status: approved
+    decided_at: '2026-07-24T19:20:25.525912+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1981
+      from: '1981-07-31'
+      to: '1981-07-31'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  75c068b95423e51f1535bda53cd2be8eed8c30b0d41e747226c513bb5ef8965a:
+    status: approved
+    decided_at: '2026-07-24T19:20:26.218651+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1964
+      from: '1964-01-14'
+      to: '1964-01-14'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  76c43dfed4cc11d5bbf67001202d52da2af7a389f49844fe1db73dc4bfffead9:
+    status: approved
+    decided_at: '2026-07-24T19:20:26.902161+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1966
+      from: '1966-05-20'
+      to: '1966-05-20'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  781ff3a129d8f12e3d54467c1b5777fa1fc39e5b328f8f3989385ebbd8c604a1:
+    status: approved
+    decided_at: '2026-07-24T19:20:27.595896+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1991
+      from: '1991-07-11'
+      to: '1991-07-11'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  7aa8b72d0af1ffa9f87a4bda1f4d48485f974b74578864c9739450a78ab8d23d:
+    status: approved
+    decided_at: '2026-07-24T19:20:28.268764+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1980
+      from: '1980-02-16'
+      to: '1980-02-16'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  7af91c53492ef4239b85c9b24dc4611fb0b9303d3ba438d9cd08c8faba24f763:
+    status: approved
+    decided_at: '2026-07-24T19:20:28.968567+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1998
+      from: '1998-02-26'
+      to: '1998-02-26'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  7d8ed84d0f4f22d5ab794f55bfe734d6b1399d7e6ce1b647d65fcb416e14bc7e:
+    status: approved
+    decided_at: '2026-07-24T19:20:29.701775+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1943
+      from: '1943-02-04'
+      to: '1943-02-04'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  7daeab990f14cf6744eb37bf24f41669d9320cb2793df48561410f0d160d10fc:
+    status: approved
+    decided_at: '2026-07-24T19:20:30.394308+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1973
+      from: '1973-01-04'
+      to: '1973-01-04'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  7ebc449cdad9edd541e8961e8766d278fb0f07c43acff6ea15bd9358d068eda6:
+    status: approved
+    decided_at: '2026-07-24T19:20:31.143920+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1957
+      from: '1957-04-30'
+      to: '1957-04-30'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  810eecf31214a605d78b28fc2cd0414ad3f6cebe3c8e3b9b6152ea4cd0380b68:
+    status: approved
+    decided_at: '2026-07-24T19:20:31.873828+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1923
+      from: '1923-09-10'
+      to: '1923-09-10'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  818f117817601a70c93c7f25faa606f62b151192f44189af3d80ecf9083c0000:
+    status: approved
+    decided_at: '2026-07-24T19:20:32.582048+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1995
+      from: '1995-10-24'
+      to: '1995-10-24'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  838134a4580d54a743efdca3f9d7202e3fcc99a1b2ed5dd8be28e9bd1706af51:
+    status: approved
+    decided_at: '2026-07-24T19:20:33.271619+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1923
+      from: '1923-03-17'
+      to: '1923-03-17'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  8633da41b52ccc87903ccbeb28b8e529a49f43a24863a75730a5c0ef8776f895:
+    status: approved
+    decided_at: '2026-07-24T19:20:33.979238+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1945
+      from: '1945-01-14'
+      to: '1945-01-14'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  89d7be9203f432ab28dc5a7c92622dfc4204eb7cf03279aa3341226c0378a188:
+    status: approved
+    decided_at: '2026-07-24T19:20:34.689688+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1974
+      from: '1974-06-20'
+      to: '1974-06-20'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  8a50d2c8235c621c84cdb5a8ca749d50a12c522cda360837cd79467e504ce2f7:
+    status: approved
+    decided_at: '2026-07-24T19:20:35.959201+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1943
+      from: '1943-08-01'
+      to: '1943-08-01'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  8b030fbfc6ebdaa9c398a252e25c6fa37f23f6ed1e5dc9bd376d45136bd88045:
+    status: approved
+    decided_at: '2026-07-24T19:20:36.770944+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1970
+      from: '1970-03-07'
+      to: '1970-03-07'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  8b8ead6bf2ccf15dc871533a5d21168d5b8a3d92ab7f0f54c96a742f67cfd8d0:
+    status: approved
+    decided_at: '2026-07-24T19:20:37.568154+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1952
+      from: '1952-08-20'
+      to: '1952-08-20'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  8db720814a27f0b8fdcd8dbf15ed6984d5a58aec3ce6dada8ee450813079cfdd:
+    status: approved
+    decided_at: '2026-07-24T19:20:38.300182+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1948
+      from: '1948-05-09'
+      to: '1948-05-09'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  9167a74664ca9f0108ca5def660beb74f0c414d5ba1abde5141ec732bab889df:
+    status: approved
+    decided_at: '2026-07-24T19:20:39.112852+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1954
+      from: '1954-01-05'
+      to: '1954-01-05'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  9343a49536e9b21286181fdeacec7c5dc812d9589247143fb6f11b900194824f:
+    status: approved
+    decided_at: '2026-07-24T19:20:39.988187+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1936
+      from: '1936-06-19'
+      to: '1936-06-19'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  935d7340bcd4960137e2d90add71258ff40bbe3fee43646445946fd72465c5e0:
+    status: approved
+    decided_at: '2026-07-24T19:20:40.810022+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1985
+      from: '1985-11-12'
+      to: '1985-11-12'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  96be5d13f5bbb6fed9559634669a5f8b77c007b8de14eb65ce3b8fcd9a1054c0:
+    status: approved
+    decided_at: '2026-07-24T19:20:41.751256+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1987
+      from: '1987-03-29'
+      to: '1987-03-29'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  97dc0f0c5a3c748b122e78c0ce7358a82c9c8bc43d7f42408230897e31ac3cfc:
+    status: approved
+    decided_at: '2026-07-24T19:20:42.597999+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1958
+      from: '1958-04-19'
+      to: '1958-04-19'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  985eba823a8c8787bb0b3b84e20ad88050963f76da770b881165fd21b6cbbee5:
+    status: approved
+    decided_at: '2026-07-24T19:20:43.292869+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1998
+      from: '1998-08-22'
+      to: '1998-08-22'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  9d0529656733778daeff7601a013d41f463f6c7c31e16708fa665e2b3f0c9d26:
+    status: approved
+    decided_at: '2026-07-24T19:20:43.995698+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1937
+      from: '1937-12-02'
+      to: '1937-12-02'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  9f01ab34504cd0736b90ce869c83b7763db7798fe14550ffd3695bf15c754636:
+    status: approved
+    decided_at: '2026-07-24T19:20:44.702012+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1958
+      from: '1958-10-12'
+      to: '1958-10-12'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  9ffd955d6e6fab9acf0201ab5353e5ffe197147d56637a8cd930044b99a272d8:
+    status: approved
+    decided_at: '2026-07-24T19:20:45.410975+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1987
+      from: '1987-09-23'
+      to: '1987-09-23'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  a39026d574860d1b02cce96d5c102e1d90bf5f8b8bc4d26f24e2b6d91ece0214:
+    status: approved
+    decided_at: '2026-07-24T19:20:46.119933+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1965
+      from: '1965-05-30'
+      to: '1965-05-30'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  a3f1dfffceae82222c2502f084203121b536fa8375236944609e8eacbacb17ff:
+    status: approved
+    decided_at: '2026-07-24T19:20:46.844744+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1951
+      from: '1951-09-01'
+      to: '1951-09-01'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  a497dc122c8f5e5d204b63d90ca40dd9a272cea04c676e839001346413785a96:
+    status: approved
+    decided_at: '2026-07-24T19:20:47.580022+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1990
+      from: '1990-07-22'
+      to: '1990-07-22'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  a5c93386db23c0feac3dc4f43ff0ee413c7f7a083278034b20252c390569ab63:
+    status: approved
+    decided_at: '2026-07-24T19:20:48.296176+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1964
+      from: '1964-12-04'
+      to: '1964-12-04'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  a5f4e88cc9d7ec1e1f6188402142e2dba2d0d4d40260b12f782fe1acc39791c9:
+    status: approved
+    decided_at: '2026-07-24T19:20:49.026720+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1953
+      from: '1953-07-11'
+      to: '1953-07-11'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  a66d7ab9609c651b6558be43314fe790e278ec0b34f14c7982773d081e59d4b9:
+    status: approved
+    decided_at: '2026-07-24T19:20:49.712955+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1930
+      from: '1930-10-21'
+      to: '1930-10-21'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  aa275cfbad69d6cca3a636e6c36918b131ceefdee1b27e8e3bfab21499f452d2:
+    status: approved
+    decided_at: '2026-07-24T19:20:50.464455+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1964
+      from: '1964-06-10'
+      to: '1964-06-10'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  abba620e48cdee18cfcff5114f155140b39941c7533e1410e99ed72ca6b24278:
+    status: approved
+    decided_at: '2026-07-24T19:20:51.129991+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1955
+      from: '1955-12-14'
+      to: '1955-12-14'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  ac276ded0b678972a6d0f46787d97955a39334fef8035d3f2e4eeb07fd042587:
+    status: approved
+    decided_at: '2026-07-24T19:20:51.874202+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1925
+      from: '1925-07-20'
+      to: '1925-07-20'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  ac5f947679706dfd6f56db01d7552a517edc0e296f13dc75761bd3e3b37bd385:
+    status: approved
+    decided_at: '2026-07-24T19:20:52.581783+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1945
+      from: '1945-07-09'
+      to: '1945-07-09'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  accec13e2707f5592623872393a661c9743af28f034e500973bc3252b29d48d2:
+    status: approved
+    decided_at: '2026-07-24T19:20:53.316027+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1992
+      from: '1992-06-30'
+      to: '1992-06-30'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  af7e274a27b010af98a1b15a4c041497ec110198c23bf71e60fec6d7e9ce3167:
+    status: approved
+    decided_at: '2026-07-24T19:20:54.065565+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1984
+      from: '1984-05-30'
+      to: '1984-05-30'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  af8b7dbfedca57321a2a28d1812d026f79bfde874bac27bceaf6fe113f145589:
+    status: approved
+    decided_at: '2026-07-24T19:20:54.792183+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1975
+      from: '1975-11-03'
+      to: '1975-11-03'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  b4e72de5c46f8be365ab53ec0e1d653e62b8c34150cdbf4fd6753a2eb8b44f13:
+    status: approved
+    decided_at: '2026-07-24T19:20:55.491877+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1959
+      from: '1959-10-02'
+      to: '1959-10-02'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  b5023128e28c45715bcef0e983a414da7f524ba7ace865bd4dba008d7e299d22:
+    status: approved
+    decided_at: '2026-07-24T19:20:56.315755+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1932
+      from: '1932-03-07'
+      to: '1932-03-07'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  b7cc0a2890908cf9dfb1133a61b86f1cde359aa43cbc7d71fd614b81aaae4437:
+    status: approved
+    decided_at: '2026-07-24T19:20:57.020076+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1972
+      from: '1972-07-10'
+      to: '1972-07-10'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  b7fed8fba60556f5330ebd60ee4981688e7449797b48e6cccf63a444a731aefb:
+    status: approved
+    decided_at: '2026-07-24T19:20:58.409517+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1978
+      from: '1978-04-07'
+      to: '1978-04-07'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  b981b829cb94be22ee50c72e7c80c4152ffd2ca152efc905e734ab635264e4e7:
+    status: approved
+    decided_at: '2026-07-24T19:20:59.353652+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1944
+      from: '1944-01-25'
+      to: '1944-01-25'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  bca24df3d697f6e03860fd9211d0b3c4c600335d720404181d033cfdd993315d:
+    status: approved
+    decided_at: '2026-07-24T19:21:00.342977+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1966
+      from: '1966-11-12'
+      to: '1966-11-12'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  bd00eb293deb3915703b3e8ccfc0528953bfecb936f8f386cfac163aa53ffba5:
+    status: approved
+    decided_at: '2026-07-24T19:21:01.163935+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1962
+      from: '1962-02-05'
+      to: '1962-02-05'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  bd6b3e01124d796d0cd851c9190d740c6c368e03bab9b8aefa6a90f9db06001b:
+    status: approved
+    decided_at: '2026-07-24T19:21:02.784887+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1947
+      from: '1947-11-12'
+      to: '1947-11-12'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  bde8f5a422310fe90013082c6665862a7b1ecf5d1a0404c131582da6bba3e036:
+    status: approved
+    decided_at: '2026-07-24T19:21:03.761126+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1962
+      from: '1962-07-31'
+      to: '1962-07-31'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  bf9b986789a2382a94cde6e1acdffd92bae9915a45bc8912477a8cf73b7f439e:
+    status: approved
+    decided_at: '2026-07-24T19:21:04.706305+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1919
+      from: '1919-11-22'
+      to: '1919-11-22'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  c0cfd3ea845e238f5b4b78bc295978f4e056bed6a2b551f0d099967ad1e5c0bb:
+    status: approved
+    decided_at: '2026-07-24T19:21:05.603413+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1948
+      from: '1948-11-01'
+      to: '1948-11-01'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  c1c819054bdba673088f0b687d1e545c5298db92362740c3a06acc553e9388eb:
+    status: approved
+    decided_at: '2026-07-24T19:21:06.561793+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1920
+      from: '1920-11-10'
+      to: '1920-11-10'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  c732b3574e420b1985e85ea27bfcce80a305c28d3613c8a7439c79816caf971f:
+    status: approved
+    decided_at: '2026-07-24T19:21:07.484316+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1963
+      from: '1963-01-25'
+      to: '1963-01-25'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  c8b5544de12b675c86a7aefb4777c3bda1d5a9df4be646613bdbd283791fd1d2:
+    status: approved
+    decided_at: '2026-07-24T19:21:08.388756+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1952
+      from: '1952-02-25'
+      to: '1952-02-25'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  c8cf42b2a67190b48cf411b580fb0a67b342484a8a83c753a4c043f0e5b578b3:
+    status: approved
+    decided_at: '2026-07-24T19:21:09.107483+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 2010
+      from: '2010-07-21'
+      to: '2010-07-21'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  ca45b4a2069c5e95bab4f98178efccce1359948719ca337fb428872138f43040:
+    status: approved
+    decided_at: '2026-07-24T19:21:09.840515+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1972
+      from: '1972-01-16'
+      to: '1972-01-16'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  ce7f3e7f454ef9d24e6fc9d0082670987b9805233ff3b3b9286ea7e67fe96998:
+    status: approved
+    decided_at: '2026-07-24T19:21:10.559081+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1959
+      from: '1959-04-08'
+      to: '1959-04-08'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  cf19b4a7bb9f73e3bc40851f5286696c5c4da0ce1b5d02c2c2465791a62488d2:
+    status: approved
+    decided_at: '2026-07-24T19:21:11.318615+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1970
+      from: '1970-08-31'
+      to: '1970-08-31'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  cf4f1b896acc638c7a7a701c2d196c1da00332c22cd058d7c18e3625a680ceb6:
+    status: approved
+    decided_at: '2026-07-24T19:21:24.545894+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1973
+      from: '1973-12-24'
+      to: '1973-12-24'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  d414362751381c04f8663b459db8a7d9e0d28b55bba19dfa4c157a3938871ce8:
+    status: approved
+    decided_at: '2026-07-24T19:21:25.452106+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1965
+      from: '1965-11-23'
+      to: '1965-11-23'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  d80883773b7efe9222c0b4c3ee4f6a40637ecc5554b1b6bd58a10f788439a086:
+    status: approved
+    decided_at: '2026-07-24T19:21:26.481448+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1969
+      from: '1969-03-18'
+      to: '1969-03-18'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  d8ba3f1cc7f659d2d87a0dbc54c880ead83070e91ebabcb7c97d772093908470:
+    status: approved
+    decided_at: '2026-07-24T19:21:27.384957+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1994
+      from: '1994-05-10'
+      to: '1994-05-10'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  dda0db2b2d5b800cceac85ca83df35a0606c1b04073de7e6b194ed3e4edcd589:
+    status: approved
+    decided_at: '2026-07-24T19:21:28.119612+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1926
+      from: '1926-01-14'
+      to: '1926-01-14'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  e1bc08f3973780d56536c925332762132640e124f770608e89b596913814ae49:
+    status: approved
+    decided_at: '2026-07-24T19:21:28.819125+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1937
+      from: '1937-06-08'
+      to: '1937-06-08'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  ef9c29d5d3c0097f215538b60c26ffec80653079b4f026cb4056b5d4c73d19c6:
+    status: approved
+    decided_at: '2026-07-24T19:22:00.017051+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1977
+      from: '1977-10-12'
+      to: '1977-10-12'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  e319e1a442662c4faae05f39068f204c05808ddbe6b5612e55dd3aceb40985ac:
+    status: approved
+    decided_at: '2026-07-24T19:22:00.941999+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1922
+      from: '1922-09-21'
+      to: '1922-09-21'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  e4bcf22a308c0fc9317ee51cc59a5968177e242dcd3cdb3a8c2071dc2c774537:
+    status: approved
+    decided_at: '2026-07-24T19:22:02.360623+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1938
+      from: '1938-05-29'
+      to: '1938-05-29'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  e572413ac6d4e5524ae75ccb85b673393dc111a0a32837927615fed35efcc1b5:
+    status: approved
+    decided_at: '2026-07-24T19:22:03.233169+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1926
+      from: '1926-07-09'
+      to: '1926-07-09'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  f1c6ccf2655c932be1349b3f20d289289a2a63ae4c5109759740df09b3cfe811:
+    status: approved
+    decided_at: '2026-07-24T19:22:04.888709+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1961
+      from: '1961-02-15'
+      to: '1961-02-15'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  f245edcfd0575fd4dd8a47e5d4aacc435b37986124c9c4591d266e73dc0cb367:
+    status: approved
+    decided_at: '2026-07-24T19:22:05.822307+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1949
+      from: '1949-04-28'
+      to: '1949-04-28'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  f44f1fa0438ee60c7cbd229757d9082d02ca745dae11c95283839977d5156533:
+    status: approved
+    decided_at: '2026-07-24T19:22:06.720054+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1954
+      from: '1954-12-25'
+      to: '1954-12-25'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  f4c6fffb746aaf3deaf4b96e17655e95767c28a674a13beec189eb39465e5a1c:
+    status: approved
+    decided_at: '2026-07-24T19:22:07.644747+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1941
+      from: '1941-09-21'
+      to: '1941-09-21'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  f55036e4aa6de9c747708bebe2d13af1ab8d8972755cc92f4247f85fb061b8b9:
+    status: approved
+    decided_at: '2026-07-24T19:22:08.610371+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1925
+      from: '1925-01-24'
+      to: '1925-01-24'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  f634b33d6ef081d1e29b587e8a2f87eeec3cbfcb1ffb69c7e7f6ed8d8bf8386a:
+    status: approved
+    decided_at: '2026-07-24T19:22:09.504669+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1983
+      from: '1983-12-04'
+      to: '1983-12-04'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  f9a2d7e6df5e6af24c566b855a76b8abafa8559dc7cce4a4fbe0a2697db5ff05:
+    status: approved
+    decided_at: '2026-07-24T19:22:10.447483+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1982
+      from: '1982-12-15'
+      to: '1982-12-15'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+  fca948538d4cfeffa728ca6316d5c7bd2c3e85203767e3676708593b6594d405:
+    status: approved
+    decided_at: '2026-07-24T19:22:11.296034+00:00'
+    target_file: data/eclipse-gsfc-nasa-gov/eclipse-gsfc-nasa-gov/data.yaml
+    event:
+      type: event
+      year: 1953
+      from: '1953-08-09'
+      to: '1953-08-09'
+      precision: exact
+      ics: true
+      name: Sonnenfinsternis
+disappeared: {}

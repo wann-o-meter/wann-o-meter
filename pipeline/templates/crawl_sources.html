@@ -32,7 +32,15 @@
             </datalist>
             <form method="post" action="/crawl-sources/new">
                 <div class="field-label">Seed URL</div>
-                <input type="url" name="seed_url" placeholder="https://example.org/veranstaltungen" required style="width:100%; max-width:32rem;">
+                <input type="url" id="seed-url-input" name="seed_url" placeholder="https://example.org/veranstaltungen" required style="width:100%; max-width:32rem;">
+
+                <div class="field-label">Max depth</div>
+                <select name="max_depth">
+                    <option value="0">0 - only this page, never follow links</option>
+                    <option value="1">1 - this page and the pages it links to</option>
+                    <option value="2" selected>2 - two link hops (default)</option>
+                    <option value="3">3 - three link hops</option>
+                </select>
 
                 <details style="margin:0.75rem 0;">
                     <summary style="cursor:pointer; font-weight:600;">Advanced options</summary>
@@ -45,8 +53,6 @@
                         <input type="text" name="allowed_domains" placeholder="auto from seed URL">
                         <div class="field-label">Path prefix (blank uses the seed URL's own path)</div>
                         <input type="text" name="path_prefix" pattern="/.*" placeholder="auto from seed URL">
-                        <div class="field-label">Max depth</div>
-                        <input type="number" name="max_depth" value="2" min="0" max="3">
                         <div class="field-label">Formats to keep</div>
                         <p>
                             {% for f in format_options %}
@@ -80,6 +86,79 @@
 
 {% block scripts %}
     <script>
+        // Source ids whose Pages row is expanded. Survives the htmx table
+        // swap below, which replaces the whole <table> - without this, a row
+        // you had open collapsed the moment its run finished, which is
+        // exactly when you want to read it.
+        const openPageRows = new Set();
+
+        function statusClass(status) {
+            if (/failed|blocked/.test(status)) return 'var(--accent)';
+            if (/skipped|no dates/.test(status)) return 'var(--muted)';
+            return 'inherit';
+        }
+
+        function renderPages(sourceId, pages) {
+            const box = document.querySelector(`.crawl-source-pages[data-source-id="${CSS.escape(sourceId)}"]`);
+            if (!box) return;
+            box.textContent = '';
+            if (!pages || pages.length === 0) {
+                const hint = document.createElement('span');
+                hint.className = 'empty-hint';
+                hint.style.padding = '0';
+                hint.textContent = 'No pages yet - run this source.';
+                box.appendChild(hint);
+                return;
+            }
+            const table = document.createElement('table');
+            table.className = 'compact';
+            const tbody = document.createElement('tbody');
+            for (const page of pages) {
+                const tr = document.createElement('tr');
+
+                const urlCell = document.createElement('td');
+                const link = document.createElement('a');
+                link.href = page.url;
+                link.target = '_blank';
+                link.textContent = page.url;
+                urlCell.appendChild(link);
+
+                const statusCell = document.createElement('td');
+                statusCell.style.whiteSpace = 'nowrap';
+                statusCell.style.color = statusClass(page.status);
+                statusCell.textContent = page.status;
+
+                const actionCell = document.createElement('td');
+                actionCell.style.whiteSpace = 'nowrap';
+                const seedBtn = document.createElement('button');
+                seedBtn.type = 'button';
+                seedBtn.className = 'btn btn-sm use-as-seed-btn';
+                seedBtn.dataset.url = page.url;
+                seedBtn.textContent = 'Use as seed';
+                actionCell.appendChild(seedBtn);
+
+                tr.append(urlCell, statusCell, actionCell);
+                tbody.appendChild(tr);
+            }
+            table.appendChild(tbody);
+            box.appendChild(table);
+        }
+
+        function refreshPages(sourceId) {
+            fetch(`/crawl-sources/${encodeURIComponent(sourceId)}/status`)
+                .then((res) => res.json())
+                .then((status) => renderPages(sourceId, status.pages))
+                .catch(() => {});
+        }
+
+        function applyOpenPageRows() {
+            document.querySelectorAll('.crawl-source-pages-row').forEach(function (row) {
+                const open = openPageRows.has(row.dataset.sourceId);
+                row.hidden = !open;
+                if (open) refreshPages(row.dataset.sourceId);
+            });
+        }
+
         function pollCrawlSourceUntilDone(sourceId) {
             let attempts = 0;
             const timer = setInterval(function () {
@@ -97,6 +176,7 @@
                                 progressEl.appendChild(document.createTextNode(status.progress.detail || ''));
                             }
                         }
+                        if (openPageRows.has(sourceId)) renderPages(sourceId, status.pages);
                         if (!status.running || attempts >= 300) {
                             clearInterval(timer);
                             if (status.error) alert(`Crawl failed for ${sourceId}: ` + status.error);
@@ -107,7 +187,42 @@
             }, 2000);
         }
 
+        // A run outlives the page that started it (it's a background thread,
+        // see main.py's _run_crawl_source_and_record). Without this, a reload
+        // mid-crawl left a frozen "Running…" with no progress and no poll -
+        // the poll only ever started from the click handler below.
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.crawl-source-progress[data-source-id]').forEach(function (el) {
+                pollCrawlSourceUntilDone(el.dataset.sourceId);
+            });
+        });
+
+        // Every path that replaces the table (poll completion, the Refresh
+        // button) lands here, so expanded Pages rows are restored once
+        // rather than at each call site.
+        document.body.addEventListener('htmx:afterSwap', function (e) {
+            if (e.target.id === 'crawl-sources-table') applyOpenPageRows();
+        });
+
         document.addEventListener('click', function (e) {
+            const pagesBtn = e.target.closest('.crawl-source-pages-btn');
+            if (pagesBtn) {
+                const sourceId = pagesBtn.dataset.sourceId;
+                if (openPageRows.has(sourceId)) openPageRows.delete(sourceId);
+                else openPageRows.add(sourceId);
+                applyOpenPageRows();
+                return;
+            }
+
+            const seedBtn = e.target.closest('.use-as-seed-btn');
+            if (seedBtn) {
+                const input = document.getElementById('seed-url-input');
+                input.value = seedBtn.dataset.url;
+                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                input.focus();
+                return;
+            }
+
             const runBtn = e.target.closest('.crawl-source-run-btn');
             if (!runBtn) return;
             const sourceId = runBtn.dataset.sourceId;

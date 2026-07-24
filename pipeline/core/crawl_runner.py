@@ -15,13 +15,15 @@ directly, no LLM (Ziel 5); an html_page/pdf_document's text goes through
 core/extraction.py's extract_dated_events, guided by the source's own
 event_type_hint."""
 
+import html
+import re
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
 from core import approval, review_state, staging
 from core.crawl_config import CrawlSource
 from core.crawler import CrawledDocument, crawl
-from core.extraction import ExtractionError, extract_dated_events
+from core.extraction import ExtractionError, extract_dated_events, suggest_title
 from scraper import extract_any
 
 
@@ -72,7 +74,40 @@ def _windows_from_document(doc: CrawledDocument, on_progress: Optional[Callable[
     return []
 
 
-def run(source: CrawlSource, on_progress: Optional[Callable[[Dict[str, str]], None]] = None) -> Dict[str, Any]:
+_TITLE_RE = re.compile(rb"<title[^>]*>(.*?)</title>", re.IGNORECASE | re.DOTALL)
+
+
+def _subject_name(documents: List[CrawledDocument], fallback: str) -> str:
+    """A readable page title for the subject this source writes, taken from
+    the first crawled document's <title> and cleaned up by the model (see
+    extraction.suggest_title - the raw tag is usually full of year ranges and
+    the site name). Without this a crawl source's page.yaml got the source id
+    verbatim as its title, so the site showed "eclipse-gsfc-nasa-gov" as a
+    page heading.
+
+    Falls back to the source id on anything going wrong - a title is
+    cosmetic, and page.yaml is written once (store.schreibe_page_yaml_falls_neu),
+    so this must never be the thing that fails a whole crawl.
+    """
+    for doc in documents:
+        match = _TITLE_RE.search(doc.content[:100_000])
+        if not match:
+            continue
+        raw_title = html.unescape(match.group(1).decode("utf-8", "replace")).strip()
+        if not raw_title:
+            continue
+        try:
+            return suggest_title(doc.content[:2000].decode("utf-8", "replace"), raw_title) or raw_title
+        except ExtractionError:
+            return raw_title
+    return fallback
+
+
+def run(
+    source: CrawlSource,
+    on_progress: Optional[Callable[[Dict[str, str]], None]] = None,
+    on_page: Optional[Callable[[str, str], None]] = None,
+) -> Dict[str, Any]:
     """on_progress, if given, is called with {"phase": "crawling"|
     "extracting"|"diffing", "detail": str} at each meaningful step - the
     phase is what lets main.py's dashboard show "Crawling" vs "Extracting"
@@ -85,9 +120,13 @@ def run(source: CrawlSource, on_progress: Optional[Callable[[Dict[str, str]], No
         if on_progress:
             on_progress({"phase": phase, "detail": detail})
 
+    def report_page(url: str, status: str) -> None:
+        if on_page:
+            on_page(url, status)
+
     run_ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     report("crawling", f"Starting at {source.seed_url}")
-    documents = crawl(source, on_progress=lambda detail: report("crawling", detail))
+    documents = crawl(source, on_progress=lambda detail: report("crawling", detail), on_page=report_page)
     report("crawling", f"Done - {len(documents)} document(s) found")
 
     all_candidates: List[Dict[str, Any]] = []
@@ -95,11 +134,14 @@ def run(source: CrawlSource, on_progress: Optional[Callable[[Dict[str, str]], No
     for i, doc in enumerate(documents, start=1):
         doc_hash = staging.write_document(source.id, run_ts, doc.url, doc.content_type, doc.content)
         report("extracting", f"Document {i}/{len(documents)}: {doc.url}")
+        report_page(doc.url, "extracting")
         try:
             windows = _windows_from_document(doc, on_progress=lambda detail: report("extracting", detail))
         except ExtractionError as e:
             extraction_errors.append(f"{doc.url}: {e}")
+            report_page(doc.url, f"extraction failed: {str(e)[:80]}")
             continue
+        report_page(doc.url, f"{len(windows)} event(s) found" if windows else "no dates found")
         for window in windows:
             candidate = staging.build_candidate(source.id, source.id, window, doc_hash)
             staging.write_candidate(source.id, run_ts, candidate)
@@ -110,6 +152,7 @@ def run(source: CrawlSource, on_progress: Optional[Callable[[Dict[str, str]], No
     auto_waved_through, needs_review, disappeared = review_state.diff(all_candidates, state)
 
     quelle = _default_quelle(source.seed_url)
+    subject_name = _subject_name(documents, source.id)
     written = 0
     for candidate in auto_waved_through:
         # Stamp BEFORE writing - stamping after would only update
@@ -120,7 +163,7 @@ def run(source: CrawlSource, on_progress: Optional[Callable[[Dict[str, str]], No
             approval.write_event(
                 category=source.category,
                 subject_slug=source.id,
-                subject_name=source.id,
+                subject_name=subject_name,
                 event=stamped_event,
                 quelle=quelle,
             )
@@ -135,7 +178,12 @@ def run(source: CrawlSource, on_progress: Optional[Callable[[Dict[str, str]], No
     return {
         "documents": len(documents),
         "candidates": len(all_candidates),
-        "auto_approved": written,
+        # NOT the source's auto_approve_ics setting - these are candidates a
+        # human approved in an EARLIER run, which review_state.diff() waves
+        # through unchanged. Named "auto_approved" originally, which read as
+        # "the pipeline approved this on its own" and made a re-confirmed
+        # write look like it had bypassed review.
+        "reconfirmed": written,
         "needs_review": len(needs_review),
         "disappeared": len(disappeared),
         "extraction_errors": extraction_errors,
