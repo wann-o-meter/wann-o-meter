@@ -217,6 +217,48 @@ class TestExtractLlmImagePage:
         assert response.json()["count"] == 1
 
 
+class TestExtractLlmUnsupportedBinary:
+    """Regression test: a scrape that failed upstream (e.g. vision
+    extraction erroring on a PDF page because ANTHROPIC_API_KEY isn't set)
+    saves kind == "unsupported_binary" with no clean_markdown_full. Previously
+    /extract-llm and the /suggest-* routes ran on the resulting empty string
+    and returned "Found 0 event(s)" / no tags / etc. indistinguishable from a
+    page that was genuinely read and genuinely has no dates - now they surface
+    the scrape's own failure reason instead."""
+
+    def test_extract_llm_surfaces_the_scrape_failure_reason_instead_of_0_events(self, client, monkeypatch):
+        import core.extraction as extraction
+
+        url = "https://example.invalid/saisonkalender.pdf"
+        _mark_scraped(url, {
+            "kind": "unsupported_binary",
+            "reason": "vision extraction failed: ANTHROPIC_API_KEY is not set - export it before using LLM extraction",
+        })
+        called = False
+
+        def _fail_if_called(text):
+            nonlocal called
+            called = True
+            return []
+
+        monkeypatch.setattr(extraction, "extract_dated_events", _fail_if_called)
+
+        response = client.post("/extract-llm", data={"url": url})
+
+        assert response.status_code == 400
+        assert "ANTHROPIC_API_KEY" in response.json()["error"]
+        assert not called
+
+    def test_suggest_tags_surfaces_the_scrape_failure_reason(self, client):
+        url = "https://example.invalid/saisonkalender.pdf"
+        _mark_scraped(url, {"kind": "unsupported_binary", "reason": "PDF has no extractable text"})
+
+        response = client.post("/suggest-tags", data={"url": url})
+
+        assert response.status_code == 400
+        assert "PDF has no extractable text" in response.json()["error"]
+
+
 class TestAcceptAndScrape:
     """Discovered -> Scrape in one click (POST /accept-and-scrape) replaces
     the old Discovered -> Accept -> switch tables -> Run Scraper flow (both

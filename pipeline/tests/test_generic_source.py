@@ -198,3 +198,127 @@ def test_replace_key_ersetzt_statt_zu_duplizieren(monkeypatch, tmp_path, config,
 def test_pruefe_subjekt_datei_lehnt_ungueltige_form_ab():
     with pytest.raises(validate.ValidationError):
         validate.pruefe_subjekt_datei({"subject": {"slug": "bw"}, "windows": []})
+
+
+class TestExtractSeason:
+    """Coverage for generic_source.extract_season (strategie: llm_season) -
+    the color-highlighting-aware counterpart to extract() above, for sources
+    like a Saisonkalender PDF/image where the actual information is which
+    months are highlighted, not literal text. Uses a synthetic PDF (fitz, no
+    real vision call - extract_any is mocked at the point where it would
+    otherwise call the vision LLM) since there's no recorded real-world
+    fixture for this yet."""
+
+    CONFIG = {
+        "kategorie": "saisonkalender",
+        "url": "https://example.invalid/saisonkalender.pdf",
+        "lizenz": "cc_by",
+        "extraction_hint": "Saisonkalender fuer Obst/Gemuese (Testquelle)",
+    }
+    ERWARTETE_SUBJEKTE = [
+        {
+            "subject": {"slug": "apfel", "name": "Apfel"},
+            "windows": [
+                {"type": "main_season", "name": "Hauptsaison", "from": "--05", "to": "--08"},
+            ],
+        },
+        {
+            "subject": {"slug": "aprikosen", "name": "Aprikosen"},
+            "windows": [
+                {"type": "peak_season", "name": "Spitzensaison", "from": "--06", "to": "--08"},
+            ],
+        },
+    ]
+
+    def test_liefert_ein_ergebnis_pro_subjekt_mit_jahrlosen_monatsfenstern(self, monkeypatch):
+        monkeypatch.setattr(
+            generic_source, "extract_any",
+            lambda name, raw: {"kind": "pdf_document", "clean_markdown_full": "Aepfel: 5-8 orange, Rest gruen"},
+        )
+        monkeypatch.setattr(
+            generic_source, "extract_season_windows",
+            lambda text, hint: self.ERWARTETE_SUBJEKTE,
+        )
+
+        results = generic_source.extract_season(self.CONFIG, b"%PDF-fake", {})
+
+        assert [e.subjekt["slug"] for e in results] == ["apfel", "aprikosen"]
+        assert len({e.datei_pfad for e in results}) == 2
+        for result in results:
+            assert result.subjekt["category"] == "saisonkalender"
+            assert result.replace_key == ("type",)
+            assert result.quelle["extraction"] == "llm"
+            assert result.quelle["url"] == "https://example.invalid/saisonkalender.pdf"
+
+    def test_windows_are_year_less_and_approximate(self, monkeypatch):
+        monkeypatch.setattr(
+            generic_source, "extract_any",
+            lambda name, raw: {"kind": "pdf_document", "clean_markdown_full": "Aepfel: 5-8 orange, Rest gruen"},
+        )
+        monkeypatch.setattr(
+            generic_source, "extract_season_windows",
+            lambda text, hint: self.ERWARTETE_SUBJEKTE,
+        )
+
+        results = generic_source.extract_season(self.CONFIG, b"%PDF-fake", {})
+
+        apfel = results[0]
+        assert apfel.zeitfenster == [{
+            "type": "main_season",
+            "year": None,
+            "from": "--05",
+            "to": "--08",
+            "precision": "approximate",
+            "ics": False,
+            "name": "Hauptsaison",
+            "source_urls": [apfel.quelle["url"]],
+        }]
+
+    def test_raises_extraction_error_when_the_scrape_produced_no_usable_text(self, monkeypatch):
+        # e.g. the vision call failed (no API key) - scraper.py's extract_any
+        # returns unsupported_binary with no clean_markdown_full at all, so
+        # there is nothing to feed the LLM. Must surface WHY, not silently
+        # return an empty result indistinguishable from "no season data here".
+        monkeypatch.setattr(
+            generic_source, "extract_any",
+            lambda name, raw: {
+                "kind": "unsupported_binary",
+                "reason": "vision extraction failed: ANTHROPIC_API_KEY is not set",
+            },
+        )
+
+        with pytest.raises(extraction.ExtractionError, match="ANTHROPIC_API_KEY"):
+            generic_source.extract_season(self.CONFIG, b"%PDF-fake", {})
+
+    def test_store_merge_und_echte_zod_validierung(self, monkeypatch, tmp_path):
+        monkeypatch.setattr(
+            generic_source, "extract_any",
+            lambda name, raw: {"kind": "pdf_document", "clean_markdown_full": "Aepfel: 5-8 orange, Rest gruen"},
+        )
+        monkeypatch.setattr(
+            generic_source, "extract_season_windows",
+            lambda text, hint: self.ERWARTETE_SUBJEKTE,
+        )
+        monkeypatch.setattr(generic_source, "DATA_ROOT", tmp_path)
+
+        results = generic_source.extract_season(self.CONFIG, b"%PDF-fake", {})
+        assert len(results) == 2
+
+        for ergebnis in results:
+            datei = store.lade_oder_erstelle(
+                ergebnis.datei_pfad,
+                ergebnis.subjekt["slug"],
+                ergebnis.subjekt["category"],
+            )
+            store.merge_zeitfenster(datei, ergebnis.zeitfenster, ergebnis.replace_key)
+            store.append_quelle(datei, ergebnis.quelle)
+
+            validate.pruefe_subjekt_datei(datei)  # wirft ValidationError bei ungueltiger Form
+
+            store.speichere(ergebnis.datei_pfad, datei)
+            gespeichert = yaml.safe_load(ergebnis.datei_pfad.read_text(encoding="utf-8"))
+            assert gespeichert["windows"][0]["year"] is None
+            assert gespeichert["windows"][0]["from"].startswith("--")
+
+        assert (tmp_path / "saisonkalender" / "apfel" / "data.yaml").exists()
+        assert (tmp_path / "saisonkalender" / "aprikosen" / "data.yaml").exists()

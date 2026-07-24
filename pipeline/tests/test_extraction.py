@@ -11,6 +11,7 @@ from core.extraction import (  # noqa: E402
     MAX_TEXT_LENGTH,
     ExtractionError,
     extract_dated_events,
+    extract_season_windows,
     extract_subjects,
     suggest_tags,
     suggest_title,
@@ -218,6 +219,88 @@ def test_subjects_llm_failure_propagates_as_extraction_error():
         mock_call.side_effect = LlmError("ANTHROPIC_API_KEY is not set")
         with pytest.raises(ExtractionError, match="ANTHROPIC_API_KEY"):
             extract_subjects("text", "hint")
+
+
+def test_season_windows_empty_text_returns_empty_without_calling_llm():
+    with patch("core.extraction.call_llm") as mock_call:
+        result = extract_season_windows("   ", "hint")
+    assert result == []
+    mock_call.assert_not_called()
+
+
+def test_season_windows_parses_month_only_ranges_per_subject():
+    with patch("core.extraction.call_llm") as mock_call:
+        mock_call.return_value = (
+            '[{"subject": {"slug": "apfel", "name": "Apfel"}, "windows": ['
+            '{"type": "main_season", "name": "Hauptsaison", "from": "--05", "to": "--08"}, '
+            '{"type": "peak_season", "name": "Spitzensaison", "from": "--06", "to": "--07"}]}, '
+            '{"subject": {"slug": "aprikosen", "name": "Aprikosen"}, "windows": ['
+            '{"type": "peak_season", "name": "Spitzensaison", "from": "--06", "to": "--08"}]}]'
+        )
+        result = extract_season_windows(
+            "Aepfel: 5-8 orange, Rest gruen. Aprikosen: nur 6-8 orange hervorgehoben, Rest grau.",
+            "hint",
+        )
+
+    assert result == [
+        {
+            "subject": {"slug": "apfel", "name": "Apfel"},
+            "windows": [
+                {"type": "main_season", "name": "Hauptsaison", "from": "--05", "to": "--08"},
+                {"type": "peak_season", "name": "Spitzensaison", "from": "--06", "to": "--07"},
+            ],
+        },
+        {
+            "subject": {"slug": "aprikosen", "name": "Aprikosen"},
+            "windows": [{"type": "peak_season", "name": "Spitzensaison", "from": "--06", "to": "--08"}],
+        },
+    ]
+
+
+def test_season_windows_allows_a_window_spanning_the_year_boundary():
+    with patch("core.extraction.call_llm") as mock_call:
+        mock_call.return_value = (
+            '[{"subject": {"slug": "gruenkohl", "name": "Gruenkohl"}, "windows": ['
+            '{"type": "main_season", "name": "Hauptsaison", "from": "--11", "to": "--02"}]}]'
+        )
+        result = extract_season_windows("Gruenkohl: 11-12 und 1-2 gruen hervorgehoben", "hint")
+
+    assert result[0]["windows"] == [
+        {"type": "main_season", "name": "Hauptsaison", "from": "--11", "to": "--02"}
+    ]
+
+
+def test_season_windows_rejects_dated_or_malformed_ranges():
+    with patch("core.extraction.call_llm") as mock_call:
+        mock_call.return_value = (
+            '[{"subject": {"slug": "apfel", "name": "Apfel"}, "windows": ['
+            '{"type": "main_season", "name": "gut", "from": "--05", "to": "--08"}, '
+            '{"type": "hat_jahr", "name": "hat ein Jahr, ungueltig", "from": "2028-05-01", "to": "--08"}, '
+            '{"type": "ungueltiger_monat", "name": "Monat 13 ungueltig", "from": "--13", "to": "--08"}, '
+            '{"type": "", "name": "kein type", "from": "--05", "to": "--08"}]}]'
+        )
+        result = extract_season_windows("text", "hint")
+
+    assert result[0]["windows"] == [{"type": "main_season", "name": "gut", "from": "--05", "to": "--08"}]
+
+
+def test_season_windows_filters_out_items_missing_subject_slug_or_name():
+    with patch("core.extraction.call_llm") as mock_call:
+        mock_call.return_value = (
+            '[{"subject": {"slug": "apfel", "name": "Apfel"}, "windows": []}, '
+            '{"subject": {"slug": "", "name": "Missing slug"}, "windows": []}, '
+            '{"windows": []}, '
+            '"not even an object"]'
+        )
+        result = extract_season_windows("text", "hint")
+    assert [s["subject"]["slug"] for s in result] == ["apfel"]
+
+
+def test_season_windows_llm_failure_propagates_as_extraction_error():
+    with patch("core.extraction.call_llm") as mock_call:
+        mock_call.side_effect = LlmError("ANTHROPIC_API_KEY is not set")
+        with pytest.raises(ExtractionError, match="ANTHROPIC_API_KEY"):
+            extract_season_windows("text", "hint")
 
 
 def test_type_slug_from_label_maps_known_german_holiday_keywords():

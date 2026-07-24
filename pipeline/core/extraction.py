@@ -360,6 +360,98 @@ def extract_subjects(text: str, hint: str) -> List[Dict[str, Any]]:
     return subjects
 
 
+SEASON_SYSTEM_PROMPT = (
+    "Du extrahierst wiederkehrende JAEHRLICHE Saisonfenster (z.B. Ernte-/"
+    "Verfuegbarkeitssaison von Obst oder Gemuese) aus Text, der die farbliche "
+    "oder sonstige visuelle Hervorhebung einzelner Monate PRO OBJEKT/SORTE "
+    "BESCHREIBT (z.B. 'Aepfel: 1-4 gruen, 5-8 orange, 9-12 gruen', 'Aprikosen: "
+    "nur 6-8 orange hervorgehoben, Rest grau'). Der Text kann in JEDER Sprache "
+    "vorliegen. Antworte AUSSCHLIESSLICH mit einem JSON-Array, keine Erklaerung, "
+    "kein Markdown, kein Codeblock. Jedes Element hat genau die Felder "
+    '{"subject": {"slug": "...", "name": "..."}, "windows": '
+    '[{"type": "...", "name": "...", "from": "--MM", "to": "--MM"}, ...]}. '
+    "'name' ist auf Deutsch, 'type' ein kurzer technischer Slug (z.B. "
+    "'main_season', 'peak_season'). 'from'/'to' sind IMMER genau im Format "
+    "'--MM' (zwei Bindestriche, zweistelliger Monat 01-12) OHNE Jahr - diese "
+    "Fenster gelten JEDES Jahr gleich, nie fuer ein bestimmtes Jahr. Ein "
+    "Fenster darf ueber den Jahreswechsel gehen (z.B. '--12' bis '--02'). "
+    "Wenn mehrere Hervorhebungsstufen vorkommen (z.B. eine schwaechere Farbe "
+    "fuer die normale Saison und eine staerkere/abweichende fuer eine "
+    "Spitzensaison), gib pro Stufe ein eigenes Fenster zurueck, nicht nur "
+    "eines. NICHT hervorgehobene Monate gehoeren zu KEINEM Fenster - lass sie "
+    "weg. Erfinde KEIN Fenster, das nicht durch eine im Text beschriebene "
+    "Hervorhebung gestuetzt ist. Wenn der Text mehrere Objekte/Sorten "
+    "behandelt, gib fuer jedes ein eigenes Array-Element zurueck; behandelt er "
+    "nur eines, trotzdem ein Array mit genau einem Element."
+)
+
+_MONTH_ONLY_PATTERN = re.compile(r"^--(0[1-9]|1[0-2])$")
+
+
+def _validate_season_windows(items: List[Dict[str, Any]]) -> List[Dict[str, str]]:
+    windows = []
+    seen = set()
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        type_ = str(item.get("type", "")).strip()
+        name = str(item.get("name", "")).strip()
+        start = str(item.get("from", "")).strip()
+        end = str(item.get("to", "")).strip()
+        if not type_ or not name or not _MONTH_ONLY_PATTERN.match(start) or not _MONTH_ONLY_PATTERN.match(end):
+            continue
+        key = (type_, start, end)
+        if key in seen:
+            continue
+        seen.add(key)
+        windows.append({"type": type_, "name": name, "from": start, "to": end})
+    return windows
+
+
+def extract_season_windows(text: str, hint: str) -> List[Dict[str, Any]]:
+    """Like extract_subjects above, but for year-less RECURRING month
+    windows (RawWindow's year: null / "--MM" shape, see lib/schema.ts and
+    the hand-authored data/saisonkalender/*) instead of concrete dated
+    ranges - the right shape for e.g. "Aepfel are in season May-August every
+    year", which has no specific year attached at all. `text` is expected to
+    already describe any color-coding/highlighting in words (see
+    scraper.py's VISION_PROMPT for images/PDFs) - this function only
+    interprets that description, it does not see the image itself.
+
+    Returns a list of {"subject": {"slug": str, "name": str}, "windows":
+    [...]} (windows validated via _validate_season_windows). Raises
+    ExtractionError on failure, same contract as the other extract_*()
+    functions here."""
+    if not text.strip():
+        return []
+
+    prompt = f"{hint}\n\nText:\n\n{text}\n\nExtrahiere alle Saisonfenster als JSON-Array."
+    try:
+        raw = call_llm(prompt, system=SEASON_SYSTEM_PROMPT)
+    except Exception as e:
+        raise ExtractionError(str(e)) from e
+
+    items = _parse_json_array(raw)
+
+    subjects: List[Dict[str, Any]] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        subject = item.get("subject")
+        if not isinstance(subject, dict):
+            continue
+        slug = str(subject.get("slug", "")).strip()
+        name = str(subject.get("name", "")).strip()
+        if not slug or not name:
+            continue
+        subjects.append({
+            "subject": {"slug": slug, "name": name},
+            "windows": _validate_season_windows(item.get("windows") or []),
+        })
+
+    return subjects
+
+
 # Keyword -> type mapping for the "label" an LLM returns for a recurring
 # calendar window (e.g. "Osterferien"). Shared across sources rather than
 # living in one source's Python, so any multi-subject source (not just
