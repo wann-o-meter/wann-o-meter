@@ -187,6 +187,85 @@ class TestReviewReject:
         assert candidate["candidate_id"] not in response.text
 
 
+def _eclipse_event(date: str) -> dict:
+    """Mirrors what crawl_runner._window produces for a date-table source:
+    every row carries the SAME name, only the date differs."""
+    return {
+        "type": "event", "year": int(date[:4]), "from": date, "to": date,
+        "precision": "exact", "ics": True, "name": "Sonnenfinsternis",
+    }
+
+
+class TestBulkApprove:
+    def test_many_identically_named_events_each_land_as_their_own_window(self, client):
+        """The case bulk approve exists for - a date-table source where every
+        candidate shares a name. Guards approval.DEFAULT_REPLACE_KEY still
+        including "from": with a key of just ("type", "name") these three
+        would collapse into one window and a 200-row approval would silently
+        write one row."""
+        dates = ["2026-08-12", "2027-08-02", "2028-07-22"]
+        candidates = [
+            _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event(date))
+            for date in dates
+        ]
+
+        response = client.post(
+            "/review/bulk-approve",
+            data={
+                "selected": [f"test-source/{c['candidate_id']}" for c in candidates],
+                "license": "tos_checked",
+            },
+        )
+
+        assert response.status_code == 200
+        datei = yaml.safe_load((main.DATA_ROOT / "sofi" / "sofi" / "data.yaml").read_text(encoding="utf-8"))
+        assert sorted(w["from"] for w in datei["windows"]) == dates
+
+    def test_every_approved_row_is_recorded_and_leaves_the_queue(self, client):
+        candidates = [
+            _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event(date))
+            for date in ("2026-08-12", "2027-08-02")
+        ]
+
+        client.post(
+            "/review/bulk-approve",
+            data={
+                "selected": [f"test-source/{c['candidate_id']}" for c in candidates],
+                "license": "tos_checked",
+            },
+        )
+
+        st = review_state.load("test-source")
+        assert all(st["decisions"][c["content_hash"]]["status"] == "approved" for c in candidates)
+        assert main._review_queue() == []
+
+    def test_one_bad_row_is_reported_without_dropping_the_good_ones(self, client):
+        good = _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event("2026-08-12"))
+
+        response = client.post(
+            "/review/bulk-approve",
+            data={
+                "selected": [f"test-source/{good['candidate_id']}", "test-source/deadbeef", "malformed"],
+                "license": "tos_checked",
+            },
+        )
+
+        assert response.status_code == 200
+        assert "1 approved, 2 failed" in response.text
+        assert (main.DATA_ROOT / "sofi" / "sofi" / "data.yaml").exists()
+
+    def test_an_invalid_license_writes_nothing(self, client):
+        candidate = _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event("2026-08-12"))
+
+        response = client.post(
+            "/review/bulk-approve",
+            data={"selected": [f"test-source/{candidate['candidate_id']}"], "license": "not-a-license"},
+        )
+
+        assert response.status_code == 400
+        assert not (main.DATA_ROOT / "sofi").exists()
+
+
 class TestChainToNextReviewCandidate:
     def test_deciding_the_only_candidate_redirects_back_to_the_queue(self, client):
         candidate = _stage_candidate("test-source", "20260724-000000", "hechingen", VALID_EVENT)
