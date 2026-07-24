@@ -31,9 +31,9 @@ def client(tmp_path, monkeypatch):
     return TestClient(main.app)
 
 
-def _stage_candidate(source_id: str, run_ts: str, subject_slug: str, event: dict) -> dict:
+def _stage_candidate(source_id: str, run_ts: str, subject_slug: str, event: dict, subject_name: str = None) -> dict:
     doc_hash = staging.write_document(source_id, run_ts, "https://example.invalid/events", "text/calendar", b"BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n")
-    candidate = staging.build_candidate(source_id, subject_slug, event, doc_hash)
+    candidate = staging.build_candidate(source_id, subject_slug, event, doc_hash, subject_name=subject_name)
     staging.write_candidate(source_id, run_ts, candidate)
     return candidate
 
@@ -194,6 +194,63 @@ def _eclipse_event(date: str) -> dict:
         "type": "event", "year": int(date[:4]), "from": date, "to": date,
         "precision": "exact", "ics": True, "name": "Sonnenfinsternis",
     }
+
+
+class TestPageTitleOnApproval:
+    """page.yaml is written by whichever path approves first and never
+    rewritten, so the review UI passing the raw slug as title used to pin
+    e.g. "eclipse-gsfc-nasa-gov" as a page heading permanently - even though
+    the same source's auto-waved-through candidates got a cleaned-up name."""
+
+    def _title(self) -> str:
+        return yaml.safe_load((main.DATA_ROOT / "sofi" / "sofi" / "page.yaml").read_text(encoding="utf-8"))["title"]
+
+    def test_approving_uses_the_candidates_suggested_name(self, client):
+        candidate = _stage_candidate(
+            "test-source", "20260724-000000", "sofi", VALID_EVENT, subject_name="Sonnenfinsternis",
+        )
+
+        client.post(
+            f"/review/test-source/{candidate['candidate_id']}/approve",
+            data={"category": "sofi", "license": "tos_checked"},
+        )
+
+        assert self._title() == "Sonnenfinsternis"
+
+    def test_modifying_uses_it_too(self, client):
+        candidate = _stage_candidate(
+            "test-source", "20260724-000000", "sofi", VALID_EVENT, subject_name="Sonnenfinsternis",
+        )
+
+        response = client.post(
+            f"/review/test-source/{candidate['candidate_id']}/modify",
+            data={
+                "category": "sofi", "license": "tos_checked", "type": "market",
+                "name": "Stadtfest", "year": "2026",
+                "from": "2026-08-16", "to": "2026-08-16", "precision": "exact",
+            },
+            follow_redirects=False,
+        )
+
+        assert response.status_code == 302
+        assert self._title() == "Sonnenfinsternis"
+
+    def test_a_candidate_staged_before_subject_name_existed_still_works(self, client):
+        """Candidates already on disk from an earlier run have no
+        subject_name key at all - that must fall back to the slug, not
+        crash the approval."""
+        candidate = _stage_candidate("test-source", "20260724-000000", "sofi", VALID_EVENT)
+        del candidate["subject_name"]
+        staging.write_candidate("test-source", "20260724-000000", candidate)
+
+        response = client.post(
+            f"/review/test-source/{candidate['candidate_id']}/approve",
+            data={"category": "sofi", "license": "tos_checked"},
+            follow_redirects=False,
+        )
+
+        assert response.status_code == 302
+        assert self._title() == "sofi"
 
 
 class TestBulkApprove:

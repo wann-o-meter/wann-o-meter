@@ -95,17 +95,32 @@ def build_candidate(
     window: Dict[str, Any],
     document: str,
     extracted_at: Optional[str] = None,
+    subject_name: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Builds one candidate dict (spec shape: candidate_id, source_id,
     document, extracted_at, content_hash, event) for a single window - the
     unit of review is one event, not one subject/ExtractionResult, since a
     subject can carry several independently-sourced windows (see
-    data/schulferien/bw/data.yaml's Osterferien + Sommerferien)."""
+    data/schulferien/bw/data.yaml's Osterferien + Sommerferien).
+
+    subject_name is the readable page title for the subject this candidate
+    belongs to (crawl_runner._subject_name's cleaned-up <title>, or an
+    adapter's own subject name). Carried on the candidate because page.yaml
+    is written by whichever path approves FIRST and never rewritten
+    (store.schreibe_page_yaml_falls_neu) - so the review UI, which only ever
+    sees the candidate, needs the name here or it falls back to the raw slug
+    and pins "eclipse-gsfc-nasa-gov" as a page heading forever. Defaults to
+    subject_slug, which is exactly the old behavior.
+
+    Note it deliberately does NOT enter the content hash: normalize_event
+    projects to identity fields only, so adding a name here never re-opens
+    an already-decided candidate for review."""
     hash_ = _content_hash_of(normalize_event(window, subject_slug))
     return {
         "candidate_id": f"{source_id}:{hash_}",
         "source_id": source_id,
         "subject_slug": subject_slug,
+        "subject_name": subject_name or subject_slug,
         "document": document,
         "extracted_at": extracted_at or datetime.now(timezone.utc).isoformat(),
         "content_hash": hash_,

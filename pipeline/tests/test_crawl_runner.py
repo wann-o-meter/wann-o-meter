@@ -274,3 +274,61 @@ class TestExtractorChoice:
 
         assert windows == []
         assert "20 before year 1 skipped (not storable)" in note
+
+
+def _staged_candidates(source_id: str) -> list:
+    """Every candidate file a run wrote, newest run first."""
+    runs = sorted((Path(staging.STAGING_ROOT) / source_id).iterdir(), reverse=True)
+    return [
+        yaml.safe_load(p.read_text(encoding="utf-8"))
+        for p in sorted((runs[0] / "candidates").glob("*.yaml"))
+    ]
+
+
+class TestCandidateCarriesSubjectNameAndSourceUrl:
+    """Both fields exist so an approval through the review UI produces the
+    same data as an auto-waved-through one: the cleaned-up page title
+    (rather than the raw source id) and a per-window citation."""
+
+    @pytest.fixture
+    def html_run(self, monkeypatch):
+        monkeypatch.setattr(
+            crawl_runner, "crawl",
+            lambda source, on_progress=None, on_page=None: [CrawledDocument(
+                "https://example.org/termine.html", "text/html",
+                b"<html><head><title>Sonnenfinsternisse 2001 - 2100 | NASA</title></head>"
+                b"<body><p>Am 2026-08-12.</p></body></html>",
+            )],
+        )
+        monkeypatch.setattr(crawl_runner, "suggest_title", lambda text, raw_title: "Sonnenfinsternis")
+        monkeypatch.setattr(
+            crawl_runner, "extract_dated_events",
+            lambda text, on_progress=None: [{"date": "2026-08-12", "label": "Sonnenfinsternis"}],
+        )
+        crawl_runner.run(_source(formats=["html"], event_type_hint=""))
+        return _staged_candidates("test-source")
+
+    def test_the_candidate_carries_the_cleaned_up_page_title(self, html_run):
+        assert [c["subject_name"] for c in html_run] == ["Sonnenfinsternis"]
+
+    def test_the_window_is_stamped_with_the_document_it_came_from(self, html_run):
+        assert html_run[0]["event"]["source_urls"] == ["https://example.org/termine.html"]
+
+    def test_stamping_does_not_change_the_candidates_identity(self, html_run):
+        """source_urls is excluded from the content hash on purpose (see
+        core/content_hash.py) - if it leaked in, adding the stamp would
+        re-open every already-decided candidate for review."""
+        from core.content_hash import content_hash, normalize_event
+        event = html_run[0]["event"]
+        assert html_run[0]["content_hash"] == content_hash(normalize_event(event, "test-source"))
+        assert content_hash(normalize_event({**event, "source_urls": ["https://other.invalid"]}, "test-source")) == html_run[0]["content_hash"]
+
+
+def test_a_document_without_a_title_falls_back_to_the_source_id(monkeypatch):
+    monkeypatch.setattr(
+        crawl_runner, "crawl",
+        lambda source, on_progress=None, on_page=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
+    )
+    crawl_runner.run(_source())
+
+    assert _staged_candidates("test-source")[0]["subject_name"] == "test-source"

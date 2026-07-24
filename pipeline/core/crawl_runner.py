@@ -241,7 +241,16 @@ def run(
             continue
         report_page(doc.url, note)
         for window in windows:
-            candidate = staging.build_candidate(source.id, source.id, window, doc_hash)
+            # Same job core/types.py's SourceResult.__post_init__ does for
+            # adapter sources ("this is core's job, not each source
+            # adapter's"), which the crawl path bypassed entirely - without
+            # it store.merge_zeitfenster has no citations to union when a
+            # second source reports the same window, so the per-window
+            # citation merge silently no-ops for everything crawled.
+            # source_urls is excluded from the content hash on purpose (see
+            # core/content_hash.py), so this changes no candidate's identity.
+            window.setdefault("source_urls", [doc.url])
+            candidate = staging.build_candidate(source.id, source.id, window, doc_hash, subject_name=subject_name)
             staging.write_candidate(source.id, run_ts, candidate)
             all_candidates.append(candidate)
 

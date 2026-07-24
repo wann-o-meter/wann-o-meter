@@ -867,6 +867,21 @@ def _quelle_for_candidate(source_id: str, candidate: dict, license: str) -> dict
     }
 
 
+def _page_title_for(candidate: dict) -> str:
+    """The title page.yaml gets when approving this candidate creates it.
+    Prefers the suggested subject_name a crawl/adapter run stamped on the
+    candidate (see staging.build_candidate) over the raw slug - approving
+    through the review UI used to pass subject_slug as the page title, so a
+    crawl source's page was headed "eclipse-gsfc-nasa-gov" while the SAME
+    source's auto-waved-through candidates got the cleaned-up
+    "Sonnenfinsternis" via crawl_runner. page.yaml is written once and never
+    rewritten, so whichever path approved first pinned the title for good.
+
+    Falls back to the slug for candidates staged before subject_name
+    existed."""
+    return candidate.get("subject_name") or candidate["subject_slug"]
+
+
 def _approve_one(source_id: str, candidate_id: str, category: str, license: str) -> Optional[str]:
     """Approves one candidate, or returns why it couldn't be. Shared by the
     single-candidate route (which turns the message into a 4xx page) and
@@ -890,7 +905,7 @@ def _approve_one(source_id: str, candidate_id: str, category: str, license: str)
 
     quelle = _quelle_for_candidate(source_id, candidate, license)
     try:
-        approval.write_event(category_path, candidate["subject_slug"], candidate["subject_slug"], candidate["event"], quelle)
+        approval.write_event(category_path, candidate["subject_slug"], _page_title_for(candidate), candidate["event"], quelle)
     except approval.ApprovalError as e:
         return f"validation failed, nothing written: {e}"
     _write_category_meta_if_new(category)
@@ -1013,7 +1028,7 @@ async def modify_candidate(
 
     quelle = _quelle_for_candidate(source_id, candidate, license)
     try:
-        approval.write_event(category_path, candidate["subject_slug"], candidate["subject_slug"], corrected_event, quelle)
+        approval.write_event(category_path, candidate["subject_slug"], _page_title_for(candidate), corrected_event, quelle)
     except approval.ApprovalError as e:
         return HTMLResponse(f"Validation failed, nothing written:\n{e}", status_code=400)
     _write_category_meta_if_new(category)
