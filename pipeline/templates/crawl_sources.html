@@ -88,7 +88,15 @@
                     .then((res) => res.json())
                     .then((status) => {
                         const progressEl = document.querySelector(`.crawl-source-progress[data-source-id="${CSS.escape(sourceId)}"]`);
-                        if (progressEl) progressEl.textContent = status.progress || '';
+                        if (progressEl) {
+                            progressEl.textContent = '';
+                            if (status.progress && status.progress.phase) {
+                                const phaseLabel = document.createElement('strong');
+                                phaseLabel.textContent = status.progress.phase.charAt(0).toUpperCase() + status.progress.phase.slice(1) + ': ';
+                                progressEl.appendChild(phaseLabel);
+                                progressEl.appendChild(document.createTextNode(status.progress.detail || ''));
+                            }
+                        }
                         if (!status.running || attempts >= 300) {
                             clearInterval(timer);
                             if (status.error) alert(`Crawl failed for ${sourceId}: ` + status.error);

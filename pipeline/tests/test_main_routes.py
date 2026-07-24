@@ -187,6 +187,126 @@ class TestReviewReject:
         assert candidate["candidate_id"] not in response.text
 
 
+class TestChainToNextReviewCandidate:
+    def test_deciding_the_only_candidate_redirects_back_to_the_queue(self, client):
+        candidate = _stage_candidate("test-source", "20260724-000000", "hechingen", VALID_EVENT)
+
+        response = client.post(
+            f"/review/test-source/{candidate['candidate_id']}/approve",
+            data={"category": "veranstaltungen", "license": "tos_checked"},
+            follow_redirects=False,
+        )
+
+        assert response.headers["location"] == "/review"
+
+    def test_deciding_one_of_two_candidates_redirects_straight_to_the_other(self, client):
+        first = _stage_candidate("test-source", "20260724-000000", "hechingen", VALID_EVENT)
+        second_event = {**VALID_EVENT, "name": "Weihnachtsmarkt", "from": "2026-12-01", "to": "2026-12-24"}
+        second = _stage_candidate("test-source", "20260724-000000", "stuttgart", second_event)
+
+        response = client.post(
+            f"/review/test-source/{first['candidate_id']}/reject",
+            follow_redirects=False,
+        )
+
+        assert response.headers["location"] == f"/review/test-source/{second['candidate_id']}"
+
+
+class TestPlaintextFromMarkdown:
+    def test_strips_link_syntax_but_keeps_the_label(self):
+        result = main._plaintext_from_markdown("[09338](../5MCSEmap/1901-2000/1924-08-30.gif) 1924 Aug 30")
+        assert result == "09338 1924 Aug 30"
+
+    def test_strips_bold_and_italic_markers(self):
+        assert main._plaintext_from_markdown("**bold** and *italic*") == "bold and italic"
+
+    def test_strips_bold_markers_that_wrap_across_a_line_break(self):
+        # Regression: "." doesn't match "\n" by default, so a **bold**
+        # span whose content wraps onto its own line (real shape from a
+        # staged eclipse.gsfc.nasa.gov snapshot) left the bare "**"
+        # markers behind as their own lines instead of being stripped.
+        result = main._plaintext_from_markdown("**\n 1901 to 2000 ( 1901 CE to 2000 CE )\n**")
+        assert "**" not in result
+        assert "1901 to 2000 ( 1901 CE to 2000 CE )" in result
+
+    def test_strips_heading_markers(self):
+        assert main._plaintext_from_markdown("## Statistics for Solar Eclipses") == "Statistics for Solar Eclipses"
+
+    def test_collapses_runs_of_blank_lines_to_exactly_one_blank_line(self):
+        # Not zero: a wall of text with no paragraph breaks at all is just
+        # as hard to scan as ten blank lines in a row.
+        result = main._plaintext_from_markdown("first\n\n\n\nsecond\n\n\nthird")
+        assert result == "first\n\nsecond\n\nthird"
+
+    def test_collapses_a_run_of_lone_space_lines_to_one_blank_line_not_just_every_other_one(self):
+        # Regression: a naive "\n{2,}" collapse on lines that are each a
+        # single lingering space (not truly empty) only removed every
+        # other blank line - verified against a real staged
+        # eclipse.gsfc.nasa.gov snapshot, which has exactly this shape.
+        text = "Catalog of Solar Eclipses: 1901 to 2000\n \n \n \n \n \n \n \n \n \nFive Millennium Catalog"
+        result = main._plaintext_from_markdown(text)
+        assert result == "Catalog of Solar Eclipses: 1901 to 2000\n\nFive Millennium Catalog"
+
+    def test_a_dense_realistic_row_reads_cleanly(self):
+        row = (
+            "[09338](../5MCSEmap/1901-2000/1924-08-30.gif) 1924 Aug 30 "
+            "[08:23:00](../SEplot/SEplot1901/SE1924Aug30P.GIF) 24 -932 "
+            "[153](../SEsaros/SEsaros153.html) P t- [ 1.3123](../SEsearch/SEdata.php?Ecl=19240830) "
+            "0.4245 71N 173E 0"
+        )
+        result = main._plaintext_from_markdown(row)
+        assert "[" not in result and "](" not in result
+        assert "1924 Aug 30" in result
+
+
+class TestHighlightDates:
+    def test_highlights_an_exact_iso_date_match(self):
+        result = main._highlight_dates("seen on 2026-08-15 in the table", ["2026-08-15"])
+        assert result == "seen on <mark>2026-08-15</mark> in the table"
+
+    def test_highlights_the_human_readable_variant_too(self):
+        # eclipse.gsfc.nasa.gov's actual catalog format, verified against a
+        # real staged snapshot - a source's date formatting varies, so both
+        # this and the plain ISO form are tried.
+        result = main._highlight_dates("row: 1901 Jan 07 partial", ["1901-01-07"])
+        assert result == "row: <mark>1901 Jan 07</mark> partial"
+
+    def test_no_match_returns_escaped_text_unchanged_otherwise(self):
+        result = main._highlight_dates("<script>nothing matches here</script>", ["2026-08-15"])
+        assert result == "&lt;script&gt;nothing matches here&lt;/script&gt;"
+
+    def test_output_is_always_html_escaped_even_around_a_match(self):
+        result = main._highlight_dates("<b>2026-08-15</b>", ["2026-08-15"])
+        assert result == "&lt;b&gt;<mark>2026-08-15</mark>&lt;/b&gt;"
+
+    def test_human_variant_is_none_for_a_recurring_month_only_window(self):
+        # "--08" (a recurring window's month-only from/to, see
+        # datePartSchema) isn't a full date - _highlight_dates still tries
+        # a literal match for whatever string it's given (harmless either
+        # way), but the "YYYY Mon DD" human-readable guess only makes sense
+        # for a full ISO date and must not be attempted here.
+        assert main._human_date_variant("--08") is None
+
+    def test_none_dates_are_skipped_without_erroring(self):
+        result = main._highlight_dates("plain text", [None, "2026-08-15"])
+        assert result == "plain text"
+
+
+class TestReviewCandidateDetailHighlighting:
+    def test_an_html_document_snapshot_is_shown_with_the_candidates_date_highlighted(self, client):
+        doc_hash = staging.write_document(
+            "test-source", "20260724-000000", "https://example.invalid/events",
+            "text/html", b"<html><body><p>Stadtfest am 2026-08-15 in Hechingen</p></body></html>",
+        )
+        candidate = staging.build_candidate("test-source", "hechingen", VALID_EVENT, doc_hash)
+        staging.write_candidate("test-source", "20260724-000000", candidate)
+
+        response = client.get(f"/review/test-source/{candidate['candidate_id']}")
+
+        assert response.status_code == 200
+        assert "<mark>2026-08-15</mark>" in response.text
+
+
 class TestPathTraversalGuards:
     """Unit-level coverage for the guards behind /review/{source_id}/... and
     /staging-document/{source_id}/{run_ts}/{doc_hash} - source_id/run_ts/

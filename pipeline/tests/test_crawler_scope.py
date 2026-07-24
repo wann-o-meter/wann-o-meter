@@ -98,6 +98,13 @@ def test_normalization_collapses_trailing_slash_and_fragment_duplicates_to_one_f
     assert len(market_hits) == 1  # not 3, despite 3 differently-shaped links to it
 
 
+def test_on_progress_is_called_once_per_actual_fetch_not_per_queued_link():
+    messages = []
+    docs = crawler.crawl(_source(max_depth=0), on_progress=messages.append)
+    assert len(messages) == len(docs) == 1
+    assert "https://example.org/events" in messages[0]
+
+
 def test_formats_filter_excludes_documents_not_in_the_configured_list(monkeypatch):
     monkeypatch.setitem(FAKE_SITE, "https://example.org/events/flyer.pdf", (b"%PDF-1.4 fake", "application/pdf"))
     site_with_pdf = dict(FAKE_SITE)

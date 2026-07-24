@@ -10,6 +10,12 @@
             <p style="font-size:0.85rem; color:var(--muted); margin:0 0 0.75rem;">
                 {{ source_id }} · {{ candidate.subject_slug }} · extracted {{ candidate.extracted_at }}
             </p>
+            <p style="margin:0 0 1rem;">
+                <strong>{{ candidate.event.name or candidate.event.type }}</strong><br>
+                <span style="font-size:1.1rem;">{{ candidate.event.from }}{% if candidate.event.to != candidate.event.from %} → {{ candidate.event.to }}{% endif %}</span>
+                {% if candidate.event.year %}<span style="color:var(--muted);">({{ candidate.event.year }})</span>{% endif %}
+                <br><span style="font-size:0.85rem; color:var(--muted);">{{ candidate.event.type }} · {{ candidate.event.precision }}</span>
+            </p>
 
             <datalist id="category-suggestions">
                 {% for c in category_suggestions %}<option value="{{ c }}">{% endfor %}
@@ -64,6 +70,9 @@
 
             <p style="margin-top:1.5rem;">
                 <a href="/review">← Back to queue</a>
+                {% if next_candidate %}
+                · <a href="/review/{{ next_candidate.source_id }}/{{ next_candidate.candidate_id }}">Skip → Next</a>
+                {% endif %}
             </p>
         </div>
     </div>
@@ -75,9 +84,9 @@
                 <a href="{{ document_meta.url }}" target="_blank">{{ document_meta.url }}</a>
                 · fetched {{ document_meta.fetched_at }}
             </p>
-            {% if document_text %}
+            {% if document_html %}
             <div class="scroll-box tall">
-                <pre style="white-space:pre-wrap; font-size:0.85rem;">{{ document_text }}</pre>
+                <pre style="white-space:pre-wrap; font-size:0.85rem;">{{ document_html | safe }}</pre>
             </div>
             {% elif document_url %}
             <iframe src="{{ document_url }}" style="width:100%; height:600px; border:1px solid var(--line);"></iframe>
@@ -87,4 +96,21 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // Jump straight to the highlighted date instead of making a
+        // reviewer scroll through a possibly huge snapshot to find it.
+        // Runs immediately rather than waiting on DOMContentLoaded: this
+        // script tag sits after the snapshot in the document, so the
+        // <mark> (if any) is already parsed and in the DOM by the time
+        // this executes - waiting on the event is unnecessary here, and a
+        // back/forward-cache page restore doesn't fire DOMContentLoaded
+        // at all, which would otherwise silently skip this.
+        (function () {
+            const mark = document.querySelector('.scroll-box mark');
+            if (mark) mark.scrollIntoView({ block: 'center' });
+        })();
+    </script>
 {% endblock %}

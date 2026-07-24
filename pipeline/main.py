@@ -12,6 +12,7 @@ Features:
 """
 
 import asyncio
+import html
 import json
 import re
 import shutil
@@ -447,6 +448,93 @@ def _review_queue() -> List[dict]:
     return [c for source_id in _known_source_ids() for c in _pending_candidates_for(source_id)]
 
 
+def _next_review_candidate(exclude: Optional[tuple] = None) -> Optional[dict]:
+    """First pending candidate in the queue, other than `exclude` - lets a
+    reviewer chain straight from one decision (or an explicit Skip) to the
+    next one instead of bouncing back through /review's list every time."""
+    for candidate in _review_queue():
+        if exclude and (candidate["source_id"], candidate["candidate_id"]) == exclude:
+            continue
+        return candidate
+    return None
+
+
+_MONTH_ABBR = {
+    1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
+    7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec",
+}
+_ISO_DATE_RE = re.compile(r"^(-?\d{1,4})-(\d{2})-(\d{2})$")
+
+
+def _human_date_variant(iso_date: str) -> Optional[str]:
+    """"1901-01-07" -> "1901 Jan 07" - the format eclipse.gsfc.nasa.gov's
+    catalog pages actually write dates in (verified against a real staged
+    snapshot) - a source's own date formatting varies, so this is one
+    extra guess alongside the plain ISO string, not a general parser."""
+    m = _ISO_DATE_RE.match(iso_date)
+    if not m:
+        return None
+    year, month, day = m.groups()
+    abbr = _MONTH_ABBR.get(int(month))
+    return f"{year} {abbr} {day}" if abbr else None
+
+
+_MD_LINK_RE = re.compile(r"\[([^\]]*)\]\([^)]*\)")
+_MD_EMPHASIS_RE = re.compile(r"\*\*(.+?)\*\*|\*(.+?)\*", re.DOTALL)
+_MD_HEADING_MARKER_RE = re.compile(r"^#{1,6}\s*", re.MULTILINE)
+_BLANK_LINE_RUN_RE = re.compile(r"\n{2,}")
+
+
+def _plaintext_from_markdown(md: str) -> str:
+    """The staged .md snapshot (scraper.py's html_to_markdown) keeps
+    markdown syntax - [label](url) links, **bold**, # headings - which is
+    visual noise for a dense data table (e.g. the eclipse catalog: every
+    row's image/plot/search links turn into bracket-and-paren clutter
+    around the actual date/time text). The review UI wants plain,
+    scannable text, not literal markdown source - strips the syntax back
+    to just its human-readable text and collapses the blank-line runs left
+    behind by stripped block-level tags (each one otherwise costs a whole
+    scroll of vertical space for nothing).
+
+    Trailing whitespace is stripped per line BEFORE collapsing blank runs:
+    a line left with just a lone space (common once a <td>/<a> tag around
+    it is gone) isn't truly empty as text, so a naive "\\n{2,}" collapse
+    alone would only remove every other blank line instead of the whole
+    run - verified against a real staged eclipse.gsfc.nasa.gov snapshot,
+    which has exactly this shape. Collapses down to exactly ONE blank line
+    (not zero) between sections - a wall of text with no paragraph breaks
+    at all is just as hard to scan as ten blank lines in a row."""
+    text = _MD_LINK_RE.sub(r"\1", md)
+    text = _MD_EMPHASIS_RE.sub(lambda m: m.group(1) or m.group(2), text)
+    text = _MD_HEADING_MARKER_RE.sub("", text)
+    text = "\n".join(line.rstrip() for line in text.split("\n"))
+    text = _BLANK_LINE_RUN_RE.sub("\n\n", text)
+    return text.strip()
+
+
+def _highlight_dates(text: str, dates: List[Optional[str]]) -> str:
+    """Escapes `text` for safe HTML embedding, then wraps any occurrence of
+    one of the candidate's own from/to dates - in ISO form or the
+    human-readable variant above - in <mark>. Best-effort: a miss just
+    means no highlight, the escaped text still renders either way, since
+    input is always fully escaped first regardless of whether anything
+    matched."""
+    escaped = html.escape(text)
+    patterns = []
+    seen = set()
+    for date in dates:
+        if not date or date in seen:
+            continue
+        seen.add(date)
+        patterns.append(re.escape(html.escape(date)))
+        variant = _human_date_variant(date)
+        if variant:
+            patterns.append(re.escape(html.escape(variant)))
+    if not patterns:
+        return escaped
+    return re.sub("(" + "|".join(patterns) + ")", r"<mark>\1</mark>", escaped)
+
+
 def _all_disappeared() -> List[dict]:
     out = []
     for source_id in _known_source_ids():
@@ -716,16 +804,23 @@ async def review_candidate_detail(request: Request, source_id: str, candidate_id
     documents_dir = staging.STAGING_ROOT / source_id / run_ts / "documents"
     doc_path = next((p for p in documents_dir.glob(f"{doc_hash}.*") if p.suffix != ".yaml"), None)
     is_text = doc_path is not None and doc_path.suffix in (".md", ".ics")
+    document_html = None
+    if is_text:
+        event = candidate["event"]
+        raw_text = doc_path.read_text(encoding="utf-8")
+        plain_text = _plaintext_from_markdown(raw_text) if doc_path.suffix == ".md" else raw_text
+        document_html = _highlight_dates(plain_text, [event.get("from"), event.get("to")])
 
     return templates.TemplateResponse(request, "_candidate_review.html", {
         "state": state.to_dict(),
         "source_id": source_id,
         "candidate": candidate,
         "document_meta": doc_meta,
-        "document_text": doc_path.read_text(encoding="utf-8") if is_text else None,
+        "document_html": document_html,
         "document_url": f"/staging-document/{source_id}/{run_ts}/{doc_hash}" if doc_path and not is_text else None,
         "license_options": LICENSE_OPTIONS,
         "category_suggestions": _category_suggestions(),
+        "next_candidate": _next_review_candidate(exclude=(source_id, candidate_id)),
     })
 
 
@@ -757,6 +852,17 @@ async def get_staging_document(source_id: str, run_ts: str, doc_hash: str):
         return HTMLResponse("Not found", status_code=404)
     media_type = _STAGING_DOCUMENT_MEDIA_TYPES.get(match.suffix, "application/octet-stream")
     return Response(content=match.read_bytes(), media_type=media_type)
+
+
+def _redirect_to_next_review(source_id: str, candidate_id: str) -> RedirectResponse:
+    """Chains straight from an approve/modify/reject decision to whatever's
+    next in the queue (see _next_review_candidate) instead of bouncing
+    through /review's list every time - falls back to the list once the
+    queue is empty."""
+    next_candidate = _next_review_candidate(exclude=(source_id, candidate_id))
+    if next_candidate:
+        return RedirectResponse(f"/review/{next_candidate['source_id']}/{next_candidate['candidate_id']}", status_code=302)
+    return RedirectResponse("/review", status_code=302)
 
 
 def _quelle_for_candidate(source_id: str, candidate: dict, license: str) -> dict:
@@ -807,7 +913,7 @@ async def approve_candidate(
     st = review_state.load(source_id)
     review_state.record_decision(st, candidate["content_hash"], "approved", target_file, candidate["event"])
     review_state.save(source_id, st)
-    return RedirectResponse("/review", status_code=302)
+    return _redirect_to_next_review(source_id, candidate_id)
 
 
 @app.post("/review/{source_id}/{candidate_id}/modify")
@@ -861,7 +967,7 @@ async def modify_candidate(
         st, candidate["content_hash"], "modified", target_file, candidate["event"], corrected_event=corrected_event
     )
     review_state.save(source_id, st)
-    return RedirectResponse("/review", status_code=302)
+    return _redirect_to_next_review(source_id, candidate_id)
 
 
 @app.post("/review/{source_id}/{candidate_id}/reject")
@@ -876,7 +982,7 @@ async def reject_candidate(source_id: str, candidate_id: str):
     st = review_state.load(source_id)
     review_state.record_decision(st, candidate["content_hash"], "rejected", "", candidate["event"])
     review_state.save(source_id, st)
-    return RedirectResponse("/review", status_code=302)
+    return _redirect_to_next_review(source_id, candidate_id)
 
 
 @app.get("/status")

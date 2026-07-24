@@ -60,7 +60,7 @@ def _approve_like_the_review_ui_would(source_id: str, content_hash: str, event: 
 def test_a_brand_new_candidate_is_queued_for_review_not_written_or_auto_approved(monkeypatch):
     monkeypatch.setattr(
         crawl_runner, "crawl",
-        lambda source: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
+        lambda source, on_progress=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
     )
 
     result = crawl_runner.run(_source())
@@ -77,7 +77,7 @@ def test_a_brand_new_candidate_is_queued_for_review_not_written_or_auto_approved
 def test_a_previously_approved_candidate_auto_waves_through_on_a_later_run(monkeypatch):
     monkeypatch.setattr(
         crawl_runner, "crawl",
-        lambda source: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
+        lambda source, on_progress=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
     )
     first = crawl_runner.run(_source())
     assert first["needs_review"] == 1
@@ -104,7 +104,7 @@ def test_a_previously_approved_candidate_auto_waves_through_on_a_later_run(monke
 def test_new_event_alongside_an_already_approved_one_only_queues_the_new_one(monkeypatch):
     monkeypatch.setattr(
         crawl_runner, "crawl",
-        lambda source: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
+        lambda source, on_progress=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
     )
     crawl_runner.run(_source())
 
@@ -125,7 +125,7 @@ def test_new_event_alongside_an_already_approved_one_only_queues_the_new_one(mon
     ).encode("utf-8")
     monkeypatch.setattr(
         crawl_runner, "crawl",
-        lambda source: [CrawledDocument("https://example.org/events.ics", "text/calendar", second_event_ics)],
+        lambda source, on_progress=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", second_event_ics)],
     )
 
     result = crawl_runner.run(_source())
@@ -141,7 +141,7 @@ def test_an_llm_extraction_failure_is_reported_not_silently_swallowed(monkeypatc
     the crawl_runner.run() -> [] short-circuit that used to hide this."""
     monkeypatch.setattr(
         crawl_runner, "crawl",
-        lambda source: [CrawledDocument("https://example.org/events.html", "text/html", b"<html><body>some content</body></html>")],
+        lambda source, on_progress=None: [CrawledDocument("https://example.org/events.html", "text/html", b"<html><body>some content</body></html>")],
     )
     monkeypatch.setattr(
         crawl_runner, "extract_any",
@@ -162,11 +162,12 @@ def test_an_llm_extraction_failure_is_reported_not_silently_swallowed(monkeypatc
 def test_on_progress_is_called_with_crawl_and_per_document_updates(monkeypatch):
     monkeypatch.setattr(
         crawl_runner, "crawl",
-        lambda source: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
+        lambda source, on_progress=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
     )
     messages = []
 
     crawl_runner.run(_source(), on_progress=messages.append)
 
-    assert any("Crawling" in m for m in messages)
-    assert any("Extracting document 1/1" in m for m in messages)
+    assert any(m["phase"] == "crawling" for m in messages)
+    assert any(m["phase"] == "extracting" and "Document 1/1" in m["detail"] for m in messages)
+    assert any(m["phase"] == "diffing" for m in messages)

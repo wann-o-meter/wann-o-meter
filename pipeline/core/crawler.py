@@ -12,7 +12,7 @@ core/staging.py and core/runner.py for what happens to a crawl's output)."""
 
 import time
 import urllib.robotparser
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Callable, Dict, List, Optional, Set, Tuple
 from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
@@ -106,7 +106,13 @@ def _discover_links(html: bytes, base_url: str) -> Tuple[List[str], List[str]]:
     return page_links, ics_links
 
 
-def crawl(source: CrawlSource) -> List[CrawledDocument]:
+def crawl(source: CrawlSource, on_progress: Optional[Callable[[str], None]] = None) -> List[CrawledDocument]:
+    """on_progress, if given, is called with a short status string before
+    each actual fetch (politeness-delay wait doesn't count - that's dead
+    time, not progress) - the BFS loop can run long on a source with many
+    in-scope pages, and a caller (crawl_runner.run() -> main.py's
+    dashboard) wants to show something better than a static "Crawling..."
+    for however long that takes."""
     documents: List[CrawledDocument] = []
     visited: Set[str] = set()
     queue: List[Tuple[str, int]] = [(normalize_url(source.seed_url), 0)]
@@ -114,6 +120,7 @@ def crawl(source: CrawlSource) -> List[CrawledDocument]:
     last_fetch_at: Dict[str, float] = {}
     config = Config()
     config.user_agent = USER_AGENT
+    fetched = 0
 
     while queue:
         url, depth = queue.pop(0)
@@ -132,10 +139,13 @@ def crawl(source: CrawlSource) -> List[CrawledDocument]:
             time.sleep(wait)
         last_fetch_at[domain] = time.monotonic()
 
+        if on_progress:
+            on_progress(f"Fetching page {fetched + 1} ({len(queue)} queued): {url}")
         try:
             content, content_type = fetch_bytes(url, config)
         except Exception:
             continue
+        fetched += 1
 
         fmt = sniff_format(content, content_type)
         is_html = fmt == "html"

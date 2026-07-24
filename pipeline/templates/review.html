@@ -19,7 +19,7 @@
                             <th>Subject</th>
                             <th>Type</th>
                             <th>Name</th>
-                            <th>When</th>
+                            <th data-sort style="cursor:pointer;" title="Click to sort">When ⇅</th>
                             <th style="width:80px;"></th>
                         </tr>
                     </thead>
@@ -81,4 +81,28 @@
             <p class="empty-hint">Nothing disappeared.</p>
             {% endif %}
         </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // Generic click-to-sort for any <th data-sort> - string-compares
+        // that column's cell text (works as chronological sort for ISO-ish
+        // "YYYY-MM-DD" dates too, no date parsing needed).
+        document.addEventListener('click', function (e) {
+            const th = e.target.closest('th[data-sort]');
+            if (!th) return;
+            const table = th.closest('table');
+            const tbody = table.querySelector('tbody');
+            const colIndex = Array.prototype.indexOf.call(th.parentNode.children, th);
+            const ascending = th.dataset.sortDir !== 'asc';
+            const rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+            rows.sort(function (a, b) {
+                const av = a.children[colIndex].textContent.trim();
+                const bv = b.children[colIndex].textContent.trim();
+                return ascending ? av.localeCompare(bv) : bv.localeCompare(av);
+            });
+            rows.forEach(function (row) { tbody.appendChild(row); });
+            th.dataset.sortDir = ascending ? 'asc' : 'desc';
+        });
+    </script>
 {% endblock %}

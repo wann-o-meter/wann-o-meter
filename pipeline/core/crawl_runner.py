@@ -72,28 +72,31 @@ def _windows_from_document(doc: CrawledDocument, on_progress: Optional[Callable[
     return []
 
 
-def run(source: CrawlSource, on_progress: Optional[Callable[[str], None]] = None) -> Dict[str, Any]:
-    """on_progress, if given, is called with a short human-readable status
-    string at each meaningful step - main.py's dashboard wires this to a
-    per-source status the Crawl Sources table polls, so a slow run (several
-    LLM calls for a large chunked page) shows more than a static
-    "Running..." for however long that takes."""
-    def report(msg: str) -> None:
+def run(source: CrawlSource, on_progress: Optional[Callable[[Dict[str, str]], None]] = None) -> Dict[str, Any]:
+    """on_progress, if given, is called with {"phase": "crawling"|
+    "extracting"|"diffing", "detail": str} at each meaningful step - the
+    phase is what lets main.py's dashboard show "Crawling" vs "Extracting"
+    as a distinct, glanceable label instead of a caller having to parse it
+    back out of a free-text message. detail carries the specifics (current
+    URL, chunk N/M, chars sent) - a slow run (many in-scope pages, or
+    several LLM calls for one large chunked page) shows something better
+    than a static "Running..." for however long that takes."""
+    def report(phase: str, detail: str) -> None:
         if on_progress:
-            on_progress(msg)
+            on_progress({"phase": phase, "detail": detail})
 
     run_ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-    report(f"Crawling {source.seed_url}...")
-    documents = crawl(source)
-    report(f"Crawled {len(documents)} document(s), extracting...")
+    report("crawling", f"Starting at {source.seed_url}")
+    documents = crawl(source, on_progress=lambda detail: report("crawling", detail))
+    report("crawling", f"Done - {len(documents)} document(s) found")
 
     all_candidates: List[Dict[str, Any]] = []
     extraction_errors: List[str] = []
     for i, doc in enumerate(documents, start=1):
         doc_hash = staging.write_document(source.id, run_ts, doc.url, doc.content_type, doc.content)
-        report(f"Extracting document {i}/{len(documents)}: {doc.url}")
+        report("extracting", f"Document {i}/{len(documents)}: {doc.url}")
         try:
-            windows = _windows_from_document(doc, on_progress=report)
+            windows = _windows_from_document(doc, on_progress=lambda detail: report("extracting", detail))
         except ExtractionError as e:
             extraction_errors.append(f"{doc.url}: {e}")
             continue
@@ -102,7 +105,7 @@ def run(source: CrawlSource, on_progress: Optional[Callable[[str], None]] = None
             staging.write_candidate(source.id, run_ts, candidate)
             all_candidates.append(candidate)
 
-    report("Diffing against review-state...")
+    report("diffing", "Comparing against review-state...")
     state = review_state.load(source.id)
     auto_waved_through, needs_review, disappeared = review_state.diff(all_candidates, state)
 
