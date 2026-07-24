@@ -26,6 +26,7 @@ import { join } from "node:path";
 import { load } from "js-yaml";
 import { generate as generateFeiertage } from "../data/feiertage/generator";
 import { generate as generateUrlaubsfenster } from "../data/urlaubsfenster/generator";
+import { allCountries } from "./countries";
 import { materializeRawWindow, rollingYears } from "./materialization";
 import { MAX_CATEGORY_DEPTH, parseCategoryMeta, parsePageData, parsePageMeta } from "./pages-schema";
 import { STATES } from "./states";
@@ -97,6 +98,16 @@ function withStateTag(page: Page): Page {
   const tag = stateTag(page.category, page.slug);
   if (!tag || page.meta.tags.includes(tag)) return page;
   return { ...page, meta: { ...page.meta, tags: [...page.meta.tags, tag] } };
+}
+
+// Real-world region for a page, for Event.location structured data
+// (src/pages/[...path].astro) - the same Bundesland as stateTag() above, or,
+// for Feiertage's non-German country pages (slug is a bare ISO code, e.g.
+// "tn" - see data/feiertage/generator.ts), the country name from the same
+// date-holidays data those pages are generated from. Never fabricated for
+// categories/pages with no real region (Saisonkalender, scraped pages, ...).
+export function pageRegion(page: Page): string | undefined {
+  return stateTag(page.category, page.slug) ?? (page.category === "feiertage" ? allCountries()[page.slug.toUpperCase()] : undefined);
 }
 
 // One node per category directory, both intermediate ("sport", with no

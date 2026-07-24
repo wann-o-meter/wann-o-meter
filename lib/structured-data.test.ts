@@ -28,6 +28,23 @@ describe("eventNode", () => {
     expect(eventNode({ name: "X", startDate: "2027-01-01" })).not.toHaveProperty("url");
     expect(eventNode({ name: "X", startDate: "2027-01-01", url: "/x/" })).toHaveProperty("url", "/x/");
   });
+
+  it("includes description/image only when given", () => {
+    const bare = eventNode({ name: "X", startDate: "2027-01-01" });
+    expect(bare).not.toHaveProperty("description");
+    expect(bare).not.toHaveProperty("image");
+    const full = eventNode({ name: "X", startDate: "2027-01-01", description: "d", image: "/og.png" });
+    expect(full).toHaveProperty("description", "d");
+    expect(full).toHaveProperty("image", "/og.png");
+  });
+
+  it("wraps location in a Place node only when given", () => {
+    expect(eventNode({ name: "X", startDate: "2027-01-01" })).not.toHaveProperty("location");
+    expect(eventNode({ name: "X", startDate: "2027-01-01", location: "Bayern" })).toHaveProperty("location", {
+      "@type": "Place",
+      name: "Bayern",
+    });
+  });
 });
 
 describe("breadcrumbNode", () => {
@@ -54,6 +71,15 @@ describe("datasetNode", () => {
     }) as { distribution: { contentUrl: string }[] };
     expect(node.distribution).toHaveLength(2);
     expect(node.distribution[0].contentUrl).toBe("/api/v1/feiertage/de-bw.json");
+  });
+
+  it("stamps the site's CC BY 4.0 license and creator", () => {
+    const node = datasetNode({ name: "n", description: "d", url: "/u/", distributions: [] }) as {
+      license: string;
+      creator: { name: string };
+    };
+    expect(node.license).toBe("https://creativecommons.org/licenses/by/4.0/");
+    expect(node.creator.name).toBe("Wann-O-Meter");
   });
 });
 
