@@ -5,6 +5,7 @@ source (Ziel 1 of the pipeline overhaul). Lives under pipeline/config/
 automated batch pipeline's single config file) - three genuinely different
 things that would collide under any shared name."""
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -34,6 +35,13 @@ class CrawlConfigError(Exception):
     pass
 
 
+# A subject_slug becomes a real directory name under data/{category}/, so
+# it is validated here rather than trusted: config files are hand-edited,
+# and "../../.." would write outside data/ entirely. Same shape main.py's
+# _slugify produces for a single segment.
+_SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
+
 @dataclass
 class CrawlSource:
     id: str
@@ -45,9 +53,39 @@ class CrawlSource:
     formats: List[str]
     event_type_hint: str
     schedule: str
+    # Which page this source's events land in: data/{category}/{subject_slug}/.
+    # Defaults to `id`, which is what every source did before this existed.
+    #
+    # Set the SAME category + subject_slug on several sources to aggregate
+    # them into one page - the point of the whole pipeline (see
+    # store.merge_zeitfenster: same window from two sources keeps one entry
+    # and unions the citations). BOTH fields have to match; a shared
+    # subject_slug under different categories silently yields two pages
+    # again, since the file path is what identifies the subject.
+    #
+    # Changing this on a source that already has approved candidates
+    # re-opens all of them: content_hash.normalize_event() hashes the
+    # subject_slug, so every window gets a new hash - review_state.diff()
+    # then sees them as brand-new candidates AND flags the old hashes as
+    # disappeared. Safe to set on a new source, disruptive on a live one.
+    subject_slug: str = ""
+    # Optional explicit page title. With several sources feeding one page,
+    # store.schreibe_page_yaml_falls_neu writes page.yaml from whichever
+    # source approved FIRST, using that source's own <title> - so leaving
+    # this blank makes a shared page's heading depend on crawl order. Set it
+    # to pin the title; blank falls back to crawl_runner._subject_name's
+    # LLM-cleaned <title>, the previous behavior.
+    subject_name: str = ""
     extraction_mode: str = DEFAULT_EXTRACTION_MODE
     auto_approve_ics: bool = False
     config_path: Path = field(default=None, repr=False)  # type: ignore[assignment]
+
+    def __post_init__(self) -> None:
+        """A blank subject_slug means "its own page". Defaulted here rather
+        than only in _parse() so a CrawlSource built directly in code gets
+        the same fallback a config file does."""
+        if not self.subject_slug:
+            self.subject_slug = self.id
 
 
 def _parse(raw: Dict[str, Any], path: Path) -> CrawlSource:
@@ -66,10 +104,19 @@ def _parse(raw: Dict[str, Any], path: Path) -> CrawlSource:
     if extraction_mode not in EXTRACTION_MODES:
         raise CrawlConfigError(f"{path}: extraction_mode must be one of {', '.join(EXTRACTION_MODES)}")
 
+    subject_slug = str(raw.get("subject_slug") or raw["id"])
+    if not _SLUG_RE.match(subject_slug):
+        raise CrawlConfigError(
+            f"{path}: subject_slug '{subject_slug}' must be a lowercase slug "
+            "(a-z, 0-9, single dashes) - it becomes a directory name under data/"
+        )
+
     return CrawlSource(
         id=raw["id"],
         seed_url=raw["seed_url"],
         category=raw["category"],
+        subject_slug=subject_slug,
+        subject_name=str(raw.get("subject_name", "") or "").strip(),
         allowed_domains=list(scope["allowed_domains"]),
         path_prefix=scope.get("path_prefix"),
         max_depth=max_depth,

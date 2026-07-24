@@ -5,9 +5,16 @@ diff against review-state -> write auto-approved/modified, queue the rest.
 The crawl_sources/*.yaml equivalent of core/runner.py, which does the same
 fetch->stage->diff->write lifecycle for a single-fetch automated source -
 shares core/staging.py, core/review_state.py, core/approval.py with it. One
-crawl source produces one subject (subject_slug = source.id) with however
-many windows its crawl turned up, same shape as e.g. schulferien_kmk's one
-subject file with several independently-sourced windows.
+crawl source produces one subject (source.subject_slug, which defaults to
+source.id) with however many windows its crawl turned up, same shape as e.g.
+schulferien_kmk's one subject file with several independently-sourced
+windows.
+
+SEVERAL sources may point at the same subject_slug + category on purpose -
+that is how one page aggregates several overlapping sources (NASA's eclipse
+catalog splits the same subject across one page per century; a reader wants
+one page, not one per century). Each source keeps its own review-state and
+its own citation; store.merge_zeitfenster unions them per window.
 
 Each crawled document is extracted independently by its sniffed kind
 (scraper.py's extract_any): an ics_feed document's windows are used
@@ -222,7 +229,11 @@ def run(
     # Before the document loop: the deterministic extractor names its windows
     # after the page, so this has to exist by the time the first document is
     # extracted, not just when page.yaml is written.
-    subject_name = _subject_name(documents, source.id)
+    # An explicit subject_name in the config wins: with several sources
+    # feeding one page, page.yaml is written by whichever approves first
+    # (schreibe_page_yaml_falls_neu), so relying on the <title> makes a
+    # shared page's heading depend on crawl order.
+    subject_name = source.subject_name or _subject_name(documents, source.subject_slug)
     label = source.event_type_hint or subject_name
 
     all_candidates: List[Dict[str, Any]] = []
@@ -250,7 +261,10 @@ def run(
             # source_urls is excluded from the content hash on purpose (see
             # core/content_hash.py), so this changes no candidate's identity.
             window.setdefault("source_urls", [doc.url])
-            candidate = staging.build_candidate(source.id, source.id, window, doc_hash, subject_name=subject_name)
+            candidate = staging.build_candidate(
+                source.id, source.subject_slug, window, doc_hash,
+                subject_name=subject_name, category=source.category,
+            )
             staging.write_candidate(source.id, run_ts, candidate)
             all_candidates.append(candidate)
 
@@ -268,7 +282,7 @@ def run(
         try:
             approval.write_event(
                 category=source.category,
-                subject_slug=source.id,
+                subject_slug=source.subject_slug,
                 subject_name=subject_name,
                 event=stamped_event,
                 quelle=quelle,

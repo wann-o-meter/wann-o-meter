@@ -1,16 +1,23 @@
 id: eclipse-gsfc-nasa-gov
 # The catalog is split into one page per century. SE-1999--1900.html covers
 # 2000-1901 BCE: all 239 of its eclipses have negative years, which
-# lib/date.ts's DAY_RE cannot represent at all, so that page yields nothing
+# lib/date.ts's DAY_RE cannot represent at all, so that page yielded nothing
 # storable. This is the current century's page - 224 eclipses, all CE.
 seed_url: https://eclipse.gsfc.nasa.gov/SEcat5/SE2001-2100.html
-category: eclipse-gsfc-nasa-gov
+# Same category + subject_slug as eclipse-gsfc-nasa-gov-secat5.yaml, which
+# covers 1901-2000: one century per source, both aggregating into the single
+# /astronomie/sonnenfinsternis/ page. A reader wants one page, not one per
+# century. See CrawlSource.subject_slug in core/crawl_config.py.
+category: astronomie
+subject_slug: sonnenfinsternis
+subject_name: Sonnenfinsternis
 scope:
   allowed_domains:
   - eclipse.gsfc.nasa.gov
   path_prefix: /SEcat5
 # Stays 0 on purpose: SEcatalog.html links all 50 century pages (~11k
-# eclipses, half of them BCE), which is not what this source is for.
+# eclipses, half of them BCE). Add centuries one config at a time instead,
+# all pointing at the same subject_slug.
 max_depth: 0
 formats:
 - html

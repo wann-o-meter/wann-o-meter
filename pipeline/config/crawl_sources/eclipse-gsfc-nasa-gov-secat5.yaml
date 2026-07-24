@@ -1,0 +1,25 @@
+id: eclipse-gsfc-nasa-gov-secat5
+seed_url: https://eclipse.gsfc.nasa.gov/SEcat5/SE1901-2000.html
+# The 20th-century half of the same subject as eclipse-gsfc-nasa-gov.yaml
+# (2001-2100). Both write here, so the two centuries are one page and a
+# window either source reports keeps one entry citing both.
+#
+# NOTE: this source already has approved events under its old slug
+# (data/eclipse-gsfc-nasa-gov-secat5/). content_hash covers subject_slug, so
+# the first run after this change re-opens all of them for review and
+# reports the old ones as disappeared - see CrawlSource.subject_slug. Drop
+# these three lines to keep it on its own page instead.
+category: astronomie
+subject_slug: sonnenfinsternis
+subject_name: Sonnenfinsternis
+scope:
+  allowed_domains:
+  - eclipse.gsfc.nasa.gov
+  path_prefix: /SEcat5
+max_depth: 0
+formats:
+- html
+event_type_hint: Sonnenfinsternis
+schedule: manual
+extraction_mode: auto
+auto_approve_ics: false

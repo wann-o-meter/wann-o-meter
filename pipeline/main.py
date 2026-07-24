@@ -690,6 +690,8 @@ async def create_crawl_source(
     path_prefix: str = Form(""),
     max_depth: int = Form(crawl_config.DEFAULT_MAX_DEPTH),
     formats: List[str] = Form(["html"]),
+    subject_slug: str = Form(""),
+    subject_name: str = Form(""),
     event_type_hint: str = Form(""),
     schedule: str = Form("manual"),
     extraction_mode: str = Form(crawl_config.DEFAULT_EXTRACTION_MODE),
@@ -747,6 +749,11 @@ async def create_crawl_source(
         "id": id,
         "seed_url": seed_url,
         "category": category_path,
+        # Blank means "its own page", i.e. the id - the same default
+        # crawl_config._parse applies. A shared value is what aggregates
+        # several sources into one page.
+        "subject_slug": _slugify(subject_slug) if subject_slug.strip() else id,
+        "subject_name": subject_name.strip(),
         "scope": scope,
         "max_depth": max_depth,
         "formats": formats,
@@ -867,6 +874,19 @@ def _quelle_for_candidate(source_id: str, candidate: dict, license: str) -> dict
     }
 
 
+def _target_category_for(candidate: dict) -> str:
+    """The category an approval should file this candidate under: the one its
+    source configured, not the subject slug. Both halves of
+    data/{category}/{subject_slug}/ have to match for two sources to
+    aggregate into one page (see CrawlSource.subject_slug), so defaulting
+    the form to the slug quietly sent a hand-approved candidate to a
+    different page than the same source's auto-approved ones.
+
+    Falls back to the slug for candidates staged before `category` was
+    carried on them - that IS the old default."""
+    return candidate.get("category") or candidate["subject_slug"]
+
+
 def _page_title_for(candidate: dict) -> str:
     """The title page.yaml gets when approving this candidate creates it.
     Prefers the suggested subject_name a crawl/adapter run stamped on the
@@ -964,7 +984,7 @@ async def bulk_approve_candidates(
             continue
         candidate = _load_candidate(source_id, _latest_run_ts(source_id), candidate_id) if _is_known_source_id(source_id) else None
         # Category default matches _candidate_review.html's prefilled field.
-        category = candidate["subject_slug"] if candidate else ""
+        category = _target_category_for(candidate) if candidate else ""
         error = _approve_one(source_id, candidate_id, category, license)
         if error:
             failures.append(f"{value}: {error}")
