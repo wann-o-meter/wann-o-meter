@@ -10,11 +10,23 @@
                 Already-approved/modified/rejected candidates are auto-waved-through or silently
                 dropped on later runs and never reach this queue - see core/review_state.py.
             </p>
+            {% if bulk_approved is defined %}
+            <p class="empty-hint" style="margin:0 0 0.75rem;">
+                Bulk approve: {{ bulk_approved }} approved, {{ bulk_failures | length }} failed.
+            </p>
+            {% if bulk_failures %}
+            <ul style="font-size:0.85rem; color:var(--muted); margin:0 0 0.75rem 1rem;">
+                {% for failure in bulk_failures %}<li>{{ failure }}</li>{% endfor %}
+            </ul>
+            {% endif %}
+            {% endif %}
             {% if queue %}
+            <form method="post" action="/review/bulk-approve">
             <div class="scroll-box tall">
                 <table class="compact">
                     <thead>
                         <tr>
+                            <th style="width:28px;"><input type="checkbox" id="select-all" title="Select all"></th>
                             <th>Source</th>
                             <th>Subject</th>
                             <th>Type</th>
@@ -26,6 +38,7 @@
                     <tbody>
                         {% for candidate in queue %}
                         <tr>
+                            <td><input type="checkbox" name="selected" value="{{ candidate.source_id }}/{{ candidate.candidate_id }}"></td>
                             <td>{{ candidate.source_id }}</td>
                             <td>{{ candidate.subject_slug }}</td>
                             <td>{{ candidate.event.type }}</td>
@@ -43,6 +56,25 @@
                     </tbody>
                 </table>
             </div>
+            <div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.75rem; flex-wrap:wrap;">
+                <select name="license" required class="license-select">
+                    {% for option in license_options %}
+                    <option value="{{ option.value }}">{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-sm" id="bulk-approve-btn" disabled>Approve selected (<span id="selected-count">0</span>)</button>
+                <span style="font-size:0.8rem; color:var(--muted);">
+                    Each row is filed under its own subject as category, same as the single-candidate form.
+                    The license above is stamped on <strong>every</strong> checked row, including rows from
+                    other sources - the queue spans all of them, so check the Source column before
+                    selecting all. Bulk approve also skips the per-candidate source view, where a date is
+                    shown highlighted in its surrounding page text.
+                </span>
+                {# ponytail: one form over the whole queue, so one license covers every source in it -
+                   disclosed above rather than enforced. Scope the form per source (one form, select-all
+                   and license select per source_id group) if mixed-source queues become the norm. #}
+            </div>
+            </form>
             {% else %}
             <p class="empty-hint">Nothing pending review.</p>
             {% endif %}
@@ -104,5 +136,33 @@
             rows.forEach(function (row) { tbody.appendChild(row); });
             th.dataset.sortDir = ascending ? 'asc' : 'desc';
         });
+
+        // Select-all + live count, and the submit button stays disabled at
+        // zero selected - an empty bulk POST would otherwise round-trip only
+        // to report "0 approved, 0 failed".
+        const selectAll = document.getElementById('select-all');
+        const countLabel = document.getElementById('selected-count');
+        const bulkBtn = document.getElementById('bulk-approve-btn');
+        function rowBoxes() {
+            return document.querySelectorAll('input[name="selected"]');
+        }
+        function refreshCount() {
+            const total = rowBoxes().length;
+            const checked = document.querySelectorAll('input[name="selected"]:checked').length;
+            countLabel.textContent = checked;
+            bulkBtn.disabled = checked === 0;
+            selectAll.checked = total > 0 && checked === total;
+            selectAll.indeterminate = checked > 0 && checked < total;
+        }
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                rowBoxes().forEach(function (box) { box.checked = selectAll.checked; });
+                refreshCount();
+            });
+            document.addEventListener('change', function (e) {
+                if (e.target.name === 'selected') refreshCount();
+            });
+            refreshCount();
+        }
     </script>
 {% endblock %}

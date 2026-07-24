@@ -49,6 +49,22 @@
                         <input type="text" name="id" pattern="[a-z0-9-]*" placeholder="auto from domain">
                         <div class="field-label">Category (blank derives it from the ID)</div>
                         <input type="text" name="category" list="category-suggestions" placeholder="auto from ID">
+                        <div class="field-label">Page to write into (blank uses the ID)</div>
+                        <input type="text" name="subject_slug" pattern="[a-z0-9-]*" placeholder="auto from ID">
+                        <p style="font-size:0.8rem; color:var(--muted); margin:0.35rem 0 0;">
+                            Give several sources the <strong>same</strong> Category <em>and</em> Page to
+                            aggregate them into one page - e.g. one source per century of an eclipse
+                            catalog, all writing to <code>sonnenfinsternis</code>. Where two sources
+                            report the same event, the entry is kept once and both are cited.
+                            Changing this on a source that already has approved events re-opens all of
+                            them for review.
+                        </p>
+                        <div class="field-label">Page title (optional, blank uses the crawled page's own title)</div>
+                        <input type="text" name="subject_name" placeholder="e.g. Sonnenfinsternis">
+                        <p style="font-size:0.8rem; color:var(--muted); margin:0.35rem 0 0;">
+                            Worth setting when several sources share a page: otherwise its heading comes
+                            from whichever source is approved first.
+                        </p>
                         <div class="field-label">Allowed domains (comma-separated, blank uses the seed URL's domain)</div>
                         <input type="text" name="allowed_domains" placeholder="auto from seed URL">
                         <div class="field-label">Path prefix (blank uses the seed URL's own path)</div>

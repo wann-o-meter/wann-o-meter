@@ -95,17 +95,43 @@ def build_candidate(
     window: Dict[str, Any],
     document: str,
     extracted_at: Optional[str] = None,
+    subject_name: Optional[str] = None,
+    category: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Builds one candidate dict (spec shape: candidate_id, source_id,
     document, extracted_at, content_hash, event) for a single window - the
     unit of review is one event, not one subject/ExtractionResult, since a
     subject can carry several independently-sourced windows (see
-    data/schulferien/bw/data.yaml's Osterferien + Sommerferien)."""
+    data/schulferien/bw/data.yaml's Osterferien + Sommerferien).
+
+    subject_name is the readable page title for the subject this candidate
+    belongs to (crawl_runner._subject_name's cleaned-up <title>, or an
+    adapter's own subject name). Carried on the candidate because page.yaml
+    is written by whichever path approves FIRST and never rewritten
+    (store.schreibe_page_yaml_falls_neu) - so the review UI, which only ever
+    sees the candidate, needs the name here or it falls back to the raw slug
+    and pins "eclipse-gsfc-nasa-gov" as a page heading forever. Defaults to
+    subject_slug, which is exactly the old behavior.
+
+    category is the source's configured target category. Carried for the
+    same reason as subject_name: together with subject_slug it decides which
+    data.yaml an approval writes to, and the review UI only ever sees the
+    candidate. Without it the UI defaulted to the slug as category, so a
+    source configured to aggregate into data/astronomie/sonnenfinsternis/
+    would land in data/sonnenfinsternis/sonnenfinsternis/ when approved by
+    hand - i.e. a different page than its own auto-approved candidates.
+
+    Note neither field enters the content hash: normalize_event projects to
+    identity fields only, so adding them never re-opens an already-decided
+    candidate for review. (subject_slug itself IS hashed - changing a
+    source's configured slug re-opens all of its candidates by design.)"""
     hash_ = _content_hash_of(normalize_event(window, subject_slug))
     return {
         "candidate_id": f"{source_id}:{hash_}",
         "source_id": source_id,
         "subject_slug": subject_slug,
+        "subject_name": subject_name or subject_slug,
+        "category": category or subject_slug,
         "document": document,
         "extracted_at": extracted_at or datetime.now(timezone.utc).isoformat(),
         "content_hash": hash_,

@@ -274,3 +274,152 @@ class TestExtractorChoice:
 
         assert windows == []
         assert "20 before year 1 skipped (not storable)" in note
+
+
+def _staged_candidates(source_id: str) -> list:
+    """Every candidate file a run wrote, newest run first."""
+    runs = sorted((Path(staging.STAGING_ROOT) / source_id).iterdir(), reverse=True)
+    return [
+        yaml.safe_load(p.read_text(encoding="utf-8"))
+        for p in sorted((runs[0] / "candidates").glob("*.yaml"))
+    ]
+
+
+class TestCandidateCarriesSubjectNameAndSourceUrl:
+    """Both fields exist so an approval through the review UI produces the
+    same data as an auto-waved-through one: the cleaned-up page title
+    (rather than the raw source id) and a per-window citation."""
+
+    @pytest.fixture
+    def html_run(self, monkeypatch):
+        monkeypatch.setattr(
+            crawl_runner, "crawl",
+            lambda source, on_progress=None, on_page=None: [CrawledDocument(
+                "https://example.org/termine.html", "text/html",
+                b"<html><head><title>Sonnenfinsternisse 2001 - 2100 | NASA</title></head>"
+                b"<body><p>Am 2026-08-12.</p></body></html>",
+            )],
+        )
+        monkeypatch.setattr(crawl_runner, "suggest_title", lambda text, raw_title: "Sonnenfinsternis")
+        monkeypatch.setattr(
+            crawl_runner, "extract_dated_events",
+            lambda text, on_progress=None: [{"date": "2026-08-12", "label": "Sonnenfinsternis"}],
+        )
+        crawl_runner.run(_source(formats=["html"], event_type_hint=""))
+        return _staged_candidates("test-source")
+
+    def test_the_candidate_carries_the_cleaned_up_page_title(self, html_run):
+        assert [c["subject_name"] for c in html_run] == ["Sonnenfinsternis"]
+
+    def test_the_window_is_stamped_with_the_document_it_came_from(self, html_run):
+        assert html_run[0]["event"]["source_urls"] == ["https://example.org/termine.html"]
+
+    def test_stamping_does_not_change_the_candidates_identity(self, html_run):
+        """source_urls is excluded from the content hash on purpose (see
+        core/content_hash.py) - if it leaked in, adding the stamp would
+        re-open every already-decided candidate for review."""
+        from core.content_hash import content_hash, normalize_event
+        event = html_run[0]["event"]
+        assert html_run[0]["content_hash"] == content_hash(normalize_event(event, "test-source"))
+        assert content_hash(normalize_event({**event, "source_urls": ["https://other.invalid"]}, "test-source")) == html_run[0]["content_hash"]
+
+
+def test_a_document_without_a_title_falls_back_to_the_source_id(monkeypatch):
+    monkeypatch.setattr(
+        crawl_runner, "crawl",
+        lambda source, on_progress=None, on_page=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
+    )
+    crawl_runner.run(_source())
+
+    assert _staged_candidates("test-source")[0]["subject_name"] == "test-source"
+
+
+class TestSeveralSourcesAggregateIntoOnePage:
+    """The reason subject_slug exists: NASA's eclipse catalog splits one
+    subject across a page per century, and a reader wants one page, not one
+    per century. Two sources with the same category + subject_slug have to
+    land in the same data.yaml, keep a shared window once, and cite both."""
+
+    OVERLAP = "1582-10-15"  # a line every page of that catalog carries
+
+    def _source_for(self, source_id: str, url: str):
+        return _source(
+            id=source_id, seed_url=url, category="astronomie",
+            subject_slug="sonnenfinsternis", subject_name="Sonnenfinsternis",
+            formats=["html"], event_type_hint="Sonnenfinsternis",
+        )
+
+    def _run(self, monkeypatch, source_id: str, url: str, own_date: str):
+        monkeypatch.setattr(
+            crawl_runner, "crawl",
+            lambda source, on_progress=None, on_page=None: [
+                CrawledDocument(url, "text/html", b"<html><body>dates</body></html>")
+            ],
+        )
+        monkeypatch.setattr(
+            crawl_runner, "extract_dated_events",
+            lambda text, on_progress=None: [
+                {"date": own_date, "label": "Sonnenfinsternis"},
+                {"date": self.OVERLAP, "label": "Sonnenfinsternis"},
+            ],
+        )
+        source = self._source_for(source_id, url)
+        crawl_runner.run(source)
+        # What main.py's approve route does with each queued candidate.
+        for candidate in _staged_candidates(source_id):
+            approval.write_event(
+                candidate["category"], candidate["subject_slug"], candidate["subject_name"],
+                candidate["event"],
+                {"url": url, "license": "official_par5", "retrieved_at": "2026-07-25", "extraction": "llm"},
+            )
+
+    @pytest.fixture
+    def merged(self, monkeypatch):
+        self._run(monkeypatch, "nasa-1901-2000", "https://eclipse.gsfc.nasa.gov/SEcat5/SE1901-2000.html", "1999-08-11")
+        self._run(monkeypatch, "nasa-2001-2100", "https://eclipse.gsfc.nasa.gov/SEcat5/SE2001-2100.html", "2026-08-12")
+        path = Path(approval.DATA_ROOT) / "astronomie" / "sonnenfinsternis" / "data.yaml"
+        return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+    def test_both_sources_write_into_the_same_page(self, merged):
+        assert merged["subject"] == {"slug": "sonnenfinsternis", "category": "astronomie"}
+        assert sorted(w["from"] for w in merged["windows"]) == ["1582-10-15", "1999-08-11", "2026-08-12"]
+
+    def test_a_window_both_sources_report_is_kept_once_and_cites_both(self, merged):
+        shared = [w for w in merged["windows"] if w["from"] == self.OVERLAP]
+        assert len(shared) == 1
+        assert sorted(shared[0]["source_urls"]) == [
+            "https://eclipse.gsfc.nasa.gov/SEcat5/SE1901-2000.html",
+            "https://eclipse.gsfc.nasa.gov/SEcat5/SE2001-2100.html",
+        ]
+
+    def test_a_window_only_one_source_reports_cites_only_that_one(self, merged):
+        own = [w for w in merged["windows"] if w["from"] == "1999-08-11"]
+        assert own[0]["source_urls"] == ["https://eclipse.gsfc.nasa.gov/SEcat5/SE1901-2000.html"]
+
+    def test_both_sources_appear_in_the_pages_source_list(self, merged):
+        assert sorted(s["url"] for s in merged["source"]) == [
+            "https://eclipse.gsfc.nasa.gov/SEcat5/SE1901-2000.html",
+            "https://eclipse.gsfc.nasa.gov/SEcat5/SE2001-2100.html",
+        ]
+
+    def test_the_shared_page_gets_the_configured_title_not_a_crawled_one(self, merged):
+        page = yaml.safe_load(
+            (Path(approval.DATA_ROOT) / "astronomie" / "sonnenfinsternis" / "page.yaml").read_text(encoding="utf-8")
+        )
+        assert page["title"] == "Sonnenfinsternis"
+
+    def test_the_shared_window_has_one_identity_but_is_reviewed_per_source(self, merged):
+        """content_hash covers subject_slug, so under a shared page the same
+        real-world event hashes identically across sources - that is what lets
+        merge_zeitfenster recognise it as one window. Review state stays
+        per-source though (one file each), so a second source reporting an
+        already-approved event is still reviewed rather than waved through on
+        another source's decision."""
+        def shared_hash(source_id):
+            return next(
+                c["content_hash"] for c in _staged_candidates(source_id)
+                if c["event"]["from"] == self.OVERLAP
+            )
+
+        assert shared_hash("nasa-1901-2000") == shared_hash("nasa-2001-2100")
+        assert review_state._path_for("nasa-1901-2000") != review_state._path_for("nasa-2001-2100")

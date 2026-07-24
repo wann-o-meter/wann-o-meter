@@ -31,9 +31,9 @@ def client(tmp_path, monkeypatch):
     return TestClient(main.app)
 
 
-def _stage_candidate(source_id: str, run_ts: str, subject_slug: str, event: dict) -> dict:
+def _stage_candidate(source_id: str, run_ts: str, subject_slug: str, event: dict, subject_name: str = None, category: str = None) -> dict:
     doc_hash = staging.write_document(source_id, run_ts, "https://example.invalid/events", "text/calendar", b"BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n")
-    candidate = staging.build_candidate(source_id, subject_slug, event, doc_hash)
+    candidate = staging.build_candidate(source_id, subject_slug, event, doc_hash, subject_name=subject_name, category=category)
     staging.write_candidate(source_id, run_ts, candidate)
     return candidate
 
@@ -185,6 +185,190 @@ class TestReviewReject:
 
         assert response.status_code == 200
         assert candidate["candidate_id"] not in response.text
+
+
+def _eclipse_event(date: str) -> dict:
+    """Mirrors what crawl_runner._window produces for a date-table source:
+    every row carries the SAME name, only the date differs."""
+    return {
+        "type": "event", "year": int(date[:4]), "from": date, "to": date,
+        "precision": "exact", "ics": True, "name": "Sonnenfinsternis",
+    }
+
+
+class TestPageTitleOnApproval:
+    """page.yaml is written by whichever path approves first and never
+    rewritten, so the review UI passing the raw slug as title used to pin
+    e.g. "eclipse-gsfc-nasa-gov" as a page heading permanently - even though
+    the same source's auto-waved-through candidates got a cleaned-up name."""
+
+    def _title(self) -> str:
+        return yaml.safe_load((main.DATA_ROOT / "sofi" / "sofi" / "page.yaml").read_text(encoding="utf-8"))["title"]
+
+    def test_approving_uses_the_candidates_suggested_name(self, client):
+        candidate = _stage_candidate(
+            "test-source", "20260724-000000", "sofi", VALID_EVENT, subject_name="Sonnenfinsternis",
+        )
+
+        client.post(
+            f"/review/test-source/{candidate['candidate_id']}/approve",
+            data={"category": "sofi", "license": "tos_checked"},
+        )
+
+        assert self._title() == "Sonnenfinsternis"
+
+    def test_modifying_uses_it_too(self, client):
+        candidate = _stage_candidate(
+            "test-source", "20260724-000000", "sofi", VALID_EVENT, subject_name="Sonnenfinsternis",
+        )
+
+        response = client.post(
+            f"/review/test-source/{candidate['candidate_id']}/modify",
+            data={
+                "category": "sofi", "license": "tos_checked", "type": "market",
+                "name": "Stadtfest", "year": "2026",
+                "from": "2026-08-16", "to": "2026-08-16", "precision": "exact",
+            },
+            follow_redirects=False,
+        )
+
+        assert response.status_code == 302
+        assert self._title() == "Sonnenfinsternis"
+
+    def test_a_candidate_staged_before_subject_name_existed_still_works(self, client):
+        """Candidates already on disk from an earlier run have no
+        subject_name key at all - that must fall back to the slug, not
+        crash the approval."""
+        candidate = _stage_candidate("test-source", "20260724-000000", "sofi", VALID_EVENT)
+        del candidate["subject_name"]
+        staging.write_candidate("test-source", "20260724-000000", candidate)
+
+        response = client.post(
+            f"/review/test-source/{candidate['candidate_id']}/approve",
+            data={"category": "sofi", "license": "tos_checked"},
+            follow_redirects=False,
+        )
+
+        assert response.status_code == 302
+        assert self._title() == "sofi"
+
+
+class TestBulkApprove:
+    def test_the_queue_renders_a_checkbox_and_a_real_license_per_pending_candidate(self, client):
+        """The other tests here all POST, and every one of them empties the
+        queue - so they only ever render review.html's empty branch and would
+        stay green even if the form itself were broken. This one renders the
+        NON-empty branch and pins the two values the POST depends on: the
+        checkbox name _approve_one is fed from, and a license string that is
+        actually in LICENSE_VALUES (an empty <option value=""> would fail
+        every row at submit time)."""
+        candidate = _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event("2026-08-12"))
+
+        response = client.get("/review")
+
+        assert response.status_code == 200
+        assert f'name="selected" value="test-source/{candidate["candidate_id"]}"' in response.text
+        assert '/review/bulk-approve' in response.text
+        assert any(f'<option value="{value}">' in response.text for value in main.LICENSE_VALUES)
+
+    def test_the_single_candidate_form_prefills_the_sources_category(self, client):
+        candidate = _stage_candidate(
+            "test-source", "20260724-000000", "sonnenfinsternis", _eclipse_event("2026-08-12"),
+            category="astronomie",
+        )
+
+        response = client.get(f"/review/test-source/{candidate['candidate_id']}")
+
+        assert response.status_code == 200
+        assert 'name="category" list="category-suggestions" value="astronomie"' in response.text
+
+    def test_a_candidate_is_filed_under_its_sources_category_not_its_slug(self, client):
+        """The aggregation case: a source configured to write into
+        data/astronomie/sonnenfinsternis/ must land there when approved in
+        bulk too. Defaulting the category to the slug would file it under
+        data/sonnenfinsternis/sonnenfinsternis/ - a different page than the
+        same source's auto-approved candidates, which is exactly the split
+        subject_slug exists to close."""
+        candidate = _stage_candidate(
+            "test-source", "20260724-000000", "sonnenfinsternis", _eclipse_event("2026-08-12"),
+            subject_name="Sonnenfinsternis", category="astronomie",
+        )
+
+        client.post(
+            "/review/bulk-approve",
+            data={"selected": [f"test-source/{candidate['candidate_id']}"], "license": "tos_checked"},
+        )
+
+        assert (main.DATA_ROOT / "astronomie" / "sonnenfinsternis" / "data.yaml").exists()
+        assert not (main.DATA_ROOT / "sonnenfinsternis").exists()
+
+    def test_many_identically_named_events_each_land_as_their_own_window(self, client):
+        """The case bulk approve exists for - a date-table source where every
+        candidate shares a name. Guards approval.DEFAULT_REPLACE_KEY still
+        including "from": with a key of just ("type", "name") these three
+        would collapse into one window and a 200-row approval would silently
+        write one row."""
+        dates = ["2026-08-12", "2027-08-02", "2028-07-22"]
+        candidates = [
+            _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event(date))
+            for date in dates
+        ]
+
+        response = client.post(
+            "/review/bulk-approve",
+            data={
+                "selected": [f"test-source/{c['candidate_id']}" for c in candidates],
+                "license": "tos_checked",
+            },
+        )
+
+        assert response.status_code == 200
+        datei = yaml.safe_load((main.DATA_ROOT / "sofi" / "sofi" / "data.yaml").read_text(encoding="utf-8"))
+        assert sorted(w["from"] for w in datei["windows"]) == dates
+
+    def test_every_approved_row_is_recorded_and_leaves_the_queue(self, client):
+        candidates = [
+            _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event(date))
+            for date in ("2026-08-12", "2027-08-02")
+        ]
+
+        client.post(
+            "/review/bulk-approve",
+            data={
+                "selected": [f"test-source/{c['candidate_id']}" for c in candidates],
+                "license": "tos_checked",
+            },
+        )
+
+        st = review_state.load("test-source")
+        assert all(st["decisions"][c["content_hash"]]["status"] == "approved" for c in candidates)
+        assert main._review_queue() == []
+
+    def test_one_bad_row_is_reported_without_dropping_the_good_ones(self, client):
+        good = _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event("2026-08-12"))
+
+        response = client.post(
+            "/review/bulk-approve",
+            data={
+                "selected": [f"test-source/{good['candidate_id']}", "test-source/deadbeef", "malformed"],
+                "license": "tos_checked",
+            },
+        )
+
+        assert response.status_code == 200
+        assert "1 approved, 2 failed" in response.text
+        assert (main.DATA_ROOT / "sofi" / "sofi" / "data.yaml").exists()
+
+    def test_an_invalid_license_writes_nothing(self, client):
+        candidate = _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event("2026-08-12"))
+
+        response = client.post(
+            "/review/bulk-approve",
+            data={"selected": [f"test-source/{candidate['candidate_id']}"], "license": "not-a-license"},
+        )
+
+        assert response.status_code == 400
+        assert not (main.DATA_ROOT / "sofi").exists()
 
 
 class TestChainToNextReviewCandidate:

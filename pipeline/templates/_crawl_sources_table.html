@@ -5,7 +5,7 @@
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Category</th>
+                <th>Writes to</th>
                 <th>Seed URL</th>
                 <th>Scope</th>
                 <th style="width:80px;">Depth</th>
@@ -18,7 +18,9 @@
             {% for id, source in sources.items() %}
             <tr>
                 <td>{{ id }}</td>
-                <td>{{ source.category }}</td>
+                {# Full target path, not just the category: two sources showing the same
+                   value here are aggregating into one page - the only place that is visible. #}
+                <td class="clamp-1" title="data/{{ source.category }}/{{ source.subject_slug }}/">{{ source.category }}/{{ source.subject_slug }}</td>
                 <td class="clamp-1"><a href="{{ source.seed_url }}" target="_blank">{{ source.seed_url }}</a></td>
                 <td>{{ source.allowed_domains | join(', ') }}{% if source.path_prefix %}{{ source.path_prefix }}{% endif %}</td>
                 <td>{{ source.max_depth }}</td>

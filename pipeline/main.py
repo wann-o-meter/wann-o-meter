@@ -690,6 +690,8 @@ async def create_crawl_source(
     path_prefix: str = Form(""),
     max_depth: int = Form(crawl_config.DEFAULT_MAX_DEPTH),
     formats: List[str] = Form(["html"]),
+    subject_slug: str = Form(""),
+    subject_name: str = Form(""),
     event_type_hint: str = Form(""),
     schedule: str = Form("manual"),
     extraction_mode: str = Form(crawl_config.DEFAULT_EXTRACTION_MODE),
@@ -747,6 +749,11 @@ async def create_crawl_source(
         "id": id,
         "seed_url": seed_url,
         "category": category_path,
+        # Blank means "its own page", i.e. the id - the same default
+        # crawl_config._parse applies. A shared value is what aggregates
+        # several sources into one page.
+        "subject_slug": _slugify(subject_slug) if subject_slug.strip() else id,
+        "subject_name": subject_name.strip(),
         "scope": scope,
         "max_depth": max_depth,
         "formats": formats,
@@ -772,6 +779,7 @@ async def review_queue_view(request: Request):
         "state": state.to_dict(),
         "queue": _review_queue(),
         "disappeared": _all_disappeared(),
+        "license_options": LICENSE_OPTIONS,
     })
 
 
@@ -866,6 +874,69 @@ def _quelle_for_candidate(source_id: str, candidate: dict, license: str) -> dict
     }
 
 
+def _target_category_for(candidate: dict) -> str:
+    """The category an approval should file this candidate under: the one its
+    source configured, not the subject slug. Both halves of
+    data/{category}/{subject_slug}/ have to match for two sources to
+    aggregate into one page (see CrawlSource.subject_slug), so defaulting
+    the form to the slug quietly sent a hand-approved candidate to a
+    different page than the same source's auto-approved ones.
+
+    Falls back to the slug for candidates staged before `category` was
+    carried on them - that IS the old default."""
+    return candidate.get("category") or candidate["subject_slug"]
+
+
+def _page_title_for(candidate: dict) -> str:
+    """The title page.yaml gets when approving this candidate creates it.
+    Prefers the suggested subject_name a crawl/adapter run stamped on the
+    candidate (see staging.build_candidate) over the raw slug - approving
+    through the review UI used to pass subject_slug as the page title, so a
+    crawl source's page was headed "eclipse-gsfc-nasa-gov" while the SAME
+    source's auto-waved-through candidates got the cleaned-up
+    "Sonnenfinsternis" via crawl_runner. page.yaml is written once and never
+    rewritten, so whichever path approved first pinned the title for good.
+
+    Falls back to the slug for candidates staged before subject_name
+    existed."""
+    return candidate.get("subject_name") or candidate["subject_slug"]
+
+
+def _approve_one(source_id: str, candidate_id: str, category: str, license: str) -> Optional[str]:
+    """Approves one candidate, or returns why it couldn't be. Shared by the
+    single-candidate route (which turns the message into a 4xx page) and
+    /review/bulk-approve (which collects the messages and reports them as a
+    per-row failure list) - so a bulk run applies exactly the same
+    validation, quelle and review-state bookkeeping as approving each row by
+    hand, rather than a second, looser copy of it."""
+    if not _is_known_source_id(source_id):
+        return "unknown source"
+    run_ts = _latest_run_ts(source_id)
+    candidate = _load_candidate(source_id, run_ts, candidate_id) if run_ts else None
+    if candidate is None:
+        return "not found - may already have been reviewed"
+    if license not in LICENSE_VALUES:
+        return f"invalid license: {license}"
+
+    category_path = "/".join(_slugify_category_path(category))
+    validation_error = _validate_category_segments(category_path.split("/") if category_path else [])
+    if validation_error:
+        return validation_error
+
+    quelle = _quelle_for_candidate(source_id, candidate, license)
+    try:
+        approval.write_event(category_path, candidate["subject_slug"], _page_title_for(candidate), candidate["event"], quelle)
+    except approval.ApprovalError as e:
+        return f"validation failed, nothing written: {e}"
+    _write_category_meta_if_new(category)
+
+    target_file = str((approval.DATA_ROOT / category_path / candidate["subject_slug"] / "data.yaml").relative_to(approval.DATA_ROOT.parent))
+    st = review_state.load(source_id)
+    review_state.record_decision(st, candidate["content_hash"], "approved", target_file, candidate["event"])
+    review_state.save(source_id, st)
+    return None
+
+
 @app.post("/review/{source_id}/{candidate_id}/approve")
 async def approve_candidate(
     source_id: str,
@@ -873,32 +944,68 @@ async def approve_candidate(
     category: str = Form(...),
     license: str = Form(...),
 ):
-    if not _is_known_source_id(source_id):
+    error = _approve_one(source_id, candidate_id, category, license)
+    if error == "unknown source":
         return HTMLResponse("Not found", status_code=404)
-    run_ts = _latest_run_ts(source_id)
-    candidate = _load_candidate(source_id, run_ts, candidate_id) if run_ts else None
-    if candidate is None:
+    if error and error.startswith("not found"):
         return HTMLResponse("Not found - this candidate may already have been reviewed.", status_code=404)
+    if error:
+        return HTMLResponse(error, status_code=400)
+    return _redirect_to_next_review(source_id, candidate_id)
+
+
+@app.post("/review/bulk-approve")
+async def bulk_approve_candidates(
+    request: Request,
+    selected: List[str] = Form(default=[]),
+    license: str = Form(...),
+):
+    """Approves every checked row of /review's queue in one POST. Each
+    `selected` value is "<source_id>/<candidate_id>", and each row is
+    approved under its own subject_slug as category - the same default the
+    single-candidate form prefills, so bulk and one-by-one put a given
+    candidate in the same place. Rows that fail are reported by id rather
+    than aborting the batch: a run of 200+ rows where row 3 fails validation
+    should still land the other 199, and an all-or-nothing rollback would
+    need transactional writes across many data.yaml files that
+    approval.write_event does not have.
+
+    Note the queue is re-read per row (via _approve_one -> _load_candidate),
+    so this stays correct if an earlier row's write changes what a later one
+    resolves to."""
     if license not in LICENSE_VALUES:
         return HTMLResponse(f"Invalid license: {license}", status_code=400)
 
-    category_path = "/".join(_slugify_category_path(category))
-    validation_error = _validate_category_segments(category_path.split("/") if category_path else [])
-    if validation_error:
-        return HTMLResponse(validation_error, status_code=400)
+    approved, failures = 0, []
+    for value in selected:
+        source_id, _, candidate_id = value.rpartition("/")
+        if not source_id or not candidate_id:
+            failures.append(f"{value}: malformed selection")
+            continue
+        candidate = _load_candidate(source_id, _latest_run_ts(source_id), candidate_id) if _is_known_source_id(source_id) else None
+        # Category default matches _candidate_review.html's prefilled field.
+        category = _target_category_for(candidate) if candidate else ""
+        error = _approve_one(source_id, candidate_id, category, license)
+        if error:
+            failures.append(f"{value}: {error}")
+        else:
+            approved += 1
 
-    quelle = _quelle_for_candidate(source_id, candidate, license)
-    try:
-        approval.write_event(category_path, candidate["subject_slug"], candidate["subject_slug"], candidate["event"], quelle)
-    except approval.ApprovalError as e:
-        return HTMLResponse(f"Validation failed, nothing written:\n{e}", status_code=400)
-    _write_category_meta_if_new(category)
-
-    target_file = str((approval.DATA_ROOT / category_path / candidate["subject_slug"] / "data.yaml").relative_to(approval.DATA_ROOT.parent))
-    st = review_state.load(source_id)
-    review_state.record_decision(st, candidate["content_hash"], "approved", target_file, candidate["event"])
-    review_state.save(source_id, st)
-    return _redirect_to_next_review(source_id, candidate_id)
+    # Renders the queue directly instead of redirecting to it, so the
+    # per-row reasons survive - a redirect could only carry the counts, and
+    # "12 approved, 3 failed" without the three reasons is exactly the kind
+    # of silent partial success this route has to avoid. Re-POSTing on a
+    # refresh is harmless: those rows are no longer pending, so every one
+    # comes back "may already have been reviewed" and nothing is written twice.
+    return templates.TemplateResponse(request, "review.html", {
+        "active_nav": "review",
+        "state": state.to_dict(),
+        "queue": _review_queue(),
+        "disappeared": _all_disappeared(),
+        "license_options": LICENSE_OPTIONS,
+        "bulk_approved": approved,
+        "bulk_failures": failures,
+    })
 
 
 @app.post("/review/{source_id}/{candidate_id}/modify")
@@ -941,7 +1048,7 @@ async def modify_candidate(
 
     quelle = _quelle_for_candidate(source_id, candidate, license)
     try:
-        approval.write_event(category_path, candidate["subject_slug"], candidate["subject_slug"], corrected_event, quelle)
+        approval.write_event(category_path, candidate["subject_slug"], _page_title_for(candidate), corrected_event, quelle)
     except approval.ApprovalError as e:
         return HTMLResponse(f"Validation failed, nothing written:\n{e}", status_code=400)
     _write_category_meta_if_new(category)

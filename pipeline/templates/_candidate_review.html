@@ -23,7 +23,7 @@
 
             <form action="/review/{{ source_id }}/{{ candidate.candidate_id }}/approve" method="post" style="margin-bottom:1.5rem;">
                 <div class="field-label">Category</div>
-                <input type="text" name="category" list="category-suggestions" value="{{ candidate.subject_slug }}" required>
+                <input type="text" name="category" list="category-suggestions" value="{{ candidate.category or candidate.subject_slug }}" required>
                 <div class="field-label">License</div>
                 <select name="license" required class="license-select">
                     {% for option in license_options %}
@@ -37,7 +37,7 @@
                 <summary style="cursor:pointer; font-weight:600;">Modify before approving</summary>
                 <form action="/review/{{ source_id }}/{{ candidate.candidate_id }}/modify" method="post" style="margin-top:0.75rem;">
                     <div class="field-label">Category</div>
-                    <input type="text" name="category" list="category-suggestions" value="{{ candidate.subject_slug }}" required>
+                    <input type="text" name="category" list="category-suggestions" value="{{ candidate.category or candidate.subject_slug }}" required>
                     <div class="field-label">License</div>
                     <select name="license" required class="license-select">
                         {% for option in license_options %}
