@@ -16,6 +16,19 @@ CRAWL_SOURCES_DIR = Path(__file__).resolve().parent.parent / "config" / "crawl_s
 DEFAULT_MAX_DEPTH = 2
 MAX_ALLOWED_DEPTH = 3
 
+# How a source's HTML/PDF/image documents get turned into windows:
+#   auto   - a deterministic date scrape for HTML pages that are plainly date
+#            TABLES (see crawl_runner.STATIC_DATE_THRESHOLD), the model for
+#            everything else. PDFs and images always go to the model here:
+#            their text comes from OCR/vision, where the model's reading of
+#            what a date MEANS is the whole value.
+#   llm    - always the model, whatever the page looks like. The right choice
+#            when every date needs its own real label.
+#   static - never the model. Cheap and exhaustive on a machine-generated
+#            table, at the cost of one shared label for every date.
+EXTRACTION_MODES = ("auto", "llm", "static")
+DEFAULT_EXTRACTION_MODE = "auto"
+
 
 class CrawlConfigError(Exception):
     pass
@@ -32,6 +45,7 @@ class CrawlSource:
     formats: List[str]
     event_type_hint: str
     schedule: str
+    extraction_mode: str = DEFAULT_EXTRACTION_MODE
     auto_approve_ics: bool = False
     config_path: Path = field(default=None, repr=False)  # type: ignore[assignment]
 
@@ -48,6 +62,10 @@ def _parse(raw: Dict[str, Any], path: Path) -> CrawlSource:
     if not isinstance(max_depth, int) or not (0 <= max_depth <= MAX_ALLOWED_DEPTH):
         raise CrawlConfigError(f"{path}: max_depth must be an integer between 0 and {MAX_ALLOWED_DEPTH}")
 
+    extraction_mode = raw.get("extraction_mode", DEFAULT_EXTRACTION_MODE)
+    if extraction_mode not in EXTRACTION_MODES:
+        raise CrawlConfigError(f"{path}: extraction_mode must be one of {', '.join(EXTRACTION_MODES)}")
+
     return CrawlSource(
         id=raw["id"],
         seed_url=raw["seed_url"],
@@ -58,6 +76,7 @@ def _parse(raw: Dict[str, Any], path: Path) -> CrawlSource:
         formats=list(raw.get("formats", ["html"])),
         event_type_hint=raw.get("event_type_hint", ""),
         schedule=raw.get("schedule", "manual"),
+        extraction_mode=extraction_mode,
         auto_approve_ics=bool(raw.get("auto_approve_ics", False)),
         config_path=path,
     )
