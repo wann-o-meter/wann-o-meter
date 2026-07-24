@@ -1,0 +1,14 @@
+decisions:
+  761c9ccf667b90a0acdf969dd7240605b78f2855529e3b9d04f0d3d1cfa68c36:
+    status: approved
+    decided_at: '2026-07-24T17:52:08.239961+00:00'
+    target_file: data/saisonkalender/rhabarber/data.yaml
+    event:
+      type: main_season
+      name: Hauptsaison
+      year: null
+      from: --04
+      to: --06
+      precision: approximate
+      ics: false
+disappeared: {}

@@ -13,12 +13,68 @@
             <p style="font-size:0.85rem; color:var(--muted); margin:0 0 0.75rem;">
                 Each source is a scoped crawl config in <code>pipeline/config/crawl_sources/&lt;id&gt;.yaml</code>
                 (id, seed_url, category, scope.allowed_domains, scope.path_prefix, max_depth, formats,
-                event_type_hint, schedule) - add a new source by creating a file there, no code required.
-                Running a source crawls it within its configured scope, extracts events, and either
+                event_type_hint, schedule) - add one with the form below, or hand-write the file directly,
+                no code required either way. Running a source crawls it within its configured scope, extracts events, and either
                 writes already-reviewed ones straight to <code>data/</code> or queues new ones for
                 <a href="/review">Review</a>.
             </p>
             {% include "_crawl_sources_table.html" %}
+        </div>
+
+        <div class="card">
+            <h3 class="section-title" style="margin:0 0 0.75rem;">New Source</h3>
+            <p style="font-size:0.85rem; color:var(--muted); margin:0 0 0.75rem;">
+                Paste the page to crawl - everything else (ID, domain, category) is derived from it.
+                Open Advanced options only if you need to override something.
+            </p>
+            <datalist id="category-suggestions">
+                {% for c in category_suggestions %}<option value="{{ c }}">{% endfor %}
+            </datalist>
+            <form method="post" action="/crawl-sources/new">
+                <div class="field-label">Seed URL</div>
+                <input type="url" name="seed_url" placeholder="https://example.org/veranstaltungen" required style="width:100%; max-width:32rem;">
+
+                <details style="margin:0.75rem 0;">
+                    <summary style="cursor:pointer; font-weight:600;">Advanced options</summary>
+                    <div style="margin-top:0.75rem;">
+                        <div class="field-label">ID (letters, numbers, dashes - blank derives it from the domain)</div>
+                        <input type="text" name="id" pattern="[a-z0-9-]*" placeholder="auto from domain">
+                        <div class="field-label">Category (blank derives it from the ID)</div>
+                        <input type="text" name="category" list="category-suggestions" placeholder="auto from ID">
+                        <div class="field-label">Allowed domains (comma-separated, blank uses the seed URL's domain)</div>
+                        <input type="text" name="allowed_domains" placeholder="auto from seed URL">
+                        <div class="field-label">Path prefix (blank uses the seed URL's own path)</div>
+                        <input type="text" name="path_prefix" pattern="/.*" placeholder="auto from seed URL">
+                        <div class="field-label">Max depth</div>
+                        <input type="number" name="max_depth" value="2" min="0" max="3">
+                        <div class="field-label">Formats to keep</div>
+                        <p>
+                            {% for f in format_options %}
+                            <label style="display:inline-block; margin-right:0.75rem; font-weight:normal;">
+                                <input type="checkbox" name="formats" value="{{ f }}" {{ 'checked' if f == 'html' }}> {{ f }}
+                            </label>
+                            {% endfor %}
+                        </p>
+                        <div class="field-label">Event type hint (optional, guides the extraction model)</div>
+                        <input type="text" name="event_type_hint" placeholder="e.g. Wochenmarkt, Stadtfest">
+                        <div class="field-label">Schedule</div>
+                        <select name="schedule">
+                            <option value="manual" selected>manual</option>
+                            <option value="daily">daily</option>
+                            <option value="weekly">weekly</option>
+                            <option value="monthly">monthly</option>
+                            <option value="yearly">yearly</option>
+                        </select>
+                        <p style="margin:0.75rem 0;">
+                            <label style="font-weight:normal;">
+                                <input type="checkbox" name="auto_approve_ics" value="true"> Auto-approve ICS feed entries
+                            </label>
+                        </p>
+                    </div>
+                </details>
+
+                <button type="submit" class="btn btn-primary">Add Source</button>
+            </form>
         </div>
 {% endblock %}
 

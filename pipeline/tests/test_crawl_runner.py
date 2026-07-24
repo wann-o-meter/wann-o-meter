@@ -10,6 +10,7 @@ sys.path.insert(0, str(PIPELINE_ROOT))
 from core import approval, crawl_runner, review_state, staging  # noqa: E402
 from core.crawl_config import CrawlSource  # noqa: E402
 from core.crawler import CrawledDocument  # noqa: E402
+from core.extraction import ExtractionError  # noqa: E402
 
 ICS_BYTES = (
     "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//test//test//EN\r\n"
@@ -131,3 +132,28 @@ def test_new_event_alongside_an_already_approved_one_only_queues_the_new_one(mon
 
     assert result["auto_approved"] == 1  # the already-known Stadtfest, re-verified
     assert result["needs_review"] == 1  # the new Weihnachtsmarkt
+
+
+def test_an_llm_extraction_failure_is_reported_not_silently_swallowed(monkeypatch):
+    """A missing/misconfigured LLM_PROVIDER (or any other extraction
+    failure) must not look identical to "this document genuinely has no
+    dates" - see _windows_from_document's docstring. Regression test for
+    the crawl_runner.run() -> [] short-circuit that used to hide this."""
+    monkeypatch.setattr(
+        crawl_runner, "crawl",
+        lambda source: [CrawledDocument("https://example.org/events.html", "text/html", b"<html><body>some content</body></html>")],
+    )
+    monkeypatch.setattr(
+        crawl_runner, "extract_any",
+        lambda url, content, content_type: {"kind": "html_page", "clean_markdown_full": "some content"},
+    )
+    monkeypatch.setattr(
+        crawl_runner, "extract_dated_events",
+        lambda text: (_ for _ in ()).throw(ExtractionError("LLM call failed: missing API key")),
+    )
+
+    result = crawl_runner.run(_source(formats=["html"]))
+
+    assert result["documents"] == 1
+    assert result["candidates"] == 0
+    assert result["extraction_errors"] == ["https://example.org/events.html: LLM call failed: missing API key"]

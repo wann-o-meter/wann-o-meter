@@ -19,6 +19,7 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Set
+from urllib.parse import urlparse
 
 import uvicorn
 import yaml
@@ -66,6 +67,10 @@ LICENSE_OPTIONS = [
 ]
 
 LICENSE_VALUES = {option["value"] for option in LICENSE_OPTIONS}
+
+# Matches core/crawler.py's sniff_format() labels - what a crawl source's
+# `formats` field can filter on.
+CRAWL_FORMAT_OPTIONS = ["html", "pdf", "ics", "image"]
 
 # Seeds the category datalist so an operator without a house style guide has
 # something to reuse instead of inventing a near-duplicate name (see
@@ -362,6 +367,21 @@ def _known_source_ids() -> List[str]:
     return sorted(ids)
 
 
+def _is_known_source_id(source_id: str) -> bool:
+    """Allowlist check for the /review/{source_id}/... routes below -
+    source_id comes straight from the URL, and every one of those routes
+    uses it to build filesystem paths (staging.STAGING_ROOT / source_id /
+    ..., review-state/<source_id>.yaml). Without this, a request like
+    /review/../../../../etc/x could read or write outside pipeline/staging
+    and pipeline/review-state entirely. Checking directory-name equality
+    against _known_source_ids() (real crawl_sources configs or existing
+    staging/ subdirectories) is an allowlist, not a blocklist - it rejects
+    "../" the same way it rejects any other string that isn't a real,
+    already-existing source_id, rather than trying to enumerate every
+    traversal trick."""
+    return source_id in _known_source_ids()
+
+
 def _pending_candidates_for(source_id: str) -> List[dict]:
     """Candidates from source_id's most recent run whose content_hash has no
     decision yet - recomputed live from disk each call rather than cached,
@@ -396,8 +416,14 @@ def _all_disappeared() -> List[dict]:
 
 
 def _load_candidate(source_id: str, run_ts: str, candidate_id: str) -> Optional[dict]:
-    path = staging.STAGING_ROOT / source_id / run_ts / "candidates" / f"{candidate_id.replace(':', '_')}.yaml"
-    if not path.exists():
+    """source_id must already be validated by the caller (see
+    _is_known_source_id) - this only additionally guards candidate_id
+    (also straight from the URL): resolve()+parent-check the same way
+    /staging-document does, so a "../../../etc/passwd"-shaped candidate_id
+    can't escape the run's candidates/ directory."""
+    candidates_dir = (staging.STAGING_ROOT / source_id / run_ts / "candidates").resolve()
+    path = (candidates_dir / f"{candidate_id.replace(':', '_')}.yaml").resolve()
+    if candidates_dir not in path.parents or not path.exists():
         return None
     return yaml.safe_load(path.read_text(encoding="utf-8"))
 
@@ -439,6 +465,8 @@ async def crawl_sources_list(request: Request):
         "running_sources": state.running_sources,
         "errors": state.errors,
         "last_result": state.last_result,
+        "category_suggestions": _category_suggestions(),
+        "format_options": CRAWL_FORMAT_OPTIONS,
     })
 
 
@@ -481,6 +509,105 @@ async def crawl_source_status(source_id: str):
     })
 
 
+def _derive_path_prefix(seed_path: str) -> str:
+    """A seed URL that points at one specific page (e.g. .../catalog/
+    page.html - last segment looks like a filename) would scope the crawl
+    to just that exact path if used as-is (path_prefix is a startswith
+    check - see core/crawler.py's in_scope()), defeating discovery of any
+    sibling page entirely. Scope to the parent directory instead in that
+    case; a seed URL that already looks like a section root (no "." in the
+    last segment, e.g. .../veranstaltungen) is used as-is."""
+    if seed_path in ("", "/"):
+        return ""
+    last_segment = seed_path.rsplit("/", 1)[-1]
+    if "." in last_segment:
+        parent = seed_path.rsplit("/", 1)[0]
+        return parent if parent not in ("", "/") else ""
+    return seed_path
+
+
+@app.post("/crawl-sources/new")
+async def create_crawl_source(
+    seed_url: str = Form(...),
+    id: str = Form(""),
+    category: str = Form(""),
+    allowed_domains: str = Form(""),
+    path_prefix: str = Form(""),
+    max_depth: int = Form(crawl_config.DEFAULT_MAX_DEPTH),
+    formats: List[str] = Form(["html"]),
+    event_type_hint: str = Form(""),
+    schedule: str = Form("manual"),
+    auto_approve_ics: bool = Form(False),
+):
+    """Writes a new pipeline/config/crawl_sources/{id}.yaml from the
+    dashboard - the file stays the actual source of truth (git-diffable,
+    same as sources.yaml), this just saves hand-editing it. Only seed_url
+    is required: id/category/allowed_domains/path_prefix are all derived
+    from it when left blank, so pasting a URL and clicking Add is enough -
+    the template's Advanced section lets an operator override any of them.
+    Reuses crawl_config's own _parse() as the validator so a source
+    accepted here is guaranteed to also load cleanly for a real crawl run."""
+    seed_url = seed_url.strip()
+    parsed = urlparse(seed_url)
+    if not parsed.scheme or not parsed.netloc:
+        return HTMLResponse("Seed URL must be a full URL, e.g. https://example.org/veranstaltungen.", status_code=400)
+    domain = parsed.netloc.removeprefix("www.")
+
+    # _slugify() itself falls back to "page" for a blank string (see its own
+    # docstring-free `or "page"`), which would mask "left blank" here - check
+    # blank-ness before slugifying, not after.
+    if id.strip():
+        id = _slugify(id)
+    else:
+        # Two seed URLs on the same domain (e.g. /solar and /lunar sections)
+        # would otherwise both derive the same domain-only id - fall back to
+        # domain+first-path-segment before giving up and asking for a
+        # custom id.
+        id = _slugify(domain)
+        if (crawl_config.CRAWL_SOURCES_DIR / f"{id}.yaml").exists():
+            path_segments = [s for s in parsed.path.split("/") if s]
+            if path_segments:
+                id = f"{id}-{_slugify(path_segments[0])}"
+    path = crawl_config.CRAWL_SOURCES_DIR / f"{id}.yaml"
+    if path.exists():
+        return HTMLResponse(
+            f"A crawl source '{id}' already exists - set a custom ID under Advanced options "
+            "(this domain already has a source at that same path).",
+            status_code=409,
+        )
+
+    category_path = "/".join(_slugify_category_path(category or id))
+    validation_error = _validate_category_segments(category_path.split("/") if category_path else [])
+    if validation_error:
+        return HTMLResponse(validation_error, status_code=400)
+
+    domains = [d.strip() for d in allowed_domains.split(",") if d.strip()] or [domain]
+    scope = {"allowed_domains": domains}
+    derived_path_prefix = path_prefix.strip() or _derive_path_prefix(parsed.path)
+    if derived_path_prefix:
+        scope["path_prefix"] = derived_path_prefix
+
+    raw = {
+        "id": id,
+        "seed_url": seed_url,
+        "category": category_path,
+        "scope": scope,
+        "max_depth": max_depth,
+        "formats": formats,
+        "event_type_hint": event_type_hint.strip(),
+        "schedule": schedule.strip() or "manual",
+        "auto_approve_ics": auto_approve_ics,
+    }
+    try:
+        crawl_config._parse(raw, path)
+    except crawl_config.CrawlConfigError as e:
+        return HTMLResponse(str(e), status_code=400)
+
+    crawl_config.CRAWL_SOURCES_DIR.mkdir(parents=True, exist_ok=True)
+    path.write_text(yaml.dump(raw, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    return RedirectResponse("/crawl-sources", status_code=303)
+
+
 @app.get("/review", response_class=HTMLResponse)
 async def review_queue_view(request: Request):
     return templates.TemplateResponse(request, "review.html", {
@@ -493,6 +620,8 @@ async def review_queue_view(request: Request):
 
 @app.get("/review/{source_id}/{candidate_id}", response_class=HTMLResponse)
 async def review_candidate_detail(request: Request, source_id: str, candidate_id: str):
+    if not _is_known_source_id(source_id):
+        return HTMLResponse("Not found", status_code=404)
     run_ts = _latest_run_ts(source_id)
     candidate = _load_candidate(source_id, run_ts, candidate_id) if run_ts else None
     if candidate is None:
@@ -522,11 +651,20 @@ _STAGING_DOCUMENT_MEDIA_TYPES = {
 }
 
 
+_DOC_HASH_RE = re.compile(r"^[0-9a-f]+$")
+
+
 @app.get("/staging-document/{source_id}/{run_ts}/{doc_hash}")
 async def get_staging_document(source_id: str, run_ts: str, doc_hash: str):
-    """Serves one staged document snapshot for the review UI - same guard
-    pattern as /page-data (resolve()+parent-check), since source_id/run_ts
-    come straight from the URL."""
+    """Serves one staged document snapshot for the review UI. All three
+    path segments come straight from the URL: source_id is checked against
+    the same allowlist as /review/{source_id}/... (_is_known_source_id),
+    doc_hash is checked against the hex-only shape staging.write_document
+    actually generates it in (rejects a glob/traversal payload before it
+    ever reaches documents_dir.glob()), and the resolve()+parent-check
+    catches anything else (e.g. a "../"-laden run_ts)."""
+    if not _is_known_source_id(source_id) or not _DOC_HASH_RE.match(doc_hash):
+        return HTMLResponse("Not found", status_code=404)
     documents_dir = (staging.STAGING_ROOT / source_id / run_ts / "documents").resolve()
     if staging.STAGING_ROOT.resolve() not in documents_dir.parents:
         return HTMLResponse("Not found", status_code=404)
@@ -560,6 +698,8 @@ async def approve_candidate(
     category: str = Form(...),
     license: str = Form(...),
 ):
+    if not _is_known_source_id(source_id):
+        return HTMLResponse("Not found", status_code=404)
     run_ts = _latest_run_ts(source_id)
     candidate = _load_candidate(source_id, run_ts, candidate_id) if run_ts else None
     if candidate is None:
@@ -579,7 +719,7 @@ async def approve_candidate(
         return HTMLResponse(f"Validation failed, nothing written:\n{e}", status_code=400)
     _write_category_meta_if_new(category)
 
-    target_file = str(approval.DATA_ROOT / category_path / candidate["subject_slug"] / "data.yaml")
+    target_file = str((approval.DATA_ROOT / category_path / candidate["subject_slug"] / "data.yaml").relative_to(approval.DATA_ROOT.parent))
     st = review_state.load(source_id)
     review_state.record_decision(st, candidate["content_hash"], "approved", target_file, candidate["event"])
     review_state.save(source_id, st)
@@ -599,6 +739,8 @@ async def modify_candidate(
     to: str = Form(...),
     precision: str = Form("exact"),
 ):
+    if not _is_known_source_id(source_id):
+        return HTMLResponse("Not found", status_code=404)
     run_ts = _latest_run_ts(source_id)
     candidate = _load_candidate(source_id, run_ts, candidate_id) if run_ts else None
     if candidate is None:
@@ -629,7 +771,7 @@ async def modify_candidate(
         return HTMLResponse(f"Validation failed, nothing written:\n{e}", status_code=400)
     _write_category_meta_if_new(category)
 
-    target_file = str(approval.DATA_ROOT / category_path / candidate["subject_slug"] / "data.yaml")
+    target_file = str((approval.DATA_ROOT / category_path / candidate["subject_slug"] / "data.yaml").relative_to(approval.DATA_ROOT.parent))
     st = review_state.load(source_id)
     review_state.record_decision(
         st, candidate["content_hash"], "modified", target_file, candidate["event"], corrected_event=corrected_event
@@ -640,6 +782,8 @@ async def modify_candidate(
 
 @app.post("/review/{source_id}/{candidate_id}/reject")
 async def reject_candidate(source_id: str, candidate_id: str):
+    if not _is_known_source_id(source_id):
+        return HTMLResponse("Not found", status_code=404)
     run_ts = _latest_run_ts(source_id)
     candidate = _load_candidate(source_id, run_ts, candidate_id) if run_ts else None
     if candidate is None:

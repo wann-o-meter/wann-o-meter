@@ -40,6 +40,11 @@ def _default_quelle(url: str) -> Dict[str, Any]:
 
 
 def _windows_from_document(doc: CrawledDocument) -> List[Dict[str, Any]]:
+    """Raises ExtractionError (rather than swallowing it) if the LLM call
+    itself fails, e.g. a missing API key for the configured LLM_PROVIDER -
+    see run()'s per-document try/except, which turns that into a reported
+    extraction_errors entry instead of a silent "0 candidates" that looks
+    identical to "this document genuinely has no dates"."""
     result = extract_any(doc.url, doc.content, doc.content_type)
     kind = result.get("kind")
 
@@ -50,10 +55,7 @@ def _windows_from_document(doc: CrawledDocument) -> List[Dict[str, Any]]:
         text = result.get("clean_markdown_full") or result.get("clean_markdown_preview", "")
         if not text.strip():
             return []
-        try:
-            events = extract_dated_events(text)
-        except ExtractionError:
-            return []
+        events = extract_dated_events(text)
         return [
             {
                 "type": "event",
@@ -75,9 +77,15 @@ def run(source: CrawlSource) -> Dict[str, Any]:
     documents = crawl(source)
 
     all_candidates: List[Dict[str, Any]] = []
+    extraction_errors: List[str] = []
     for doc in documents:
         doc_hash = staging.write_document(source.id, run_ts, doc.url, doc.content_type, doc.content)
-        for window in _windows_from_document(doc):
+        try:
+            windows = _windows_from_document(doc)
+        except ExtractionError as e:
+            extraction_errors.append(f"{doc.url}: {e}")
+            continue
+        for window in windows:
             candidate = staging.build_candidate(source.id, source.id, window, doc_hash)
             staging.write_candidate(source.id, run_ts, candidate)
             all_candidates.append(candidate)
@@ -114,4 +122,5 @@ def run(source: CrawlSource) -> Dict[str, Any]:
         "auto_approved": written,
         "needs_review": len(needs_review),
         "disappeared": len(disappeared),
+        "extraction_errors": extraction_errors,
     }

@@ -33,6 +33,9 @@
                         {{ r.documents }} docs, {{ r.candidates }} candidates,
                         {{ r.auto_approved }} auto-approved, {{ r.needs_review }} to review
                         {% if r.disappeared %}, {{ r.disappeared }} disappeared{% endif %}
+                        {% if r.extraction_errors %}
+                        <br><span style="color:var(--accent);">{{ r.extraction_errors | length }} extraction error(s): {{ r.extraction_errors[0] }}</span>
+                        {% endif %}
                     {% else %}
                         <span class="empty-hint" style="padding:0;">never run</span>
                     {% endif %}
@@ -49,6 +52,6 @@
     </table>
 </div>
 {% else %}
-<p class="empty-hint">No crawl sources configured yet - add a file under <code>pipeline/config/crawl_sources/</code>.</p>
+<p class="empty-hint">No crawl sources configured yet - use the form below, or add a file under <code>pipeline/config/crawl_sources/</code> directly.</p>
 {% endif %}
 </div>
