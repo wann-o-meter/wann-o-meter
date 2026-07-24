@@ -200,3 +200,77 @@ class TestSubjectName:
     def test_unescapes_html_entities_in_the_title(self, monkeypatch):
         monkeypatch.setattr(crawl_runner, "suggest_title", lambda text, raw: raw)
         assert crawl_runner._subject_name([self._doc("Feste &amp; M&auml;rkte")], "x") == "Feste & Märkte"
+
+
+CATALOG_ROWS = "\n".join(
+    f"[{i:05d}](../map/20{i:02d}-06-21.gif) [20{i:02d} Jun 21](../s.php) 12:04:46 T"
+    for i in range(20, 40)
+)
+
+
+def _html(body):
+    return CrawledDocument("https://example.org/cat", "text/html", f"<html><body>{body}</body></html>".encode())
+
+
+class TestStaticDates:
+    def test_reads_iso_and_catalog_date_forms_and_dedupes_them(self):
+        dates, negative = crawl_runner._static_dates("[2001-06-21.gif] [2001 Jun 21] and 2002 Dec 04")
+        assert dates == ["2001-06-21", "2002-12-04"]
+        assert negative == 0
+
+    def test_a_negative_year_is_counted_not_read_as_its_positive_twin(self):
+        """-1900-03-01 is an eclipse in 1901 BC. Reporting it as the year-1900
+        CE date is wrong by 3801 years - and lib/date.ts cannot store it at
+        all, so it has to be counted and skipped, not silently converted."""
+        dates, negative = crawl_runner._static_dates("[-1900-03-01.gif] [-1900 Mar 01]")
+        assert dates == []
+        assert negative == 1
+
+    def test_ignores_impossible_month_and_day_values(self):
+        dates, _ = crawl_runner._static_dates("2001-13-01 2001-00-09 2001-02-31 2001-02-28")
+        assert dates == ["2001-02-31", "2001-02-28"] or dates == ["2001-02-28", "2001-02-31"]
+
+
+class TestExtractorChoice:
+    def test_a_date_table_is_read_directly_without_calling_the_model(self, monkeypatch):
+        def no_llm(*a, **k):
+            raise AssertionError("the model must not be called for a date table")
+        monkeypatch.setattr(crawl_runner, "extract_dated_events", no_llm)
+
+        windows, note = crawl_runner._windows_from_document(_html(CATALOG_ROWS), "Sonnenfinsternis")
+
+        assert len(windows) == 20
+        assert note.startswith("static: 20 date(s)")
+        assert {w["name"] for w in windows} == {"Sonnenfinsternis"}
+
+    def test_prose_with_a_couple_of_dates_still_goes_to_the_model(self, monkeypatch):
+        monkeypatch.setattr(
+            crawl_runner, "extract_dated_events",
+            lambda text, on_progress=None: [{"date": "2026-09-12", "label": "Stadtfest"}],
+        )
+        windows, note = crawl_runner._windows_from_document(_html("Das Stadtfest ist am 2026-09-12."), "x")
+
+        assert [w["name"] for w in windows] == ["Stadtfest"]
+        assert note == "llm: 1 event(s)"
+
+    def test_mode_llm_keeps_the_model_even_for_a_date_table(self, monkeypatch):
+        monkeypatch.setattr(crawl_runner, "extract_dated_events", lambda text, on_progress=None: [])
+        _, note = crawl_runner._windows_from_document(_html(CATALOG_ROWS), "x", mode="llm")
+        assert note == "llm: 0 event(s)"
+
+    def test_mode_static_skips_the_model_even_on_a_page_with_few_dates(self, monkeypatch):
+        def no_llm(*a, **k):
+            raise AssertionError("mode=static must never call the model")
+        monkeypatch.setattr(crawl_runner, "extract_dated_events", no_llm)
+        windows, note = crawl_runner._windows_from_document(_html("nur am 2026-09-12"), "Termin", mode="static")
+        assert [w["from"] for w in windows] == ["2026-09-12"]
+        assert note == "static: 1 date(s)"
+
+    def test_a_page_of_only_pre_year_1_dates_says_so_instead_of_looking_empty(self, monkeypatch):
+        monkeypatch.setattr(crawl_runner, "extract_dated_events", lambda text, on_progress=None: [])
+        bce = "\n".join(f"[-19{i:02d} Mar 01](../x) [-19{i:02d}-03-01.gif]" for i in range(20))
+
+        windows, note = crawl_runner._windows_from_document(_html(bce), "Sonnenfinsternis")
+
+        assert windows == []
+        assert "20 before year 1 skipped (not storable)" in note
