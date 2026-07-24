@@ -18,10 +18,10 @@ event_type_hint."""
 import html
 import re
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from core import approval, review_state, staging
-from core.crawl_config import CrawlSource
+from core.crawl_config import DEFAULT_EXTRACTION_MODE, CrawlSource
 from core.crawler import CrawledDocument, crawl
 from core.extraction import ExtractionError, extract_dated_events, suggest_title
 from scraper import extract_any
@@ -41,8 +41,90 @@ def _default_quelle(url: str) -> Dict[str, Any]:
     }
 
 
-def _windows_from_document(doc: CrawledDocument, on_progress: Optional[Callable[[str], None]] = None) -> List[Dict[str, Any]]:
-    """Raises ExtractionError (rather than swallowing it) if the LLM call
+_MONTHS = {
+    "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
+    "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+}
+
+# Two unambiguous machine-written date forms: ISO ("2001-06-21") and the
+# catalog form ("2001 Jun 21"). Both keep an optional leading "-" so a
+# negative (pre-year-1) year is RECOGNISED rather than silently read as its
+# positive counterpart - it's then reported and skipped, not stored.
+_STATIC_DATE_RES = (
+    re.compile(r"(?<![\d-])(-?\d{4})-(\d{2})-(\d{2})(?![\d-])"),
+    re.compile(
+        r"(?<![\d-])(-?\d{4})\s+(" + "|".join(_MONTHS) + r")\s+(\d{1,2})(?!\d)",
+        re.IGNORECASE,
+    ),
+)
+
+# Below this, a page is prose that happens to mention some dates, and the
+# model's labels are worth their cost. At or above it the page is a date
+# TABLE, where an LLM is strictly worse: it costs one call per 20k chars,
+# can drop rows silently, and invents nothing a regex couldn't read. Set
+# high enough that an archive nav ("2024", "2023", ...) doesn't trip it.
+STATIC_DATE_THRESHOLD = 15
+
+
+def _static_dates(text: str) -> Tuple[List[str], int]:
+    """Deterministic date scrape: ([storable "YYYY-MM-DD" in page order],
+    count of recognised-but-unstorable pre-year-1 dates).
+
+    The second element exists so a page of nothing but BCE dates reports
+    "239 found, none storable" instead of looking identical to a page with
+    no dates at all - which is exactly how eclipse.gsfc.nasa.gov's BCE
+    catalogs presented (see lib/date.ts's DAY_RE: no sign, so a negative
+    year cannot be represented at all)."""
+    found: Dict[str, None] = {}
+    negative: Dict[str, None] = {}
+    for regex in _STATIC_DATE_RES:
+        for match in regex.finditer(text):
+            year_str, month_str, day_str = match.groups()
+            month = _MONTHS.get(month_str.lower(), 0) if not month_str.isdigit() else int(month_str)
+            year, day = int(year_str), int(day_str)
+            if not (1 <= month <= 12 and 1 <= day <= 31):
+                continue
+            # Deduped like the storable ones, not counted per match: a catalog
+            # writes each date twice (once in a .gif URL, once as text), so a
+            # raw match count reported double what the page actually lists.
+            target = negative if year < 1 else found
+            target.setdefault(f"{year:05d}-{month:02d}-{day:02d}" if year < 1 else f"{year:04d}-{month:02d}-{day:02d}", None)
+    return list(found), len(negative)
+
+
+def _window(date: str, label: str) -> Dict[str, Any]:
+    return {
+        "type": "event",
+        "year": int(date[:4]),
+        "from": date,
+        "to": date,
+        "precision": "exact",
+        "ics": True,
+        "name": label,
+    }
+
+
+def _windows_from_document(
+    doc: CrawledDocument,
+    label: str,
+    mode: str = DEFAULT_EXTRACTION_MODE,
+    on_progress: Optional[Callable[[str], None]] = None,
+) -> Tuple[List[Dict[str, Any]], str]:
+    """Returns (windows, note) where note names which extractor ran and what
+    it produced - reported per page so "why did this give me one event" is
+    answerable from the UI instead of by reading the source.
+
+    `label` names the windows the deterministic path produces (a table of
+    dates carries no per-row title an LLM could paraphrase) - the source's
+    event_type_hint, else the page title.
+
+    `mode` is the source's extraction_mode (see core/crawl_config.py). The
+    deterministic path does NOT replace the model in general - it wins on
+    machine-generated date tables and loses everywhere a date needs its own
+    real label, which is why this is a per-source setting and not a global
+    switch.
+
+    Raises ExtractionError (rather than swallowing it) if the LLM call
     itself fails, e.g. a missing API key for the configured LLM_PROVIDER -
     see run()'s per-document try/except, which turns that into a reported
     extraction_errors entry instead of a silent "0 candidates" that looks
@@ -51,27 +133,35 @@ def _windows_from_document(doc: CrawledDocument, on_progress: Optional[Callable[
     kind = result.get("kind")
 
     if kind == "ics_feed":
-        return result.get("windows", [])
+        windows = result.get("windows", [])
+        return windows, f"ics feed: {len(windows)} window(s)"
 
     if kind in ("html_page", "pdf_document", "image_page"):
         text = result.get("clean_markdown_full") or result.get("clean_markdown_preview", "")
         if not text.strip():
-            return []
-        events = extract_dated_events(text, on_progress=on_progress)
-        return [
-            {
-                "type": "event",
-                "year": int(e["date"][:4]),
-                "from": e["date"],
-                "to": e["date"],
-                "precision": "exact",
-                "ics": True,
-                "name": e["label"],
-            }
-            for e in events
-        ]
+            return [], "empty document"
 
-    return []
+        if mode != "llm":
+            static_dates, negative = _static_dates(text)
+            # In auto, only an HTML page that is plainly a date TABLE takes the
+            # deterministic path - there an LLM earns nothing (it reads the same
+            # rows, one paid call per 20k chars, and silently drops some). A PDF
+            # or image never does: its text came from OCR/vision, so what a date
+            # MEANS is exactly the part only the model can supply.
+            table_like = kind == "html_page" and len(static_dates) + negative >= STATIC_DATE_THRESHOLD
+            if mode == "static" or table_like:
+                note = f"static: {len(static_dates)} date(s)"
+                if negative:
+                    note += f", {negative} before year 1 skipped (not storable)"
+                return [_window(date, label) for date in static_dates], note
+
+        events = extract_dated_events(text, on_progress=on_progress)
+        return (
+            [_window(e["date"], e["label"]) for e in events],
+            f"llm: {len(events)} event(s)",
+        )
+
+    return [], f"no extractor for kind '{kind}'"
 
 
 _TITLE_RE = re.compile(rb"<title[^>]*>(.*?)</title>", re.IGNORECASE | re.DOTALL)
@@ -129,6 +219,12 @@ def run(
     documents = crawl(source, on_progress=lambda detail: report("crawling", detail), on_page=report_page)
     report("crawling", f"Done - {len(documents)} document(s) found")
 
+    # Before the document loop: the deterministic extractor names its windows
+    # after the page, so this has to exist by the time the first document is
+    # extracted, not just when page.yaml is written.
+    subject_name = _subject_name(documents, source.id)
+    label = source.event_type_hint or subject_name
+
     all_candidates: List[Dict[str, Any]] = []
     extraction_errors: List[str] = []
     for i, doc in enumerate(documents, start=1):
@@ -136,12 +232,14 @@ def run(
         report("extracting", f"Document {i}/{len(documents)}: {doc.url}")
         report_page(doc.url, "extracting")
         try:
-            windows = _windows_from_document(doc, on_progress=lambda detail: report("extracting", detail))
+            windows, note = _windows_from_document(
+                doc, label, source.extraction_mode, on_progress=lambda detail: report("extracting", detail)
+            )
         except ExtractionError as e:
             extraction_errors.append(f"{doc.url}: {e}")
             report_page(doc.url, f"extraction failed: {str(e)[:80]}")
             continue
-        report_page(doc.url, f"{len(windows)} event(s) found" if windows else "no dates found")
+        report_page(doc.url, note)
         for window in windows:
             candidate = staging.build_candidate(source.id, source.id, window, doc_hash)
             staging.write_candidate(source.id, run_ts, candidate)
@@ -152,7 +250,6 @@ def run(
     auto_waved_through, needs_review, disappeared = review_state.diff(all_candidates, state)
 
     quelle = _default_quelle(source.seed_url)
-    subject_name = _subject_name(documents, source.id)
     written = 0
     for candidate in auto_waved_through:
         # Stamp BEFORE writing - stamping after would only update

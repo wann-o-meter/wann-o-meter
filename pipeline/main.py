@@ -692,6 +692,7 @@ async def create_crawl_source(
     formats: List[str] = Form(["html"]),
     event_type_hint: str = Form(""),
     schedule: str = Form("manual"),
+    extraction_mode: str = Form(crawl_config.DEFAULT_EXTRACTION_MODE),
     auto_approve_ics: bool = Form(False),
 ):
     """Writes a new pipeline/config/crawl_sources/{id}.yaml from the
@@ -751,6 +752,7 @@ async def create_crawl_source(
         "formats": formats,
         "event_type_hint": event_type_hint.strip(),
         "schedule": schedule.strip() or "manual",
+        "extraction_mode": extraction_mode,
         "auto_approve_ics": auto_approve_ics,
     }
     try:

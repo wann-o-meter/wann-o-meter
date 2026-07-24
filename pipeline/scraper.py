@@ -96,7 +96,13 @@ def remove_filler_words(text: str) -> str:
 def extract_dates(text: str) -> List[str]:
     patterns = [
         r"\b(?:0?[1-9]|[12][0-9]|3[01])\.(?:0?[1-9]|1[0-2])\.(?:\d{2})?\d{2}\b",
-        r"\b\d{4}-\d{2}-\d{2}\b",
+        # Lookbehind rather than \b: \b matches between the "-" and the "1" of
+        # "-1900-03-01" (a year 1901 BCE date, as written in eclipse.gsfc.nasa.gov's
+        # BCE catalogs), so the old \b...\b pattern silently reported it as the
+        # year-1900 CE date "1900-03-01" - off by 3801 years, and confidently
+        # wrong rather than absent. Trailing guard likewise keeps this from
+        # matching a prefix of a longer digit run.
+        r"(?<![\d-])\d{4}-\d{2}-\d{2}(?![\d-])",
         # Non-capturing groups throughout - re.findall returns tuples of each
         # capture group instead of the full match when a pattern has groups,
         # which would mix str and tuple entries in `dates` and crash sorted().
