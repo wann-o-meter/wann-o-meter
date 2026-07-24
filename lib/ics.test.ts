@@ -40,3 +40,15 @@ describe("generateIcs", () => {
     expect(out).not.toContain("BEGIN:VEVENT");
   });
 });
+
+describe("minute-resolution windows", () => {
+  it("truncates a clock time to an all-day VALUE=DATE event", () => {
+    const ics = generateIcs(
+      [{ uid: "x@wann", from: "2026-05-01T06:30", to: "2026-05-01T09:15", title: "Sonnenfinsternis" }],
+      "Test",
+    );
+    expect(ics).toContain("DTSTART;VALUE=DATE:20260501");
+    expect(ics).toContain("DTEND;VALUE=DATE:20260502");
+    expect(ics).not.toContain("T0630");
+  });
+});

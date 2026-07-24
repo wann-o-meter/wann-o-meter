@@ -6,7 +6,12 @@ describe("getAllCalendarEntries", () => {
   it("returns entries for every content type, grouped by the page's real category rather than a generic bucket", () => {
     const groups = new Set(getAllCalendarEntries().map((e) => e.group));
     const pageCategories = new Set(getAllPages().map((p) => getCategoryMeta(p.category).name));
-    expect(groups).toEqual(pageCategories);
+    // Subset, not equality: a page whose windows all fall outside
+    // rollingYears() (a purely historical source) legitimately contributes
+    // no entries at all, which says nothing about how groups are named -
+    // and that's what this test is about.
+    expect(groups.size).toBeGreaterThan(0);
+    expect([...groups].filter((g) => !pageCategories.has(g))).toEqual([]);
   });
 
   it("gives every entry a unique id with no colons or slashes (both break Astro's static build)", () => {
