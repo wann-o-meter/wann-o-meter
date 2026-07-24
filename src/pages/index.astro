@@ -14,7 +14,22 @@ const cards = [...getAllContent()].sort((a, b) => a.title.localeCompare(b.title,
 // site can answer, built from data/homepage-questions.yaml's per-category
 // templates - see lib/homepage-questions.ts.
 const rotatingQuestions = homepageQuestions();
-const tags = [...new Set([...cards.flatMap((c) => c.tags)].map((t) => t.toLowerCase()))].sort((a, b) => a.localeCompare(b, "de"))
+// Only the three most-used tags as one-click filters - all 20 unique tags
+// made a wall of badges where 17 of them matched a handful of pages each.
+// Nothing is lost: every tag is still reachable by typing it into the
+// search box, which matches against each card's full data-tags list.
+// Alphabetical as the tiebreak so equal counts don't reorder per build.
+const tagCounts = new Map<string, number>();
+for (const card of cards) {
+  for (const tag of card.tags) {
+    const key = tag.toLowerCase();
+    tagCounts.set(key, (tagCounts.get(key) ?? 0) + 1);
+  }
+}
+const tags = [...tagCounts]
+  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "de"))
+  .slice(0, 3)
+  .map(([tag]) => tag);
 
 // Google-SERP-like clustering: one result group per type, most relevant
 // items (ContentCard.featured) shown directly, the rest collapsed behind a
@@ -44,6 +59,18 @@ const structuredData = graph([
 // window data itself client-side (same /api/v1/calendar/{id}.json route the
 // real calendar uses), and swaps to whichever layers the H1 rotator (script
 // below) is currently naming.
+//
+// client:only, not client:visible: with SSR on, the build baked the build
+// day's month into the HTML and it never fully recovered. Vue's hydration
+// only patches text and props listed in dynamicProps - the compiled render
+// function marks the day cells' :class/:style as patchFlag 7 (TEXT|CLASS|
+// STYLE) with no dynamicProps, so the day *numbers* were corrected on
+// hydrate but the "today" outline and the other-month greying kept the
+// build day's positions until some later reactive update happened to
+// repaint them. Rendering client-only removes the stale markup entirely:
+// there is nothing to mismatch, and `now` is always real browser time.
+// The grid is a decorative teaser - the H1, lead and today-teaser text
+// carry the SEO/no-JS content, so it loses nothing by not being in the HTML.
 const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender--spargel"];
 ---
 
@@ -64,7 +91,9 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
       <p><a class="cta" href="/kalender/"><Calendar size={16} /> Ebenen-Kalender öffnen <ArrowUpRight size={16} /></a></p>
     </div>
 
-    <HeroCalendarPreview initialLayerIds={previewLayerIds} client:visible />
+    <div class="hero-preview">
+      <HeroCalendarPreview initialLayerIds={previewLayerIds} client:only="vue" />
+    </div>
   </div>
 
   <h2>Alle Themen durchsuchen</h2>
@@ -142,6 +171,17 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
     .hero {
       flex-direction: column;
     }
+  }
+  /* Holds the calendar's space before its client:only island mounts, so the
+     copy below doesn't jump up by a grid's height on every load. aspect-ratio
+     rather than a min-height in rem: it scales with the column, which the
+     square day cells do too, and as a flex item the box still grows past the
+     ratio once the real grid is in it (flex min-height defaults to content). */
+  .hero-preview {
+    width: 34rem;
+    max-width: 100%;
+    flex-shrink: 0;
+    aspect-ratio: 34 / 27;
   }
   .lead {
     font-size: 1.05rem;

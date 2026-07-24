@@ -77,7 +77,7 @@ function onRotate(e: Event) {
   const ids = (e as CustomEvent<{ layerIds: string[] }>).detail?.layerIds;
   if (!ids?.length) return;
   layerIds.value = ids;
-  loadLayers(ids);
+  loadLayers(ids).catch(() => {});
 }
 
 function onVisibilityChange() {
@@ -85,7 +85,11 @@ function onVisibilityChange() {
 }
 
 onMounted(() => {
-  loadLayers(layerIds.value);
+  // Caught, not left unhandled: a single failed entry fetch rejects the
+  // whole Promise.all, and without this the rejection is silent (nothing
+  // awaits it here). The grid then just stays unshaded, which is a fine
+  // degradation - the month, week numbers and today marker are all local.
+  loadLayers(layerIds.value).catch(() => {});
   window.addEventListener("homepage-rotate", onRotate);
   document.addEventListener("visibilitychange", onVisibilityChange);
 });
