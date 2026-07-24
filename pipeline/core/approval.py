@@ -17,6 +17,9 @@ from core import store, validate
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_ROOT = REPO_ROOT / "data"
 
+# What makes two windows "the same real-world window" - see write_event.
+DEFAULT_REPLACE_KEY = ("type", "name", "from")
+
 
 class ApprovalError(Exception):
     """Raised when the approved event fails real Zod validation. Nothing is
@@ -33,13 +36,24 @@ def write_event(
     subject_name: str,
     event: Dict[str, Any],
     quelle: Dict[str, Any],
-    replace_key: Tuple[str, ...] = ("type",),
+    replace_key: Tuple[str, ...] = DEFAULT_REPLACE_KEY,
 ) -> Path:
     """Merges `event` (one RawWindow-shaped dict) into
     data/{category}/{subject_slug}/data.yaml (reusing store.merge_zeitfenster's
     existing replace_key+date-range dedup/merge logic unchanged) and writes
     page.yaml the first time only. Raises ApprovalError, writing nothing,
-    if the result fails Zod validation."""
+    if the result fails Zod validation.
+
+    replace_key has to identify a real-world window, not just its kind:
+    with the old ("type",) default, every generic `type: event` window
+    shared one key, so approving the second eclipse of a source silently
+    replaced the first - 151 approvals produced a 1-window data.yaml.
+    ("type", "name", "from") separates them and still lets a source amend
+    its own `to` date in place.
+
+    ponytail: a correction that moves `from` lands as a second window
+    instead of replacing - reject the stale one in the review UI. Add a
+    stable per-window source id here if that ever gets common."""
     datei_pfad = DATA_ROOT / category / subject_slug / "data.yaml"
     datei = store.lade_oder_erstelle(datei_pfad, subject_slug, category)
     store.merge_zeitfenster(datei, [event], replace_key)
