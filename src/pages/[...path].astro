@@ -25,6 +25,7 @@ import {
   getAllPages,
   getCategoryMeta,
   getPageEvents,
+  pageRegion,
 } from "../../lib/pages";
 import type { CategoryNode, Page } from "../../lib/pages";
 import { breadcrumbNode, datasetNode, eventNode, graph } from "../../lib/structured-data";
@@ -118,6 +119,8 @@ function buildPageView(page: Page) {
   const pageUrl = new URL(`/${category}/${page.slug}/`, Astro.site).href;
   const categoryName = getCategoryMeta(category).name;
   const description = meta.description || meta.title;
+  const eventLocation = pageRegion(page);
+  const eventImage = new URL("/og-image.png", Astro.site).href;
   const structuredData = graph([
     breadcrumbNode([
       { name: "Wann-O-Meter", url: new URL("/", Astro.site).href },
@@ -135,7 +138,16 @@ function buildPageView(page: Page) {
               { url: new URL(`/feeds/${category}/${page.slug}.ics`, Astro.site).href, encodingFormat: "text/calendar" },
             ],
           }),
-          ...events.map((e) => eventNode({ name: e.label, startDate: e.date, url: pageUrl })),
+          ...events.map((e) =>
+            eventNode({
+              name: e.label,
+              startDate: e.date,
+              url: pageUrl,
+              description,
+              image: eventImage,
+              location: eventLocation,
+            }),
+          ),
         ]
       : []),
   ]);

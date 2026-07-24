@@ -6,6 +6,7 @@ import {
   getPageDates,
   getPageEvents,
   loadCategoryTreeForTests,
+  pageRegion,
   RESERVED_CATEGORIES,
   type Page,
 } from "./pages";
@@ -189,6 +190,33 @@ describe("getAllTags / getPagesByTag", () => {
     const matches = fixturePages.filter((p) => p.meta.tags.includes("fixture"));
     expect(matches.length).toBeGreaterThan(0);
     expect(matches.every((p) => p.meta.tags.includes("fixture"))).toBe(true);
+  });
+});
+
+describe("pageRegion", () => {
+  const page = (category: string, slug: string): Page => ({
+    ...emptyPage,
+    category,
+    slug,
+  });
+
+  it("resolves a German feiertage state page from its de-{code} slug", () => {
+    expect(pageRegion(page("feiertage", "de-by"))).toBe("Bayern");
+  });
+
+  it("resolves a schulferien/urlaubsfenster page from its bare state-code slug", () => {
+    expect(pageRegion(page("schulferien", "by"))).toBe("Bayern");
+    expect(pageRegion(page("urlaubsfenster", "by"))).toBe("Bayern");
+  });
+
+  it("falls back to the country name for feiertage's non-German country pages", () => {
+    expect(pageRegion(page("feiertage", "tn"))).toBeTruthy();
+    expect(pageRegion(page("feiertage", "de-by"))).not.toBe(pageRegion(page("feiertage", "tn")));
+  });
+
+  it("returns undefined for categories with no real region", () => {
+    expect(pageRegion(page("fixture", "empty-fixture"))).toBeUndefined();
+    expect(pageRegion(page("saisonkalender", "gruenkohl"))).toBeUndefined();
   });
 });
 
