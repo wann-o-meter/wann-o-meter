@@ -40,7 +40,7 @@ def make_file(windows=None, sources=None):
     return {
         "subject": {"slug": "bw", "name": "Baden-Württemberg", "category": "vacation-windows", "region": "DE-BW"},
         "windows": windows or [],
-        "sources": sources or [],
+        "source": sources or [],
     }
 
 
@@ -155,8 +155,8 @@ def test_append_quelle_dedups_by_url_instead_of_growing_unbounded():
         file, {"url": "https://source-a.example/ferien", "retrieved_at": "2026-07-01", "license": "official_par5", "extraction": "llm"}
     )
 
-    assert len(file["sources"]) == 1
-    assert file["sources"][0]["retrieved_at"] == "2026-07-01"
+    assert len(file["source"]) == 1
+    assert file["source"][0]["retrieved_at"] == "2026-07-01"
 
 
 def test_append_quelle_keeps_distinct_urls_separate():
@@ -166,4 +166,4 @@ def test_append_quelle_keeps_distinct_urls_separate():
         file, {"url": "https://source-b.example/ferien", "retrieved_at": "2026-01-01", "license": "official_par5", "extraction": "llm"}
     )
 
-    assert len(file["sources"]) == 2
+    assert len(file["source"]) == 2

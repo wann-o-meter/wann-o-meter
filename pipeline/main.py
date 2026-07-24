@@ -96,6 +96,14 @@ class PipelineState:
         self.errors: Dict[str, str] = {}
         self.last_result: Dict[str, dict] = {}
         self.progress: Dict[str, str] = {}
+        # {source_id: {url: status}} for the most recent run of each source,
+        # in insertion order (crawl order). Deliberately NOT cleared when a
+        # run finishes - it's the per-page record the crawl-sources table
+        # shows afterwards, and it's the only place the URLs that got
+        # dropped (robots, fetch error, wrong format) exist at all; staging/
+        # only ever holds the survivors. Lost on restart, which is fine: it
+        # falls back to the staged documents then (see _source_pages).
+        self.pages: Dict[str, Dict[str, str]] = {}
 
     def to_dict(self) -> dict:
         return {
@@ -356,44 +364,26 @@ def _latest_run_ts(source_id: str) -> Optional[str]:
     return run_dirs[0] if run_dirs else None
 
 
-def _build_url_tree(urls: List[str]) -> Dict[str, Any]:
-    """Nests URLs by domain then path segment - {"children": {segment:
-    node, ...}, "urls": [...]}. "urls" on a node is non-empty only when
-    that exact path was itself crawled (not just an ancestor of a crawled
-    path); a node can have both its own urls AND children."""
-    root: Dict[str, Any] = {"children": {}, "urls": []}
-    for url in urls:
-        parsed = urlparse(url)
-        segments = [parsed.netloc] + [s for s in parsed.path.split("/") if s]
-        node = root
-        for segment in segments:
-            node = node["children"].setdefault(segment, {"children": {}, "urls": []})
-        node["urls"].append(url)
-    return root
+def _source_pages(source_id: str) -> List[Dict[str, str]]:
+    """[{"url", "status"}] for the crawl source's most recent run, in crawl
+    order - shown inline in the crawl-sources table (expandable row) and
+    refreshed live from the same /status poll while a run is in flight.
 
+    Prefers state.pages, which is the ONLY record of URLs that never became
+    documents (robots-blocked, fetch failure, filtered-out format) - a
+    staging-only view showed just the survivors, so a crawl that reached 40
+    pages and kept 1 was indistinguishable from one that only ever found 1.
+    Falls back to the staged documents (all "crawled" by definition) when
+    state.pages is empty, i.e. after a restart or for a run from a previous
+    process."""
+    live = state.pages.get(source_id)
+    if live:
+        return [{"url": url, "status": status} for url, status in live.items()]
 
-def _flatten_tree(node: Dict[str, Any], depth: int = 0) -> List[Dict[str, Any]]:
-    """Depth-first pre-order flattening of _build_url_tree's output into
-    {"depth", "label", "urls"} rows - simpler to render as an indented flat
-    list (CSS padding-left per row) than as a Jinja recursive macro."""
-    rows = []
-    for label in sorted(node["children"]):
-        child = node["children"][label]
-        rows.append({"depth": depth, "label": label, "urls": child["urls"]})
-        rows.extend(_flatten_tree(child, depth + 1))
-    return rows
-
-
-def _crawled_pages_tree(source_id: str) -> List[Dict[str, Any]]:
-    """Flattened rows for the crawl source's "Pages" view - what the most
-    recent run actually reached, nested under the seed URL (shown
-    separately by the caller, not as a tree row itself). Empty if the
-    source has never been run."""
     run_ts = _latest_run_ts(source_id)
     if run_ts is None:
         return []
-    docs = staging.list_documents(source_id, run_ts)
-    return _flatten_tree(_build_url_tree([doc["url"] for doc in docs]))
+    return [{"url": doc["url"], "status": "crawled"} for doc in staging.list_documents(source_id, run_ts)]
 
 
 def _known_source_ids() -> List[str]:
@@ -561,11 +551,15 @@ def _run_crawl_source_and_record(source_id: str) -> None:
     def report(msg: str) -> None:
         state.progress[source_id] = msg
 
+    def report_page(url: str, status: str) -> None:
+        state.pages.setdefault(source_id, {})[url] = status
+
     try:
         source = crawl_config.load_all_crawl_sources().get(source_id)
         if source is None:
             raise ValueError(f"Unknown crawl source '{source_id}'")
-        result = crawl_runner.run(source, on_progress=report)
+        state.pages[source_id] = {}
+        result = crawl_runner.run(source, on_progress=report, on_page=report_page)
         state.last_result[source_id] = result
         state.errors.pop(source_id, None)
     except Exception as e:
@@ -598,6 +592,7 @@ async def crawl_sources_list(request: Request):
         "running_sources": state.running_sources,
         "errors": state.errors,
         "last_result": state.last_result,
+        "progress": state.progress,
         "category_suggestions": _category_suggestions(),
         "format_options": CRAWL_FORMAT_OPTIONS,
     })
@@ -614,6 +609,7 @@ async def crawl_sources_table(request: Request):
         "running_sources": state.running_sources,
         "errors": state.errors,
         "last_result": state.last_result,
+        "progress": state.progress,
     })
 
 
@@ -640,23 +636,10 @@ async def crawl_source_status(source_id: str):
         "error": state.errors.get(source_id),
         "result": state.last_result.get(source_id),
         "progress": state.progress.get(source_id),
-    })
-
-
-@app.get("/crawl-sources/{source_id}/pages", response_class=HTMLResponse)
-async def crawl_source_pages(request: Request, source_id: str):
-    """Shows which pages the most recent run actually reached, as a tree
-    nested under the seed URL - lets an operator sanity-check the crawl's
-    real scope/depth without digging through pipeline/staging/ by hand."""
-    source = crawl_config.load_all_crawl_sources().get(source_id)
-    if source is None:
-        return HTMLResponse("Not found", status_code=404)
-    return templates.TemplateResponse(request, "crawl_source_pages.html", {
-        "active_nav": "crawl-sources",
-        "state": state.to_dict(),
-        "source_id": source_id,
-        "seed_url": source.seed_url,
-        "rows": _crawled_pages_tree(source_id),
+        # Carried on this same poll rather than a second endpoint/timer -
+        # two polls against one source would just double the request rate
+        # to show two halves of the same run.
+        "pages": _source_pages(source_id),
     })
 
 

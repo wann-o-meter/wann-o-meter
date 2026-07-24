@@ -480,55 +480,89 @@ class TestDeleteCrawlSource:
             main.state.running_sources.discard("stuttgart-veranstaltungen")
 
 
-class TestBuildAndFlattenUrlTree:
-    def test_flattens_a_shared_domain_into_nested_path_rows(self):
-        tree = main._build_url_tree([
-            "https://example.org/veranstaltungen/2026",
-            "https://example.org/veranstaltungen/archiv",
-        ])
-        rows = main._flatten_tree(tree)
+class TestRunningProgressSurvivesAReload:
+    """A crawl runs in a background thread, so it outlives the page that
+    started it - reloading mid-run used to show a bare "Running…" with the
+    progress line blank, because state.progress reached the JSON poll but was
+    never passed to the template."""
 
-        assert rows[0] == {"depth": 0, "label": "example.org", "urls": []}
-        by_label = {r["label"]: r for r in rows}
-        assert by_label["2026"]["depth"] == 2
-        assert by_label["2026"]["urls"] == ["https://example.org/veranstaltungen/2026"]
-        assert by_label["archiv"]["urls"] == ["https://example.org/veranstaltungen/archiv"]
+    def _running(self, client, progress):
+        client.post("/crawl-sources/new", data=FULL_NEW_SOURCE_FORM)
+        main.state.running_sources.add("stuttgart-veranstaltungen")
+        main.state.progress["stuttgart-veranstaltungen"] = progress
 
-    def test_a_path_that_is_both_a_page_and_a_parent_keeps_both(self):
-        tree = main._build_url_tree([
-            "https://example.org/veranstaltungen",
-            "https://example.org/veranstaltungen/2026",
-        ])
-        rows = main._flatten_tree(tree)
-        by_label = {r["label"]: r for r in rows}
+    def _cleanup(self):
+        main.state.running_sources.discard("stuttgart-veranstaltungen")
+        main.state.progress.pop("stuttgart-veranstaltungen", None)
 
-        assert by_label["veranstaltungen"]["urls"] == ["https://example.org/veranstaltungen"]
-        assert by_label["2026"]["depth"] == 2
+    def test_the_full_page_renders_the_stored_progress(self, client):
+        self._running(client, {"phase": "crawling", "detail": "Fetching page 3: https://example.org/a"})
+        try:
+            response = client.get("/crawl-sources")
+        finally:
+            self._cleanup()
 
-    def test_empty_input_flattens_to_no_rows(self):
-        assert main._flatten_tree(main._build_url_tree([])) == []
+        assert "Crawling" in response.text
+        assert "Fetching page 3: https://example.org/a" in response.text
+
+    def test_the_htmx_table_fragment_renders_it_too(self, client):
+        self._running(client, {"phase": "extracting", "detail": "Document 2/7"})
+        try:
+            response = client.get("/crawl-sources-table")
+        finally:
+            self._cleanup()
+
+        assert "Extracting" in response.text
+        assert "Document 2/7" in response.text
 
 
-class TestCrawlSourcePages:
-    def test_shows_the_seed_url_and_a_tree_of_crawled_documents(self, client, tmp_path):
+class TestSourcePages:
+    def test_falls_back_to_the_staged_documents_when_no_live_run_state_exists(self, client):
         client.post("/crawl-sources/new", data=FULL_NEW_SOURCE_FORM)
         staging.write_document(
             "stuttgart-veranstaltungen", "20260724-000000",
             "https://example.org/veranstaltungen/2026", "text/html", b"<html>x</html>",
         )
+        main.state.pages.pop("stuttgart-veranstaltungen", None)
 
-        response = client.get("/crawl-sources/stuttgart-veranstaltungen/pages")
+        rows = main._source_pages("stuttgart-veranstaltungen")
 
-        assert response.status_code == 200
-        assert "example.org/veranstaltungen" in response.text or "veranstaltungen" in response.text
-        assert "2026" in response.text
+        assert rows == [{"url": "https://example.org/veranstaltungen/2026", "status": "crawled"}]
 
-    def test_404s_for_an_unknown_source(self, client):
-        response = client.get("/crawl-sources/does-not-exist/pages")
-        assert response.status_code == 404
-
-    def test_shows_an_empty_hint_when_never_run(self, client):
+    def test_prefers_live_run_state_so_dropped_urls_stay_visible(self, client):
         client.post("/crawl-sources/new", data=FULL_NEW_SOURCE_FORM)
-        response = client.get("/crawl-sources/stuttgart-veranstaltungen/pages")
+        staging.write_document(
+            "stuttgart-veranstaltungen", "20260724-000000",
+            "https://example.org/kept", "text/html", b"<html>x</html>",
+        )
+        main.state.pages["stuttgart-veranstaltungen"] = {
+            "https://example.org/kept": "2 event(s) found",
+            "https://example.org/blocked": "robots-blocked",
+        }
+        try:
+            rows = main._source_pages("stuttgart-veranstaltungen")
+        finally:
+            main.state.pages.pop("stuttgart-veranstaltungen", None)
+
+        # The staging-only view could never show the blocked URL - it never
+        # became a document.
+        assert rows == [
+            {"url": "https://example.org/kept", "status": "2 event(s) found"},
+            {"url": "https://example.org/blocked", "status": "robots-blocked"},
+        ]
+
+    def test_is_empty_for_a_source_that_never_ran(self, client):
+        client.post("/crawl-sources/new", data=FULL_NEW_SOURCE_FORM)
+        main.state.pages.pop("stuttgart-veranstaltungen", None)
+        assert main._source_pages("stuttgart-veranstaltungen") == []
+
+    def test_status_endpoint_carries_the_page_rows(self, client):
+        client.post("/crawl-sources/new", data=FULL_NEW_SOURCE_FORM)
+        main.state.pages["stuttgart-veranstaltungen"] = {"https://example.org/a": "crawled"}
+        try:
+            response = client.get("/crawl-sources/stuttgart-veranstaltungen/status")
+        finally:
+            main.state.pages.pop("stuttgart-veranstaltungen", None)
+
         assert response.status_code == 200
-        assert "No run yet" in response.text
+        assert response.json()["pages"] == [{"url": "https://example.org/a", "status": "crawled"}]

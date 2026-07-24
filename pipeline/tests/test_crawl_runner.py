@@ -57,17 +57,17 @@ def _approve_like_the_review_ui_would(source_id: str, content_hash: str, event: 
     review_state.save(source_id, state)
 
 
-def test_a_brand_new_candidate_is_queued_for_review_not_written_or_auto_approved(monkeypatch):
+def test_a_brand_new_candidate_is_queued_for_review_not_written_or_reconfirmed(monkeypatch):
     monkeypatch.setattr(
         crawl_runner, "crawl",
-        lambda source, on_progress=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
+        lambda source, on_progress=None, on_page=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
     )
 
     result = crawl_runner.run(_source())
 
     assert result["documents"] == 1
     assert result["candidates"] == 1
-    assert result["auto_approved"] == 0
+    assert result["reconfirmed"] == 0
     assert result["needs_review"] == 1
 
     data_path = Path(approval.DATA_ROOT) / "veranstaltungen" / "test-source" / "data.yaml"
@@ -77,7 +77,7 @@ def test_a_brand_new_candidate_is_queued_for_review_not_written_or_auto_approved
 def test_a_previously_approved_candidate_auto_waves_through_on_a_later_run(monkeypatch):
     monkeypatch.setattr(
         crawl_runner, "crawl",
-        lambda source, on_progress=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
+        lambda source, on_progress=None, on_page=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
     )
     first = crawl_runner.run(_source())
     assert first["needs_review"] == 1
@@ -93,7 +93,7 @@ def test_a_previously_approved_candidate_auto_waves_through_on_a_later_run(monke
 
     result = crawl_runner.run(_source())
 
-    assert result["auto_approved"] == 1
+    assert result["reconfirmed"] == 1
     assert result["needs_review"] == 0
 
     datei = yaml.safe_load(Path(target_file).read_text(encoding="utf-8"))
@@ -104,7 +104,7 @@ def test_a_previously_approved_candidate_auto_waves_through_on_a_later_run(monke
 def test_new_event_alongside_an_already_approved_one_only_queues_the_new_one(monkeypatch):
     monkeypatch.setattr(
         crawl_runner, "crawl",
-        lambda source, on_progress=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
+        lambda source, on_progress=None, on_page=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
     )
     crawl_runner.run(_source())
 
@@ -125,12 +125,12 @@ def test_new_event_alongside_an_already_approved_one_only_queues_the_new_one(mon
     ).encode("utf-8")
     monkeypatch.setattr(
         crawl_runner, "crawl",
-        lambda source, on_progress=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", second_event_ics)],
+        lambda source, on_progress=None, on_page=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", second_event_ics)],
     )
 
     result = crawl_runner.run(_source())
 
-    assert result["auto_approved"] == 1  # the already-known Stadtfest, re-verified
+    assert result["reconfirmed"] == 1  # the already-known Stadtfest, re-verified
     assert result["needs_review"] == 1  # the new Weihnachtsmarkt
 
 
@@ -141,7 +141,7 @@ def test_an_llm_extraction_failure_is_reported_not_silently_swallowed(monkeypatc
     the crawl_runner.run() -> [] short-circuit that used to hide this."""
     monkeypatch.setattr(
         crawl_runner, "crawl",
-        lambda source, on_progress=None: [CrawledDocument("https://example.org/events.html", "text/html", b"<html><body>some content</body></html>")],
+        lambda source, on_progress=None, on_page=None: [CrawledDocument("https://example.org/events.html", "text/html", b"<html><body>some content</body></html>")],
     )
     monkeypatch.setattr(
         crawl_runner, "extract_any",
@@ -162,7 +162,7 @@ def test_an_llm_extraction_failure_is_reported_not_silently_swallowed(monkeypatc
 def test_on_progress_is_called_with_crawl_and_per_document_updates(monkeypatch):
     monkeypatch.setattr(
         crawl_runner, "crawl",
-        lambda source, on_progress=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
+        lambda source, on_progress=None, on_page=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
     )
     messages = []
 
@@ -171,3 +171,32 @@ def test_on_progress_is_called_with_crawl_and_per_document_updates(monkeypatch):
     assert any(m["phase"] == "crawling" for m in messages)
     assert any(m["phase"] == "extracting" and "Document 1/1" in m["detail"] for m in messages)
     assert any(m["phase"] == "diffing" for m in messages)
+
+
+class TestSubjectName:
+    """page.yaml's title used to be the source id verbatim ("eclipse-gsfc-
+    nasa-gov"), which is what the site then showed as the page heading."""
+
+    def _doc(self, title):
+        return CrawledDocument(
+            "https://example.org/x", "text/html",
+            f"<html><head><title>{title}</title></head><body>hi</body></html>".encode(),
+        )
+
+    def test_uses_the_cleaned_up_page_title(self, monkeypatch):
+        monkeypatch.setattr(crawl_runner, "suggest_title", lambda text, raw: "Sonnenfinsternis")
+        assert crawl_runner._subject_name([self._doc("Solar Eclipse 2027 - NASA")], "fallback-id") == "Sonnenfinsternis"
+
+    def test_falls_back_to_the_raw_title_when_the_model_fails(self, monkeypatch):
+        def boom(text, raw):
+            raise crawl_runner.ExtractionError("no api key")
+        monkeypatch.setattr(crawl_runner, "suggest_title", boom)
+        assert crawl_runner._subject_name([self._doc("Solar Eclipse 2027")], "fallback-id") == "Solar Eclipse 2027"
+
+    def test_falls_back_to_the_source_id_when_no_document_has_a_title(self):
+        doc = CrawledDocument("https://example.org/x", "text/html", b"<html><body>no title</body></html>")
+        assert crawl_runner._subject_name([doc], "fallback-id") == "fallback-id"
+
+    def test_unescapes_html_entities_in_the_title(self, monkeypatch):
+        monkeypatch.setattr(crawl_runner, "suggest_title", lambda text, raw: raw)
+        assert crawl_runner._subject_name([self._doc("Feste &amp; M&auml;rkte")], "x") == "Feste & Märkte"

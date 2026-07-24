@@ -106,13 +106,26 @@ def _discover_links(html: bytes, base_url: str) -> Tuple[List[str], List[str]]:
     return page_links, ics_links
 
 
-def crawl(source: CrawlSource, on_progress: Optional[Callable[[str], None]] = None) -> List[CrawledDocument]:
+def crawl(
+    source: CrawlSource,
+    on_progress: Optional[Callable[[str], None]] = None,
+    on_page: Optional[Callable[[str, str], None]] = None,
+) -> List[CrawledDocument]:
     """on_progress, if given, is called with a short status string before
     each actual fetch (politeness-delay wait doesn't count - that's dead
     time, not progress) - the BFS loop can run long on a source with many
     in-scope pages, and a caller (crawl_runner.run() -> main.py's
     dashboard) wants to show something better than a static "Crawling..."
-    for however long that takes."""
+    for however long that takes.
+
+    on_page, if given, is called with (url, status) as each in-scope URL
+    moves through the loop. Every way a URL can end up NOT in the returned
+    documents gets its own status, because they're otherwise indistinguishable
+    from "never seen" downstream: the returned list only carries survivors, so
+    a robots block, a fetch error and a format filter all looked identical
+    (silently absent) to anything reading the crawl's output. Out-of-scope
+    URLs are deliberately NOT reported - every external link on every page
+    hits that branch, which would bury the real rows."""
     documents: List[CrawledDocument] = []
     visited: Set[str] = set()
     queue: List[Tuple[str, int]] = [(normalize_url(source.seed_url), 0)]
@@ -121,6 +134,10 @@ def crawl(source: CrawlSource, on_progress: Optional[Callable[[str], None]] = No
     config = Config()
     config.user_agent = USER_AGENT
     fetched = 0
+
+    def report_page(url: str, status: str) -> None:
+        if on_page:
+            on_page(url, status)
 
     while queue:
         url, depth = queue.pop(0)
@@ -131,6 +148,7 @@ def crawl(source: CrawlSource, on_progress: Optional[Callable[[str], None]] = No
         if not in_scope(url, source):
             continue
         if not robots.allowed(url):
+            report_page(url, "robots-blocked")
             continue
 
         domain = urlparse(url).netloc
@@ -141,9 +159,11 @@ def crawl(source: CrawlSource, on_progress: Optional[Callable[[str], None]] = No
 
         if on_progress:
             on_progress(f"Fetching page {fetched + 1} ({len(queue)} queued): {url}")
+        report_page(url, "fetching")
         try:
             content, content_type = fetch_bytes(url, config)
-        except Exception:
+        except Exception as e:
+            report_page(url, f"fetch failed: {str(e)[:80]}")
             continue
         fetched += 1
 
@@ -151,6 +171,9 @@ def crawl(source: CrawlSource, on_progress: Optional[Callable[[str], None]] = No
         is_html = fmt == "html"
         if fmt in source.formats:
             documents.append(CrawledDocument(url, content_type, content))
+            report_page(url, "crawled")
+        else:
+            report_page(url, f"skipped - format '{fmt}' not in {source.formats}")
 
         if depth >= source.max_depth:
             continue
