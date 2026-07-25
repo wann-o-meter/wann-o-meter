@@ -206,6 +206,14 @@ def _html(body):
 
 
 class TestStaticDates:
+    def test_german_written_dates_are_not_read_at_all(self):
+        """The regexes are year-FIRST (ISO, "2001 Jun 21"), so a German page
+        yields nothing under mode=static - which is why the Extraction
+        dropdown says so. Teach them German and this fails: update the
+        dropdown text in main.py's _EXTRACTION_MODE_HINTS with it."""
+        dates, negative = crawl_runner._static_dates("19. September bis 4. Oktober 2026")
+        assert (dates, negative) == ([], 0)
+
     def test_reads_iso_and_catalog_date_forms_and_dedupes_them(self):
         dates, negative = crawl_runner._static_dates("[2001-06-21.gif] [2001 Jun 21] and 2002 Dec 04")
         assert dates == ["2001-06-21", "2002-12-04"]
@@ -245,6 +253,17 @@ class TestExtractorChoice:
 
         assert [w["name"] for w in windows] == ["Stadtfest"]
         assert note == "llm: 1 event(s)"
+
+    def test_a_multi_day_span_becomes_one_window_from_first_to_last_day(self, monkeypatch):
+        monkeypatch.setattr(
+            crawl_runner, "extract_dated_events",
+            lambda text, on_progress=None: [
+                {"date": "2026-09-19", "end": "2026-10-04", "label": "Oktoberfest"},
+            ],
+        )
+        windows, _ = crawl_runner._windows_from_document(_html("19. September bis 4. Oktober 2026"), "x")
+
+        assert [(w["from"], w["to"], w["year"]) for w in windows] == [("2026-09-19", "2026-10-04", 2026)]
 
     def test_mode_llm_keeps_the_model_even_for_a_date_table(self, monkeypatch):
         monkeypatch.setattr(crawl_runner, "extract_dated_events", lambda text, on_progress=None: [])

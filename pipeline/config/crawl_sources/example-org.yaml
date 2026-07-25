@@ -1,0 +1,16 @@
+id: example-org
+seed_url: https://example.org/f/
+category: feste
+subject_slug: demo-x
+subject_name: ''
+scope:
+  allowed_domains:
+  - example.org
+  path_prefix: /f/
+max_depth: 0
+formats:
+- html
+event_type_hint: ''
+schedule: manual
+extraction_mode: static
+auto_approve_ics: false

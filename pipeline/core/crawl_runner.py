@@ -99,12 +99,14 @@ def _static_dates(text: str) -> Tuple[List[str], int]:
     return list(found), len(negative)
 
 
-def _window(date: str, label: str) -> Dict[str, Any]:
+def _window(date: str, label: str, end: str = "") -> Dict[str, Any]:
+    """`end` is the inclusive last day of a multi-day span (Oktoberfest,
+    a festival week); empty for the single-day case, where from == to."""
     return {
         "type": "event",
         "year": int(date[:4]),
         "from": date,
-        "to": date,
+        "to": end or date,
         "precision": "exact",
         "ics": True,
         "name": label,
@@ -164,7 +166,7 @@ def _windows_from_document(
 
         events = extract_dated_events(text, on_progress=on_progress)
         return (
-            [_window(e["date"], e["label"]) for e in events],
+            [_window(e["date"], e["label"], e.get("end", "")) for e in events],
             f"llm: {len(events)} event(s)",
         )
 
