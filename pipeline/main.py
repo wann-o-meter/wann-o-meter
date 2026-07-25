@@ -735,8 +735,22 @@ async def request_consent(
 @app.get("/consent/find-contact")
 async def find_consent_contact(domain: str):
     """Best-effort Impressum address lookup for the form - never writes
-    anything, the operator confirms the address before any mail is built."""
-    return JSONResponse({"email": consent.find_contact(domain) or ""})
+    anything, the operator confirms the address before any mail is built.
+
+    The domain must be one this dashboard already lists (a crawl source's,
+    or one already in the ledger): the parameter otherwise turns this route
+    into "fetch any URL I name, from the server", which is a far broader
+    capability than the button it exists for - whose every possible target
+    is a row on /consent.
+
+    ponytail: an allowlist of domains the operator configured, not a
+    private-IP/scheme blocklist. Add one if the ledger ever accepts domains
+    from anywhere but a human typing them in."""
+    key = consent.normalize_domain(domain)
+    known = {consent.normalize_domain(d) for d in _crawl_source_domains()} | set(consent.load())
+    if key not in known:
+        return JSONResponse({"error": f"'{key}' is not a known crawl-source or consent domain"}, status_code=400)
+    return JSONResponse({"email": consent.find_contact(key) or ""})
 
 
 @app.get("/harvest", response_class=HTMLResponse)

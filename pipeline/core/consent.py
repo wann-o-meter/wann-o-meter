@@ -78,14 +78,41 @@ def save(records: Dict[str, Dict[str, Any]]) -> None:
         )
 
 
+def covers(parent: str, host: str) -> bool:
+    """Whether a decision recorded for `parent` governs `host` - the same
+    host, or a subdomain of it. Both already normalized."""
+    return host == parent or host.endswith("." + parent)
+
+
+def _matching_key(records: Dict[str, Any], key: str) -> Optional[str]:
+    """The record that governs `key`: itself, else the nearest parent domain
+    with a record. A site's "no" is about the site, not about one hostname -
+    volksfestundkirmes.de saying no covers events.volksfestundkirmes.de,
+    which would otherwise be a one-subdomain hole in the block.
+
+    ponytail: stops at two labels, so a record on a public suffix like
+    "co.uk" would govern everything under it. Nobody can register one as a
+    site owner, and the ledger is hand-curated - swap in a public-suffix
+    list if that ever stops being true."""
+    labels = key.split(".")
+    while len(labels) >= 2:
+        candidate = ".".join(labels)
+        if candidate in records:
+            return candidate
+        labels.pop(0)
+    return None
+
+
 def get(domain: str) -> Dict[str, Any]:
-    """The record for a domain, or an all-defaults one for a domain nobody
-    has decided anything about yet."""
+    """The record governing a domain, or an all-defaults one for a domain
+    nobody has decided anything about yet. `inherited_from` names the parent
+    domain when the decision was made one level up."""
     key = normalize_domain(domain)
-    found = load().get(key)
-    if found:
-        return {"domain": key, **found}
-    return {"domain": key, "status": "unknown", "contact_email": "", "note": "", "history": []}
+    records = load()
+    match = _matching_key(records, key)
+    if match:
+        return {"domain": key, "inherited_from": "" if match == key else match, **records[match]}
+    return {"domain": key, "inherited_from": "", "status": "unknown", "contact_email": "", "note": "", "history": []}
 
 
 def status(url_or_domain: str) -> str:
@@ -101,7 +128,7 @@ def set_status(
     new_status: str,
     *,
     contact_email: Optional[str] = None,
-    note: str = "",
+    note: Optional[str] = None,
     event: str = "",
 ) -> Dict[str, Any]:
     if new_status not in STATUSES:
@@ -115,7 +142,13 @@ def set_status(
     record["status"] = new_status
     if contact_email is not None:
         record["contact_email"] = contact_email.strip()
-    if note:
+    # An explicitly-passed blank note (the form always sends the field)
+    # CLEARS the old one: a "denied per the banner on their site" note
+    # surviving a later flip to granted would describe the opposite of the
+    # current status. The old text stays readable in history. None means
+    # "not part of this change" - what send_request does when it only moves
+    # the status to pending.
+    if note is not None:
         record["note"] = note
     if new_status == "pending":
         record["requested_at"] = _now()
@@ -125,7 +158,7 @@ def set_status(
         "at": _now(),
         "status": new_status,
         "event": event or f"status set to {new_status}",
-        "note": note,
+        "note": note or "",
     })
     records[key] = record
     save(records)
@@ -134,6 +167,46 @@ def set_status(
 
 _MAILTO_RE = re.compile(rb"mailto:([^\"'?>\s]+@[^\"'?>\s]+)", re.IGNORECASE)
 _IMPRESSUM_PATHS = ("/impressum", "/impressum.html", "/kontakt", "/contact")
+
+
+DATA_ROOT = Path(__file__).resolve().parent.parent.parent / "data"
+
+
+def pages_citing(domain: str) -> List[str]:
+    """Which already-published pages cite this domain - data/{category}/
+    {slug} paths, read-only. Blocking future crawls and future approvals
+    says nothing about what is already in data/, and a `denied` decision (or
+    a withdrawn consent) is exactly when someone needs to know what to take
+    down. Deliberately reports rather than deletes: removing a window is a
+    hand edit plus a commit, not something a status change should do behind
+    the operator's back.
+
+    Reads both the file-level `source[].url` list and each window's
+    `source_urls` (see store.merge_zeitfenster) - a window can cite a domain
+    the file's source list no longer mentions."""
+    key = normalize_domain(domain)
+    hits: List[str] = []
+    if not DATA_ROOT.exists():
+        return hits
+    for path in sorted(DATA_ROOT.glob("**/data.yaml")):
+        try:
+            with path.open(encoding="utf-8") as f:
+                doc = yaml.safe_load(f) or {}
+        except Exception:
+            continue
+        # `source` is a bare object on every page written before the list
+        # form existed (lib/pages-schema.ts accepts both, and half of
+        # data/saisonkalender is still the object) - iterating that yields
+        # its KEYS, so this has to normalize like main._as_quelle_list does.
+        sources = doc.get("source") or []
+        if isinstance(sources, dict):
+            sources = [sources]
+        urls = [source.get("url", "") for source in sources if isinstance(source, dict)]
+        for window in doc.get("windows") or []:
+            urls.extend(window.get("source_urls") or [])
+        if any(covers(key, normalize_domain(url)) for url in urls if url):
+            hits.append(str(path.parent.relative_to(DATA_ROOT)))
+    return hits
 
 
 def find_contact(url: str) -> Optional[str]:
@@ -145,6 +218,12 @@ def find_contact(url: str) -> Optional[str]:
     ponytail: first hit wins, no ranking of info@ over datenschutz@. Add
     scoring if the wrong address keeps coming back."""
     from core.fetch import Config, fetch_bytes  # local: keeps the ledger importable without network deps
+
+    # A denied domain is not fetched, full stop - the request email tells
+    # the owner their site is "weder abgerufen noch veröffentlicht", and an
+    # address lookup is still a fetch.
+    if is_denied(url):
+        return None
 
     parsed = urlparse(url if "//" in url else f"https://{url}")
     base = f"{parsed.scheme}://{parsed.netloc}"
@@ -248,4 +327,4 @@ def overview(domains: List[str]) -> List[Dict[str, Any]]:
     can be recorded before (or after) a source for it exists."""
     known = load()
     keys = sorted({normalize_domain(d) for d in domains if d} | set(known))
-    return [get(key) for key in keys]
+    return [{**get(key), "published_pages": pages_citing(key)} for key in keys]

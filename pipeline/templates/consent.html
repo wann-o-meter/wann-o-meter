@@ -41,7 +41,22 @@
         {% if record.responded_at %}<span style="color:var(--muted); font-size:0.8rem;">answered {{ record.responded_at[:10] }}</span>{% endif %}
     </div>
 
+    {% if record.inherited_from %}
+    <p style="font-size:0.8rem; color:var(--muted);">Inherited from <strong>{{ record.inherited_from }}</strong> - record a decision here to override it for this subdomain.</p>
+    {% endif %}
+
     {% if record.note %}<p class="consent-note">{{ record.note }}</p>{% endif %}
+
+    {# Blocking future crawls says nothing about what is already published. A
+       denied domain with pages still citing it is the one thing that needs a
+       human to go delete something. #}
+    {% if record.published_pages %}
+    <p style="font-size:0.85rem; {% if record.status == 'denied' %}color:#a2231d; font-weight:600;{% else %}color:var(--muted);{% endif %}">
+        {{ record.published_pages | length }} published page(s) cite this domain:
+        {{ record.published_pages | join(', ') }}
+        {% if record.status == 'denied' %}— consent is denied, so these need removing from <code>data/</code> by hand.{% endif %}
+    </p>
+    {% endif %}
 
     <div style="display:flex; gap:2rem; flex-wrap:wrap; margin-top:0.75rem;">
         <form action="/consent/set" method="post" class="inline-form">
@@ -58,7 +73,10 @@
               onsubmit="return !this.send_for_real.checked || confirm('Send a real email to {{ record.domain }}? This cannot be taken back.');">
             <input type="hidden" name="domain" value="{{ record.domain }}">
             <input type="email" name="contact_email" placeholder="contact@…" value="{{ record.contact_email or '' }}" required>
+            {# Not offered for a denied domain: the lookup is itself a fetch. #}
+            {% if record.status != 'denied' %}
             <button type="button" class="btn" onclick="findContact(this, '{{ record.domain }}')">Find in Impressum</button>
+            {% endif %}
             <label style="font-size:0.8rem;"><input type="checkbox" name="send_for_real" value="1"> send for real</label>
             <button type="submit" class="btn btn-primary">Ask for consent</button>
         </form>

@@ -106,6 +106,56 @@ def test_request_without_smtp_writes_a_draft_and_marks_pending():
     assert consent.status("example.org") == "pending"
 
 
+def test_a_denied_domain_also_blocks_its_subdomains():
+    consent.set_status("example.org", "denied")
+    assert consent.is_denied("https://events.example.org/kirmes")
+    assert consent.get("events.example.org")["inherited_from"] == "example.org"
+    # ...but not a different site that merely ends the same way
+    assert not consent.is_denied("https://notexample.org/x")
+
+
+def test_a_subdomain_can_override_its_parent():
+    consent.set_status("example.org", "denied")
+    consent.set_status("events.example.org", "granted")
+    assert not consent.is_denied("https://events.example.org/kirmes")
+    assert consent.is_denied("https://other.example.org/x")
+
+
+def test_recording_a_new_decision_clears_the_old_note():
+    consent.set_status("example.org", "denied", note="banner forbids it")
+    consent.set_status("example.org", "granted", note="")
+    assert consent.get("example.org")["note"] == ""
+    assert "banner forbids it" in str(consent.get("example.org")["history"])
+
+
+def test_pages_already_citing_a_domain_are_reported(tmp_path, monkeypatch):
+    monkeypatch.setattr(consent, "DATA_ROOT", tmp_path)
+    (tmp_path / "veranstaltungen" / "markt").mkdir(parents=True)
+    (tmp_path / "veranstaltungen" / "markt" / "data.yaml").write_text(
+        "subject: {slug: markt, category: veranstaltungen}\n"
+        "windows:\n  - {type: markt, source_urls: ['https://www.example.org/events']}\n"
+        "source:\n  - {url: 'https://elsewhere.test/x'}\n",
+        encoding="utf-8",
+    )
+    # Legacy shape: `source` as a bare object, still on disk across
+    # data/saisonkalender - iterating it yields keys, not sources.
+    (tmp_path / "saisonkalender" / "apfel").mkdir(parents=True)
+    (tmp_path / "saisonkalender" / "apfel" / "data.yaml").write_text(
+        "subject: {slug: apfel, category: saisonkalender}\n"
+        "windows: []\n"
+        "source: {url: 'https://old.example.org/a', license: dl_de_by}\n",
+        encoding="utf-8",
+    )
+    assert consent.pages_citing("example.org") == ["saisonkalender/apfel", "veranstaltungen/markt"]
+    assert consent.pages_citing("unrelated.test") == []
+
+
+def test_a_denied_domain_is_not_even_fetched_to_find_a_contact(monkeypatch):
+    consent.set_status("example.org", "denied")
+    monkeypatch.setattr("core.fetch.fetch_bytes", lambda *a, **k: pytest.fail("must not fetch a denied domain"))
+    assert consent.find_contact("https://example.org") is None
+
+
 def test_request_rejects_a_non_address():
     with pytest.raises(consent.ConsentError):
         consent.send_request("example.org", "not-an-email")
