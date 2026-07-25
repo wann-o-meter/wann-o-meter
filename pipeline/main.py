@@ -1647,11 +1647,13 @@ async def edit_page(
         _write_category_meta_if_new(category)
 
     data = yaml.safe_load((folder / "data.yaml").read_text(encoding="utf-8"))
-    source = data.get("source") or {}
-    if isinstance(source, list):
-        source = source[0] if source else {}
-    source["license"] = license
-    data["source"] = source
+    # The license applies to EVERY citation, and the list is kept. Collapsing
+    # it to source[0] destroyed the others - and an aggregated page is the
+    # normal case (several sources, one page, see CrawlSource.subject_slug),
+    # so changing the license on data/astronomie/sonnenfinsternis/ dropped a
+    # citation that its own windows still referenced, which pageDataSchema's
+    # superRefine then failed the whole site build on.
+    data["source"] = [{**q, "license": license} for q in _as_quelle_list(data)]
     subject = data.get("subject") or {}
     subject["category"] = new_category_path
     subject["slug"] = slug

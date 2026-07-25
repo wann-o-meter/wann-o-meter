@@ -1393,3 +1393,53 @@ class TestSuggestionLists:
 
         assert 'name="subject_slug" list="page-suggestions"' in text
         assert 'name="subject_name" list="title-suggestions"' in text
+
+
+class TestEditPageKeepsEveryCitation:
+    """An aggregated page is the normal case - several sources, one page (see
+    CrawlSource.subject_slug). Changing its license used to collapse the
+    source list to its first entry, dropping citations that the page's own
+    windows still referenced, which pageDataSchema's superRefine then failed
+    the entire site build on."""
+
+    def _aggregated_page(self):
+        folder = main.DATA_ROOT / "astronomie" / "sonnenfinsternis"
+        folder.mkdir(parents=True)
+        (folder / "page.yaml").write_text(yaml.dump({"title": "Sonnenfinsternis", "tags": []}), encoding="utf-8")
+        (folder / "data.yaml").write_text(yaml.dump({
+            "subject": {"slug": "sonnenfinsternis", "category": "astronomie"},
+            "windows": [
+                {**_eclipse_event("2026-08-12"), "source_urls": ["https://a.invalid/cat"]},
+                {**_eclipse_event("1999-08-11"), "source_urls": ["https://b.invalid/cat"]},
+            ],
+            "source": [
+                {"url": "https://a.invalid/cat", "license": "tos_checked", "retrieved_at": "2026-07-25", "extraction": "llm"},
+                {"url": "https://b.invalid/cat", "license": "tos_checked", "retrieved_at": "2026-07-25", "extraction": "llm"},
+            ],
+        }), encoding="utf-8")
+        return folder
+
+    def test_changing_the_license_keeps_every_source_and_restamps_them_all(self, client):
+        folder = self._aggregated_page()
+
+        response = client.post("/pages/astronomie/sonnenfinsternis/edit", data={
+            "title": "Sonnenfinsternis", "category": "astronomie", "license": "official_par5",
+        }, follow_redirects=False)
+
+        assert response.status_code == 302
+        datei = yaml.safe_load((folder / "data.yaml").read_text(encoding="utf-8"))
+        assert [s["url"] for s in datei["source"]] == ["https://a.invalid/cat", "https://b.invalid/cat"]
+        assert {s["license"] for s in datei["source"]} == {"official_par5"}
+
+    def test_every_cited_url_still_has_a_source_entry_afterwards(self, client):
+        """The exact invariant pageDataSchema's superRefine enforces - stated
+        here so a regression fails in pytest rather than in `bun run build`."""
+        folder = self._aggregated_page()
+
+        client.post("/pages/astronomie/sonnenfinsternis/edit", data={
+            "title": "Sonnenfinsternis", "category": "astronomie", "license": "official_par5",
+        })
+
+        datei = yaml.safe_load((folder / "data.yaml").read_text(encoding="utf-8"))
+        cited = {u for w in datei["windows"] for u in (w.get("source_urls") or [])}
+        assert cited <= {s["url"] for s in datei["source"]}

@@ -4071,7 +4071,11 @@ windows:
   source_urls:
   - https://eclipse.gsfc.nasa.gov/SEcat5/SE1901-2000.html
 source:
-  url: https://eclipse.gsfc.nasa.gov/SEcat5/SE2001-2100.html
+- url: https://eclipse.gsfc.nasa.gov/SEcat5/SE2001-2100.html
+  license: official_par5
+  retrieved_at: '2026-07-25'
+  extraction: llm
+- url: https://eclipse.gsfc.nasa.gov/SEcat5/SE1901-2000.html
   license: official_par5
   retrieved_at: '2026-07-25'
   extraction: llm
