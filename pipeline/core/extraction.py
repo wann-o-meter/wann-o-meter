@@ -25,6 +25,12 @@ SYSTEM_PROMPT = (
     "Antworte AUSSCHLIESSLICH mit einem JSON-Array, keine Erklaerung, kein Markdown, "
     "kein Codeblock. Jedes Element hat genau die Felder "
     '{"date": "YYYY-MM-DD", "label": "kurze Beschreibung"}. '
+    "Ein Zeitraum ueber MEHRERE Tage (z.B. '19. September bis 4. Oktober 2026', "
+    "'vom 1.5. bis 3.5.') ist GENAU EIN Element mit einem zusaetzlichen Feld "
+    '"end": "YYYY-MM-DD" (letzter Tag, einschliesslich); "date" ist dann der erste Tag. '
+    "Gib die beiden Endpunkte NIEMALS zusaetzlich als eigene Elemente aus. "
+    "Setze 'end' NUR, wenn der Text wirklich einen Zeitraum nennt - bei einem "
+    "einzelnen Tag lass das Feld weg, statt es zu erfinden. "
     "Das 'label' ist IMMER auf Deutsch, auch wenn der Quelltext in einer anderen Sprache "
     "ist - uebersetze insbesondere Ereignis- und Feiertagsnamen (z.B. 'Solar Eclipse' -> "
     "'Sonnenfinsternis', 'Good Friday' -> 'Karfreitag'), nicht nur woertlich uebernehmen. "
@@ -145,14 +151,21 @@ def _extract_dated_events_chunk(text: str) -> List[Dict[str, str]]:
         # Year's Day) is a real, common Jan-1st holiday.
         if date.endswith("-01-01") and any(season in label.lower() for season in _VAGUE_SEASON_WORDS):
             continue
-        events.append({"date": date, "label": label})
+        event = {"date": date, "label": label}
+        # A malformed or inverted end drops the span, not the whole entry -
+        # the start date is still real and storable.
+        end = str(item.get("end", "")).strip()
+        if _DATE_PATTERN.match(end) and end > date:
+            event["end"] = end
+        events.append(event)
 
     return events
 
 
 def extract_dated_events(text: str, on_progress: Optional[Callable[[str], None]] = None) -> List[Dict[str, str]]:
     """Returns a list of {"date": "YYYY-MM-DD", "label": str}, validated,
-    de-duplicated and sorted. Raises ExtractionError (missing config, API
+    de-duplicated and sorted. A multi-day span carries an additional
+    "end": "YYYY-MM-DD" (inclusive last day); a single-day entry has no "end". Raises ExtractionError (missing config, API
     failure, unparseable response) rather than returning empty/fabricated
     data on failure - callers must surface that to the operator.
 
@@ -176,15 +189,17 @@ def extract_dated_events(text: str, on_progress: Optional[Callable[[str], None]]
             on_progress(f"Calling LLM on {len(chunk)} chars{suffix}...")
         all_events.extend(_extract_dated_events_chunk(chunk))
 
-    seen = set()
-    deduped = []
+    # Longest span per (date, label) wins: a span straddling a chunk boundary
+    # is seen whole by one chunk and start-only by the next (CHUNK_OVERLAP is
+    # 1000 chars, a multi-day range can be wider), which would otherwise leave
+    # both the real range and a spurious single-day window for the same event.
+    best: Dict[tuple, Dict[str, str]] = {}
     for event in sorted(all_events, key=lambda e: e["date"]):
         key = (event["date"], event["label"])
-        if key in seen:
-            continue
-        seen.add(key)
-        deduped.append(event)
-    return deduped
+        previous = best.get(key)
+        if previous is None or event.get("end", "") > previous.get("end", ""):
+            best[key] = event
+    return list(best.values())
 
 
 TAGS_SYSTEM_PROMPT = (

@@ -477,3 +477,43 @@ def test_title_llm_failure_propagates_as_extraction_error():
         mock_call.side_effect = LlmError("ANTHROPIC_API_KEY is not set")
         with pytest.raises(ExtractionError, match="ANTHROPIC_API_KEY"):
             suggest_title("text", "raw title")
+
+
+def test_multi_day_span_is_one_event_with_an_inclusive_end():
+    # "19. September bis 4. Oktober 2026" (Oktoberfest, wiesnkini.de) is one
+    # window, not two point dates - `to` is the last day, inclusive.
+    with patch("core.extraction.call_llm") as mock_call:
+        mock_call.return_value = (
+            '[{"date": "2026-09-19", "end": "2026-10-04", "label": "Oktoberfest"}]'
+        )
+        result = extract_dated_events("19. September bis 4. Oktober 2026")
+
+    assert result == [{"date": "2026-09-19", "end": "2026-10-04", "label": "Oktoberfest"}]
+
+
+def test_inverted_or_malformed_end_drops_the_span_but_keeps_the_date():
+    with patch("core.extraction.call_llm") as mock_call:
+        mock_call.return_value = (
+            '[{"date": "2026-09-19", "end": "2026-09-01", "label": "Rueckwaerts"},'
+            ' {"date": "2026-10-01", "end": "irgendwann", "label": "Unfug"}]'
+        )
+        result = extract_dated_events("...")
+
+    assert result == [
+        {"date": "2026-09-19", "label": "Rueckwaerts"},
+        {"date": "2026-10-01", "label": "Unfug"},
+    ]
+
+
+def test_span_seen_start_only_by_the_overlapping_chunk_does_not_duplicate():
+    # CHUNK_OVERLAP is 1000 chars, so a span wider than the overlap can be
+    # whole in one chunk and start-only in the next. Without the longest-span
+    # dedup that left both the range and a spurious single-day window.
+    with patch("core.extraction.call_llm") as mock_call:
+        mock_call.side_effect = [
+            '[{"date": "2026-09-19", "end": "2026-10-04", "label": "Oktoberfest"}]',
+            '[{"date": "2026-09-19", "label": "Oktoberfest"}]',
+        ]
+        result = extract_dated_events("x" * (MAX_TEXT_LENGTH + 1))
+
+    assert result == [{"date": "2026-09-19", "end": "2026-10-04", "label": "Oktoberfest"}]
