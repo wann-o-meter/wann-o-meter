@@ -36,10 +36,24 @@ class CrawledDocument:
 
 
 def in_scope(url: str, source: CrawlSource) -> bool:
+    """Compared per path SEGMENT, and tolerant of a trailing slash on either
+    side, because the two are written by different code that disagreed:
+    _derive_path_prefix (main.py) keeps the seed URL's trailing slash, while
+    normalize_url strips it before the URL ever reaches here. A seed pasted
+    from a browser ("https://site.de/faq/wann/") therefore scoped itself out
+    of its OWN crawl - silently, since an out-of-scope URL is not reported -
+    and the source ran to "0 docs, 0 candidates" forever.
+
+    Fixed here rather than at the two writers so every config already on
+    disk is repaired on read, without a migration."""
     parsed = urlparse(url)
     if parsed.netloc not in source.allowed_domains:
         return False
-    if source.path_prefix and not parsed.path.startswith(source.path_prefix):
+    prefix = source.path_prefix.rstrip("/")
+    path = parsed.path.rstrip("/") or "/"
+    # Segment-aware, so prefix "/events" no longer also swallows
+    # "/events-archiv" - a different page, not a child of the scope.
+    if prefix and path != prefix and not path.startswith(prefix + "/"):
         return False
     return True
 
@@ -146,6 +160,12 @@ def crawl(
         visited.add(url)
 
         if not in_scope(url, source):
+            # Only the seed is worth a row: every external link on every page
+            # hits this branch too (see the docstring), but a seed outside its
+            # own scope is a misconfiguration that otherwise reports nothing
+            # at all - which is exactly how it stayed invisible before.
+            if depth == 0:
+                report_page(url, "seed is outside this source's own allowed_domains/path_prefix")
             continue
         if not robots.allowed(url):
             report_page(url, "robots-blocked")

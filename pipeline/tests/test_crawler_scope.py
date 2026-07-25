@@ -80,6 +80,29 @@ def test_never_fetches_a_url_outside_the_path_prefix():
     assert not any("/blog/" in u for u in fetched_urls)
 
 
+def test_a_seed_url_with_a_trailing_slash_is_inside_its_own_scope():
+    """_derive_path_prefix keeps the seed's trailing slash, normalize_url
+    strips it - so a seed pasted from a browser scoped itself OUT of its own
+    crawl and the source reported "0 docs" forever."""
+    source = _source(seed_url="https://example.org/events/", path_prefix="/events/")
+    assert crawler.in_scope("https://example.org/events", source)
+    assert crawler.in_scope("https://example.org/events/2026", source)
+
+
+def test_the_prefix_does_not_swallow_a_sibling_with_the_same_start():
+    """"/events-archiv" is a different page, not a child of "/events"."""
+    assert not crawler.in_scope("https://example.org/events-archiv", _source())
+
+
+def test_a_seed_outside_its_own_scope_is_reported_rather_than_silent():
+    reported = []
+    crawler.crawl(
+        _source(seed_url="https://example.org/blog/unrelated", path_prefix="/events"),
+        on_page=lambda url, status: reported.append((url, status)),
+    )
+    assert reported and "seed is outside" in reported[0][1]
+
+
 def test_never_fetches_past_max_depth():
     docs = crawler.crawl(_source(max_depth=2))
     fetched_urls = {d.url for d in docs}
