@@ -1,18 +1,33 @@
-"""Persistent per-source review decisions (review-state/<source_id>.yaml) and
-the diff logic that uses them to auto-wave-through already-reviewed
-candidates on a re-crawl, so only genuinely new/changed events reach a human.
+"""What a human said NO to (review-state/<source_id>.yaml), and the split of
+a run's candidates into "already in the file" vs "needs a human".
 
-Deliberately tracked in git (NOT gitignored, unlike pipeline/staging/) -
-rejected and modified candidates are kept permanently as future prompt-
-improvement material, and the approved set IS the review history."""
+data/{category}/{subject_slug}/data.yaml IS the record of what is approved -
+this module only stores the negative set, because a rejection is the one
+judgement that leaves no trace in the data. That asymmetry is the whole
+design: with no second copy of the approved set there is nothing to drift
+out of sync with, so editing data.yaml by hand is a supported way to correct
+the data. Delete a window and the next run offers it again; add one and the
+next run leaves it alone.
+
+It used to keep a full copy of every approved event here too, keyed by a
+hash that included the subject_slug. That copy silently diverged from
+data/astronomie/sonnenfinsternis/data.yaml (452 windows renamed in the file,
+456 decisions still holding the old name) with nothing to detect it, and
+moving a page between slugs re-opened every decision it had.
+
+Deliberately tracked in git (NOT gitignored, unlike pipeline/staging/): a
+rejection is a human judgement and re-deriving it is not possible."""
 
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import yaml
 
+from core.content_hash import window_key
+
 REVIEW_STATE_ROOT = Path(__file__).resolve().parent.parent / "review-state"
+DATA_ROOT = Path(__file__).resolve().parent.parent.parent / "data"
 
 
 def _path_for(source_id: str) -> Path:
@@ -22,11 +37,10 @@ def _path_for(source_id: str) -> Path:
 def load(source_id: str) -> Dict[str, Any]:
     path = _path_for(source_id)
     if not path.exists():
-        return {"decisions": {}, "disappeared": {}}
+        return {"rejected": []}
     with path.open(encoding="utf-8") as f:
         state = yaml.safe_load(f) or {}
-    state.setdefault("decisions", {})
-    state.setdefault("disappeared", {})
+    state.setdefault("rejected", [])
     return state
 
 
@@ -37,106 +51,109 @@ def save(source_id: str, state: Dict[str, Any]) -> None:
         yaml.dump(state, f, allow_unicode=True, sort_keys=False)
 
 
-def record_decision(
-    state: Dict[str, Any],
-    content_hash: str,
-    status: str,
-    target_file: str,
-    event: Dict[str, Any],
-    corrected_event: Optional[Dict[str, Any]] = None,
-) -> None:
-    """status: approved | rejected | modified. `event` is the canonical
-    current window for this decision (the corrected fassung if modified,
-    the extracted one if approved) - kept so a later diff() can scope
-    disappearance-detection without needing to re-run extraction (see
-    diff()'s docstring for why this matters)."""
-    state["decisions"][content_hash] = {
-        "status": status,
-        "decided_at": datetime.now(timezone.utc).isoformat(),
-        "target_file": target_file,
-        "event": event,
-        **({"corrected_event": corrected_event} if corrected_event is not None else {}),
-    }
-    state["disappeared"].pop(content_hash, None)
+def _entry_key(entry: Dict[str, Any]) -> Tuple[Any, ...]:
+    return (entry.get("subject_slug"),) + window_key(entry)
 
 
-def stamp_last_verified(state: Dict[str, Any], content_hash: str, when: Optional[str] = None) -> Optional[Dict[str, Any]]:
-    """Stamps last_verified on the stored decision and returns the event
-    that should actually be WRITTEN (the corrected fassung if modified, the
-    approved one otherwise) - callers must write THIS returned dict, not
-    call this after already writing, or the stamp never reaches data/ (it
-    would only exist in review-state's own copy)."""
-    decision = state["decisions"].get(content_hash)
-    if decision is None:
-        return None
-    # A plain date, not a full timestamp - lib/schema.ts's last_verified is
-    # z.iso.date() (YYYY-MM-DD), not a datetime; a full isoformat() string
-    # (with time + offset) fails that Zod validation at write time.
-    stamp = when or datetime.now(timezone.utc).date().isoformat()
-    decision["event"]["last_verified"] = stamp
-    if "corrected_event" in decision:
-        decision["corrected_event"]["last_verified"] = stamp
-        return decision["corrected_event"]
-    return decision["event"]
+def reject(state: Dict[str, Any], subject_slug: str, window: Dict[str, Any]) -> None:
+    """Records "a human saw this window and said no", scoped to the page it
+    would have landed on.
+
+    Stored as plain fields, not a hash: the file stays readable and
+    hand-editable (deleting a line un-rejects a window), and re-pointing a
+    source at another page is then a field rewrite rather than a re-hash
+    that can fail - see repoint().
+
+    subject_slug is part of the entry even though window_key deliberately
+    excludes it. One source can write many pages: schulferien_kmk's 156
+    windows across 16 Bundeslaender collapse to only 90 distinct window_keys,
+    because different states genuinely share identical date ranges. A
+    slug-less rejection for BB would silently reject BE's real window too."""
+    entry = {"subject_slug": subject_slug, **_identity_fields(window)}
+    entry["decided_at"] = datetime.now(timezone.utc).isoformat()
+    if not any(_entry_key(e) == _entry_key(entry) for e in state["rejected"]):
+        state["rejected"].append(entry)
+
+
+def _identity_fields(window: Dict[str, Any]) -> Dict[str, Any]:
+    """The window projected down to what window_key reads, so a stored entry
+    round-trips through window_key identically to the live window."""
+    from core.content_hash import _IDENTITY_FIELDS
+
+    projected = {}
+    for field in _IDENTITY_FIELDS:
+        value = window.get(field)
+        if field == "name" and isinstance(value, str):
+            value = value.strip().lower()
+        projected[field] = value
+    return projected
+
+
+def is_rejected(state: Dict[str, Any], subject_slug: str, window: Dict[str, Any]) -> bool:
+    key = (subject_slug,) + window_key(window)
+    return any(_entry_key(e) == key for e in state["rejected"])
+
+
+def repoint(state: Dict[str, Any], new_subject_slug: str) -> Dict[str, Any]:
+    """Re-points every rejection at a different page. This is the whole cost
+    of moving a source's output now: subject_slug is a plain field, so there
+    is nothing to re-hash and nothing that can fail to round-trip."""
+    return {"rejected": [{**e, "subject_slug": new_subject_slug} for e in state["rejected"]]}
+
+
+def already_approved(category: str, subject_slug: str, window: Dict[str, Any]) -> bool:
+    """Is this window already in the data.yaml it would be written to?
+
+    THE approved-set lookup. It reads the real file, so a hand-edit is
+    immediately authoritative - which is the point of keeping no second
+    copy. Uses window_key, the same function core/store.merge_zeitfenster
+    merges by; if these two ever disagreed the result would be an
+    approve -> replace -> re-queue loop that never terminates."""
+    return window_key(window) in _approved_keys(category, subject_slug)
+
+
+def _approved_keys(category: str, subject_slug: str) -> set:
+    path = DATA_ROOT / category / subject_slug / "data.yaml"
+    if not path.exists():
+        return set()
+    datei = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    return {window_key(w) for w in (datei.get("windows") or [])}
 
 
 def diff(
     candidates: List[Dict[str, Any]],
     state: Dict[str, Any],
-) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]]]:
-    """Splits `candidates` (this run's freshly-extracted, per-window
-    candidates, see core/staging.py's build_candidate) against `state` into
-    (auto_waved_through, needs_review, disappeared).
+    category: str,
+    subject_slug: str,
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """Splits this run's candidates (see core/staging.py's build_candidate)
+    into (auto_waved_through, needs_review).
 
-    auto_waved_through entries carry the DECIDED event (the corrected
-    fassung if the original decision was "modified" - the correction stays
-    authoritative, not the fresh re-extraction, per spec) - callers should
-    write THAT, not candidate["event"].
+    Precedence is: in the file -> wave through; else rejected -> skip; else
+    queue. The file wins, so hand-adding a previously-rejected window keeps
+    it - that is the ask, not a bug.
 
-    Disappearance is scoped to what this run actually covers, not a naive
-    "everything previously approved that's missing now": a run like
-    `schulferien_kmk --jahr 2028` only ever produces 2028's windows, so a
-    naive full diff would flag every OTHER already-approved year as
-    "disappeared" on every single re-run. Scope is inferred from this run's
-    own candidates' `event.year` - a previously-approved window is only
-    considered for disappearance if its own year is either None (a
-    year-less recurring window, which every run should still be able to
-    see - if it's genuinely missing now, that IS meaningful) or matches one
-    of the years this run's candidates actually cover. A stored decision
-    whose year isn't covered by this run at all (e.g. a 2026 window when
-    this run only ever fetches 2028) is simply out of scope, not flagged.
-    """
-    candidates_by_hash = {c["content_hash"]: c for c in candidates}
-    in_scope_years = {c["event"].get("year") for c in candidates if c["event"].get("year") is not None}
+    Review is per PAGE, not per source: a second source reporting a window
+    already approved on that page is waved through and just adds its
+    citation. Aggregating overlapping sources onto one page is the point of
+    subject_slug, and reviewing the same real-world date once per source is
+    a tax with no payoff - the two eclipse catalogs independently rejected
+    the identical two dates, four decisions for two judgements."""
+    approved = _approved_keys(category, subject_slug)
 
     auto_waved_through: List[Dict[str, Any]] = []
     needs_review: List[Dict[str, Any]] = []
-
-    for hash_, candidate in candidates_by_hash.items():
-        decision = state["decisions"].get(hash_)
-        if decision is None:
+    seen: set = set()
+    for candidate in candidates:
+        key = window_key(candidate["event"])
+        if key in approved:
+            auto_waved_through.append(candidate)
+        elif is_rejected(state, subject_slug, candidate["event"]):
+            continue
+        elif key not in seen:
+            # Two sources reporting the same not-yet-reviewed window are one
+            # queue row, not two - approving it clears both.
+            seen.add(key)
             needs_review.append(candidate)
-            continue
-        if decision["status"] == "rejected":
-            continue  # still ignorieren
-        # approved or modified: wave through with the DECIDED event, not the
-        # fresh extraction (spec: "die Korrektur bleibt maßgeblich").
-        decided_event = decision.get("corrected_event", decision["event"])
-        auto_waved_through.append({**candidate, "event": decided_event})
 
-    disappeared: List[Dict[str, Any]] = []
-    for hash_, decision in state["decisions"].items():
-        if hash_ in candidates_by_hash or decision["status"] == "rejected":
-            continue
-        stored_year = decision["event"].get("year")
-        in_scope = stored_year is None or stored_year in in_scope_years
-        if in_scope:
-            disappeared.append({"content_hash": hash_, **decision})
-
-    return auto_waved_through, needs_review, disappeared
-
-
-def mark_disappeared(state: Dict[str, Any], content_hash: str, target_file: str) -> None:
-    state["disappeared"].setdefault(
-        content_hash, {"detected_at": datetime.now(timezone.utc).isoformat(), "target_file": target_file}
-    )
+    return auto_waved_through, needs_review

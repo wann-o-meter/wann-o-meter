@@ -6,9 +6,10 @@
         <div class="card">
             <h3 class="section-title" style="margin:0 0 0.75rem;">Review Queue</h3>
             <p style="font-size:0.85rem; color:var(--muted); margin:0 0 0.75rem;">
-                Candidates a crawl or automated source extracted that have no decision yet.
-                Already-approved/modified/rejected candidates are auto-waved-through or silently
-                dropped on later runs and never reach this queue - see core/review_state.py.
+                Dates a crawl or automated source extracted that are not yet on their page.
+                A window already in <code>data.yaml</code> is waved through on later runs, and a
+                rejected one is dropped - the file itself is the record of what is approved, so
+                editing it by hand is a supported way to correct the data.
             </p>
             {% if bulk_done is defined %}
             <p class="empty-hint" style="margin:0 0 0.75rem;">
@@ -51,6 +52,12 @@
                                 <a href="/review/{{ candidate.source_id }}/{{ candidate.candidate_id }}" class="btn btn-sm" style="text-decoration:none; display:inline-block;">
                                     Review
                                 </a>
+                                {# Same document, all of its pending dates at once - the way to
+                                   review a date table, where a row only means something next
+                                   to its neighbours. #}
+                                <a href="/review/{{ candidate.source_id }}/document/{{ candidate.document }}" class="btn btn-sm" style="text-decoration:none; display:inline-block;" title="Review every pending date in this document at once">
+                                    In document
+                                </a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -84,39 +91,6 @@
             {% endif %}
         </div>
 
-        <div class="card" style="margin-top:1.5rem;">
-            <h3 class="section-title" style="margin:0 0 0.75rem;">Disappeared</h3>
-            <p style="font-size:0.85rem; color:var(--muted); margin:0 0 0.75rem;">
-                Previously-approved events that a later run's source no longer mentions, within
-                the scope that run actually covers (e.g. the same year) - NOT auto-deleted, since
-                the source may just be temporarily unavailable or the change may need a human
-                look before removing something from <code>data/</code>.
-            </p>
-            {% if disappeared %}
-            <div class="scroll-box">
-                <table class="compact">
-                    <thead>
-                        <tr>
-                            <th>Source</th>
-                            <th>Target File</th>
-                            <th>Detected</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for entry in disappeared %}
-                        <tr>
-                            <td>{{ entry.source_id }}</td>
-                            <td class="clamp-1">{{ entry.target_file }}</td>
-                            <td>{{ entry.detected_at }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <p class="empty-hint">Nothing disappeared.</p>
-            {% endif %}
-        </div>
 {% endblock %}
 
 {% block scripts %}

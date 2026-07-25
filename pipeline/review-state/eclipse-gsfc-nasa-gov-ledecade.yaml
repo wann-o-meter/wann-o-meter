@@ -1,0 +1,11 @@
+rejected:
+- subject_slug: mondfinsternis
+  type: event
+  year: 2013
+  from: '2013-12-09'
+  to: '2013-12-09'
+  name: mondfinsternis
+  value: null
+  unit: null
+  rrule: null
+  decided_at: '2026-07-25T19:26:12.017328+00:00'

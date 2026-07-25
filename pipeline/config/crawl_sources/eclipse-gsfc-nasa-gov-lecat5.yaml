@@ -1,0 +1,16 @@
+id: eclipse-gsfc-nasa-gov-lecat5
+seed_url: https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+category: astronomie
+subject_slug: mondfinsternis
+subject_name: Mondfinsternis
+scope:
+  allowed_domains:
+  - eclipse.gsfc.nasa.gov
+  path_prefix: /LEcat5
+max_depth: 0
+formats:
+- html
+event_type_hint: ''
+schedule: manual
+extraction_mode: auto
+auto_approve_ics: false

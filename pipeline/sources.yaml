@@ -23,7 +23,6 @@ schulferien_kmk:
   # Bundesland mehrere Jahre an Zeitfenstern (siehe data/schulferien/*/data.yaml).
   # Ein Default von nur [type] wuerde bei einem "--jahr 2029"-Lauf die bereits
   # gespeicherten 2026/2027-Fenster ueberschreiben statt sie zu ergaenzen.
-  replace_key: [type, year]
   # Verankert die subject.slug-Vokabeln, damit ein LLM-Lauf immer dieselben
   # 16 vorhandenen data/schulferien/{code}/-Ordner trifft statt Geschwister-
   # Ordner mit abweichender Schreibweise (z.B. "baden-wuerttemberg") anzulegen.

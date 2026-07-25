@@ -256,7 +256,14 @@ TITLE_SYSTEM_PROMPT = (
     "Datumsspannen, Organisationsnamen oder sonstigen Zusatz. Nicht mehr, nicht weniger. "
     "Der rohe Titel kann in JEDER Sprache vorliegen - der bereinigte Titel ist IMMER auf "
     "Deutsch, uebersetze ihn also gegebenenfalls (z.B. 'Solar Eclipse 2027 - NASA' -> "
-    "'Sonnenfinsternis')."
+    "'Sonnenfinsternis'). "
+    # The title names the KIND of thing a window is, and it is reused
+    # verbatim as every window's label (crawl_runner: label = event_type_hint
+    # or subject_name) - so a plural title turned each single eclipse into
+    # "Sonnenfinsternisse", one event named as if it were many.
+    "Der Titel steht IMMER im Singular, auch wenn die Seite eine Liste vieler "
+    "Ereignisse ist (z.B. 'Sonnenfinsternisse' -> 'Sonnenfinsternis', "
+    "'Schulferien' bleibt 'Schulferien', weil es kein Singular hat)."
 )
 
 
@@ -514,7 +521,7 @@ def extract_season_windows(text: str, hint: str) -> List[Dict[str, Any]]:
 # Keyword -> type mapping for the "label" an LLM returns for a recurring
 # calendar window (e.g. "Osterferien"). Shared across sources rather than
 # living in one source's Python, so any multi-subject source (not just
-# Schulferien) gets stable replace_key matching across independent LLM runs
+# Schulferien) gets stable window_key matching across independent LLM runs
 # for the common German holiday vocabulary - see type_slug_from_label below.
 # Order matters: checked top to bottom, first match wins (e.g. "weihnacht"
 # must be checked before a hypothetical looser match).
@@ -533,7 +540,7 @@ _TYPE_SLUG_KEYWORDS = [
 def type_slug_from_label(label: str) -> str:
     """Maps a recurring-window label (e.g. "Osterferien") to a stable "type"
     slug (e.g. "school_holidays-easter") for use as part of a merge
-    replace_key. Matters because the label is free text an LLM re-generates
+    window_key. Matters because the label is free text an LLM re-generates
     on every run - naively slugifying it verbatim would let small phrasing
     drift (e.g. "Osterferien" vs "Osterferien (angepasst)") change the merge
     key and duplicate windows instead of updating them. Falls back to a

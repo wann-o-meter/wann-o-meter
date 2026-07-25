@@ -1,150 +1,215 @@
+"""Unit tests for core/review_state.py, whose whole job is now the negative
+set plus the split of a run's candidates.
+
+The invariant every test here defends: data/{category}/{slug}/data.yaml IS
+the record of what is approved. There is no second copy, so hand-editing the
+file is authoritative - delete a window and it comes back as a candidate, add
+one and it is left alone."""
+
 import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 PIPELINE_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PIPELINE_ROOT))
 
 from core import review_state  # noqa: E402
+from core.content_hash import window_key  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
-def _isolate_review_state(tmp_path, monkeypatch):
+def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(review_state, "REVIEW_STATE_ROOT", tmp_path / "review-state")
+    monkeypatch.setattr(review_state, "DATA_ROOT", tmp_path / "data")
+    return tmp_path
 
 
-def _candidate(content_hash, year, **event_overrides):
-    event = {"type": "market", "year": year, "from": f"{year}-08-15", "to": f"{year}-08-15", "name": "Stadtfest", **event_overrides}
-    return {"candidate_id": f"src:{content_hash}", "source_id": "src", "content_hash": content_hash, "event": event}
+def _event(date="2026-08-15", name="Stadtfest", **overrides):
+    return {
+        "type": "market", "year": int(date[:4]), "from": date, "to": date,
+        "precision": "exact", "ics": True, "name": name, **overrides,
+    }
 
 
-def test_load_returns_empty_state_when_no_file_exists():
-    state = review_state.load("brand-new-source")
-    assert state == {"decisions": {}, "disappeared": {}}
+def _candidate(event, subject_slug="hechingen"):
+    return {"candidate_id": f"src:{event['from']}", "source_id": "src", "subject_slug": subject_slug, "event": event}
 
 
-def test_save_and_load_round_trip(tmp_path):
-    state = review_state.load("src")
-    review_state.record_decision(state, "hash1", "approved", "data/x/y/data.yaml", {"year": 2026})
-    review_state.save("src", state)
-
-    reloaded = review_state.load("src")
-    assert reloaded["decisions"]["hash1"]["status"] == "approved"
-
-
-def test_unknown_hash_goes_to_needs_review():
-    state = review_state.load("src")
-    candidates = [_candidate("new-hash", 2026)]
-
-    waved, needs_review, disappeared = review_state.diff(candidates, state)
-
-    assert waved == []
-    assert [c["content_hash"] for c in needs_review] == ["new-hash"]
-    assert disappeared == []
-
-
-def test_approved_hash_auto_waves_through():
-    state = review_state.load("src")
-    review_state.record_decision(state, "known-hash", "approved", "data/x/y/data.yaml", {"year": 2026, "name": "Stadtfest"})
-    candidates = [_candidate("known-hash", 2026)]
-
-    waved, needs_review, disappeared = review_state.diff(candidates, state)
-
-    assert [c["content_hash"] for c in waved] == ["known-hash"]
-    assert needs_review == []
-
-
-def test_rejected_hash_is_silently_dropped():
-    state = review_state.load("src")
-    review_state.record_decision(state, "rejected-hash", "rejected", "", {"year": 2026})
-    candidates = [_candidate("rejected-hash", 2026)]
-
-    waved, needs_review, disappeared = review_state.diff(candidates, state)
-
-    assert waved == []
-    assert needs_review == []
-    assert disappeared == []
-
-
-def test_modified_hash_waves_through_with_the_correction_not_the_fresh_extraction():
-    state = review_state.load("src")
-    original = {"year": 2026, "name": "Stadtfest", "from": "2026-08-15", "to": "2026-08-15"}
-    corrected = {"year": 2026, "name": "Stadtfest Hechingen", "from": "2026-08-15", "to": "2026-08-16"}
-    review_state.record_decision(state, "modified-hash", "modified", "data/x/y/data.yaml", original, corrected_event=corrected)
-    candidates = [_candidate("modified-hash", 2026)]  # fresh extraction, differs from the correction
-
-    waved, needs_review, disappeared = review_state.diff(candidates, state)
-
-    assert len(waved) == 1
-    assert waved[0]["event"] == corrected
-
-
-def test_stamp_last_verified_updates_the_decided_event():
-    state = review_state.load("src")
-    review_state.record_decision(state, "known-hash", "approved", "data/x/y/data.yaml", {"year": 2026})
-
-    review_state.stamp_last_verified(state, "known-hash", when="2026-07-24")
-
-    assert state["decisions"]["known-hash"]["event"]["last_verified"] == "2026-07-24"
-
-
-def test_stamp_last_verified_updates_corrected_event_too():
-    state = review_state.load("src")
-    review_state.record_decision(
-        state, "modified-hash", "modified", "data/x/y/data.yaml", {"year": 2026}, corrected_event={"year": 2026, "name": "fixed"}
+def _write_page(tmp_path, category, slug, windows):
+    folder = tmp_path / "data" / category / slug
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "data.yaml").write_text(
+        yaml.dump({"subject": {"slug": slug, "category": category}, "windows": windows, "source": []}),
+        encoding="utf-8",
     )
 
-    review_state.stamp_last_verified(state, "modified-hash", when="2026-07-24")
 
-    assert state["decisions"]["modified-hash"]["corrected_event"]["last_verified"] == "2026-07-24"
+class TestTheFileIsTheRecord:
+    def test_a_window_already_in_data_yaml_is_not_requeued(self, _isolate):
+        event = _event()
+        _write_page(_isolate, "veranstaltungen", "hechingen", [event])
+
+        waved, pending = review_state.diff(
+            [_candidate(event)], review_state.load("src"), "veranstaltungen", "hechingen",
+        )
+
+        assert len(waved) == 1
+        assert pending == []
+
+    def test_a_window_deleted_from_data_yaml_by_hand_resurfaces(self, _isolate):
+        """The user's actual ask. Under the old model the approved copy in
+        review-state kept saying "decided", so a hand-deleted window was gone
+        for good and the file could never be corrected by editing it."""
+        event = _event()
+        _write_page(_isolate, "veranstaltungen", "hechingen", [event])
+        _write_page(_isolate, "veranstaltungen", "hechingen", [])  # hand-deleted
+
+        waved, pending = review_state.diff(
+            [_candidate(event)], review_state.load("src"), "veranstaltungen", "hechingen",
+        )
+
+        assert waved == []
+        assert [c["event"]["from"] for c in pending] == ["2026-08-15"]
+
+    def test_a_window_added_to_data_yaml_by_hand_is_left_alone(self, _isolate):
+        """The other half of hand-editability: a window you wrote yourself is
+        approved, and a run that re-reports it must not ask about it."""
+        event = _event()
+        _write_page(_isolate, "veranstaltungen", "hechingen", [event])
+
+        _, pending = review_state.diff(
+            [_candidate(event)], review_state.load("src"), "veranstaltungen", "hechingen",
+        )
+
+        assert pending == []
+
+    def test_a_page_that_does_not_exist_yet_queues_everything(self, _isolate):
+        _, pending = review_state.diff(
+            [_candidate(_event())], review_state.load("src"), "veranstaltungen", "hechingen",
+        )
+        assert len(pending) == 1
+
+    def test_an_edited_date_in_data_yaml_requeues_the_source_version(self, _isolate):
+        """Correcting a date by hand leaves the source's original unapproved,
+        so it comes back - which is right: it IS still a claim nobody has
+        ruled on. Rejecting it once retires it for good."""
+        _write_page(_isolate, "veranstaltungen", "hechingen", [_event(date="2026-08-16")])
+
+        _, pending = review_state.diff(
+            [_candidate(_event(date="2026-08-15"))], review_state.load("src"), "veranstaltungen", "hechingen",
+        )
+
+        assert [c["event"]["from"] for c in pending] == ["2026-08-15"]
 
 
-def test_disappeared_scoped_to_the_current_runs_years_not_flagged_for_other_years():
-    # Regression test for the exact false-positive trap a naive full-set
-    # diff would fall into: schulferien_kmk --jahr 2028 only ever produces
-    # 2028's windows in one run - a previously-approved 2026 window must NOT
-    # be flagged as disappeared just because THIS run didn't mention it.
-    state = review_state.load("src")
-    review_state.record_decision(state, "hash-2026", "approved", "data/x/y/data.yaml", {"year": 2026, "name": "Osterferien"})
-    review_state.record_decision(state, "hash-2028-gone", "approved", "data/x/y/data.yaml", {"year": 2028, "name": "Herbstferien"})
+class TestRejections:
+    def test_a_rejected_window_is_never_queued_again(self, _isolate):
+        event = _event()
+        state = review_state.load("src")
+        review_state.reject(state, "hechingen", event)
 
-    # This run only covers 2028, and hash-2028-gone's real-world event is no
-    # longer on the source page, but hash-2026 was never in scope at all.
-    candidates = [_candidate("hash-2028-still-here", 2028)]
+        waved, pending = review_state.diff([_candidate(event)], state, "veranstaltungen", "hechingen")
 
-    waved, needs_review, disappeared = review_state.diff(candidates, state)
+        assert (waved, pending) == ([], [])
 
-    disappeared_hashes = {d["content_hash"] for d in disappeared}
-    assert disappeared_hashes == {"hash-2028-gone"}
-    assert "hash-2026" not in disappeared_hashes
+    def test_rejection_is_scoped_to_its_subject_slug(self, _isolate):
+        """One source writes many pages - schulferien_kmk's 156 windows across
+        16 Bundeslaender collapse to only 90 distinct window_keys, because
+        different states genuinely share date ranges. A slug-less rejection
+        for one would silently reject the other's real window."""
+        event = _event()
+        state = review_state.load("src")
+        review_state.reject(state, "bb", event)
+
+        assert review_state.is_rejected(state, "bb", event)
+        assert not review_state.is_rejected(state, "be", event)
+
+    def test_a_window_in_the_file_wins_over_a_rejection(self, _isolate):
+        """Precedence: the file is truth. Hand-adding a window you previously
+        rejected keeps it - that is the ask, not a bug."""
+        event = _event()
+        state = review_state.load("src")
+        review_state.reject(state, "hechingen", event)
+        _write_page(_isolate, "veranstaltungen", "hechingen", [event])
+
+        waved, pending = review_state.diff([_candidate(event)], state, "veranstaltungen", "hechingen")
+
+        assert len(waved) == 1
+        assert pending == []
+
+    def test_rejecting_twice_stores_one_entry(self, _isolate):
+        state = review_state.load("src")
+        review_state.reject(state, "hechingen", _event())
+        review_state.reject(state, "hechingen", _event())
+
+        assert len(state["rejected"]) == 1
+
+    def test_a_rejection_matches_a_differently_cased_name(self, _isolate):
+        """window_key normalizes `name`, and a stored entry has to round-trip
+        through it identically or the rejection silently stops matching."""
+        state = review_state.load("src")
+        review_state.reject(state, "hechingen", _event(name="  STADTFEST "))
+
+        assert review_state.is_rejected(state, "hechingen", _event(name="Stadtfest"))
+
+    def test_rejections_survive_a_save_load_round_trip(self, _isolate):
+        state = review_state.load("src")
+        review_state.reject(state, "hechingen", _event())
+        review_state.save("src", state)
+
+        assert review_state.is_rejected(review_state.load("src"), "hechingen", _event())
+
+    def test_repoint_rewrites_the_subject_slug_of_every_rejection(self, _isolate):
+        """The entire cost of moving a source's output now - no hashing, so
+        nothing can fail to round-trip and there is no refusal path."""
+        state = review_state.load("src")
+        review_state.reject(state, "old-slug", _event())
+        review_state.reject(state, "old-slug", _event(date="2027-08-02"))
+
+        moved = review_state.repoint(state, "sonnenfinsternis")
+
+        assert {e["subject_slug"] for e in moved["rejected"]} == {"sonnenfinsternis"}
+        assert review_state.is_rejected(moved, "sonnenfinsternis", _event())
 
 
-def test_disappeared_year_less_recurring_window_is_always_checked():
-    # A year: null (recurring) window has no "year" to scope by - every run
-    # of that source should always be able to see it, so a genuine absence
-    # is always meaningful, regardless of what other years are in scope.
-    state = review_state.load("src")
-    review_state.record_decision(state, "recurring-hash", "approved", "data/x/y/data.yaml", {"year": None, "name": "Hauptsaison"})
+class TestPerPageReview:
+    def test_two_sources_reporting_one_unreviewed_window_yield_one_queue_row(self, _isolate):
+        """Reviewing the same real-world date once per source is a tax with no
+        payoff - the two eclipse catalogs independently rejected the identical
+        two dates, four decisions for two judgements."""
+        event = _event()
+        _, pending = review_state.diff(
+            [_candidate(event), {**_candidate(event), "source_id": "other", "candidate_id": "other:x"}],
+            review_state.load("src"), "veranstaltungen", "hechingen",
+        )
 
-    candidates = [_candidate("unrelated-hash", 2028)]
+        assert len(pending) == 1
 
-    _, _, disappeared = review_state.diff(candidates, state)
+    def test_a_second_source_reporting_an_approved_window_is_waved_through(self, _isolate):
+        event = _event()
+        _write_page(_isolate, "veranstaltungen", "hechingen", [event])
 
-    assert {d["content_hash"] for d in disappeared} == {"recurring-hash"}
+        waved, pending = review_state.diff(
+            [{**_candidate(event), "source_id": "other"}], review_state.load("src"), "veranstaltungen", "hechingen",
+        )
+
+        assert len(waved) == 1
+        assert pending == []
 
 
-def test_disappeared_hash_that_resurfaces_is_no_longer_flagged():
-    state = review_state.load("src")
-    review_state.record_decision(state, "hash-a", "approved", "data/x/y/data.yaml", {"year": 2028})
-    review_state.mark_disappeared(state, "hash-a", "data/x/y/data.yaml")
-    assert "hash-a" in state["disappeared"]
+def test_the_already_approved_lookup_uses_the_merge_key(_isolate):
+    """The non-termination guard: core/store.merge_zeitfenster and this module
+    must decide "same window" with the same function, or an approved window
+    can fail its own lookup and re-queue forever."""
+    event = _event()
+    _write_page(_isolate, "veranstaltungen", "hechingen", [event])
 
-    candidates = [_candidate("hash-a", 2028)]
-    waved, _, _ = review_state.diff(candidates, state)
-    # record_decision (called again on a later approve) clears it; simulate
-    # the same auto-clear that a fresh approval would trigger.
-    review_state.record_decision(state, "hash-a", "approved", "data/x/y/data.yaml", {"year": 2028})
+    assert review_state.already_approved("veranstaltungen", "hechingen", event)
+    assert review_state.already_approved("veranstaltungen", "hechingen", {**event, "precision": "approximate"})
+    assert window_key(event) == window_key({**event, "precision": "approximate"})
 
-    assert "hash-a" not in state["disappeared"]
-    assert [c["content_hash"] for c in waved] == ["hash-a"]
+
+def test_a_missing_file_loads_as_an_empty_negative_set(_isolate):
+    assert review_state.load("never-seen") == {"rejected": []}

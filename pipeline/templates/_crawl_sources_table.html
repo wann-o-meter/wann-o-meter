@@ -39,7 +39,6 @@
                         {{ r.documents }} docs, {{ r.candidates }} candidates,
                         {{ r.reconfirmed }} re-confirmed (approved in an earlier run),
                         {{ r.needs_review }} to review
-                        {% if r.disappeared %}, {{ r.disappeared }} disappeared{% endif %}
                         {% if r.extraction_errors %}
                         <br><span style="color:var(--accent);">{{ r.extraction_errors | length }} extraction error(s): {{ r.extraction_errors[0] }}</span>
                         {% endif %}
@@ -53,8 +52,9 @@
                         {{ 'Running…' if id in running_sources else 'Run' }}
                     </button>
                     <button type="button" class="btn btn-sm crawl-source-pages-btn" data-source-id="{{ id }}">Pages</button>
+                    <button type="button" class="btn btn-sm crawl-source-edit-btn" data-target="crawl-source-edit-{{ id }}">Edit</button>
                     <form method="post" action="/crawl-sources/{{ id }}/delete" style="display:inline;"
-                          onsubmit="return confirm('Delete crawl source \'{{ id }}\'? This only removes the config file - review-state history and any pages already written to data/ are kept.');">
+                          onsubmit="return confirm('Delete crawl source \'{{ id }}\'? This only removes the config file - its rejections and any pages already written to data/ are kept.');">
                         <button type="submit" class="btn btn-sm btn-danger" {{ 'disabled' if id in running_sources else '' }}>Delete</button>
                     </form>
                 </td>
@@ -68,6 +68,40 @@
                     <div class="crawl-source-pages" data-source-id="{{ id }}">
                         <span class="empty-hint" style="padding:0;">Loading…</span>
                     </div>
+                </td>
+            </tr>
+            {# The "Writes to" column above is the only place a shared target is
+               visible, and this row is the only place it can be changed - point
+               two sources at the same Category + Page and they aggregate. #}
+            <tr class="crawl-source-edit-row" id="crawl-source-edit-{{ id }}" hidden>
+                <td colspan="8" style="background:var(--surface-2, transparent); padding:0.5rem 0.75rem;">
+                    <form method="post" action="/crawl-sources/{{ id }}/edit" class="inline-form"
+                          onsubmit="return confirm('Change where \'{{ id }}\' writes? Its data folder moves to the new page - merging into it if a page is already there - so its approved events travel with it and nothing has to be approved again. Comments in the config file are lost.');">
+                        <div>
+                            <label class="field-label">Category</label><br>
+                            <input type="text" name="category" list="category-suggestions" value="{{ source.category }}" required style="width:160px;">
+                        </div>
+                        <div>
+                            <label class="field-label">Page to write into</label><br>
+                            <input type="text" name="subject_slug" list="page-suggestions" value="{{ source.subject_slug }}" pattern="[a-z0-9]+(-[a-z0-9]+)*" required style="width:160px;">
+                        </div>
+                        <div>
+                            <label class="field-label">Page title</label><br>
+                            <input type="text" name="subject_name" list="title-suggestions" value="{{ source.subject_name }}" style="width:160px;">
+                        </div>
+                        <div>
+                            <label class="field-label">Event type hint</label><br>
+                            <input type="text" name="event_type_hint" value="{{ source.event_type_hint }}" style="width:160px;">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" {{ 'disabled' if id in running_sources else '' }}>Save</button>
+                        <button type="button" class="btn btn-sm crawl-source-edit-btn" data-target="crawl-source-edit-{{ id }}">Cancel</button>
+                    </form>
+                    <p style="font-size:0.8rem; color:var(--muted); margin:0.35rem 0 0;">
+                        Give several sources the <strong>same</strong> Category <em>and</em> Page to aggregate
+                        them into one page - e.g. one source per century of an eclipse catalog. Where two
+                        sources report the same event, the entry is kept once and both are cited. Moving a
+                        page changes its public URL, and no redirect is written.
+                    </p>
                 </td>
             </tr>
             {% endfor %}

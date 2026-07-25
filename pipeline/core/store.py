@@ -1,13 +1,15 @@
 """YAML data-file lifecycle: load-or-create, merge new zeitfenster in by
-replace_key, append the source's Quelle, save - matching the generic
+window_key, append the source's Quelle, save - matching the generic
 data.yaml shape lib/pages-schema.ts's pageDataSchema validates (subject:
 {slug, category}, source, windows). This is the part every source used to
 reimplement slightly differently - now it's written once."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import yaml
+
+from core.content_hash import window_key
 
 
 def lade_oder_erstelle(pfad: Path, slug: str, kategorie: str) -> Dict[str, Any]:
@@ -21,78 +23,41 @@ def lade_oder_erstelle(pfad: Path, slug: str, kategorie: str) -> Dict[str, Any]:
     }
 
 
-def _date_range(window: Dict[str, Any]) -> Tuple[Any, Any]:
-    return (window.get("from"), window.get("to"))
+def merge_zeitfenster(datei: Dict[str, Any], neue_eintraege: List[Dict[str, Any]]) -> None:
+    """Merges neue_eintraege into datei["windows"] by window_key: same key ->
+    one entry with both citations, different key -> both kept.
 
+    Two sources independently reporting the same window is the business model
+    (many fragmented sources aggregated together), not a duplicate - so the
+    citations union rather than one clobbering the other.
 
-def _merged_source_urls(existing: Dict[str, Any], incoming: Dict[str, Any]) -> List[str]:
-    """Union of both windows' source_urls, deduped, order preserved (existing
-    citations first). Either side may be missing source_urls entirely (legacy
-    windows predating the field, see RawWindow.source_urls in lib/schema.ts)."""
-    combined = (existing.get("source_urls") or []) + (incoming.get("source_urls") or [])
-    return list(dict.fromkeys(combined))
+    There is no replace_key parameter anymore. It was strictly COARSER than
+    the identity review already used, so "same window" and "already approved"
+    could disagree - see core/content_hash.py's window_key for why that
+    combination cannot terminate. sources.yaml's per-source ("type", "year")
+    override went with it: its stated job was keeping a --jahr 2029 run from
+    overwriting 2026, and a key containing `from` cannot collide across years
+    at all.
 
-
-def merge_zeitfenster(
-    datei: Dict[str, Any],
-    neue_eintraege: List[Dict[str, Any]],
-    replace_key: Tuple[str, ...],
-) -> None:
-    """Merges neue_eintraege into datei["windows"] by replace_key, distinguishing
-    two cases that used to be conflated (this is the crux of per-window source
-    citation - see PLAN.md section 7: many fragmented sources aggregated
-    together is the actual business model, one source clobbering another's
-    citation on every re-run works against that):
-
-    - Same replace_key AND the same effective date range (from/to) as an
-      existing window: two runs describing the SAME real-world window - e.g.
-      a second source independently reporting BW's 2028 summer holidays as
-      the same 2028-07-27..2028-09-09 range. MERGE: keep one window entry,
-      union source_urls (deduped) so both citations survive on it.
-    - Same replace_key but a DIFFERENT date range: a correction or updated
-      information (e.g. a re-run with revised dates, or a source amending
-      its own earlier estimate). REPLACE as before - the previous entry is
-      no longer accurate, keeping it around would be misleading, and its
-      citation doesn't belong on a date range it didn't actually support.
-
-    Only replace_key matching, without the date-range check, could not tell
-    "two sources agree" apart from "a source corrected itself" - every
-    re-run silently discarded the previous entry (and its citation), so a
-    second source citing the same window could never merge into it.
-    """
-
-    def key_of(window: Dict[str, Any]) -> Tuple[Any, ...]:
-        return tuple(window.get(k) for k in replace_key)
-
-    existing_windows = datei["windows"]
-    existing_by_key: Dict[Tuple[Any, ...], List[Dict[str, Any]]] = {}
-    for w in existing_windows:
-        existing_by_key.setdefault(key_of(w), []).append(w)
-
-    result: List[Dict[str, Any]] = []
-
+    ponytail: a source amending its own end date now lands a SECOND window
+    instead of replacing the first - `to` is part of the key. That is only
+    coherent because hand-editing data.yaml is a supported path now (see
+    core/review_state.already_approved): delete the stale line and the next
+    run leaves the correction alone. It is also what review always believed -
+    the old content_hash included `to`, so an amended end date already came
+    back as a fresh candidate."""
+    by_key = {window_key(w): w for w in datei["windows"]}
     for incoming in neue_eintraege:
-        candidates = existing_by_key.get(key_of(incoming), [])
-        exact_match = next(
-            (w for w in candidates if _date_range(w) == _date_range(incoming)), None
-        )
-        if exact_match is not None:
-            # Same window, (likely) a different source: merge citations.
-            urls = _merged_source_urls(exact_match, incoming)
-            merged = dict(incoming)
-            if urls:
-                merged["source_urls"] = urls
-            result.append(merged)
-        else:
-            # No exact match for this replace_key (or the date range
-            # differs, i.e. a correction): the new entry replaces whatever
-            # shared its replace_key, same as the old behavior.
-            result.append(incoming)
-
-    handled_keys = {key_of(w) for w in neue_eintraege}
-    untouched = [w for w in existing_windows if key_of(w) not in handled_keys]
-
-    datei["windows"] = untouched + result
+        key = window_key(incoming)
+        existing = by_key.get(key) or {}
+        merged = dict(incoming)
+        # Either side may lack source_urls entirely (windows predating the
+        # field - see RawWindow.source_urls in lib/schema.ts).
+        urls = list(dict.fromkeys((existing.get("source_urls") or []) + (incoming.get("source_urls") or [])))
+        if urls:
+            merged["source_urls"] = urls
+        by_key[key] = merged
+    datei["windows"] = list(by_key.values())
 
 
 def append_quelle(datei: Dict[str, Any], quelle: Dict[str, Any]) -> None:

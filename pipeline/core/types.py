@@ -17,8 +17,6 @@ class ExtractionResult:
     # by the adapter instead of guessed by the runner.
     zeitfenster: List[Dict[str, Any]]  # RawWindow shape, see lib/schema.ts
     quelle: Dict[str, Any]             # Source shape: url, license, extraction, ...
-    replace_key: Tuple[str, ...] = ("type",)  # which fields define a match
-    # that the merge replaces instead of appending - Schulferien e.g. ("type", "year")
 
     def __post_init__(self) -> None:
         """Stamps each window with its originating source URL by default -

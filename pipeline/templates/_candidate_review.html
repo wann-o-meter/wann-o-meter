@@ -17,9 +17,6 @@
                 <br><span style="font-size:0.85rem; color:var(--muted);">{{ candidate.event.type }} · {{ candidate.event.precision }}</span>
             </p>
 
-            <datalist id="category-suggestions">
-                {% for c in category_suggestions %}<option value="{{ c }}">{% endfor %}
-            </datalist>
 
             <form action="/review/{{ source_id }}/{{ candidate.candidate_id }}/approve" method="post" style="margin-bottom:1.5rem;">
                 <div class="field-label">Category</div>
@@ -83,6 +80,9 @@
             <p style="font-size:0.85rem; color:var(--muted); margin:0 0 0.75rem;">
                 <a href="{{ document_meta.url }}" target="_blank">{{ document_meta.url }}</a>
                 · fetched {{ document_meta.fetched_at }}
+                {% if document_html %}
+                · <a href="/review/{{ source_id }}/document/{{ candidate.document }}">review every pending date in it</a>
+                {% endif %}
             </p>
             {% if document_html %}
             <div class="scroll-box tall">

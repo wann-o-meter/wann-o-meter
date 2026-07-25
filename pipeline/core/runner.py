@@ -122,36 +122,36 @@ def run(source_id: str, params: Dict[str, str]) -> int:
             candidates_by_subject.setdefault(slug, []).append(candidate)
 
     state = review_state.load(source_id)
-    all_candidates = [c for cs in candidates_by_subject.values() for c in cs]
-    auto_waved_through, needs_review, disappeared = review_state.diff(all_candidates, state)
+    # One run emits many subjects (Schulferien: one per Bundesland), and each
+    # is its own page - so the already-approved lookup runs per subject.
+    auto_waved_through, needs_review = [], []
+    for slug, candidates in candidates_by_subject.items():
+        ergebnis = subjects_by_slug[slug]
+        waved, pending = review_state.diff(
+            candidates, state, ergebnis.subjekt["category"], slug
+        )
+        auto_waved_through.extend(waved)
+        needs_review.extend(pending)
 
     for candidate in auto_waved_through:
         ergebnis = subjects_by_slug[candidate["subject_slug"]]
-        # Stamp BEFORE writing - stamping after would only update
-        # review-state's own copy, never reaching the data.yaml already
-        # written a moment earlier.
-        stamped_event = review_state.stamp_last_verified(state, candidate["content_hash"])
         try:
             approval.write_event(
                 ergebnis.subjekt["category"],
                 ergebnis.subjekt["slug"],
                 ergebnis.subjekt["name"],
-                stamped_event,
+                candidate["event"],
                 ergebnis.quelle,
-                ergebnis.replace_key,
             )
         except approval.ApprovalError as e:
             print(f"[runner] Re-Verifikation fehlgeschlagen fuer {candidate['candidate_id']}: {e}", file=sys.stderr)
             continue
 
-    for entry in disappeared:
-        review_state.mark_disappeared(state, entry["content_hash"], entry["target_file"])
-
     review_state.save(source_id, state)
 
     print(
         f"[runner] {len(auto_waved_through)} bereits reviewt (durchgewunken), "
-        f"{len(needs_review)} neu zur Review, {len(disappeared)} als verschwunden markiert.",
+        f"{len(needs_review)} neu zur Review.",
         file=sys.stderr,
     )
     return 0

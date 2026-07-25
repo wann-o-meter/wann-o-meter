@@ -27,9 +27,6 @@
                 Paste the page to crawl - everything else (ID, domain, category) is derived from it.
                 Open Advanced options only if you need to override something.
             </p>
-            <datalist id="category-suggestions">
-                {% for c in category_suggestions %}<option value="{{ c }}">{% endfor %}
-            </datalist>
             <form method="post" action="/crawl-sources/new">
                 <div class="field-label">Seed URL</div>
                 <input type="url" id="seed-url-input" name="seed_url" placeholder="https://example.org/veranstaltungen" required style="width:100%; max-width:32rem;">
@@ -50,7 +47,7 @@
                         <div class="field-label">Category (blank derives it from the ID)</div>
                         <input type="text" name="category" list="category-suggestions" placeholder="auto from ID">
                         <div class="field-label">Page to write into (blank uses the ID)</div>
-                        <input type="text" name="subject_slug" pattern="[a-z0-9-]*" placeholder="auto from ID">
+                        <input type="text" name="subject_slug" list="page-suggestions" pattern="[a-z0-9-]*" placeholder="auto from ID">
                         <p style="font-size:0.8rem; color:var(--muted); margin:0.35rem 0 0;">
                             Give several sources the <strong>same</strong> Category <em>and</em> Page to
                             aggregate them into one page - e.g. one source per century of an eclipse
@@ -60,7 +57,7 @@
                             them for review.
                         </p>
                         <div class="field-label">Page title (optional, blank uses the crawled page's own title)</div>
-                        <input type="text" name="subject_name" placeholder="e.g. Sonnenfinsternis">
+                        <input type="text" name="subject_name" list="title-suggestions" placeholder="e.g. Sonnenfinsternis">
                         <p style="font-size:0.8rem; color:var(--muted); margin:0.35rem 0 0;">
                             Worth setting when several sources share a page: otherwise its heading comes
                             from whichever source is approved first.
@@ -232,6 +229,16 @@
         });
 
         document.addEventListener('click', function (e) {
+            // Deliberately not tracked in openPageRows like the Pages row is:
+            // a half-typed edit collapsing on a table refresh is fine, whereas
+            // a Pages row is what you're reading exactly when a run finishes.
+            const editBtn = e.target.closest('.crawl-source-edit-btn');
+            if (editBtn) {
+                const row = document.getElementById(editBtn.dataset.target);
+                if (row) row.hidden = !row.hidden;
+                return;
+            }
+
             const pagesBtn = e.target.closest('.crawl-source-pages-btn');
             if (pagesBtn) {
                 const sourceId = pagesBtn.dataset.sourceId;

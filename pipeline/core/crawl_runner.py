@@ -30,7 +30,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from core import approval, review_state, staging
 from core.crawl_config import DEFAULT_EXTRACTION_MODE, CrawlSource
 from core.crawler import CrawledDocument, crawl
-from core.extraction import ExtractionError, extract_dated_events, suggest_title
+from core.extraction import ExtractionError, extract_dated_events, suggest_category, suggest_title
 from scraper import extract_any
 
 
@@ -171,6 +171,57 @@ def _windows_from_document(
     return [], f"no extractor for kind '{kind}'"
 
 
+def _existing_categories() -> List[str]:
+    """Category paths that already hold pages, so a suggestion can reuse one
+    instead of fragmenting the tree. Derived from disk rather than imported
+    from main.py's _category_paths - main imports this module, so the
+    dependency only goes one way."""
+    root = approval.DATA_ROOT
+    if not root.exists():
+        return []
+    # data.yaml lives at {category...}/{slug}/data.yaml, so dropping the slug
+    # gives the category path at any nesting depth. A page sitting directly
+    # under data/ has no category and relative_to() yields "." - not a name
+    # anything should be offered for reuse.
+    return sorted({
+        path for path in (
+            str(data_file.parent.parent.relative_to(root))
+            for data_file in root.glob("*/**/data.yaml")
+        )
+        if path != "."
+    })
+
+
+def _suggested_category(source: CrawlSource, documents: List[CrawledDocument], title: str) -> str:
+    """The category this source's candidates should be filed under.
+
+    An explicitly configured category always wins. It's the create form's
+    DEFAULT that this exists for: with no category typed, the route falls
+    back to the source id, which is derived from the domain - so NASA's
+    eclipse catalog filed itself under "eclipse-gsfc-nasa-gov" instead of
+    anything a reader would look for. suggest_category has existed the whole
+    time and simply had no caller.
+
+    Only a suggestion: it lands on the candidate, which prefills the review
+    form (see main.py's _target_category_for), so a human still confirms it
+    before anything is written. Falls back to the configured value on any
+    failure - a category guess must never be what fails a whole crawl.
+
+    ponytail: deliberately NOT used for the auto-waved-through write below,
+    which stays on source.category. This is an LLM call, so it re-rolls per
+    run - re-verifying already-approved windows against a freshly guessed
+    category could move a page out from under itself on any run. A human
+    confirming the suggestion once, then setting it on the source (Edit in
+    the crawl-sources table), is what makes it stick."""
+    if source.category != source.id:
+        return source.category
+    text = next((doc.content[:2000].decode("utf-8", "replace") for doc in documents), "")
+    try:
+        return suggest_category(text, title, _existing_categories()) or source.category
+    except ExtractionError:
+        return source.category
+
+
 _TITLE_RE = re.compile(rb"<title[^>]*>(.*?)</title>", re.IGNORECASE | re.DOTALL)
 
 
@@ -235,6 +286,7 @@ def run(
     # shared page's heading depend on crawl order.
     subject_name = source.subject_name or _subject_name(documents, source.subject_slug)
     label = source.event_type_hint or subject_name
+    category = _suggested_category(source, documents, subject_name)
 
     all_candidates: List[Dict[str, Any]] = []
     extraction_errors: List[str] = []
@@ -263,37 +315,31 @@ def run(
             window.setdefault("source_urls", [doc.url])
             candidate = staging.build_candidate(
                 source.id, source.subject_slug, window, doc_hash,
-                subject_name=subject_name, category=source.category,
+                subject_name=subject_name, category=category,
             )
             staging.write_candidate(source.id, run_ts, candidate)
             all_candidates.append(candidate)
 
-    report("diffing", "Comparing against review-state...")
+    report("diffing", "Comparing against the page and the rejected set...")
     state = review_state.load(source.id)
-    auto_waved_through, needs_review, disappeared = review_state.diff(all_candidates, state)
+    auto_waved_through, needs_review = review_state.diff(
+        all_candidates, state, source.category, source.subject_slug
+    )
 
     quelle = _default_quelle(source.seed_url)
     written = 0
     for candidate in auto_waved_through:
-        # Stamp BEFORE writing - stamping after would only update
-        # review-state's own copy, never reaching the data.yaml already
-        # written a moment earlier.
-        stamped_event = review_state.stamp_last_verified(state, candidate["content_hash"])
         try:
             approval.write_event(
                 category=source.category,
                 subject_slug=source.subject_slug,
                 subject_name=subject_name,
-                event=stamped_event,
+                event=candidate["event"],
                 quelle=quelle,
             )
             written += 1
         except approval.ApprovalError:
             continue
-
-    for entry in disappeared:
-        review_state.mark_disappeared(state, entry["content_hash"], entry["target_file"])
-    review_state.save(source.id, state)
 
     return {
         "documents": len(documents),
@@ -305,6 +351,5 @@ def run(
         # write look like it had bypassed review.
         "reconfirmed": written,
         "needs_review": len(needs_review),
-        "disappeared": len(disappeared),
         "extraction_errors": extraction_errors,
     }

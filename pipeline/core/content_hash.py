@@ -18,9 +18,37 @@ purpose:
 
 import hashlib
 import json
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 
 _IDENTITY_FIELDS = ("type", "year", "from", "to", "name", "value", "unit", "rrule")
+
+
+def window_key(window: Dict[str, Any]) -> Tuple[Any, ...]:
+    """What makes two windows the SAME real-world window - the one identity
+    function core/store.py merges by and core/review_state.py's
+    already-approved lookup reads.
+
+    They must not diverge. A merge key COARSER than the approved-lookup key
+    is non-terminating: one run reports two windows sharing the coarse key,
+    each write drops the other, both come back as candidates, forever. That
+    is the shape of the incident core/approval.py:47-56 documents (151
+    approvals producing a one-window data.yaml), and it was still live under
+    sources.yaml's ("type", "year") override - data/schulferien/bw/data.yaml
+    holds 10 windows but only 8 distinct (type, year), so the next adapter
+    run would silently have dropped two.
+
+    No subject_slug: the data.yaml file path already scopes the subject, so
+    keeping it out of the key is what lets a page be re-slugged by moving a
+    folder instead of re-hashing a whole review history.
+
+    `name` is case/whitespace-normalized for the same reason normalize_event
+    did it - "Osterferien" and " osterferien " are one window."""
+    return tuple(
+        window.get(field).strip().lower()
+        if field == "name" and isinstance(window.get(field), str)
+        else window.get(field)
+        for field in _IDENTITY_FIELDS
+    )
 
 
 def normalize_event(window: Dict[str, Any], subject_slug: str) -> Dict[str, Any]:

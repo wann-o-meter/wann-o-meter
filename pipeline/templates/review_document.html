@@ -1,0 +1,159 @@
+{% extends "_base.html" %}
+
+{% block title %}Wann-Plattform • Document Review{% endblock %}
+
+{% block content %}
+        <div class="card" style="margin-bottom:1rem;">
+            <h3 class="section-title" style="margin:0 0 0.5rem;">Review Document</h3>
+            <p style="font-size:0.85rem; color:var(--muted); margin:0;">
+                <a href="{{ document_meta.url }}" target="_blank">{{ document_meta.url }}</a>
+                · fetched {{ document_meta.fetched_at }}
+                {% if pending_count %}· writes to <code>data/{{ category }}/{{ subject_slug }}/</code>{% endif %}
+                · <a href="/review">back to the queue</a>
+            </p>
+        </div>
+
+        {% if pending_count %}
+        {# One form over the document AND the controls: a highlighted date is a
+           checkbox, so clicking dates in their real context IS the selection.
+           Single and bulk are the same gesture, not two screens. #}
+        <form method="post" action="/review/bulk-edit" class="doc-review">
+            <input type="hidden" name="return_to" value="document">
+
+            <div class="card doc-pane">
+                {# Rendered in <pre>: a date table's column alignment IS the
+                   information, and re-flowing it would destroy exactly what
+                   makes a row readable next to its neighbours. #}
+                <pre>{{ document_html | safe }}</pre>
+            </div>
+
+            {# Sticky rather than under the document: a catalog page is
+                thousands of lines, and controls that scroll away mean picking
+                dates at the bottom and then hunting for the buttons. #}
+            <aside class="card doc-actions">
+                <h4 class="section-title" style="margin:0 0 0.5rem;">Decide</h4>
+                <p style="font-size:0.8rem; color:var(--muted); margin:0 0 0.75rem;">
+                    {{ pending_count }} date{{ '' if pending_count == 1 else 's' }} still to decide.
+                    Click any highlighted date to select it, then Approve or Reject below.
+                    ✕ rejects just that one straight away; ✎ opens it on its own to correct it.
+                </p>
+
+                <label style="font-size:0.85rem; display:block; margin-bottom:0.5rem;">
+                    <input type="checkbox" id="select-all"> Select all {{ pending_count }}
+                </label>
+                <p style="font-size:1.1rem; font-weight:600; margin:0 0 0.75rem;">
+                    <span class="selected-count">0</span> selected
+                </p>
+
+                <label class="field-label">License (approving only)</label>
+                <select name="license" class="license-select" style="width:100%; margin-bottom:0.75rem;">
+                    {% for option in license_options %}
+                    <option value="{{ option.value }}">{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit" class="btn btn-primary btn-sm" id="bulk-approve-btn" name="action" value="approve" disabled>
+                    Approve (<span class="selected-count">0</span>)
+                </button>
+                <button type="submit" class="btn btn-danger btn-sm" id="bulk-reject-btn" name="action" value="reject" disabled>
+                    Reject (<span class="selected-count">0</span>)
+                </button>
+
+                <p style="font-size:0.75rem; color:var(--muted); margin:0.75rem 0 0;">
+                    Approved dates land in <code>{{ subject_slug }}</code> and leave this list.
+                    Rejecting writes nothing and needs no license.
+                </p>
+            </aside>
+        </form>
+        {% else %}
+        <div class="card">
+            <p class="empty-hint" style="margin:0 0 0.75rem;">
+                Nothing left to decide in this document - every date in it is either on its page or rejected.
+            </p>
+            <div class="doc-pane"><pre>{{ document_html | safe }}</pre></div>
+        </div>
+        {% endif %}
+
+        <style>
+            /* Overrides _base.html's global `form { display: flex; column }` -
+               this form is the whole two-pane layout, not a stack of fields. */
+            form.doc-review {
+                display: grid;
+                grid-template-columns: 1fr 260px;
+                gap: 1rem;
+                align-items: start;
+            }
+            .doc-pane { overflow: auto; max-height: 78vh; }
+            .doc-pane pre { font-size: 0.85rem; margin: 0; }
+            .doc-actions { position: sticky; top: 1rem; }
+            .doc-actions .btn { width: 100%; margin-bottom: 0.4rem; }
+            @media (max-width: 800px) {
+                /* The sticky column would eat most of a narrow screen - stack
+                   it under the document instead. */
+                form.doc-review { grid-template-columns: 1fr; }
+                .doc-actions { position: static; }
+            }
+
+            .date-hit {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.15em;
+                cursor: pointer;
+                border-radius: 3px;
+                padding: 0 0.15em;
+                background: var(--mark, #fde68a);
+                color: #1f2937;
+            }
+            /* The checkbox is the state, the label is the whole target - a
+               click anywhere on the date toggles it, and keyboard focus still
+               lands on a real control. */
+            .date-hit input { position: absolute; opacity: 0; pointer-events: none; }
+            .date-hit:has(input:checked) { background: var(--accent, #dc2626); color: #fff; }
+            .date-hit:has(input:focus-visible) { outline: 2px solid var(--accent, #dc2626); outline-offset: 1px; }
+            .date-edit, .date-reject { text-decoration: none; opacity: 0.55; font-size: 0.9em; color: inherit; }
+            .date-edit:hover, .date-reject:hover { opacity: 1; }
+            .date-reject {
+                background: none;
+                border: 0;
+                padding: 0;
+                cursor: pointer;
+                font: inherit;
+                line-height: 1;
+            }
+            .date-reject:hover, .date-reject:focus-visible { color: var(--accent, #dc2626); }
+            .date-hit:has(input:checked) .date-reject:hover { color: #fff; }
+        </style>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // Selection itself is the browser's job (label + checkbox) - this only
+        // keeps the counter and the disabled state honest, same pattern as
+        // review.html's queue table.
+        (function () {
+            const approve = document.getElementById('bulk-approve-btn');
+            if (!approve) return;  // nothing pending, no controls rendered
+            const boxes = document.querySelectorAll('.date-hit input[name="selected"]');
+            const selectAll = document.getElementById('select-all');
+            const counts = document.querySelectorAll('.selected-count');
+            const reject = document.getElementById('bulk-reject-btn');
+
+            function refresh() {
+                const checked = document.querySelectorAll('.date-hit input:checked').length;
+                counts.forEach(function (el) { el.textContent = checked; });
+                approve.disabled = checked === 0;
+                reject.disabled = checked === 0;
+                selectAll.checked = boxes.length > 0 && checked === boxes.length;
+                selectAll.indeterminate = checked > 0 && checked < boxes.length;
+            }
+            selectAll.addEventListener('change', function () {
+                boxes.forEach(function (b) { b.checked = selectAll.checked; });
+                refresh();
+            });
+            document.addEventListener('change', function (e) {
+                if (e.target.name === 'selected') refresh();
+            });
+            refresh();
+        })();
+    </script>
+{% endblock %}

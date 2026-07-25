@@ -7,6 +7,7 @@ review-state. Isolated from the real repo via monkeypatched
 DATA_ROOT/STAGING_ROOT/REVIEW_STATE_ROOT (tmp_path), so this never touches
 real data/."""
 
+import re
 import sys
 from pathlib import Path
 
@@ -27,12 +28,13 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setattr(approval, "DATA_ROOT", tmp_path / "data")
     monkeypatch.setattr(staging, "STAGING_ROOT", tmp_path / "staging")
     monkeypatch.setattr(review_state, "REVIEW_STATE_ROOT", tmp_path / "review-state")
+    monkeypatch.setattr(review_state, "DATA_ROOT", tmp_path / "data")
     monkeypatch.setattr(crawl_config, "CRAWL_SOURCES_DIR", tmp_path / "crawl_sources")
     return TestClient(main.app)
 
 
-def _stage_candidate(source_id: str, run_ts: str, subject_slug: str, event: dict, subject_name: str = None, category: str = None) -> dict:
-    doc_hash = staging.write_document(source_id, run_ts, "https://example.invalid/events", "text/calendar", b"BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n")
+def _stage_candidate(source_id: str, run_ts: str, subject_slug: str, event: dict, subject_name: str = None, category: str = None, url: str = "https://example.invalid/events") -> dict:
+    doc_hash = staging.write_document(source_id, run_ts, url, "text/calendar", b"BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n")
     candidate = staging.build_candidate(source_id, subject_slug, event, doc_hash, subject_name=subject_name, category=category)
     staging.write_candidate(source_id, run_ts, candidate)
     return candidate
@@ -84,7 +86,7 @@ VALID_EVENT = {
 
 class TestReviewApprove:
     def test_approve_writes_the_event_and_records_the_decision(self, client):
-        candidate = _stage_candidate("test-source", "20260724-000000", "hechingen", VALID_EVENT)
+        candidate = _stage_candidate("test-source", "20260724-000000", "hechingen", VALID_EVENT, category="veranstaltungen")
 
         response = client.post(
             f"/review/test-source/{candidate['candidate_id']}/approve",
@@ -98,23 +100,42 @@ class TestReviewApprove:
         datei = yaml.safe_load(data_path.read_text(encoding="utf-8"))
         assert datei["windows"][0]["name"] == "Stadtfest"
 
-        st = review_state.load("test-source")
-        assert st["decisions"][candidate["content_hash"]]["status"] == "approved"
+        # No review-state entry: the window being in data.yaml IS the record.
+        assert review_state.already_approved("veranstaltungen", "hechingen", VALID_EVENT)
+        assert review_state.load("test-source") == {"rejected": []}
 
-    def test_target_file_is_stored_repo_relative_not_absolute(self, client):
-        # A migration/approval-time absolute path would be wrong (or just
-        # confusing) once review-state/*.yaml is committed and checked out
-        # somewhere else - see approval.DATA_ROOT.parent-relative fix.
-        candidate = _stage_candidate("test-source", "20260724-000000", "hechingen", VALID_EVENT)
+    def test_an_approved_candidate_leaves_the_queue(self, client):
+        """It leaves because it is now in data.yaml, not because anything was
+        written to review-state - delete it from the file by hand and it is
+        offered again."""
+        candidate = _stage_candidate("test-source", "20260724-000000", "hechingen", VALID_EVENT, category="veranstaltungen")
         client.post(
             f"/review/test-source/{candidate['candidate_id']}/approve",
             data={"category": "veranstaltungen", "license": "tos_checked"},
         )
+        assert main._review_queue() == []
 
-        st = review_state.load("test-source")
-        target_file = st["decisions"][candidate["content_hash"]]["target_file"]
-        assert not Path(target_file).is_absolute()
-        assert target_file == "data/veranstaltungen/hechingen/data.yaml"
+        data_path = main.DATA_ROOT / "veranstaltungen" / "hechingen" / "data.yaml"
+        datei = yaml.safe_load(data_path.read_text(encoding="utf-8"))
+        datei["windows"] = []
+        data_path.write_text(yaml.dump(datei), encoding="utf-8")
+
+        assert len(main._review_queue()) == 1
+
+    def test_approving_into_another_category_does_not_loop(self, client):
+        """The source writes to data/veranstaltungen/, but the operator files
+        this one under data/kultur/. The source's own page then doesn't hold
+        it, so without suppressing it the next run would offer it again and
+        the override would have to be repeated forever."""
+        candidate = _stage_candidate("test-source", "20260724-000000", "hechingen", VALID_EVENT, category="veranstaltungen")
+
+        client.post(
+            f"/review/test-source/{candidate['candidate_id']}/approve",
+            data={"category": "kultur", "license": "tos_checked"},
+        )
+
+        assert (main.DATA_ROOT / "kultur" / "hechingen" / "data.yaml").exists()
+        assert main._review_queue() == []
 
     def test_approve_404s_for_an_unknown_source(self, client):
         response = client.post(
@@ -160,10 +181,10 @@ class TestReviewModify:
         assert datei["windows"][0]["name"] == "Stadtfest Hechingen"
         assert datei["windows"][0]["to"] == "2026-08-16"
 
-        st = review_state.load("test-source")
-        decision = st["decisions"][candidate["content_hash"]]
-        assert decision["status"] == "modified"
-        assert decision["corrected_event"]["name"] == "Stadtfest Hechingen"
+        # The correction is in data.yaml. The ORIGINAL identity is retired,
+        # or the source would re-extract it and re-queue it every run.
+        assert review_state.is_rejected(review_state.load("test-source"), "hechingen", VALID_EVENT)
+        assert main._review_queue() == []
 
 
 class TestReviewReject:
@@ -174,8 +195,7 @@ class TestReviewReject:
 
         assert response.status_code == 302
         assert not (main.DATA_ROOT / "veranstaltungen").exists()
-        st = review_state.load("test-source")
-        assert st["decisions"][candidate["content_hash"]]["status"] == "rejected"
+        assert review_state.is_rejected(review_state.load("test-source"), "hechingen", VALID_EVENT)
 
     def test_rejected_candidate_no_longer_appears_in_the_review_queue(self, client):
         candidate = _stage_candidate("test-source", "20260724-000000", "hechingen", VALID_EVENT)
@@ -268,7 +288,7 @@ class TestBulkApprove:
 
         assert response.status_code == 200
         assert f'name="selected" value="test-source/{candidate["candidate_id"]}"' in response.text
-        assert '/review/bulk-approve' in response.text
+        assert '/review/bulk-edit' in response.text
         assert any(f'<option value="{value}">' in response.text for value in main.LICENSE_VALUES)
 
     def test_the_single_candidate_form_prefills_the_sources_category(self, client):
@@ -295,12 +315,73 @@ class TestBulkApprove:
         )
 
         client.post(
-            "/review/bulk-approve",
+            "/review/bulk-edit",
             data={"selected": [f"test-source/{candidate['candidate_id']}"], "license": "tos_checked"},
         )
 
         assert (main.DATA_ROOT / "astronomie" / "sonnenfinsternis" / "data.yaml").exists()
         assert not (main.DATA_ROOT / "sonnenfinsternis").exists()
+
+    def test_the_reject_button_records_rejections_and_writes_no_page(self, client):
+        """Both bulk buttons submit the same form, so the only thing telling
+        them apart is `action` (see review.html - one name, two values). If
+        that branch were dropped, a Reject click would silently approve every
+        checked row and write pages nobody asked for."""
+        candidates = [
+            _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event(date))
+            for date in ["2026-08-12", "2027-08-02"]
+        ]
+
+        response = client.post(
+            "/review/bulk-edit",
+            data={
+                "selected": [f"test-source/{c['candidate_id']}" for c in candidates],
+                "license": "tos_checked",
+                "action": "reject",
+            },
+        )
+
+        assert response.status_code == 200
+        st = review_state.load("test-source")
+        assert all(review_state.is_rejected(st, "sofi", c["event"]) for c in candidates)
+        assert not (main.DATA_ROOT / "sofi").exists()
+        assert main._review_queue() == []
+
+    def test_an_unknown_action_is_refused(self, client):
+        """`action` arrives straight from the form, so it's a trust boundary
+        like any other Form field - an unrecognised value must not fall
+        through to the approve branch by default."""
+        candidate = _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event("2026-08-12"))
+
+        response = client.post(
+            "/review/bulk-edit",
+            data={
+                "selected": [f"test-source/{candidate['candidate_id']}"],
+                "license": "tos_checked",
+                "action": "delete-everything",
+            },
+        )
+
+        assert response.status_code == 400
+        assert review_state.load("test-source")["rejected"] == []
+
+    def test_rejecting_does_not_require_a_valid_license(self, client):
+        """A rejection writes no data.yaml, so there is no Quelle to stamp a
+        license on - failing the batch over the license select would block
+        the one action that needs nothing from it."""
+        candidate = _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event("2026-08-12"))
+
+        response = client.post(
+            "/review/bulk-edit",
+            data={
+                "selected": [f"test-source/{candidate['candidate_id']}"],
+                "license": "",
+                "action": "reject",
+            },
+        )
+
+        assert response.status_code == 200
+        assert review_state.is_rejected(review_state.load("test-source"), "sofi", candidate["event"])
 
     def test_many_identically_named_events_each_land_as_their_own_window(self, client):
         """The case bulk approve exists for - a date-table source where every
@@ -315,7 +396,7 @@ class TestBulkApprove:
         ]
 
         response = client.post(
-            "/review/bulk-approve",
+            "/review/bulk-edit",
             data={
                 "selected": [f"test-source/{c['candidate_id']}" for c in candidates],
                 "license": "tos_checked",
@@ -333,22 +414,21 @@ class TestBulkApprove:
         ]
 
         client.post(
-            "/review/bulk-approve",
+            "/review/bulk-edit",
             data={
                 "selected": [f"test-source/{c['candidate_id']}" for c in candidates],
                 "license": "tos_checked",
             },
         )
 
-        st = review_state.load("test-source")
-        assert all(st["decisions"][c["content_hash"]]["status"] == "approved" for c in candidates)
+        assert all(review_state.already_approved("sofi", "sofi", c["event"]) for c in candidates)
         assert main._review_queue() == []
 
     def test_one_bad_row_is_reported_without_dropping_the_good_ones(self, client):
         good = _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event("2026-08-12"))
 
         response = client.post(
-            "/review/bulk-approve",
+            "/review/bulk-edit",
             data={
                 "selected": [f"test-source/{good['candidate_id']}", "test-source/deadbeef", "malformed"],
                 "license": "tos_checked",
@@ -363,7 +443,7 @@ class TestBulkApprove:
         candidate = _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event("2026-08-12"))
 
         response = client.post(
-            "/review/bulk-approve",
+            "/review/bulk-edit",
             data={"selected": [f"test-source/{candidate['candidate_id']}"], "license": "not-a-license"},
         )
 
@@ -750,3 +830,566 @@ class TestSourcePages:
 
         assert response.status_code == 200
         assert response.json()["pages"] == [{"url": "https://example.org/a", "status": "crawled"}]
+
+
+class TestEditCrawlSource:
+    """subject_slug is how several sources aggregate into one page, but it
+    could only ever be set at create time - getting it wrong meant a split
+    page or re-approving every candidate by hand."""
+
+    def _source(self, client, id, category, subject_slug, seed="https://example.org/a"):
+        client.post("/crawl-sources/new", data={
+            "seed_url": seed, "id": id, "category": category, "subject_slug": subject_slug,
+        })
+
+    def _approve(self, client, source_id, subject_slug, category, date, url="https://example.invalid/events"):
+        # source_urls on the event is what pageDataSchema's superRefine checks
+        # against source[], so the merge has to carry both across together.
+        event = {**_eclipse_event(date), "source_urls": [url]}
+        candidate = _stage_candidate(
+            source_id, "20260724-000000", subject_slug, event, category=category, url=url,
+        )
+        client.post(
+            f"/review/{source_id}/{candidate['candidate_id']}/approve",
+            data={"category": category, "license": "tos_checked"}, follow_redirects=False,
+        )
+        return candidate
+
+    def test_changing_the_slug_moves_the_approvals_so_nothing_returns_to_the_queue(self, client):
+        """The whole point of the route - and it is now just the folder move.
+        The approved windows travel with data.yaml, so there is nothing to
+        re-key and nothing that can fail to."""
+        self._source(client, "nasa-a", "astronomie", "nasa-a")
+        candidate = self._approve(client, "nasa-a", "nasa-a", "astronomie", "2026-08-12")
+
+        response = client.post("/crawl-sources/nasa-a/edit", data={
+            "category": "astronomie", "subject_slug": "sonnenfinsternis",
+        }, follow_redirects=False)
+
+        assert response.status_code == 303
+        assert review_state.already_approved("astronomie", "sonnenfinsternis", candidate["event"])
+        assert main._review_queue() == []
+
+    def test_moves_the_page_folder_and_carries_its_page_yaml_over(self, client):
+        self._source(client, "nasa-a", "astronomie", "nasa-a")
+        self._approve(client, "nasa-a", "nasa-a", "astronomie", "2026-08-12")
+        (main.DATA_ROOT / "astronomie" / "nasa-a" / "page.yaml").write_text(
+            yaml.dump({"title": "Sonnenfinsternis", "description": "Von der NASA", "tags": ["astronomie"]}),
+            encoding="utf-8",
+        )
+
+        client.post("/crawl-sources/nasa-a/edit", data={
+            "category": "astronomie", "subject_slug": "sonnenfinsternis",
+        }, follow_redirects=False)
+
+        assert not (main.DATA_ROOT / "astronomie" / "nasa-a").exists()
+        new_folder = main.DATA_ROOT / "astronomie" / "sonnenfinsternis"
+        datei = yaml.safe_load((new_folder / "data.yaml").read_text(encoding="utf-8"))
+        assert [w["from"] for w in datei["windows"]] == ["2026-08-12"]
+        assert datei["subject"] == {"slug": "sonnenfinsternis", "category": "astronomie"}
+        page = yaml.safe_load((new_folder / "page.yaml").read_text(encoding="utf-8"))
+        assert page["description"] == "Von der NASA"
+
+    def test_merging_into_an_existing_page_unions_windows_and_citations(self, client):
+        """The case the whole feature exists for: one source per century of a
+        catalog, both writing into one page."""
+        self._source(client, "nasa-a", "astronomie", "sonnenfinsternis", seed="https://example.org/2001-2100")
+        self._approve(client, "nasa-a", "sonnenfinsternis", "astronomie", "2026-08-12", url="https://example.org/2001-2100")
+        self._source(client, "nasa-b", "astronomie", "nasa-b", seed="https://example.org/1901-2000")
+        self._approve(client, "nasa-b", "nasa-b", "astronomie", "1999-08-11", url="https://example.org/1901-2000")
+
+        response = client.post("/crawl-sources/nasa-b/edit", data={
+            "category": "astronomie", "subject_slug": "sonnenfinsternis",
+        }, follow_redirects=False)
+
+        assert response.status_code == 303
+        assert not (main.DATA_ROOT / "astronomie" / "nasa-b").exists()
+        datei = yaml.safe_load((main.DATA_ROOT / "astronomie" / "sonnenfinsternis" / "data.yaml").read_text(encoding="utf-8"))
+        assert sorted(w["from"] for w in datei["windows"]) == ["1999-08-11", "2026-08-12"]
+        assert len(datei["source"]) == 2
+
+    def test_the_same_window_from_two_sources_keeps_one_entry_with_both_citations(self, client):
+        """store.merge_zeitfenster's reason for existing - two sources agreeing
+        on a window is aggregation, not a duplicate."""
+        self._source(client, "nasa-a", "astronomie", "sonnenfinsternis", seed="https://example.org/cat-a")
+        self._approve(client, "nasa-a", "sonnenfinsternis", "astronomie", "2026-08-12", url="https://example.org/cat-a")
+        self._source(client, "nasa-b", "astronomie", "nasa-b", seed="https://example.org/cat-b")
+        self._approve(client, "nasa-b", "nasa-b", "astronomie", "2026-08-12", url="https://example.org/cat-b")
+
+        client.post("/crawl-sources/nasa-b/edit", data={
+            "category": "astronomie", "subject_slug": "sonnenfinsternis",
+        }, follow_redirects=False)
+
+        datei = yaml.safe_load((main.DATA_ROOT / "astronomie" / "sonnenfinsternis" / "data.yaml").read_text(encoding="utf-8"))
+        assert len(datei["windows"]) == 1
+        assert len(datei["windows"][0]["source_urls"]) == 2
+
+    def test_a_category_only_change_still_moves_the_folder(self, client):
+        self._source(client, "nasa-a", "eclipse", "nasa-a")
+        self._approve(client, "nasa-a", "nasa-a", "eclipse", "2026-08-12")
+
+        client.post("/crawl-sources/nasa-a/edit", data={
+            "category": "astronomie", "subject_slug": "nasa-a",
+        }, follow_redirects=False)
+
+        assert (main.DATA_ROOT / "astronomie" / "nasa-a" / "data.yaml").exists()
+        assert not (main.DATA_ROOT / "eclipse" / "nasa-a").exists()
+        assert main._review_queue() == []
+
+    def test_a_target_a_source_never_wrote_to_is_not_an_error(self, client):
+        """A config can name a page it never actually wrote - nothing approved
+        yet, or a config that drifted away from where its approvals landed."""
+        self._source(client, "nasa-a", "astronomie", "nasa-a")
+
+        response = client.post("/crawl-sources/nasa-a/edit", data={
+            "category": "astronomie", "subject_slug": "sonnenfinsternis",
+        }, follow_redirects=False)
+
+        assert response.status_code == 303
+        assert crawl_config.load_all_crawl_sources()["nasa-a"].subject_slug == "sonnenfinsternis"
+
+    def test_rejections_follow_the_source_to_its_new_page(self, client):
+        """A rejection is scoped to the page it was made for, so moving the
+        source has to carry it across - otherwise every rejected window comes
+        back the first time the source runs against its new target."""
+        self._source(client, "nasa-a", "astronomie", "nasa-a")
+        candidate = _stage_candidate("nasa-a", "20260724-000000", "nasa-a", _eclipse_event("2026-08-12"), category="astronomie")
+        client.post(f"/review/nasa-a/{candidate['candidate_id']}/reject")
+        self._approve(client, "nasa-a", "nasa-a", "astronomie", "2027-08-02")
+
+        client.post("/crawl-sources/nasa-a/edit", data={
+            "category": "astronomie", "subject_slug": "sonnenfinsternis",
+        }, follow_redirects=False)
+
+        st = review_state.load("nasa-a")
+        assert review_state.is_rejected(st, "sonnenfinsternis", candidate["event"])
+        assert not review_state.is_rejected(st, "nasa-a", candidate["event"])
+
+    def test_editing_only_the_title_leaves_the_folder_and_approvals_alone(self, client):
+        self._source(client, "nasa-a", "astronomie", "nasa-a")
+        candidate = self._approve(client, "nasa-a", "nasa-a", "astronomie", "2026-08-12")
+
+        response = client.post("/crawl-sources/nasa-a/edit", data={
+            "category": "astronomie", "subject_slug": "nasa-a", "subject_name": "Sonnenfinsternis",
+            "event_type_hint": "Sonnenfinsternis",
+        }, follow_redirects=False)
+
+        assert response.status_code == 303
+        source = crawl_config.load_all_crawl_sources()["nasa-a"]
+        assert (source.subject_name, source.event_type_hint) == ("Sonnenfinsternis", "Sonnenfinsternis")
+        assert review_state.already_approved("astronomie", "nasa-a", candidate["event"])
+        assert (main.DATA_ROOT / "astronomie" / "nasa-a" / "data.yaml").exists()
+
+    def test_preserves_fields_the_form_does_not_edit(self, client):
+        client.post("/crawl-sources/new", data={**FULL_NEW_SOURCE_FORM, "subject_slug": "veranstaltungen"})
+
+        client.post("/crawl-sources/stuttgart-veranstaltungen/edit", data={
+            "category": "veranstaltungen", "subject_slug": "stadtfeste",
+        }, follow_redirects=False)
+
+        source = crawl_config.load_all_crawl_sources()["stuttgart-veranstaltungen"]
+        assert source.max_depth == 2
+        assert source.path_prefix == "/veranstaltungen"
+        assert source.formats == ["html", "ics"]
+        assert source.schedule == "weekly"
+        assert source.allowed_domains == ["example.org", "www.example.org"]
+
+    def test_rejects_an_invalid_subject_slug(self, client):
+        """A slug becomes a directory name under data/ - a trust boundary, and
+        on edit it is NOT silently slugified: the operator is matching another
+        source's slug exactly, so a typo has to be reported, not rewritten."""
+        self._source(client, "nasa-a", "astronomie", "nasa-a")
+
+        response = client.post("/crawl-sources/nasa-a/edit", data={
+            "category": "astronomie", "subject_slug": "../../etc",
+        })
+
+        assert response.status_code == 400
+        assert crawl_config.load_all_crawl_sources()["nasa-a"].subject_slug == "nasa-a"
+
+    def test_rejects_a_reserved_category(self, client):
+        self._source(client, "nasa-a", "astronomie", "nasa-a")
+        response = client.post("/crawl-sources/nasa-a/edit", data={
+            "category": "feiertage", "subject_slug": "nasa-a",
+        })
+        assert response.status_code == 400
+
+    def test_404s_for_an_unknown_source(self, client):
+        response = client.post("/crawl-sources/does-not-exist/edit", data={
+            "category": "astronomie", "subject_slug": "x",
+        })
+        assert response.status_code == 404
+
+    def test_409s_while_the_source_is_running(self, client):
+        self._source(client, "nasa-a", "astronomie", "nasa-a")
+        main.state.running_sources.add("nasa-a")
+        try:
+            response = client.post("/crawl-sources/nasa-a/edit", data={
+                "category": "astronomie", "subject_slug": "sonnenfinsternis",
+            })
+            assert response.status_code == 409
+        finally:
+            main.state.running_sources.discard("nasa-a")
+
+    def test_a_config_pointing_at_a_page_that_is_not_on_disk_still_moves(self, client):
+        """A config can drift away from where its approvals actually landed.
+        There is no shadow state left to corrupt, so this just re-points the
+        source - the page it used to name stays on the site and stays visible
+        in the Pages table, rather than being silently swallowed."""
+        self._source(client, "nasa-a", "astronomie", "nasa-a")
+        self._approve(client, "nasa-a", "nasa-a", "astronomie", "2026-08-12")
+        path = crawl_config.CRAWL_SOURCES_DIR / "nasa-a.yaml"
+        raw = yaml.safe_load(path.read_text(encoding="utf-8"))
+        raw["category"] = "eclipse"
+        path.write_text(yaml.dump(raw), encoding="utf-8")
+
+        response = client.post("/crawl-sources/nasa-a/edit", data={
+            "category": "eclipse", "subject_slug": "sonnenfinsternis",
+        }, follow_redirects=False)
+
+        assert response.status_code == 303
+        assert (main.DATA_ROOT / "astronomie" / "nasa-a" / "data.yaml").exists()
+
+    def test_moving_a_source_drops_its_staged_candidates(self, client):
+        """They name the page the source USED to write to, so leaving them
+        would refill the queue with rows the new page already holds. staging/
+        is gitignored and the next run rebuilds it."""
+        self._source(client, "nasa-a", "eclipse", "nasa-a")
+        self._approve(client, "nasa-a", "nasa-a", "eclipse", "2026-08-12")
+        _stage_candidate("nasa-a", "20260724-000000", "nasa-a", _eclipse_event("2027-08-02"), category="eclipse")
+        assert len(main._review_queue()) == 1
+
+        client.post("/crawl-sources/nasa-a/edit", data={
+            "category": "astronomie", "subject_slug": "nasa-a",
+        }, follow_redirects=False)
+
+        assert not (staging.STAGING_ROOT / "nasa-a").exists()
+        assert main._review_queue() == []
+
+
+class TestDeletePageReturnTo:
+    """return_to is allowlisted against the pages that render the Delete
+    button. The allowlist is easy to leave stale, and doing so fails
+    invisibly - the delete still works, it just lands you somewhere else."""
+
+    def _page(self, client):
+        folder = main.DATA_ROOT / "astronomie" / "sonnenfinsternis"
+        folder.mkdir(parents=True)
+        (folder / "data.yaml").write_text(yaml.dump({"subject": {"slug": "sonnenfinsternis"}}), encoding="utf-8")
+        (folder / "page.yaml").write_text(yaml.dump({"title": "Sonnenfinsternis"}), encoding="utf-8")
+        return folder
+
+    @pytest.mark.parametrize("return_to", ["/", "/crawl-sources", "/review"])
+    def test_returns_to_the_page_the_delete_came_from(self, client, return_to):
+        folder = self._page(client)
+
+        response = client.post(
+            "/pages/astronomie/sonnenfinsternis/delete",
+            data={"return_to": return_to}, follow_redirects=False,
+        )
+
+        assert response.status_code == 302
+        assert response.headers["location"] == return_to
+        assert not folder.exists()
+
+    @pytest.mark.parametrize("return_to", ["//evil.example", "/\\evil.example", "https://evil.example", "/../etc"])
+    def test_falls_back_instead_of_following_an_open_redirect(self, client, return_to):
+        self._page(client)
+
+        response = client.post(
+            "/pages/astronomie/sonnenfinsternis/delete",
+            data={"return_to": return_to}, follow_redirects=False,
+        )
+
+        assert response.headers["location"] == "/crawl-sources"
+
+
+class TestReviewDocument:
+    """The whole-document review view: every pending date in one snapshot,
+    each one rejectable in place. Reviewing a 200-row date table one page at
+    a time loses what makes a table readable - its neighbours."""
+
+    def _stage_md(self, source_id="test-source", run_ts="20260724-000000"):
+        # HTML in, .md snapshot out - staging converts it (see
+        # staging._extension_and_bytes), and .md is what the view renders.
+        body = (
+            "<html><body><p>Total Solar Eclipse of 1999 Aug 11</p>"
+            "<p>Annular Eclipse of 2026-02-17</p><p>Nothing here</p></body></html>"
+        )
+        return staging.write_document(
+            source_id, run_ts, "https://eclipse.invalid/SEcat5", "text/html", body.encode("utf-8"),
+        )
+
+    def _candidate(self, doc_hash, date, name="Sonnenfinsternis", source_id="test-source", run_ts="20260724-000000"):
+        event = {"type": "event", "year": int(date[:4]), "from": date, "to": date, "precision": "exact", "ics": True, "name": name}
+        candidate = staging.build_candidate(source_id, "sofi", event, doc_hash)
+        staging.write_candidate(source_id, run_ts, candidate)
+        return candidate
+
+    def test_every_pending_date_becomes_a_selectable_checkbox(self, client):
+        """Both spellings the source might use - the ISO string and the
+        "1999 Aug 11" form the NASA catalog actually writes. The checkbox
+        name/value match /review's table exactly, so both post to the same
+        bulk route."""
+        doc_hash = self._stage_md()
+        iso = self._candidate(doc_hash, "2026-02-17")
+        human = self._candidate(doc_hash, "1999-08-11")
+
+        response = client.get(f"/review/test-source/document/{doc_hash}")
+
+        assert response.status_code == 200
+        for candidate in (iso, human):
+            assert f'name="selected" value="test-source/{candidate["candidate_id"]}"' in response.text
+        assert "<span>2026-02-17</span>" in response.text
+        assert "<span>1999 Aug 11</span>" in response.text
+
+    def test_each_date_links_to_its_own_page_for_editing(self, client):
+        doc_hash = self._stage_md()
+        candidate = self._candidate(doc_hash, "2026-02-17")
+
+        response = client.get(f"/review/test-source/document/{doc_hash}")
+
+        assert f'href="/review/test-source/{candidate["candidate_id"]}"' in response.text
+
+    def test_the_page_offers_both_approve_and_reject_in_bulk(self, client):
+        """The document view used to be reject-only, so approving meant going
+        back to a separate table that had no document context."""
+        doc_hash = self._stage_md()
+        self._candidate(doc_hash, "2026-02-17")
+
+        response = client.get(f"/review/test-source/document/{doc_hash}")
+
+        assert 'action="/review/bulk-edit"' in response.text
+        assert 'name="action" value="approve"' in response.text
+        assert 'name="action" value="reject"' in response.text
+        assert any(f'<option value="{v}">' in response.text for v in main.LICENSE_VALUES)
+
+    def test_each_date_can_be_rejected_on_the_spot(self, client):
+        """A per-date reject inside the bulk form - HTML forbids nesting a
+        form, so the button re-points its own submit with formaction."""
+        doc_hash = self._stage_md()
+        candidate = self._candidate(doc_hash, "2026-02-17")
+
+        response = client.get(f"/review/test-source/document/{doc_hash}")
+
+        assert f'formaction="/review/test-source/{candidate["candidate_id"]}/reject"' in response.text
+        assert "formnovalidate" in response.text
+
+    def test_the_inline_reject_rejects_only_that_date_and_comes_back(self, client):
+        """The whole form is submitted, so the other checked dates ride along
+        in `selected` - the single-candidate route must ignore them and act
+        on the one in its URL only."""
+        doc_hash = self._stage_md()
+        target = self._candidate(doc_hash, "2026-02-17")
+        other = self._candidate(doc_hash, "1999-08-11")
+
+        response = client.post(
+            f"/review/test-source/{target['candidate_id']}/reject",
+            data={
+                "return_to": "document", "license": "",
+                "selected": [f"test-source/{target['candidate_id']}", f"test-source/{other['candidate_id']}"],
+            },
+            follow_redirects=False,
+        )
+
+        assert response.status_code == 302
+        assert response.headers["location"] == f"/review/test-source/document/{doc_hash}"
+        st = review_state.load("test-source")
+        assert review_state.is_rejected(st, "sofi", target["event"])
+        assert not review_state.is_rejected(st, "sofi", other["event"])
+        assert [c["candidate_id"] for c in main._review_queue()] == [other["candidate_id"]]
+
+    def test_bulk_approving_from_the_document_returns_to_it(self, client):
+        doc_hash = self._stage_md()
+        a = self._candidate(doc_hash, "2026-02-17")
+        b = self._candidate(doc_hash, "1999-08-11")
+
+        response = client.post("/review/bulk-edit", data={
+            "selected": [f"test-source/{a['candidate_id']}", f"test-source/{b['candidate_id']}"],
+            "license": "tos_checked", "action": "approve", "return_to": "document",
+        }, follow_redirects=False)
+
+        assert response.status_code == 302
+        assert response.headers["location"] == f"/review/test-source/document/{doc_hash}"
+        assert main._review_queue() == []
+
+    def test_a_date_with_no_pending_candidate_is_left_as_plain_text(self, client):
+        doc_hash = self._stage_md()
+        self._candidate(doc_hash, "2026-02-17")
+
+        response = client.get(f"/review/test-source/document/{doc_hash}")
+
+        assert "Nothing here" in response.text
+        assert "<span>1999 Aug 11</span>" not in response.text
+
+    def test_rejecting_in_the_document_returns_to_the_document(self, client):
+        """The point of the view is staying in one place - the normal reject
+        route jumps to the next queue item instead."""
+        doc_hash = self._stage_md()
+        candidate = self._candidate(doc_hash, "2026-02-17")
+
+        response = client.post(
+            f"/review/test-source/{candidate['candidate_id']}/reject",
+            data={"return_to": "document"}, follow_redirects=False,
+        )
+
+        assert response.status_code == 302
+        assert response.headers["location"] == f"/review/test-source/document/{doc_hash}"
+        assert review_state.is_rejected(review_state.load("test-source"), "sofi", candidate["event"])
+
+    def test_a_rejected_date_stops_being_highlighted(self, client):
+        doc_hash = self._stage_md()
+        candidate = self._candidate(doc_hash, "2026-02-17")
+        client.post(f"/review/test-source/{candidate['candidate_id']}/reject", data={"return_to": "document"})
+
+        response = client.get(f"/review/test-source/document/{doc_hash}")
+
+        assert 'class="date-hit"' not in response.text
+        assert "2026-02-17" in response.text
+
+    def test_rejecting_without_the_flag_still_chains_to_the_next_candidate(self, client):
+        doc_hash = self._stage_md()
+        candidate = self._candidate(doc_hash, "2026-02-17")
+        self._candidate(doc_hash, "1999-08-11")
+
+        response = client.post(
+            f"/review/test-source/{candidate['candidate_id']}/reject", follow_redirects=False,
+        )
+
+        assert response.headers["location"].startswith("/review/test-source/test-source:")
+
+    def test_404s_for_an_unknown_source(self, client):
+        response = client.get("/review/does-not-exist/document/" + "a" * 16)
+        assert response.status_code == 404
+
+    def test_404s_for_a_malformed_document_hash(self, client):
+        self._stage_md()
+        response = client.get("/review/test-source/document/../../etc/passwd")
+        assert response.status_code == 404
+
+
+class TestNavigation:
+    """The nav is the pipeline: add a Source, Review what it found, it lands
+    in Pages. Harvest is a separate track and used to occupy the landing
+    page, which put two unrelated concerns on one screen."""
+
+    def test_the_landing_page_is_pages_not_harvest(self, client):
+        response = client.get("/")
+
+        assert response.status_code == 200
+        assert "harvest-registry-table" not in response.text
+
+    def test_harvest_has_its_own_page(self, client):
+        response = client.get("/harvest")
+
+        assert response.status_code == 200
+        assert "harvest-registry-table" in response.text
+        assert 'id="pages-table"' not in response.text
+
+    @pytest.mark.parametrize("path", ["/", "/harvest", "/crawl-sources", "/review"])
+    def test_every_page_renders_the_full_nav(self, client, path):
+        response = client.get(path)
+
+        assert response.status_code == 200
+        for label in (">Pages<", ">Sources<", ">Review<", ">Harvest<"):
+            assert label in response.text
+
+
+class TestSuggestTags:
+    """suggest_tags existed from the beginning with no caller - _all_tags()'s
+    own docstring already claimed to feed it."""
+
+    def _page(self, client, tags=None):
+        folder = main.DATA_ROOT / "astronomie" / "sonnenfinsternis"
+        folder.mkdir(parents=True)
+        (folder / "page.yaml").write_text(yaml.dump({"title": "Sonnenfinsternis", "tags": tags or []}), encoding="utf-8")
+        (folder / "data.yaml").write_text(
+            yaml.dump({"subject": {"slug": "sonnenfinsternis"}, "windows": [_eclipse_event("2026-08-12")], "source": []}),
+            encoding="utf-8",
+        )
+
+    def test_suggests_tags_and_writes_nothing(self, client, monkeypatch):
+        """A suggestion fills the form field so it can be edited first - the
+        route must not save anything by itself."""
+        self._page(client)
+        monkeypatch.setattr(main, "suggest_tags", lambda text, title, existing, **kw: ["astronomie", "himmel"])
+
+        response = client.get("/pages/astronomie/sonnenfinsternis/suggest-tags")
+
+        assert response.status_code == 200
+        assert response.json() == {"tags": ["astronomie", "himmel"]}
+        page = yaml.safe_load((main.DATA_ROOT / "astronomie" / "sonnenfinsternis" / "page.yaml").read_text())
+        assert page["tags"] == []
+
+    def test_the_existing_vocabulary_is_offered_for_reuse(self, client, monkeypatch):
+        """Reuse over fragmentation ("feiertag" vs "feiertage") only works if
+        the suggester is actually told what is already in use."""
+        self._page(client, tags=["astronomie"])
+        seen = {}
+        monkeypatch.setattr(main, "suggest_tags", lambda text, title, existing, **kw: seen.setdefault("existing", existing) or [])
+
+        client.get("/pages/astronomie/sonnenfinsternis/suggest-tags")
+
+        assert "astronomie" in seen["existing"]
+
+    def test_a_failed_suggestion_is_reported_not_silently_empty(self, client, monkeypatch):
+        self._page(client)
+
+        def _boom(*a, **k):
+            raise main.ExtractionError("no API key")
+        monkeypatch.setattr(main, "suggest_tags", _boom)
+
+        response = client.get("/pages/astronomie/sonnenfinsternis/suggest-tags")
+
+        assert response.status_code == 502
+        assert "no API key" in response.json()["error"]
+
+    def test_404s_for_an_unknown_page(self, client):
+        assert client.get("/pages/astronomie/does-not-exist/suggest-tags").status_code == 404
+
+
+class TestSuggestionLists:
+    """Every <datalist> is rendered once by _base.html, so a form can't be
+    added without them - which is exactly how the page-title and page-slug
+    fields ended up with no suggestions while the category field beside them
+    had some."""
+
+    def _page(self, category, slug, title, tags=()):
+        folder = main.DATA_ROOT / category / slug
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / "page.yaml").write_text(yaml.dump({"title": title, "tags": list(tags)}), encoding="utf-8")
+        (folder / "data.yaml").write_text(
+            yaml.dump({"subject": {"slug": slug, "category": category}, "windows": [], "source": []}), encoding="utf-8")
+
+    @pytest.mark.parametrize("path", ["/", "/harvest", "/crawl-sources", "/review"])
+    def test_no_page_references_a_datalist_it_does_not_render(self, client, path):
+        """The bug this class exists for: a `list="..."` pointing at an id
+        that isn't on the page silently degrades to no suggestions at all."""
+        text = client.get(path).text
+        defined = set(re.findall(r'<datalist id="([^"]+)"', text))
+        used = set(re.findall(r'list="([^"]+)"', text))
+
+        assert used - defined == set()
+
+    def test_an_existing_category_title_and_page_are_all_offered(self, client):
+        """The user's case: with a Sonnenfinsternis page under Astronomie,
+        adding Mondfinsternis should suggest all three."""
+        self._page("astronomie", "sonnenfinsternis", "Sonnenfinsternis", tags=["himmel"])
+
+        text = client.get("/crawl-sources").text
+
+        assert '<option value="Astronomie">' in text
+        assert '<option value="Sonnenfinsternis">' in text
+        assert '<option value="sonnenfinsternis">' in text
+        assert '<option value="himmel">' in text
+
+    def test_the_page_field_offers_existing_slugs(self, client):
+        """Typing an existing slug is how two sources aggregate onto one page
+        (see CrawlSource.subject_slug), so it has to be discoverable rather
+        than something you have to already know."""
+        self._page("astronomie", "sonnenfinsternis", "Sonnenfinsternis")
+
+        text = client.get("/crawl-sources").text
+
+        assert 'name="subject_slug" list="page-suggestions"' in text
+        assert 'name="subject_name" list="title-suggestions"' in text

@@ -1,0 +1,2061 @@
+subject:
+  slug: mondfinsternis
+  category: astronomie
+windows:
+- type: event
+  year: 2018
+  from: '2018-07-27'
+  to: '2018-07-27'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2015
+  from: '2015-04-04'
+  to: '2015-04-04'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2021
+  from: '2021-11-19'
+  to: '2021-11-19'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2082
+  from: '2082-02-13'
+  to: '2082-02-13'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2029
+  from: '2029-06-26'
+  to: '2029-06-26'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2086
+  from: '2086-11-20'
+  to: '2086-11-20'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2070
+  from: '2070-04-25'
+  to: '2070-04-25'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2027
+  from: '2027-07-18'
+  to: '2027-07-18'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2006
+  from: '2006-03-14'
+  to: '2006-03-14'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2053
+  from: '2053-08-29'
+  to: '2053-08-29'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2082
+  from: '2082-08-08'
+  to: '2082-08-08'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2099
+  from: '2099-09-29'
+  to: '2099-09-29'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2001
+  from: '2001-01-09'
+  to: '2001-01-09'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2001
+  from: '2001-07-05'
+  to: '2001-07-05'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2001
+  from: '2001-12-30'
+  to: '2001-12-30'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2002
+  from: '2002-05-26'
+  to: '2002-05-26'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2002
+  from: '2002-06-24'
+  to: '2002-06-24'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2002
+  from: '2002-11-20'
+  to: '2002-11-20'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2003
+  from: '2003-05-16'
+  to: '2003-05-16'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2003
+  from: '2003-11-09'
+  to: '2003-11-09'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2004
+  from: '2004-05-04'
+  to: '2004-05-04'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2004
+  from: '2004-10-28'
+  to: '2004-10-28'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2005
+  from: '2005-04-24'
+  to: '2005-04-24'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2005
+  from: '2005-10-17'
+  to: '2005-10-17'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2006
+  from: '2006-09-07'
+  to: '2006-09-07'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2007
+  from: '2007-03-03'
+  to: '2007-03-03'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2007
+  from: '2007-08-28'
+  to: '2007-08-28'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2008
+  from: '2008-02-21'
+  to: '2008-02-21'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2008
+  from: '2008-08-16'
+  to: '2008-08-16'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2009
+  from: '2009-02-09'
+  to: '2009-02-09'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2009
+  from: '2009-07-07'
+  to: '2009-07-07'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2009
+  from: '2009-08-06'
+  to: '2009-08-06'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2009
+  from: '2009-12-31'
+  to: '2009-12-31'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2010
+  from: '2010-06-26'
+  to: '2010-06-26'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2010
+  from: '2010-12-21'
+  to: '2010-12-21'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2011
+  from: '2011-06-15'
+  to: '2011-06-15'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2011
+  from: '2011-12-10'
+  to: '2011-12-10'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2012
+  from: '2012-06-04'
+  to: '2012-06-04'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2012
+  from: '2012-11-28'
+  to: '2012-11-28'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2013
+  from: '2013-04-25'
+  to: '2013-04-25'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2013
+  from: '2013-05-25'
+  to: '2013-05-25'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2013
+  from: '2013-10-18'
+  to: '2013-10-18'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2014
+  from: '2014-04-15'
+  to: '2014-04-15'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2014
+  from: '2014-10-08'
+  to: '2014-10-08'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2015
+  from: '2015-09-28'
+  to: '2015-09-28'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2016
+  from: '2016-03-23'
+  to: '2016-03-23'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2016
+  from: '2016-09-16'
+  to: '2016-09-16'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2017
+  from: '2017-02-11'
+  to: '2017-02-11'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2017
+  from: '2017-08-07'
+  to: '2017-08-07'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2018
+  from: '2018-01-31'
+  to: '2018-01-31'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2019
+  from: '2019-01-21'
+  to: '2019-01-21'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2019
+  from: '2019-07-16'
+  to: '2019-07-16'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2020
+  from: '2020-01-10'
+  to: '2020-01-10'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2020
+  from: '2020-06-05'
+  to: '2020-06-05'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2020
+  from: '2020-07-05'
+  to: '2020-07-05'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2020
+  from: '2020-11-30'
+  to: '2020-11-30'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2021
+  from: '2021-05-26'
+  to: '2021-05-26'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2022
+  from: '2022-05-16'
+  to: '2022-05-16'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2022
+  from: '2022-11-08'
+  to: '2022-11-08'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2023
+  from: '2023-05-05'
+  to: '2023-05-05'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2023
+  from: '2023-10-28'
+  to: '2023-10-28'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2024
+  from: '2024-03-25'
+  to: '2024-03-25'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2024
+  from: '2024-09-18'
+  to: '2024-09-18'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2025
+  from: '2025-03-14'
+  to: '2025-03-14'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2025
+  from: '2025-09-07'
+  to: '2025-09-07'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2026
+  from: '2026-03-03'
+  to: '2026-03-03'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2026
+  from: '2026-08-28'
+  to: '2026-08-28'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2027
+  from: '2027-02-20'
+  to: '2027-02-20'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2027
+  from: '2027-08-17'
+  to: '2027-08-17'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2028
+  from: '2028-01-12'
+  to: '2028-01-12'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2028
+  from: '2028-07-06'
+  to: '2028-07-06'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2028
+  from: '2028-12-31'
+  to: '2028-12-31'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2029
+  from: '2029-12-20'
+  to: '2029-12-20'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2030
+  from: '2030-06-15'
+  to: '2030-06-15'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2030
+  from: '2030-12-09'
+  to: '2030-12-09'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2031
+  from: '2031-05-07'
+  to: '2031-05-07'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2031
+  from: '2031-06-05'
+  to: '2031-06-05'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2031
+  from: '2031-10-30'
+  to: '2031-10-30'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2032
+  from: '2032-04-25'
+  to: '2032-04-25'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2032
+  from: '2032-10-18'
+  to: '2032-10-18'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2033
+  from: '2033-04-14'
+  to: '2033-04-14'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2033
+  from: '2033-10-08'
+  to: '2033-10-08'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2034
+  from: '2034-04-03'
+  to: '2034-04-03'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2034
+  from: '2034-09-28'
+  to: '2034-09-28'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2035
+  from: '2035-02-22'
+  to: '2035-02-22'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2035
+  from: '2035-08-19'
+  to: '2035-08-19'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2036
+  from: '2036-02-11'
+  to: '2036-02-11'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2036
+  from: '2036-08-07'
+  to: '2036-08-07'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2037
+  from: '2037-01-31'
+  to: '2037-01-31'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2037
+  from: '2037-07-27'
+  to: '2037-07-27'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2038
+  from: '2038-01-21'
+  to: '2038-01-21'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2038
+  from: '2038-06-17'
+  to: '2038-06-17'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2038
+  from: '2038-07-16'
+  to: '2038-07-16'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2038
+  from: '2038-12-11'
+  to: '2038-12-11'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2039
+  from: '2039-06-06'
+  to: '2039-06-06'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2039
+  from: '2039-11-30'
+  to: '2039-11-30'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2040
+  from: '2040-05-26'
+  to: '2040-05-26'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2040
+  from: '2040-11-18'
+  to: '2040-11-18'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2041
+  from: '2041-05-16'
+  to: '2041-05-16'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2041
+  from: '2041-11-08'
+  to: '2041-11-08'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2042
+  from: '2042-04-05'
+  to: '2042-04-05'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2042
+  from: '2042-09-29'
+  to: '2042-09-29'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2043
+  from: '2043-03-25'
+  to: '2043-03-25'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2043
+  from: '2043-09-19'
+  to: '2043-09-19'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2044
+  from: '2044-03-13'
+  to: '2044-03-13'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2044
+  from: '2044-09-07'
+  to: '2044-09-07'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2045
+  from: '2045-03-03'
+  to: '2045-03-03'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2045
+  from: '2045-08-27'
+  to: '2045-08-27'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2046
+  from: '2046-01-22'
+  to: '2046-01-22'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2046
+  from: '2046-07-18'
+  to: '2046-07-18'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2047
+  from: '2047-01-12'
+  to: '2047-01-12'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2047
+  from: '2047-07-07'
+  to: '2047-07-07'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2048
+  from: '2048-01-01'
+  to: '2048-01-01'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2048
+  from: '2048-06-26'
+  to: '2048-06-26'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2048
+  from: '2048-12-20'
+  to: '2048-12-20'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2049
+  from: '2049-05-17'
+  to: '2049-05-17'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2049
+  from: '2049-06-15'
+  to: '2049-06-15'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2049
+  from: '2049-11-09'
+  to: '2049-11-09'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2050
+  from: '2050-05-06'
+  to: '2050-05-06'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2050
+  from: '2050-10-30'
+  to: '2050-10-30'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2051
+  from: '2051-04-26'
+  to: '2051-04-26'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2051
+  from: '2051-10-19'
+  to: '2051-10-19'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2052
+  from: '2052-04-14'
+  to: '2052-04-14'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2052
+  from: '2052-10-08'
+  to: '2052-10-08'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2053
+  from: '2053-03-04'
+  to: '2053-03-04'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2054
+  from: '2054-02-22'
+  to: '2054-02-22'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2054
+  from: '2054-08-18'
+  to: '2054-08-18'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2055
+  from: '2055-02-11'
+  to: '2055-02-11'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2055
+  from: '2055-08-07'
+  to: '2055-08-07'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2056
+  from: '2056-02-01'
+  to: '2056-02-01'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2056
+  from: '2056-06-27'
+  to: '2056-06-27'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2056
+  from: '2056-07-26'
+  to: '2056-07-26'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2056
+  from: '2056-12-22'
+  to: '2056-12-22'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2057
+  from: '2057-06-17'
+  to: '2057-06-17'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2057
+  from: '2057-12-11'
+  to: '2057-12-11'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2058
+  from: '2058-06-06'
+  to: '2058-06-06'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2058
+  from: '2058-11-30'
+  to: '2058-11-30'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2059
+  from: '2059-05-27'
+  to: '2059-05-27'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2059
+  from: '2059-11-19'
+  to: '2059-11-19'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2060
+  from: '2060-04-15'
+  to: '2060-04-15'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2060
+  from: '2060-10-09'
+  to: '2060-10-09'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2060
+  from: '2060-11-08'
+  to: '2060-11-08'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2061
+  from: '2061-04-04'
+  to: '2061-04-04'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2061
+  from: '2061-09-29'
+  to: '2061-09-29'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2062
+  from: '2062-03-25'
+  to: '2062-03-25'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2062
+  from: '2062-09-18'
+  to: '2062-09-18'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2063
+  from: '2063-03-14'
+  to: '2063-03-14'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2063
+  from: '2063-09-07'
+  to: '2063-09-07'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2064
+  from: '2064-02-02'
+  to: '2064-02-02'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2064
+  from: '2064-07-28'
+  to: '2064-07-28'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2065
+  from: '2065-01-22'
+  to: '2065-01-22'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2065
+  from: '2065-07-17'
+  to: '2065-07-17'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2066
+  from: '2066-01-11'
+  to: '2066-01-11'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2066
+  from: '2066-07-07'
+  to: '2066-07-07'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2066
+  from: '2066-12-31'
+  to: '2066-12-31'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2067
+  from: '2067-05-28'
+  to: '2067-05-28'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2067
+  from: '2067-06-27'
+  to: '2067-06-27'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2067
+  from: '2067-11-21'
+  to: '2067-11-21'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2068
+  from: '2068-05-17'
+  to: '2068-05-17'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2068
+  from: '2068-11-09'
+  to: '2068-11-09'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2069
+  from: '2069-05-06'
+  to: '2069-05-06'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2069
+  from: '2069-10-30'
+  to: '2069-10-30'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2070
+  from: '2070-10-19'
+  to: '2070-10-19'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2071
+  from: '2071-03-16'
+  to: '2071-03-16'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2071
+  from: '2071-09-09'
+  to: '2071-09-09'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2072
+  from: '2072-03-04'
+  to: '2072-03-04'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2072
+  from: '2072-08-28'
+  to: '2072-08-28'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2073
+  from: '2073-02-22'
+  to: '2073-02-22'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2073
+  from: '2073-08-17'
+  to: '2073-08-17'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2074
+  from: '2074-02-11'
+  to: '2074-02-11'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2074
+  from: '2074-07-08'
+  to: '2074-07-08'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2074
+  from: '2074-08-07'
+  to: '2074-08-07'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2075
+  from: '2075-01-02'
+  to: '2075-01-02'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2075
+  from: '2075-06-28'
+  to: '2075-06-28'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2075
+  from: '2075-12-22'
+  to: '2075-12-22'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2076
+  from: '2076-06-17'
+  to: '2076-06-17'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2076
+  from: '2076-12-10'
+  to: '2076-12-10'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2077
+  from: '2077-06-06'
+  to: '2077-06-06'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2077
+  from: '2077-11-29'
+  to: '2077-11-29'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2078
+  from: '2078-04-27'
+  to: '2078-04-27'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2078
+  from: '2078-10-21'
+  to: '2078-10-21'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2078
+  from: '2078-11-19'
+  to: '2078-11-19'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2079
+  from: '2079-04-16'
+  to: '2079-04-16'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2079
+  from: '2079-10-10'
+  to: '2079-10-10'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2080
+  from: '2080-04-04'
+  to: '2080-04-04'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2080
+  from: '2080-09-29'
+  to: '2080-09-29'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2081
+  from: '2081-03-25'
+  to: '2081-03-25'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2081
+  from: '2081-09-18'
+  to: '2081-09-18'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2083
+  from: '2083-02-02'
+  to: '2083-02-02'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2083
+  from: '2083-07-29'
+  to: '2083-07-29'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2084
+  from: '2084-01-22'
+  to: '2084-01-22'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2084
+  from: '2084-07-17'
+  to: '2084-07-17'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2085
+  from: '2085-01-10'
+  to: '2085-01-10'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2085
+  from: '2085-06-08'
+  to: '2085-06-08'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2085
+  from: '2085-07-07'
+  to: '2085-07-07'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2085
+  from: '2085-12-01'
+  to: '2085-12-01'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2086
+  from: '2086-05-28'
+  to: '2086-05-28'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2087
+  from: '2087-05-17'
+  to: '2087-05-17'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2087
+  from: '2087-11-10'
+  to: '2087-11-10'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2088
+  from: '2088-05-05'
+  to: '2088-05-05'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2088
+  from: '2088-10-30'
+  to: '2088-10-30'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2089
+  from: '2089-03-26'
+  to: '2089-03-26'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2089
+  from: '2089-09-19'
+  to: '2089-09-19'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2090
+  from: '2090-03-15'
+  to: '2090-03-15'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2090
+  from: '2090-09-08'
+  to: '2090-09-08'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2091
+  from: '2091-03-05'
+  to: '2091-03-05'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2091
+  from: '2091-08-29'
+  to: '2091-08-29'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2092
+  from: '2092-02-23'
+  to: '2092-02-23'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2092
+  from: '2092-07-19'
+  to: '2092-07-19'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2092
+  from: '2092-08-17'
+  to: '2092-08-17'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2093
+  from: '2093-01-12'
+  to: '2093-01-12'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2093
+  from: '2093-07-08'
+  to: '2093-07-08'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2094
+  from: '2094-01-01'
+  to: '2094-01-01'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2094
+  from: '2094-06-28'
+  to: '2094-06-28'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2094
+  from: '2094-12-21'
+  to: '2094-12-21'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2095
+  from: '2095-06-17'
+  to: '2095-06-17'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2095
+  from: '2095-12-11'
+  to: '2095-12-11'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2096
+  from: '2096-05-07'
+  to: '2096-05-07'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2096
+  from: '2096-06-06'
+  to: '2096-06-06'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2096
+  from: '2096-10-31'
+  to: '2096-10-31'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2096
+  from: '2096-11-29'
+  to: '2096-11-29'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2097
+  from: '2097-04-26'
+  to: '2097-04-26'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2097
+  from: '2097-10-21'
+  to: '2097-10-21'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2098
+  from: '2098-04-15'
+  to: '2098-04-15'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2098
+  from: '2098-10-10'
+  to: '2098-10-10'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2099
+  from: '2099-04-05'
+  to: '2099-04-05'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2100
+  from: '2100-02-24'
+  to: '2100-02-24'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+- type: event
+  year: 2100
+  from: '2100-08-19'
+  to: '2100-08-19'
+  precision: exact
+  ics: true
+  name: Mondfinsternis
+  source_urls:
+  - https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+source:
+  url: https://eclipse.gsfc.nasa.gov/LEcat5/LE2001-2100.html
+  license: official_par5
+  retrieved_at: '2026-07-25'
+  extraction: llm

@@ -6,7 +6,7 @@ kmk.org/service/ferien.html. erwartet.yaml steht fuer eine aufgezeichnete
 Modell-Antwort (zwei Bundeslaender, um den Subjekt-Split-Mechanismus zu
 testen) - in den meisten Tests hier per monkeypatch von
 generic_source.extract_subjects direkt geliefert; das testet den generischen
-Engine-Vertrag, den Store-Merge (inkl. replace_key-Semantik) und die echte
+Engine-Vertrag, den Store-Merge (window_key-Semantik) und die echte
 Zod-Validierung, nicht die Extraktion selbst. Der echte LLM-Aufruf-Pfad
 (core.extraction.call_llm -> JSON-Parsing -> Subjekt-/Typ-Mapping) wird
 separat gemockt getestet, wie in tests/test_extraction.py."""
@@ -54,7 +54,6 @@ def test_extract_liefert_ein_ergebnis_pro_subjekt(monkeypatch, config, raw_sampl
     assert len({e.datei_pfad for e in results}) == 2
     for result in results:
         assert result.subjekt["category"] == "schulferien"
-        assert result.replace_key == ("type", "year")
         assert result.quelle["extraction"] == "llm"
         assert result.quelle["url"] == "https://www.kmk.org/service/ferien.html"
         assert "2028" in result.quelle["license_note"]
@@ -149,7 +148,7 @@ def test_store_merge_und_echte_zod_validierung(monkeypatch, tmp_path, config, ra
             ergebnis.subjekt["slug"],
             ergebnis.subjekt["category"],
         )
-        store.merge_zeitfenster(datei, ergebnis.zeitfenster, ergebnis.replace_key)
+        store.merge_zeitfenster(datei, ergebnis.zeitfenster)
         store.append_quelle(datei, ergebnis.quelle)
 
         validate.pruefe_subjekt_datei(datei)  # wirft ValidationError bei ungueltiger Form
@@ -167,10 +166,11 @@ def test_store_merge_und_echte_zod_validierung(monkeypatch, tmp_path, config, ra
     assert (tmp_path / "schulferien" / "by" / "data.yaml").exists()
 
 
-def test_replace_key_ersetzt_statt_zu_duplizieren(monkeypatch, tmp_path, config, raw_sample, erwartete_subjekte):
-    """Zweiter Lauf fuer dasselbe Jahr darf keine Duplikate erzeugen - das ist
-    der ganze Sinn von replace_key=("type", "year"). Also covers append_quelle's
-    URL dedup: re-running the same source must not grow "sources"."""
+def test_ein_zweiter_lauf_erzeugt_keine_duplikate(monkeypatch, tmp_path, config, raw_sample, erwartete_subjekte):
+    """Zweiter Lauf fuer dasselbe Jahr darf keine Duplikate erzeugen - jedes
+    Fenster hat denselben window_key wie beim ersten Lauf. Also covers
+    append_quelle's URL dedup: re-running the same source must not grow
+    "sources"."""
     monkeypatch.setattr(generic_source, "extract_subjects", lambda text, hint: erwartete_subjekte)
     monkeypatch.setattr(generic_source, "DATA_ROOT", tmp_path)
 
@@ -182,7 +182,7 @@ def test_replace_key_ersetzt_statt_zu_duplizieren(monkeypatch, tmp_path, config,
                 ergebnis.subjekt["slug"],
                 ergebnis.subjekt["category"],
             )
-            store.merge_zeitfenster(datei, ergebnis.zeitfenster, ergebnis.replace_key)
+            store.merge_zeitfenster(datei, ergebnis.zeitfenster)
             store.append_quelle(datei, ergebnis.quelle)
             store.speichere(ergebnis.datei_pfad, datei)
 
@@ -246,7 +246,6 @@ class TestExtractSeason:
         assert len({e.datei_pfad for e in results}) == 2
         for result in results:
             assert result.subjekt["category"] == "saisonkalender"
-            assert result.replace_key == ("type",)
             assert result.quelle["extraction"] == "llm"
             assert result.quelle["url"] == "https://example.invalid/saisonkalender.pdf"
 
@@ -310,7 +309,7 @@ class TestExtractSeason:
                 ergebnis.subjekt["slug"],
                 ergebnis.subjekt["category"],
             )
-            store.merge_zeitfenster(datei, ergebnis.zeitfenster, ergebnis.replace_key)
+            store.merge_zeitfenster(datei, ergebnis.zeitfenster)
             store.append_quelle(datei, ergebnis.quelle)
 
             validate.pruefe_subjekt_datei(datei)  # wirft ValidationError bei ungueltiger Form

@@ -39,3 +39,9 @@ pipeline/staging/
 .claude/
 
 PLAN.md
+
+# SSH deploy keypair for the gh-pages push - private key, never commit it.
+# Untracked but unignored is one `git add -A` away from being published, and
+# a key in history survives `git rm` (it needs filter-repo/BFG to remove).
+gh-pages-deploy
+gh-pages-deploy.pub

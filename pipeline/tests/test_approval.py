@@ -81,8 +81,9 @@ def test_second_window_for_the_same_subject_merges_instead_of_replacing(_isolate
 
 def test_same_type_and_name_on_a_different_date_is_kept_as_its_own_window(_isolate_data_root):
     """The eclipse regression: a source whose windows all share one generic
-    type ("event", "Sonnenfinsternis") - with replace_key=("type",) every
-    approval replaced the previous one, so 151 approvals left 1 window."""
+    type ("event", "Sonnenfinsternis") - under an identity of just ("type",)
+    every approval replaced the previous one, so 151 approvals left 1
+    window. window_key separates them by date."""
     approval.write_event("wissenschaft", "finsternisse", "Finsternisse", VALID_EVENT, VALID_QUELLE)
     path = approval.write_event(
         "wissenschaft", "finsternisse", "Finsternisse",
@@ -94,7 +95,12 @@ def test_same_type_and_name_on_a_different_date_is_kept_as_its_own_window(_isola
     assert [w["from"] for w in datei["windows"]] == ["2026-08-15", "2027-08-02"]
 
 
-def test_a_corrected_end_date_replaces_the_earlier_window(_isolate_data_root):
+def test_a_corrected_end_date_lands_as_its_own_window(_isolate_data_root):
+    """`to` is part of window_key, so an amended end date is a NEW window
+    rather than an in-place replacement. That is what review always
+    believed - the old content_hash included `to`, so an amended end date
+    already came back as a fresh candidate - and the merge now agrees.
+    Removing the superseded one is a hand-edit of data.yaml."""
     approval.write_event("wissenschaft", "finsternisse", "Finsternisse", VALID_EVENT, VALID_QUELLE)
     path = approval.write_event(
         "wissenschaft", "finsternisse", "Finsternisse",
@@ -102,5 +108,4 @@ def test_a_corrected_end_date_replaces_the_earlier_window(_isolate_data_root):
     )
 
     datei = yaml.safe_load(path.read_text(encoding="utf-8"))
-    assert len(datei["windows"]) == 1
-    assert datei["windows"][0]["to"] == "2026-08-17"
+    assert sorted(w["to"] for w in datei["windows"]) == ["2026-08-15", "2026-08-17"]

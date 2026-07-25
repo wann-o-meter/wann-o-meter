@@ -30,7 +30,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from dotenv import load_dotenv
 
-from core import approval, crawl_config, crawl_runner, review_state, staging
+from core import approval, crawl_config, crawl_runner, review_state, staging, store, validate
+from core.extraction import ExtractionError, suggest_tags
 from harvest import registry as harvest_registry
 
 # Must stay in sync with lib/schema.ts's lizenzSchema (the "value" fields
@@ -118,6 +119,19 @@ app = FastAPI(title="Wann-Plattform Admin")
 app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 
+# Exposed as globals rather than passed per route, so _base.html can render
+# every <datalist> once and EVERY form gets them - the three copies these
+# replace lived in three templates, which is why the crawl-source edit row
+# had category suggestions but the page-title and page-slug fields beside it
+# silently had none. Read straight from disk on each render, same philosophy
+# as _list_created_pages(); this is a local admin tool, not a hot path.
+templates.env.globals.update(
+    all_categories=lambda: _category_suggestions(),
+    all_tags=lambda: _all_tags(),
+    all_page_titles=lambda: sorted({p["title"] for p in _list_created_pages()}),
+    all_page_slugs=lambda: sorted({p["slug"] for p in _list_created_pages()}),
+)
+
 # Backs the site's dynamic /{category-path}/{slug}/ routes (lib/pages.ts
 # reads the same tree via `join(process.cwd(), "data")` from the repo root,
 # src/pages/[...path].astro renders it). A category can nest up to
@@ -144,12 +158,17 @@ RESERVED_AT_ANY_DEPTH = {"tag"}
 # Must stay in sync with lib/pages-schema.ts's MAX_CATEGORY_DEPTH.
 MAX_CATEGORY_DEPTH = 4
 
-# Allowlist for /pages/{full_path}/delete's return_to - the only pages that
-# render its Delete button (see _pages_table.html), matched exactly rather
-# than blocklisted, so no "starts with a single /" style check has to
-# anticipate every open-redirect trick (protocol-relative "//", backslash
-# variants a browser treats the same way, etc).
-_SAFE_RETURN_TO = re.compile(r"^/(?:crawl-sources|review)(?:/[^/]+)?/?$")
+# Allowlist for /pages/{full_path}/delete's return_to - the pages that render
+# its Delete button (see _pages_table.html), matched exactly rather than
+# blocklisted, so no "starts with a single /" style check has to anticipate
+# every open-redirect trick (protocol-relative "//", backslash variants a
+# browser treats the same way, etc).
+#
+# "/" is the dashboard, which includes _pages_table.html too - leaving it out
+# didn't fail closed in a visible way, it silently bounced every delete from
+# the dashboard to /crawl-sources. Adding a page that renders the table means
+# adding it here.
+_SAFE_RETURN_TO = re.compile(r"^/$|^/(?:crawl-sources|review)(?:/[^/]+)?/?$")
 
 
 def _slugify(text: str) -> str:
@@ -424,13 +443,23 @@ def _pending_candidates_for(source_id: str) -> List[dict]:
     candidates_dir = staging.STAGING_ROOT / source_id / run_ts / "candidates"
     if not candidates_dir.exists():
         return []
-    decisions = review_state.load(source_id)["decisions"]
+    state = review_state.load(source_id)
     pending = []
     for path in sorted(candidates_dir.glob("*.yaml")):
         candidate = yaml.safe_load(path.read_text(encoding="utf-8"))
-        if candidate["content_hash"] not in decisions:
-            candidate["run_ts"] = run_ts
-            pending.append(candidate)
+        category = _target_category_for(candidate)
+        slug = candidate["subject_slug"]
+        # Same two lookups core/review_state.diff() makes, and in the same
+        # order - the page is the record, the rejected set is the negative.
+        # These have to agree: this is a SECOND implementation of "is it
+        # pending", and if it drifted the UI would offer rows a run would
+        # wave straight through.
+        if review_state.already_approved(category, slug, candidate["event"]):
+            continue
+        if review_state.is_rejected(state, slug, candidate["event"]):
+            continue
+        candidate["run_ts"] = run_ts
+        pending.append(candidate)
     return pending
 
 
@@ -525,13 +554,75 @@ def _highlight_dates(text: str, dates: List[Optional[str]]) -> str:
     return re.sub("(" + "|".join(patterns) + ")", r"<mark>\1</mark>", escaped)
 
 
-def _all_disappeared() -> List[dict]:
-    out = []
-    for source_id in _known_source_ids():
-        disappeared = review_state.load(source_id)["disappeared"]
-        for content_hash, entry in disappeared.items():
-            out.append({"source_id": source_id, "content_hash": content_hash, **entry})
-    return out
+def _date_variants(date: Optional[str]) -> List[str]:
+    """Every spelling of one date the review UI knows how to look for - the
+    ISO string plus _human_date_variant's rendering. Shared so the
+    single-candidate highlight and the whole-document one can never drift
+    into finding different things on the same page."""
+    if not date:
+        return []
+    variants = [date]
+    human = _human_date_variant(date)
+    if human:
+        variants.append(human)
+    return variants
+
+
+def _highlight_candidates(text: str, candidates: List[dict], source_id: str) -> str:
+    """Escapes `text`, then turns every date belonging to a still-pending
+    candidate into a selectable checkbox in place.
+
+    This is what makes a 200-row date table reviewable: the rows are already
+    in front of you in their real context, so selecting the wrong ones and
+    acting on them shouldn't mean finding them again in a separate list. One
+    click selects a date, several clicks select several, and the bar at the
+    bottom approves or rejects the whole selection - single and bulk are the
+    same gesture, not two screens.
+
+    ponytail: a <label> wrapping a hidden checkbox, so selection needs no JS
+    at all - the browser does it. The only script on the page keeps the
+    counter and the disabled state honest. The checkbox name and value match
+    /review's table exactly, so both post to the same bulk route.
+
+    Longest-first alternation matters: "1901 Jan 07" and a bare "1901" would
+    otherwise let the shorter pattern win and swallow the row. A date shared
+    by two candidates selects the first - they are duplicates of each other,
+    and review is per page now, so approving one clears both."""
+    escaped = html.escape(text)
+    by_pattern: Dict[str, dict] = {}
+    for candidate in candidates:
+        event = candidate.get("event") or {}
+        for date in (event.get("from"), event.get("to")):
+            for variant in _date_variants(date):
+                by_pattern.setdefault(html.escape(variant), candidate)
+    if not by_pattern:
+        return escaped
+
+    def _hit(match: re.Match) -> str:
+        candidate = by_pattern[match.group(0)]
+        candidate_id = html.escape(candidate["candidate_id"])
+        name = html.escape(str((candidate.get("event") or {}).get("name") or ""))
+        base = f"/review/{html.escape(source_id)}/{candidate_id}"
+        return (
+            f'<label class="date-hit" title="{name}">'
+            f'<input type="checkbox" name="selected" value="{html.escape(source_id)}/{candidate_id}">'
+            f'<span>{match.group(0)}</span>'
+            f'<a class="date-edit" href="{base}" title="Open this one on its own to edit it">&#9998;</a>'
+            # formaction, not a nested <form> - HTML forbids nesting, and this
+            # button lives inside the bulk form that wraps the whole document.
+            # It re-points just this submit at the single-candidate route,
+            # which picks up the form's return_to=document and comes straight
+            # back here. formnovalidate so an empty license can't block it: a
+            # rejection writes nothing and needs none.
+            f'<button type="submit" class="date-reject" formaction="{base}/reject" '
+            f'formnovalidate title="Reject this one now">&#10005;</button>'
+            "</label>"
+        )
+
+    alternation = "|".join(re.escape(p) for p in sorted(by_pattern, key=len, reverse=True))
+    return re.sub(alternation, _hit, escaped)
+
+
 
 
 def _load_candidate(source_id: str, run_ts: str, candidate_id: str) -> Optional[dict]:
@@ -571,16 +662,33 @@ def _run_crawl_source_and_record(source_id: str) -> None:
 
 @app.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
+    """The published pages - the end of the Sources -> Review -> Pages
+    pipeline, and the thing an operator actually comes back to look at. The
+    harvest registry used to share this page, which made the landing screen
+    a mix of two unrelated concerns; it has /harvest to itself now."""
     return templates.TemplateResponse(request, "dashboard.html", {
-        "active_nav": "harvest",
+        "active_nav": "pages",
         "state": state.to_dict(),
-        "harvest_registries": _harvest_registry_status(),
         "pages": _list_created_pages(),
         "license_options": LICENSE_OPTIONS,
         "category_suggestions": _category_suggestions(),
         "tag_suggestions": _all_tags(),
         "review_queue_count": len(_review_queue()),
-        "disappeared_count": len(_all_disappeared()),
+    })
+
+
+@app.get("/harvest", response_class=HTMLResponse)
+async def harvest_view(request: Request):
+    """Stage 1 of the entity-first harvest pipeline (see harvest/cli.py) -
+    fetches a known entity class's registry into pipeline/data/registries/.
+    Stages 2-7 don't exist yet, so nothing downstream consumes it: its one
+    designed bridge into the crawler (registry.load_registry_domains) has no
+    caller. Kept and given its own page rather than mixed into the pages
+    dashboard, so the pipeline nav reads as the pipeline."""
+    return templates.TemplateResponse(request, "harvest.html", {
+        "active_nav": "harvest",
+        "state": state.to_dict(),
+        "harvest_registries": _harvest_registry_status(),
     })
 
 
@@ -773,14 +881,186 @@ async def create_crawl_source(
     return RedirectResponse("/crawl-sources", status_code=303)
 
 
+def _as_quelle_list(datei: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """lib/pages-schema.ts accepts `source` as either a bare object or a
+    list; store.append_quelle only handles the list. Every page written
+    before that list form existed still has the object on disk, so
+    normalizing here is what makes merging a real page work rather than
+    raising AttributeError halfway through."""
+    quellen = datei.get("source") or []
+    return [quellen] if isinstance(quellen, dict) else list(quellen)
+
+
+def _migrate_page_folder(old_folder: Path, new_folder: Path, slug: str, category: str) -> Optional[str]:
+    """Folds data/{old_category}/{old_slug}/ into data/{category}/{slug}/,
+    returning why it couldn't be (nothing written) or None on success.
+
+    One code path, no move-vs-merge branch: store.lade_oder_erstelle yields
+    an empty skeleton when the target doesn't exist yet, so a plain move is
+    just a merge into an empty file. merge_zeitfenster then does the real
+    work - the same window from both sources keeps one entry and unions its
+    citations, a different date range replaces - which is precisely the
+    aggregation CrawlSource.subject_slug exists to enable.
+
+    A missing old folder is success, not an error: a source's configured
+    target can name a page it never actually wrote (nothing approved yet, or
+    a config that drifted away from where its approvals really landed)."""
+    old_data = old_folder / "data.yaml"
+    if not old_data.exists():
+        return None
+
+    old_datei = yaml.safe_load(old_data.read_text(encoding="utf-8")) or {}
+    datei = store.lade_oder_erstelle(new_folder / "data.yaml", slug, category)
+    datei["source"] = _as_quelle_list(datei)
+
+    store.merge_zeitfenster(datei, old_datei.get("windows") or [])
+    for quelle in _as_quelle_list(old_datei):
+        store.append_quelle(datei, quelle)
+    # The moved windows keep their source_urls, and pageDataSchema's
+    # superRefine fails the site build if one of those isn't in source[] -
+    # so carrying the citations over is required, not politeness. Rewriting
+    # subject also repairs a file whose slug no longer matches its folder.
+    datei["subject"] = {"slug": slug, "category": category}
+
+    try:
+        validate.pruefe_subjekt_datei(datei)
+    except validate.ValidationError as e:
+        return f"The merged page would be invalid, nothing written:\n{e}"
+
+    store.speichere(new_folder / "data.yaml", datei)
+    # Copied rather than store.schreibe_page_yaml_falls_neu'd: that would
+    # write a bare title and drop the description/tags a human set here. An
+    # existing target page.yaml wins - it's the one already on the site.
+    if not (new_folder / "page.yaml").exists() and (old_folder / "page.yaml").exists():
+        shutil.copy(old_folder / "page.yaml", new_folder / "page.yaml")
+    shutil.rmtree(old_folder)
+    return None
+
+
+@app.post("/crawl-sources/{source_id}/edit")
+async def edit_crawl_source(
+    source_id: str,
+    category: str = Form(...),
+    subject_slug: str = Form(...),
+    subject_name: str = Form(""),
+    event_type_hint: str = Form(""),
+):
+    """Changes where a crawl source writes - data/{category}/{subject_slug}/ -
+    and migrates everything that already points at the old location, so
+    aggregating two sources into one page costs no re-review.
+
+    Editing these after creation is the whole point: subject_slug is how
+    several sources aggregate (see CrawlSource.subject_slug), but it could
+    only ever be set at create time, and getting it wrong meant living with
+    a split page or re-approving every candidate by hand.
+
+    Three things move together:
+      - the config file, rewritten in place so untouched fields survive;
+      - the data folder, moved or merged into the target page - this is the
+        migration, because data.yaml IS the record of what is approved;
+      - the rejected set, re-pointed at the new slug (review_state.repoint).
+
+    Moving the folder used to be the easy half: the approved set also lived
+    in review-state under a hash that included the slug, so a slug change
+    orphaned every decision and had to re-hash them all, with a guard for
+    when that failed. None of that exists now - the windows travel with the
+    folder, and the rejections are a field rewrite that cannot fail.
+
+    ponytail: no transaction log. Everything that can fail is checked before
+    the first write, and only THIS source is locked out while running -
+    another source writing into the same folder concurrently isn't."""
+    sources = crawl_config.load_all_crawl_sources()
+    source = sources.get(source_id)
+    if source is None:
+        return HTMLResponse("Not found", status_code=404)
+    if source_id in state.running_sources:
+        return HTMLResponse("This source is currently running - wait for it to finish first.", status_code=409)
+
+    category_path = "/".join(_slugify_category_path(category))
+    validation_error = _validate_category_segments(category_path.split("/") if category_path else [])
+    if validation_error:
+        return HTMLResponse(validation_error, status_code=400)
+
+    raw = yaml.safe_load(source.config_path.read_text(encoding="utf-8")) or {}
+    raw.update({
+        "category": category_path,
+        # Deliberately NOT _slugify'd, unlike the create route: on an edit
+        # the operator is matching another source's slug character for
+        # character, and silently rewriting a typo into a valid-but-different
+        # slug would quietly create a third page instead of saying so.
+        # _parse's _SLUG_RE is the validator.
+        "subject_slug": subject_slug.strip(),
+        "subject_name": subject_name.strip(),
+        "event_type_hint": event_type_hint.strip(),
+    })
+    try:
+        parsed = crawl_config._parse(raw, source.config_path)
+    except crawl_config.CrawlConfigError as e:
+        return HTMLResponse(str(e), status_code=400)
+
+    if (category_path, parsed.subject_slug) != (source.category, source.subject_slug):
+        old_folder = DATA_ROOT / source.category / source.subject_slug
+        new_folder = DATA_ROOT / category_path / parsed.subject_slug
+        error = _migrate_page_folder(old_folder, new_folder, parsed.subject_slug, category_path)
+        if error:
+            return HTMLResponse(error, status_code=400)
+
+        review_state.save(source_id, review_state.repoint(review_state.load(source_id), parsed.subject_slug))
+        # Staged candidates carry the OLD category+slug, so the queue would
+        # look them up against a page that no longer holds them and offer
+        # every one again. staging/ is gitignored working state the next run
+        # rebuilds, so dropping it is cheaper than rewriting each candidate.
+        shutil.rmtree(staging.STAGING_ROOT / source_id, ignore_errors=True)
+
+    # ponytail: yaml.dump drops the file's comments - the same way the create
+    # form once flattened a hand-written config. Preserving them needs ruamel;
+    # re-add comments by hand after a UI edit until that's worth a dependency.
+    source.config_path.write_text(yaml.dump(raw, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    return RedirectResponse("/crawl-sources", status_code=303)
+
+
 @app.get("/review", response_class=HTMLResponse)
 async def review_queue_view(request: Request):
     return templates.TemplateResponse(request, "review.html", {
         "active_nav": "review",
         "state": state.to_dict(),
         "queue": _review_queue(),
-        "disappeared": _all_disappeared(),
         "license_options": LICENSE_OPTIONS,
+    })
+
+
+@app.get("/review/{source_id}/document/{doc_hash}", response_class=HTMLResponse)
+async def review_document(request: Request, source_id: str, doc_hash: str):
+    """The whole staged document with every pending date highlighted and
+    rejectable in place - the counterpart to the one-candidate-at-a-time
+    view, for a source that is one big date table. Reviewing 200 rows by
+    stepping through 200 separate pages loses the thing that makes a table
+    readable: its neighbours."""
+    if not _is_known_source_id(source_id) or not _DOC_HASH_RE.match(doc_hash):
+        return HTMLResponse("Not found", status_code=404)
+    run_ts = _latest_run_ts(source_id)
+    documents_dir = staging.STAGING_ROOT / source_id / run_ts / "documents" if run_ts else None
+    doc_path = next((p for p in documents_dir.glob(f"{doc_hash}.*") if p.suffix != ".yaml"), None) if documents_dir and documents_dir.exists() else None
+    if doc_path is None or doc_path.suffix not in (".md", ".ics"):
+        return HTMLResponse("Not found - only text snapshots can be reviewed inline.", status_code=404)
+
+    candidates = [c for c in _pending_candidates_for(source_id) if c["document"] == doc_hash]
+    raw_text = doc_path.read_text(encoding="utf-8")
+    plain_text = _plaintext_from_markdown(raw_text) if doc_path.suffix == ".md" else raw_text
+
+    return templates.TemplateResponse(request, "review_document.html", {
+        "active_nav": "review",
+        "state": state.to_dict(),
+        "source_id": source_id,
+        "doc_hash": doc_hash,
+        "document_meta": staging.read_document_meta(source_id, run_ts, doc_hash),
+        "document_html": _highlight_candidates(plain_text, candidates, source_id),
+        "pending_count": len(candidates),
+        "license_options": LICENSE_OPTIONS,
+        # Shown so it's obvious which page a click here publishes to - the
+        # whole selection lands in one data.yaml.
+        "category": _target_category_for(candidates[0]) if candidates else "",
+        "subject_slug": candidates[0]["subject_slug"] if candidates else "",
     })
 
 
@@ -931,10 +1211,16 @@ def _approve_one(source_id: str, candidate_id: str, category: str, license: str)
         return f"validation failed, nothing written: {e}"
     _write_category_meta_if_new(category)
 
-    target_file = str((approval.DATA_ROOT / category_path / candidate["subject_slug"] / "data.yaml").relative_to(approval.DATA_ROOT.parent))
-    st = review_state.load(source_id)
-    review_state.record_decision(st, candidate["content_hash"], "approved", target_file, candidate["event"])
-    review_state.save(source_id, st)
+    # Normally no review-state write at all: the window is now in data.yaml,
+    # which IS the record of what is approved. The exception is an approval
+    # filed somewhere OTHER than the page this source writes to - the source's
+    # own page then doesn't contain it, so every later run would re-offer it
+    # and the operator would have to re-override the category forever. The
+    # negative set means "don't queue this again", which is exactly true here.
+    if category_path != _target_category_for(candidate):
+        st = review_state.load(source_id)
+        review_state.reject(st, candidate["subject_slug"], candidate["event"])
+        review_state.save(source_id, st)
     return None
 
 
@@ -950,7 +1236,7 @@ def _reject_one(source_id: str, candidate_id: str) -> Optional[str]:
         return "not found - may already have been reviewed"
 
     st = review_state.load(source_id)
-    review_state.record_decision(st, candidate["content_hash"], "rejected", "", candidate["event"])
+    review_state.reject(st, candidate["subject_slug"], candidate["event"])
     review_state.save(source_id, st)
     return None
 
@@ -976,8 +1262,11 @@ async def approve_candidate(
 async def bulk_approve_candidates(
     request: Request,
     selected: List[str] = Form(default=[]),
-    license: str = Form(...),
+    # Not required: a rejection writes no data.yaml, so it has no Quelle to
+    # stamp a license on. The approve branch below still demands a real one.
+    license: str = Form(""),
     action: str = Form("approve"),
+    return_to: str = Form(""),
 ):
     """Approves or rejects every checked row of /review's queue in one POST -
     `action` carries the value of whichever submit button was clicked. Each
@@ -1017,6 +1306,17 @@ async def bulk_approve_candidates(
         else:
             editted += 1
 
+    # return_to="document" comes from the in-document review page, whose
+    # point is staying in one place - it re-renders with the decided dates
+    # gone. Not a URL: the destination is rebuilt from the first selection,
+    # so nothing user-supplied reaches the redirect.
+    if return_to == "document" and selected:
+        source_id, _, candidate_id = selected[0].rpartition("/")
+        run_ts = _latest_run_ts(source_id) if _is_known_source_id(source_id) else None
+        candidate = _load_candidate(source_id, run_ts, candidate_id) if run_ts else None
+        if candidate:
+            return RedirectResponse(f"/review/{source_id}/document/{candidate['document']}", status_code=302)
+
     # Renders the queue directly instead of redirecting to it, so the
     # per-row reasons survive - a redirect could only carry the counts, and
     # "12 approved, 3 failed" without the three reasons is exactly the kind
@@ -1027,7 +1327,6 @@ async def bulk_approve_candidates(
         "active_nav": "review",
         "state": state.to_dict(),
         "queue": _review_queue(),
-        "disappeared": _all_disappeared(),
         "license_options": LICENSE_OPTIONS,
         "bulk_action": "approved" if action == "approve" else "rejected",
         "bulk_done": editted,
@@ -1080,20 +1379,32 @@ async def modify_candidate(
         return HTMLResponse(f"Validation failed, nothing written:\n{e}", status_code=400)
     _write_category_meta_if_new(category)
 
-    target_file = str((approval.DATA_ROOT / category_path / candidate["subject_slug"] / "data.yaml").relative_to(approval.DATA_ROOT.parent))
+    # The correction is already in data.yaml, so it needs no second record.
+    # The ORIGINAL identity does: the source keeps re-extracting it, and
+    # without retiring it the same wrong window would re-queue every run.
     st = review_state.load(source_id)
-    review_state.record_decision(
-        st, candidate["content_hash"], "modified", target_file, candidate["event"], corrected_event=corrected_event
-    )
+    review_state.reject(st, candidate["subject_slug"], candidate["event"])
     review_state.save(source_id, st)
     return _redirect_to_next_review(source_id, candidate_id)
 
 
 @app.post("/review/{source_id}/{candidate_id}/reject")
-async def reject_candidate(source_id: str, candidate_id: str):
+async def reject_candidate(source_id: str, candidate_id: str, return_to: str = Form("")):
+    """return_to="document" comes from the in-document Reject buttons and
+    sends you back to the document you were reading instead of jumping to
+    the next queue item - the whole point of that view is staying in one
+    place. Not a URL, just a flag: the destination is rebuilt from the
+    candidate's own document, so nothing user-supplied reaches the redirect."""
+    candidate = None
+    if return_to == "document":
+        run_ts = _latest_run_ts(source_id)
+        candidate = _load_candidate(source_id, run_ts, candidate_id) if run_ts else None
+
     error = _reject_one(source_id, candidate_id)
     if error:
         return HTMLResponse("Not found - this candidate may already have been reviewed.", status_code=404)
+    if candidate:
+        return RedirectResponse(f"/review/{source_id}/document/{candidate['document']}", status_code=302)
     return _redirect_to_next_review(source_id, candidate_id)
 
 
@@ -1356,6 +1667,36 @@ async def edit_page(
     if not _SAFE_RETURN_TO.match(return_to):
         return_to = "/crawl-sources"
     return RedirectResponse(return_to, status_code=302)
+
+
+@app.get("/pages/{full_path:path}/suggest-tags")
+async def suggest_page_tags(full_path: str):
+    """Tags for an existing page, preferring the vocabulary already in use.
+
+    Operator-triggered rather than stamped at approval time: page.yaml is
+    written once (store.schreibe_page_yaml_falls_neu), so an automatic call
+    would only ever matter for the first candidate of a page while costing
+    an LLM round trip on every other one. suggest_tags has existed since the
+    beginning with no caller at all - _all_tags()'s own docstring already
+    claimed to feed it.
+
+    Returns JSON rather than re-rendering: the pages table fills the tags
+    field in place, so a suggestion can be edited before it is saved. Nothing
+    here writes."""
+    folder = _resolve_page_folder(full_path)
+    if folder is None:
+        return JSONResponse({"error": "Not found"}, status_code=404)
+
+    page = yaml.safe_load((folder / "page.yaml").read_text(encoding="utf-8")) or {}
+    datei = yaml.safe_load((folder / "data.yaml").read_text(encoding="utf-8")) or {}
+    # The windows ARE the page's text - there is no prose to summarise, so
+    # the tag prompt gets what the page actually says.
+    text = "\n".join(str(w.get("name") or "") for w in (datei.get("windows") or [])[:50])
+    try:
+        tags = suggest_tags(text or page.get("title", ""), page.get("title", ""), _all_tags())
+    except ExtractionError as e:
+        return JSONResponse({"error": str(e)}, status_code=502)
+    return JSONResponse({"tags": tags})
 
 
 @app.post("/pages/{full_path:path}/add-tag")

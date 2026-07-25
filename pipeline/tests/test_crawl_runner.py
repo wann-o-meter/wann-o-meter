@@ -39,22 +39,20 @@ def _source(**overrides):
 def _isolate_everything(tmp_path, monkeypatch):
     monkeypatch.setattr(staging, "STAGING_ROOT", tmp_path / "staging")
     monkeypatch.setattr(review_state, "REVIEW_STATE_ROOT", tmp_path / "review-state")
+    monkeypatch.setattr(review_state, "DATA_ROOT", tmp_path / "data")
     monkeypatch.setattr(approval, "DATA_ROOT", tmp_path / "data")
 
 
-def _approve_like_the_review_ui_would(source_id: str, content_hash: str, event: dict, target_file: str) -> None:
-    """Mimics what main.py's POST /review/.../approve does: write the event
-    to data/ via core/approval.py, then record the decision - a fresh
-    candidate is NEVER auto-approved by review_state.diff() on its own (see
-    review_state.py's contract: unknown hash -> needs_review), a human
-    action is what creates the "approved" decision in the first place."""
+def _approve_like_the_review_ui_would(source_id: str, event: dict) -> None:
+    """Mimics what main.py's POST /review/.../approve does - which is now
+    exactly one thing: write the event to data/. The file IS the record of
+    what is approved, so there is no second bookkeeping step. A fresh
+    candidate is never waved through on its own (review_state.diff: not in
+    the file -> needs_review); a human action puts it there."""
     approval.write_event("veranstaltungen", source_id, source_id, event, {
         "url": "https://example.org/events.ics", "license": "tos_checked",
         "retrieved_at": "2026-07-24", "extraction": "llm",
     })
-    state = review_state.load(source_id)
-    review_state.record_decision(state, content_hash, "approved", target_file, event)
-    review_state.save(source_id, state)
 
 
 def test_a_brand_new_candidate_is_queued_for_review_not_written_or_reconfirmed(monkeypatch):
@@ -87,9 +85,7 @@ def test_a_previously_approved_candidate_auto_waves_through_on_a_later_run(monke
         "type": "event", "year": 2026, "from": "2026-08-15", "to": "2026-08-15",
         "precision": "exact", "ics": True, "name": "Stadtfest",
     }
-    from core.content_hash import content_hash, normalize_event
-    hash_ = content_hash(normalize_event(event, "test-source"))
-    _approve_like_the_review_ui_would("test-source", hash_, event, target_file)
+    _approve_like_the_review_ui_would("test-source", event)
 
     result = crawl_runner.run(_source())
 
@@ -98,7 +94,6 @@ def test_a_previously_approved_candidate_auto_waves_through_on_a_later_run(monke
 
     datei = yaml.safe_load(Path(target_file).read_text(encoding="utf-8"))
     assert len(datei["windows"]) == 1
-    assert datei["windows"][0].get("last_verified") is not None
 
 
 def test_new_event_alongside_an_already_approved_one_only_queues_the_new_one(monkeypatch):
@@ -113,9 +108,7 @@ def test_new_event_alongside_an_already_approved_one_only_queues_the_new_one(mon
         "type": "event", "year": 2026, "from": "2026-08-15", "to": "2026-08-15",
         "precision": "exact", "ics": True, "name": "Stadtfest",
     }
-    from core.content_hash import content_hash, normalize_event
-    hash_ = content_hash(normalize_event(event, "test-source"))
-    _approve_like_the_review_ui_would("test-source", hash_, event, target_file)
+    _approve_like_the_review_ui_would("test-source", event)
 
     second_event_ics = (
         "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//test//test//EN\r\n"
@@ -423,3 +416,61 @@ class TestSeveralSourcesAggregateIntoOnePage:
 
         assert shared_hash("nasa-1901-2000") == shared_hash("nasa-2001-2100")
         assert review_state._path_for("nasa-1901-2000") != review_state._path_for("nasa-2001-2100")
+
+
+class TestSuggestedCategory:
+    """suggest_category existed from the start with no caller, so a source
+    created without a typed category fell back to its id - which is derived
+    from the domain, giving pages like "eclipse-gsfc-nasa-gov"."""
+
+    def _docs(self):
+        return [CrawledDocument(
+            url="https://eclipse.invalid/SEcat5",
+            content=b"<html><body>Solar eclipses 1901-2000</body></html>",
+            content_type="text/html",
+        )]
+
+    def test_a_configured_category_is_never_second_guessed(self, monkeypatch):
+        monkeypatch.setattr(crawl_runner, "suggest_category", lambda *a, **k: "should-not-be-called")
+        source = _source(id="nasa", category="astronomie")
+
+        assert crawl_runner._suggested_category(source, self._docs(), "Sonnenfinsternis") == "astronomie"
+
+    def test_the_id_fallback_is_replaced_by_a_suggestion(self, monkeypatch):
+        """category == id is exactly what create_crawl_source writes when the
+        operator types nothing - the case worth guessing for."""
+        monkeypatch.setattr(crawl_runner, "suggest_category", lambda *a, **k: "Astronomie")
+        source = _source(id="eclipse-gsfc-nasa-gov", category="eclipse-gsfc-nasa-gov")
+
+        assert crawl_runner._suggested_category(source, self._docs(), "Sonnenfinsternis") == "Astronomie"
+
+    def test_a_failed_suggestion_falls_back_to_the_configured_value(self, monkeypatch):
+        """A category guess must never be the thing that fails a whole crawl."""
+        def _boom(*a, **k):
+            raise ExtractionError("no API key")
+        monkeypatch.setattr(crawl_runner, "suggest_category", _boom)
+        source = _source(id="nasa", category="nasa")
+
+        assert crawl_runner._suggested_category(source, self._docs(), "Sonnenfinsternis") == "nasa"
+
+    def test_an_empty_suggestion_falls_back_too(self, monkeypatch):
+        monkeypatch.setattr(crawl_runner, "suggest_category", lambda *a, **k: "")
+        source = _source(id="nasa", category="nasa")
+
+        assert crawl_runner._suggested_category(source, self._docs(), "Sonnenfinsternis") == "nasa"
+
+    def test_existing_categories_are_offered_for_reuse(self, tmp_path):
+        """Reuse over fragmentation - the suggester can only prefer an
+        existing category if it is actually told about it."""
+        # One page per nesting depth, plus a page with no category at all -
+        # the category is everything above the slug, whatever the depth, and
+        # a slug sitting directly under data/ has no category to offer.
+        for page in ["astronomie/sonnenfinsternis", "sport/fussball/bundesliga", "a/b/c/seite", "no-category"]:
+            folder = approval.DATA_ROOT / page
+            folder.mkdir(parents=True)
+            (folder / "data.yaml").write_text("{}", encoding="utf-8")
+
+        assert crawl_runner._existing_categories() == ["a/b/c", "astronomie", "sport/fussball"]
+
+    def test_no_data_directory_yet_is_not_an_error(self):
+        assert crawl_runner._existing_categories() == []

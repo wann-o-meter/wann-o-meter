@@ -2,7 +2,7 @@
 back to this whenever a sources.yaml entry has strategie: llm/llm_season and
 no sources/<id>.py module exists - i.e. the common case needs zero
 per-source Python, only a sources.yaml entry (url, extraction_hint,
-replace_key).
+window_key).
 
 Turns one fetched page into however many ExtraktionsErgebnis the LLM
 discovers subjects for (see core/extraction.py's extract_subjects) - this is
@@ -31,7 +31,7 @@ DATA_ROOT = REPO_ROOT / "data"
 
 def extract(config: Dict[str, Any], raw: bytes, params: Dict[str, Any]) -> List[ExtractionResult]:
     """config is the source's sources.yaml entry (kategorie, url, lizenz,
-    extraction_hint, optional replace_key/license_note). `url` and
+    extraction_hint, optional license_note). `url` and
     `extraction_hint` are both `.format(**params)`'d, same templating
     sources.yaml's `url` already used before this module existed."""
     text = decode_text(raw)
@@ -41,7 +41,6 @@ def extract(config: Dict[str, Any], raw: bytes, params: Dict[str, Any]) -> List[
     kategorie = config["kategorie"]
     url = config["url"].format(**params)
     hint = config["extraction_hint"].format(**params)
-    replace_key = tuple(config.get("replace_key", ["type"]))
     jahr = int(params["jahr"]) if "jahr" in params else date.today().year
 
     subjects = extract_subjects(text, hint)
@@ -75,7 +74,6 @@ def extract(config: Dict[str, Any], raw: bytes, params: Dict[str, Any]) -> List[
             datei_pfad=DATA_ROOT / kategorie / slug / "data.yaml",
             zeitfenster=zeitfenster,
             quelle=dict(quelle_basis),
-            replace_key=replace_key,
         ))
     return ergebnisse
 
@@ -98,7 +96,6 @@ def extract_season(config: Dict[str, Any], raw: bytes, params: Dict[str, Any]) -
     kategorie = config["kategorie"]
     url = config["url"].format(**params)
     hint = config["extraction_hint"].format(**params)
-    replace_key = tuple(config.get("replace_key", ["type"]))
 
     scraped = extract_any(url, raw)
     text = scraped.get("clean_markdown_full") or scraped.get("clean_markdown_preview", "")
@@ -140,6 +137,5 @@ def extract_season(config: Dict[str, Any], raw: bytes, params: Dict[str, Any]) -
             datei_pfad=DATA_ROOT / kategorie / slug / "data.yaml",
             zeitfenster=zeitfenster,
             quelle=dict(quelle_basis),
-            replace_key=replace_key,
         ))
     return ergebnisse
