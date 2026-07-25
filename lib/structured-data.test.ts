@@ -11,38 +11,53 @@ describe("graph", () => {
 });
 
 describe("eventNode", () => {
+  const BY = { name: "Bayern", addressRegion: "Bayern", addressCountry: "DE" };
+  const place = {
+    "@type": "Place",
+    name: "Bayern",
+    address: { "@type": "PostalAddress", addressRegion: "Bayern", addressCountry: "DE" },
+  };
+
   it("omits endDate when it equals startDate", () => {
-    expect(eventNode({ name: "Neujahr", startDate: "2027-01-01", endDate: "2027-01-01" })).toEqual({
+    expect(eventNode({ name: "Neujahr", startDate: "2027-01-01", endDate: "2027-01-01", location: BY })).toEqual({
       "@type": "Event",
       name: "Neujahr",
       startDate: "2027-01-01",
+      location: place,
     });
   });
 
   it("includes endDate when it differs from startDate", () => {
-    const node = eventNode({ name: "Sommerferien", startDate: "2027-07-29", endDate: "2027-09-11" });
+    const node = eventNode({ name: "Sommerferien", startDate: "2027-07-29", endDate: "2027-09-11", location: BY });
     expect(node).toMatchObject({ startDate: "2027-07-29", endDate: "2027-09-11" });
   });
 
   it("includes url only when given", () => {
-    expect(eventNode({ name: "X", startDate: "2027-01-01" })).not.toHaveProperty("url");
-    expect(eventNode({ name: "X", startDate: "2027-01-01", url: "/x/" })).toHaveProperty("url", "/x/");
+    expect(eventNode({ name: "X", startDate: "2027-01-01", location: BY })).not.toHaveProperty("url");
+    expect(eventNode({ name: "X", startDate: "2027-01-01", location: BY, url: "/x/" })).toHaveProperty("url", "/x/");
   });
 
   it("includes description/image only when given", () => {
-    const bare = eventNode({ name: "X", startDate: "2027-01-01" });
+    const bare = eventNode({ name: "X", startDate: "2027-01-01", location: BY });
     expect(bare).not.toHaveProperty("description");
     expect(bare).not.toHaveProperty("image");
-    const full = eventNode({ name: "X", startDate: "2027-01-01", description: "d", image: "/og.png" });
+    const full = eventNode({ name: "X", startDate: "2027-01-01", location: BY, description: "d", image: "/og.png" });
     expect(full).toHaveProperty("description", "d");
     expect(full).toHaveProperty("image", "/og.png");
   });
 
-  it("wraps location in a Place node only when given", () => {
-    expect(eventNode({ name: "X", startDate: "2027-01-01" })).not.toHaveProperty("location");
-    expect(eventNode({ name: "X", startDate: "2027-01-01", location: "Bayern" })).toHaveProperty("location", {
+  // Google counts location.address as required alongside location itself -
+  // a Place with only a name is reported as an invalid item in Search Console.
+  it("always emits a Place with a PostalAddress", () => {
+    expect(eventNode({ name: "X", startDate: "2027-01-01", location: BY })).toHaveProperty("location", place);
+  });
+
+  it("omits addressRegion when the place is a whole country", () => {
+    const node = eventNode({ name: "X", startDate: "2027-01-01", location: { name: "Tunesien", addressCountry: "TN" } });
+    expect(node).toHaveProperty("location", {
       "@type": "Place",
-      name: "Bayern",
+      name: "Tunesien",
+      address: { "@type": "PostalAddress", addressCountry: "TN" },
     });
   });
 });

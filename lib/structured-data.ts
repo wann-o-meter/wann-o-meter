@@ -8,6 +8,12 @@ export function graph(nodes: object[]): object {
   return { "@context": "https://schema.org", "@graph": nodes };
 }
 
+export interface EventLocation {
+  name: string; // place name, e.g. "Nordrhein-Westfalen"
+  addressRegion?: string; // omitted when the place IS the country
+  addressCountry: string; // ISO 3166-1 alpha-2
+}
+
 export interface EventInput {
   name: string;
   startDate: string; // ISO date
@@ -15,17 +21,19 @@ export interface EventInput {
   url?: string;
   description?: string;
   image?: string;
-  location?: string; // place name (e.g. a Bundesland) - only set when a real region applies
+  location: EventLocation;
 }
 
 // Deliberately no `eventStatus`/`organizer`/`performer`/`eventAttendanceMode`
 // - those would have to be fabricated (a holiday or bridge-day window has no
 // status, host, or performer), and inventing values is worse than omitting
-// them. `location`/`description`/`image` are included when real data exists
-// (a page's Bundesland, its own description, the site's og-image) - this
-// keeps entries ineligible for Google's Event rich-result carousel (which
-// isn't the target here anyway) but still valid, extractable structured
-// data for answer engines that just want typed name/date facts.
+// them. `location` is required (with an `address`, which Google counts as a
+// required property too - a Place with only a `name` is reported as invalid
+// in Search Console): a page with no real region gets no Event nodes rather
+// than an invented venue. Entries stay ineligible for Google's Event
+// rich-result carousel (which isn't the target here anyway) but are valid,
+// extractable structured data for answer engines that just want typed
+// name/date facts.
 export function eventNode(e: EventInput): object {
   return {
     "@type": "Event",
@@ -35,7 +43,15 @@ export function eventNode(e: EventInput): object {
     ...(e.url ? { url: e.url } : {}),
     ...(e.description ? { description: e.description } : {}),
     ...(e.image ? { image: e.image } : {}),
-    ...(e.location ? { location: { "@type": "Place", name: e.location } } : {}),
+    location: {
+      "@type": "Place",
+      name: e.location.name,
+      address: {
+        "@type": "PostalAddress",
+        ...(e.location.addressRegion ? { addressRegion: e.location.addressRegion } : {}),
+        addressCountry: e.location.addressCountry,
+      },
+    },
   };
 }
 
