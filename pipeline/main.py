@@ -576,6 +576,7 @@ async def dashboard(request: Request):
         "state": state.to_dict(),
         "harvest_registries": _harvest_registry_status(),
         "pages": _list_created_pages(),
+        "license_options": LICENSE_OPTIONS,
         "category_suggestions": _category_suggestions(),
         "tag_suggestions": _all_tags(),
         "review_queue_count": len(_review_queue()),
@@ -905,7 +906,7 @@ def _page_title_for(candidate: dict) -> str:
 def _approve_one(source_id: str, candidate_id: str, category: str, license: str) -> Optional[str]:
     """Approves one candidate, or returns why it couldn't be. Shared by the
     single-candidate route (which turns the message into a 4xx page) and
-    /review/bulk-approve (which collects the messages and reports them as a
+    /review/bulk-edit (which collects the messages and reports them as a
     per-row failure list) - so a bulk run applies exactly the same
     validation, quelle and review-state bookkeeping as approving each row by
     hand, rather than a second, looser copy of it."""
@@ -937,6 +938,23 @@ def _approve_one(source_id: str, candidate_id: str, category: str, license: str)
     return None
 
 
+def _reject_one(source_id: str, candidate_id: str) -> Optional[str]:
+    """Rejects one candidate, or returns why it couldn't be - the reject-side
+    twin of _approve_one, shared by the single-candidate route and the bulk
+    one for the same reason."""
+    if not _is_known_source_id(source_id):
+        return "unknown source"
+    run_ts = _latest_run_ts(source_id)
+    candidate = _load_candidate(source_id, run_ts, candidate_id) if run_ts else None
+    if candidate is None:
+        return "not found - may already have been reviewed"
+
+    st = review_state.load(source_id)
+    review_state.record_decision(st, candidate["content_hash"], "rejected", "", candidate["event"])
+    review_state.save(source_id, st)
+    return None
+
+
 @app.post("/review/{source_id}/{candidate_id}/approve")
 async def approve_candidate(
     source_id: str,
@@ -954,13 +972,15 @@ async def approve_candidate(
     return _redirect_to_next_review(source_id, candidate_id)
 
 
-@app.post("/review/bulk-approve")
+@app.post("/review/bulk-edit")
 async def bulk_approve_candidates(
     request: Request,
     selected: List[str] = Form(default=[]),
     license: str = Form(...),
+    action: str = Form("approve"),
 ):
-    """Approves every checked row of /review's queue in one POST. Each
+    """Approves or rejects every checked row of /review's queue in one POST -
+    `action` carries the value of whichever submit button was clicked. Each
     `selected` value is "<source_id>/<candidate_id>", and each row is
     approved under its own subject_slug as category - the same default the
     single-candidate form prefills, so bulk and one-by-one put a given
@@ -973,23 +993,29 @@ async def bulk_approve_candidates(
     Note the queue is re-read per row (via _approve_one -> _load_candidate),
     so this stays correct if an earlier row's write changes what a later one
     resolves to."""
-    if license not in LICENSE_VALUES:
+    if action not in ("approve", "reject"):
+        return HTMLResponse(f"Invalid action: {action}", status_code=400)
+    # A reject writes no data.yaml, so the license select is irrelevant to it.
+    if action == "approve" and license not in LICENSE_VALUES:
         return HTMLResponse(f"Invalid license: {license}", status_code=400)
 
-    approved, failures = 0, []
+    editted, failures = 0, []
     for value in selected:
         source_id, _, candidate_id = value.rpartition("/")
         if not source_id or not candidate_id:
             failures.append(f"{value}: malformed selection")
             continue
-        candidate = _load_candidate(source_id, _latest_run_ts(source_id), candidate_id) if _is_known_source_id(source_id) else None
-        # Category default matches _candidate_review.html's prefilled field.
-        category = _target_category_for(candidate) if candidate else ""
-        error = _approve_one(source_id, candidate_id, category, license)
+        if action == "reject":
+            error = _reject_one(source_id, candidate_id)
+        else:
+            candidate = _load_candidate(source_id, _latest_run_ts(source_id), candidate_id) if _is_known_source_id(source_id) else None
+            # Category default matches _candidate_review.html's prefilled field.
+            category = _target_category_for(candidate) if candidate else ""
+            error = _approve_one(source_id, candidate_id, category, license)
         if error:
             failures.append(f"{value}: {error}")
         else:
-            approved += 1
+            editted += 1
 
     # Renders the queue directly instead of redirecting to it, so the
     # per-row reasons survive - a redirect could only carry the counts, and
@@ -1003,7 +1029,8 @@ async def bulk_approve_candidates(
         "queue": _review_queue(),
         "disappeared": _all_disappeared(),
         "license_options": LICENSE_OPTIONS,
-        "bulk_approved": approved,
+        "bulk_action": "approved" if action == "approve" else "rejected",
+        "bulk_done": editted,
         "bulk_failures": failures,
     })
 
@@ -1064,16 +1091,9 @@ async def modify_candidate(
 
 @app.post("/review/{source_id}/{candidate_id}/reject")
 async def reject_candidate(source_id: str, candidate_id: str):
-    if not _is_known_source_id(source_id):
-        return HTMLResponse("Not found", status_code=404)
-    run_ts = _latest_run_ts(source_id)
-    candidate = _load_candidate(source_id, run_ts, candidate_id) if run_ts else None
-    if candidate is None:
+    error = _reject_one(source_id, candidate_id)
+    if error:
         return HTMLResponse("Not found - this candidate may already have been reviewed.", status_code=404)
-
-    st = review_state.load(source_id)
-    review_state.record_decision(st, candidate["content_hash"], "rejected", "", candidate["event"])
-    review_state.save(source_id, st)
     return _redirect_to_next_review(source_id, candidate_id)
 
 

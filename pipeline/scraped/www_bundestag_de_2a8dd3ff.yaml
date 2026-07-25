@@ -1,0 +1,76 @@
+kind: html_page
+dates: []
+time_windows: []
+clean_markdown_preview: "Deutscher Bundestag - Wahltermine in Deutschland \nParlament\n\
+  Wahltermine in Deutschland \n(&copy; picture alliance / Zoonar | DesignIt)\n 2026\
+  \     Datum\n Land\n Turnus\n 6. September\n Sachsen-Anhalt\n Landtag\n 5 Jahre\n\
+  \ 20. September\n Berlin\n Abgeordnetenhaus\n 5 Jahre\n 20. September\n Mecklenburg-Vorpommern\n\
+  \ Landtag\n 5 Jahre\n 2027     Datum\n Land\n Turnus\n 30. Januar\n Deutschland\n\
+  \ Bundesversammlung\n 5 Jahre\n 18. April\n Saarland\n Landtag\n 5 Jahre\n 18. April\n\
+  \ Schleswig-Holstein\n Landtag\n 5 Jahre\n 25. April\n Nordrhein-Westfalen\n Landtag\n\
+  \ 5 Jahre\n 30. Mai\n Bremen\n Bürgerschaft\n 4 Jahre\n Herbst\n Niedersachsen\n\
+  \ Landtag\n 5 Jahre\n 2028     Datum\n Land\n Turnus\n Herbst\n Bayern\n Landtag\n\
+  \ 5 Jahre\n Herbst\n Hessen\n Landtag\n 5 Jahre\n 2029     Datum\n Land\n Turnus\n\
+  \ Frühjahr\n alle Bundesländer\n Bundestag\n 4 Jahre\n Frühjahr\n alle Bundesländer\n\
+  \ Europäisches Parlament\n 5 Jahre\n Herbst\n Sachsen\n Landtag\n 5 Jahre\n Herbst\n\
+  \ Thüringen\n Landtag\n 5 Jahre\n Herbst\n Brandenburg\n Landtag\n 5 Jahre\n 2030\
+  \     Datum\n Land\n Turnus\n Frühjahr\n Hamburg\n Bürgerschaft\n 5 Jahre\n 2031\
+  \     Datum\n Land\n Turnus\n Frühjahr\n Baden-Württemberg\n Landtag\n 5 Jahre\n\
+  \ Frühjahr\n Rheinland-Pfalz\n Landtag\n 5 Jahre"
+clean_markdown_full: "Deutscher Bundestag - Wahltermine in Deutschland \nParlament\n\
+  Wahltermine in Deutschland \n(&copy; picture alliance / Zoonar | DesignIt)\n 2026\
+  \     Datum\n Land\n Turnus\n 6. September\n Sachsen-Anhalt\n Landtag\n 5 Jahre\n\
+  \ 20. September\n Berlin\n Abgeordnetenhaus\n 5 Jahre\n 20. September\n Mecklenburg-Vorpommern\n\
+  \ Landtag\n 5 Jahre\n 2027     Datum\n Land\n Turnus\n 30. Januar\n Deutschland\n\
+  \ Bundesversammlung\n 5 Jahre\n 18. April\n Saarland\n Landtag\n 5 Jahre\n 18. April\n\
+  \ Schleswig-Holstein\n Landtag\n 5 Jahre\n 25. April\n Nordrhein-Westfalen\n Landtag\n\
+  \ 5 Jahre\n 30. Mai\n Bremen\n Bürgerschaft\n 4 Jahre\n Herbst\n Niedersachsen\n\
+  \ Landtag\n 5 Jahre\n 2028     Datum\n Land\n Turnus\n Herbst\n Bayern\n Landtag\n\
+  \ 5 Jahre\n Herbst\n Hessen\n Landtag\n 5 Jahre\n 2029     Datum\n Land\n Turnus\n\
+  \ Frühjahr\n alle Bundesländer\n Bundestag\n 4 Jahre\n Frühjahr\n alle Bundesländer\n\
+  \ Europäisches Parlament\n 5 Jahre\n Herbst\n Sachsen\n Landtag\n 5 Jahre\n Herbst\n\
+  \ Thüringen\n Landtag\n 5 Jahre\n Herbst\n Brandenburg\n Landtag\n 5 Jahre\n 2030\
+  \     Datum\n Land\n Turnus\n Frühjahr\n Hamburg\n Bürgerschaft\n 5 Jahre\n 2031\
+  \     Datum\n Land\n Turnus\n Frühjahr\n Baden-Württemberg\n Landtag\n 5 Jahre\n\
+  \ Frühjahr\n Rheinland-Pfalz\n Landtag\n 5 Jahre"
+url: https://www.bundestag.de/parlament/wahlen/wahltermine
+extracted_at: '2026-07-12T23:46:19.827003'
+llm_events:
+- date: '2026-09-06'
+  label: Sachsen-Anhalt Landtagswahl
+- date: '2026-09-20'
+  label: Berlin Abgeordnetenhauswahl
+- date: '2026-09-20'
+  label: Mecklenburg-Vorpommern Landtagswahl
+- date: '2027-01-30'
+  label: Deutschland Bundesversammlung
+- date: '2027-04-18'
+  label: Saarland Landtagswahl
+- date: '2027-04-18'
+  label: Schleswig-Holstein Landtagswahl
+- date: '2027-04-25'
+  label: Nordrhein-Westfalen Landtagswahl
+- date: '2027-05-30'
+  label: Bremen Bürgerschaftswahl
+- date: '2028-01-01'
+  label: Niedersachsen Landtagswahl (Herbst)
+- date: '2028-01-01'
+  label: Bayern Landtagswahl (Herbst)
+- date: '2028-01-01'
+  label: Hessen Landtagswahl (Herbst)
+- date: '2029-01-01'
+  label: alle Bundesländer Bundestagswahl (Frühjahr)
+- date: '2029-01-01'
+  label: alle Bundesländer Europawahl (Frühjahr)
+- date: '2029-01-01'
+  label: Sachsen Landtagswahl (Herbst)
+- date: '2029-01-01'
+  label: Thüringen Landtagswahl (Herbst)
+- date: '2029-01-01'
+  label: Brandenburg Landtagswahl (Herbst)
+- date: '2030-01-01'
+  label: Hamburg Bürgerschaftswahl (Frühjahr)
+- date: '2031-01-01'
+  label: Baden-Württemberg Landtagswahl (Frühjahr)
+- date: '2031-01-01'
+  label: Rheinland-Pfalz Landtagswahl (Frühjahr)

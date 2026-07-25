@@ -1,0 +1,233 @@
+kind: image_page
+dates:
+- APRIL
+- JULI
+- JUNI
+- MAI
+time_windows: []
+clean_markdown_preview: '# Der Saisonkalender
+
+
+  ## Gemüse
+
+
+  |   | JAN | FEB | MÄR | APRIL | MAI | JUNI | JULI | AUG | SEP | OKT | NOV | DEZ
+  |
+
+  |---|-----|-----|-----|-------|-----|------|------|-----|-----|-----|-----|-----|
+
+  | Artischocken |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Auberginen |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Blumenkohl |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Bohnen (Busch- u. Stangen-) |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Brokkoli |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Champignons |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Chicorée |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Chinakohl |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Dicke Bohnen |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Eisbergsalat |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Endivien |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Erbsen, Zuckererbsen |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Feldsalat/Rapunzel |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Gemüsefenchel |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Gemüsepaprika |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Grünkohl |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Gurken, Salat- |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Kohlrabi |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Kopfsalat |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Kürbis |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Lollo Rossa, L. Bionda |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Mangold |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Möhren |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Porree/Lauch |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Radicchio |  |  |  |  |  |  |  |  ...'
+clean_markdown_full: '# Der Saisonkalender
+
+
+  ## Gemüse
+
+
+  |   | JAN | FEB | MÄR | APRIL | MAI | JUNI | JULI | AUG | SEP | OKT | NOV | DEZ
+  |
+
+  |---|-----|-----|-----|-------|-----|------|------|-----|-----|-----|-----|-----|
+
+  | Artischocken |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Auberginen |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Blumenkohl |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Bohnen (Busch- u. Stangen-) |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Brokkoli |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Champignons |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Chicorée |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Chinakohl |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Dicke Bohnen |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Eisbergsalat |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Endivien |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Erbsen, Zuckererbsen |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Feldsalat/Rapunzel |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Gemüsefenchel |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Gemüsepaprika |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Grünkohl |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Gurken, Salat- |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Kohlrabi |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Kopfsalat |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Kürbis |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Lollo Rossa, L. Bionda |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Mangold |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Möhren |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Porree/Lauch |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Radicchio |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Radieschen |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Rettich |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Rhabarber |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Rosenkohl |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Rote Bete/Rote Rüben |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Rotkohl |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Rucola |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Schwarzwurzeln |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Spargel |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Spinat |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Spitzkohl |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Stangen-/Blechsellerie |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Süßkartoffeln |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Tomaten |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Weißkohl |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Zucchini |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Zuckermais |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Zwiebeln |  |  |  |  |  |  |  |  |  |  |  |  |
+
+
+  ## Obst
+
+
+  |   | JAN | FEB | MÄR | APRIL | MAI | JUNI | JULI | AUG | SEP | OKT | NOV | DEZ
+  |
+
+  |---|-----|-----|-----|-------|-----|------|------|-----|-----|-----|-----|-----|
+
+  | Ananas |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Äpfel |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Apfelsinen/Orangen |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Aprikosen |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Avocados |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Bananen |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Birnen |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Brombeeren |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Erdbeeren |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Esskastanien |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Feigen |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Granatapfel |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Grapefruit |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Haselnüsse |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Heidelbeeren |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Himbeeren |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Johannisbeeren, rot |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Johannisbeeren, schwarz |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Kakis |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Kirschen, sauer |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Kirschen, süß |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Kiwis |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Limetten |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Litschis |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Mandarinen-Gruppe |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Mango |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Melonen |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Mirabellen, Renekloden |  |  |  |  |  |  |  |  |  |  |  |  |
+
+  | Pampelmusen |  |  |  |  |  |  | '
+url: https://www.bzfe.de/fileadmin/user_upload/K%C3%BCche_und_Alltag/Einkaufen/Saisonkalender_Ansicht_Wasserzeichen.jpg
+extracted_at: '2026-07-23T22:10:08.633607'
+llm_events: []
