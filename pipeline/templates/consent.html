@@ -1,0 +1,99 @@
+{% extends "_base.html" %}
+
+{% block title %}Wann-Plattform • Consent{% endblock %}
+
+{% block extra_style %}
+.badge { font-size:0.75rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:3px; text-transform:uppercase; }
+.badge-denied  { background:#a2231d; color:#fff; }
+.badge-granted { background:#1d7a3d; color:#fff; }
+.badge-pending { background:#b06f00; color:#fff; }
+.badge-unknown { background:var(--line); color:var(--muted); }
+.consent-note { font-size:0.8rem; color:var(--muted); max-width:48rem; white-space:pre-wrap; }
+{% endblock %}
+
+{% block content %}
+<h2 class="section-title">Consent</h2>
+<p style="max-width:60rem; color:var(--muted);">
+    One row per domain the crawler is configured to touch. <strong>denied</strong> blocks it
+    everywhere: the crawler skips every URL on it, and approving one of its candidates into
+    <code>data/</code> is refused. <strong>granted</strong> is what the
+    <em>permission_granted</em> license means. <strong>pending</strong> and
+    <strong>unknown</strong> do not block - they are flagged here so you can see who has never
+    been asked.
+</p>
+
+{% if msg %}<div class="card" style="border-color:var(--accent);">{{ msg }}</div>{% endif %}
+{% if not smtp_configured %}
+<p style="font-size:0.85rem; color:var(--muted);">
+    <code>SMTP_HOST</code> is not set, so requests are only written as <code>.eml</code> drafts to
+    <code>pipeline/consent-outbox/</code>. Set <code>SMTP_HOST</code>, <code>SMTP_PORT</code>,
+    <code>SMTP_USER</code>, <code>SMTP_PASSWORD</code>, <code>CONSENT_FROM</code> to send for real.
+</p>
+{% endif %}
+
+{% for record in records %}
+<div class="card" style="margin-bottom:1rem;">
+    <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+        <strong style="font-family:var(--font-mono);">{{ record.domain }}</strong>
+        <span class="badge badge-{{ record.status }}">{{ record.status }}</span>
+        {% if record.contact_email %}<span style="color:var(--muted); font-size:0.85rem;">{{ record.contact_email }}</span>{% endif %}
+        {% if record.requested_at %}<span style="color:var(--muted); font-size:0.8rem;">asked {{ record.requested_at[:10] }}</span>{% endif %}
+        {% if record.responded_at %}<span style="color:var(--muted); font-size:0.8rem;">answered {{ record.responded_at[:10] }}</span>{% endif %}
+    </div>
+
+    {% if record.note %}<p class="consent-note">{{ record.note }}</p>{% endif %}
+
+    <div style="display:flex; gap:2rem; flex-wrap:wrap; margin-top:0.75rem;">
+        <form action="/consent/set" method="post" class="inline-form">
+            <input type="hidden" name="domain" value="{{ record.domain }}">
+            <select name="status">
+                {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if s == record.status else '' }}>{{ s }}</option>{% endfor %}
+            </select>
+            <input type="email" name="contact_email" placeholder="contact@…" value="{{ record.contact_email or '' }}">
+            <input type="text" name="note" placeholder="what they said / where it says so" style="min-width:18rem;">
+            <button type="submit" class="btn">Record decision</button>
+        </form>
+
+        <form action="/consent/request" method="post" class="inline-form"
+              onsubmit="return !this.send_for_real.checked || confirm('Send a real email to {{ record.domain }}? This cannot be taken back.');">
+            <input type="hidden" name="domain" value="{{ record.domain }}">
+            <input type="email" name="contact_email" placeholder="contact@…" value="{{ record.contact_email or '' }}" required>
+            <button type="button" class="btn" onclick="findContact(this, '{{ record.domain }}')">Find in Impressum</button>
+            <label style="font-size:0.8rem;"><input type="checkbox" name="send_for_real" value="1"> send for real</label>
+            <button type="submit" class="btn btn-primary">Ask for consent</button>
+        </form>
+    </div>
+
+    {% if record.history %}
+    <details style="margin-top:0.5rem;">
+        <summary style="cursor:pointer; font-size:0.85rem; color:var(--muted);">History ({{ record.history | length }})</summary>
+        <ul style="font-size:0.8rem; color:var(--muted);">
+            {% for entry in record.history | reverse %}
+            <li>{{ entry.at[:19] }} — {{ entry.event }}{% if entry.note %} — {{ entry.note }}{% endif %}</li>
+            {% endfor %}
+        </ul>
+    </details>
+    {% endif %}
+</div>
+{% else %}
+<p class="empty-hint">No crawl sources and no recorded decisions yet.</p>
+{% endfor %}
+
+<script>
+    async function findContact(button, domain) {
+        button.disabled = true;
+        const original = button.textContent;
+        button.textContent = "Searching…";
+        try {
+            const response = await fetch("/consent/find-contact?domain=" + encodeURIComponent(domain));
+            const data = await response.json();
+            const field = button.form.contact_email;
+            field.value = data.email || field.value;
+            button.textContent = data.email ? "Found" : "Nothing found";
+        } catch (e) {
+            button.textContent = "Lookup failed";
+        }
+        setTimeout(() => { button.textContent = original; button.disabled = false; }, 2500);
+    }
+</script>
+{% endblock %}

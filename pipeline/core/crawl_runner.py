@@ -27,7 +27,7 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from core import approval, review_state, staging
+from core import approval, consent, review_state, staging
 from core.crawl_config import DEFAULT_EXTRACTION_MODE, CrawlSource
 from core.crawler import CrawledDocument, crawl
 from core.extraction import ExtractionError, extract_dated_events, suggest_category, suggest_title
@@ -273,6 +273,12 @@ def run(
             on_page(url, status)
 
     run_ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    # Enforcement lives per-URL in crawler.crawl; this only names the reason
+    # up front, so a run that returns zero documents because the owner said
+    # no doesn't read as a broken crawl.
+    denied = sorted({consent.normalize_domain(d) for d in source.allowed_domains if consent.is_denied(d)})
+    if denied:
+        report("crawling", f"Consent denied for {', '.join(denied)} - those URLs will be skipped")
     report("crawling", f"Starting at {source.seed_url}")
     documents = crawl(source, on_progress=lambda detail: report("crawling", detail), on_page=report_page)
     report("crawling", f"Done - {len(documents)} document(s) found")
@@ -352,4 +358,5 @@ def run(
         "reconfirmed": written,
         "needs_review": len(needs_review),
         "extraction_errors": extraction_errors,
+        "consent_denied": denied,
     }

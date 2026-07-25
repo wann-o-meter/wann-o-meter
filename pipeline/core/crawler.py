@@ -17,6 +17,7 @@ from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
+from core import consent
 from core.crawl_config import CrawlSource
 from core.fetch import Config, fetch_bytes
 from core.url_normalize import normalize_url
@@ -149,6 +150,13 @@ def crawl(
             continue
         if not robots.allowed(url):
             report_page(url, "robots-blocked")
+            continue
+        # Per-URL, not once per source: allowed_domains is a list, and a
+        # source may legitimately span one domain that consented and one
+        # that did not. Only an explicit `denied` stops the fetch - see
+        # core/consent.py on why unknown/pending proceed.
+        if consent.is_denied(url):
+            report_page(url, "consent-denied")
             continue
 
         domain = urlparse(url).netloc

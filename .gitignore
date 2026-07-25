@@ -34,6 +34,11 @@ __pycache__/
 # decision history (approved/rejected/modified), meant to be committed.
 pipeline/staging/
 
+# Sent/drafted consent requests - they contain third-party email addresses.
+# pipeline/config/consent.yaml (the decisions themselves) IS committed: it
+# gates the crawler and every approval, so it belongs in the repo.
+pipeline/consent-outbox/
+
 # Claude Code agent worktrees - ephemeral, and their presence under the repo
 # root was making vitest double-count every test file it happened to contain
 .claude/

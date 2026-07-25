@@ -1,0 +1,33 @@
+# Per-domain consent ledger - see core/consent.py.
+#
+# status: unknown | pending | granted | denied
+#   denied  - crawler skips every URL on the domain, review refuses to
+#             approve its candidates into data/
+#   granted - review defaults to the `permission_granted` license
+#   pending - asked, no answer yet. Proceeds, flagged in the dashboard.
+#   unknown - nobody decided. Proceeds, flagged in the dashboard.
+#
+# Edit through the /consent page in the admin dashboard so the history entry
+# is written too; hand-editing is fine but loses that record.
+domains:
+  volksfestundkirmes.de:
+    status: denied
+    contact_email: ''
+    note: >-
+      Explicit reservation of rights on the site itself: "Die Inhalte dieses
+      Internet-Angebots (Bilder, Daten, Texte, Audio- und Videomaterial etc.)
+      sind urheberrechtlich geschuetzt. Kein Teil dieses Internet-Angebots darf
+      ohne vorherige schriftliche Genehmigung durch www.volksfestundkirmes.de
+      bzw. durch den eigentlichen Urheberrechtsinhaber vervielfaeltigt, auf
+      Datentraegern aller Art verbreitet oder in elektronische
+      Datenbestaende/Datenbanken aufgenommen oder zum Anlernen von KI-Systemen
+      (kuenstliche Intelligenz) genutzt werden. Eine Verlinkung auf dieses
+      Internet-Angebot ist davon ausgenommen." Linking is expressly allowed,
+      everything else needs prior written permission - so: denied until they
+      say otherwise in writing.
+    responded_at: '2026-07-25T00:00:00+00:00'
+    history:
+      - at: '2026-07-25T00:00:00+00:00'
+        status: denied
+        event: seeded from the copyright banner published on the site
+        note: no request sent - the banner is already the answer

@@ -18,13 +18,24 @@
             </p>
 
 
+            {# Consent status of the domain this candidate came from. Approving a `denied`
+               one is refused in core/approval.write_event; this is so the reviewer sees
+               why before clicking, and sees an un-asked domain at all. #}
+            {% if consent_record and consent_record.status != 'granted' %}
+            <p style="font-size:0.85rem; padding:0.5rem 0.75rem; margin:0 0 1rem; border-left:3px solid var(--accent);">
+                <strong>{{ consent_record.domain }}</strong>: consent <strong>{{ consent_record.status }}</strong>.
+                {% if consent_record.status == 'denied' %}Approving this is blocked.{% else %}Not blocked - check the license carefully.{% endif %}
+                <a href="/consent">Manage consent →</a>
+            </p>
+            {% endif %}
+
             <form action="/review/{{ source_id }}/{{ candidate.candidate_id }}/approve" method="post" style="margin-bottom:1.5rem;">
                 <div class="field-label">Category</div>
                 <input type="text" name="category" list="category-suggestions" value="{{ candidate.category or candidate.subject_slug }}" required>
                 <div class="field-label">License</div>
                 <select name="license" required class="license-select">
                     {% for option in license_options %}
-                    <option value="{{ option.value }}">{{ option.label }}</option>
+                    <option value="{{ option.value }}" {{ 'selected' if option.value == default_license else '' }}>{{ option.label }}</option>
                     {% endfor %}
                 </select>
                 <button type="submit" class="btn btn-primary">Approve as-is</button>
@@ -38,7 +49,7 @@
                     <div class="field-label">License</div>
                     <select name="license" required class="license-select">
                         {% for option in license_options %}
-                        <option value="{{ option.value }}">{{ option.label }}</option>
+                        <option value="{{ option.value }}" {{ 'selected' if option.value == default_license else '' }}>{{ option.label }}</option>
                         {% endfor %}
                     </select>
                     <div class="field-label">Type</div>

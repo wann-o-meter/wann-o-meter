@@ -114,6 +114,9 @@
                    separate track (see main.py's harvest_view), so it sits last. #}
                 <a href="/" class="{{ 'active' if active_nav == 'pages' else '' }}">Pages</a>
                 <a href="/crawl-sources" class="{{ 'active' if active_nav == 'crawl-sources' else '' }}">Sources</a>
+                {# Sits next to Sources: whether a domain consented is a property of the
+                   source, and it gates both the crawl and the approval (core/consent.py). #}
+                <a href="/consent" class="{{ 'active' if active_nav == 'consent' else '' }}">Consent</a>
                 <a href="/review" class="{{ 'active' if active_nav == 'review' else '' }}">Review</a>
                 <a href="/harvest" class="{{ 'active' if active_nav == 'harvest' else '' }}">Harvest</a>
             </nav>

@@ -11,6 +11,20 @@ FastAPI + Jinja2 SSR admin interface for the scoped crawler + review workflow.
   removes only the config file - review-state history and anything already written to
   `data/` are kept, so re-adding the same source later picks its history back up. Respects
   robots.txt and a per-domain rate limit.
+- **Consent ledger** (`config/consent.yaml`, managed on the dashboard's **Consent** page):
+  one status per domain - `denied` / `granted` / `pending` / `unknown`, each with a contact
+  address, a note and an append-only history. `denied` blocks the domain in two places: the
+  crawler skips every URL on it (status `consent-denied`), and `core/approval.write_event`
+  refuses to write any of its candidates into `data/` - which also catches candidates staged
+  before the domain was marked. `granted` preselects the `permission_granted` license in
+  review. `pending`/`unknown` never block; they are flagged on the Consent page and on the
+  candidate review screen, because a site that has not answered is not the same as a site
+  that said no. Seeded with `volksfestundkirmes.de` as denied - it publishes an explicit
+  "no AI training, no reproduction without written permission" banner.
+  The **Ask for consent** button drafts a German request email (`consent-outbox/*.eml`, kept
+  as the record of what was sent) and only actually sends it when `SMTP_HOST` is configured
+  *and* the "send for real" box is ticked - otherwise it stays a draft. Env: `SMTP_HOST`,
+  `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `CONSENT_FROM`, `CONSENT_FROM_NAME`.
 - **Staging + diff-based re-crawling**: every crawl's fetched documents and extracted
   candidates land in `staging/`, diffed against `review-state/` - already-approved/modified
   candidates auto-wave-through on a later run (with `last_verified` re-stamped), rejected ones

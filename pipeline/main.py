@@ -14,13 +14,14 @@ Features:
 import asyncio
 import html
 import json
+import os
 import re
 import shutil
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 import uvicorn
 import yaml
@@ -30,7 +31,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from dotenv import load_dotenv
 
-from core import approval, crawl_config, crawl_runner, review_state, staging, store, validate
+from core import approval, consent, crawl_config, crawl_runner, review_state, staging, store, validate
 from core.extraction import ExtractionError, suggest_tags
 from harvest import registry as harvest_registry
 
@@ -677,6 +678,67 @@ async def dashboard(request: Request):
     })
 
 
+def _crawl_source_domains() -> List[str]:
+    """Every domain the crawler is configured to touch - allowed_domains
+    plus each seed's own host (a seed on a domain missing from
+    allowed_domains never gets fetched, but it is still a domain someone
+    intended to use, so it belongs on the consent page)."""
+    domains: List[str] = []
+    for source in crawl_config.load_all_crawl_sources().values():
+        domains.extend(source.allowed_domains)
+        domains.append(urlparse(source.seed_url).netloc)
+    return domains
+
+
+@app.get("/consent", response_class=HTMLResponse)
+async def consent_view(request: Request, msg: str = ""):
+    return templates.TemplateResponse(request, "consent.html", {
+        "active_nav": "consent",
+        "state": state.to_dict(),
+        "records": consent.overview(_crawl_source_domains()),
+        "statuses": consent.STATUSES,
+        "smtp_configured": bool(os.environ.get("SMTP_HOST")),
+        "msg": msg,
+    })
+
+
+@app.post("/consent/set")
+async def set_consent(
+    domain: str = Form(...),
+    status: str = Form(...),
+    contact_email: str = Form(""),
+    note: str = Form(""),
+):
+    try:
+        consent.set_status(domain, status, contact_email=contact_email, note=note,
+                           event=f"set to {status} by the operator")
+    except consent.ConsentError as e:
+        return HTMLResponse(str(e), status_code=400)
+    return RedirectResponse("/consent", status_code=302)
+
+
+@app.post("/consent/request")
+async def request_consent(
+    domain: str = Form(...),
+    contact_email: str = Form(""),
+    # Unchecked box = no field at all in the POST body, so the default IS
+    # the answer for "the operator did not tick Send for real".
+    send_for_real: str = Form(""),
+):
+    try:
+        message = consent.send_request(domain, contact_email, dry_run=not send_for_real)
+    except consent.ConsentError as e:
+        return HTMLResponse(str(e), status_code=400)
+    return RedirectResponse(f"/consent?msg={quote(message)}", status_code=302)
+
+
+@app.get("/consent/find-contact")
+async def find_consent_contact(domain: str):
+    """Best-effort Impressum address lookup for the form - never writes
+    anything, the operator confirms the address before any mail is built."""
+    return JSONResponse({"email": consent.find_contact(domain) or ""})
+
+
 @app.get("/harvest", response_class=HTMLResponse)
 async def harvest_view(request: Request):
     """Stage 1 of the entity-first harvest pipeline (see harvest/cli.py) -
@@ -1092,6 +1154,14 @@ async def review_candidate_detail(request: Request, source_id: str, candidate_id
         "document_meta": doc_meta,
         "document_html": document_html,
         "document_url": f"/staging-document/{source_id}/{run_ts}/{doc_hash}" if doc_path and not is_text else None,
+        # Shown next to the license picker: the reviewer decides the license,
+        # but "did this domain say yes" is the fact that decision hangs on,
+        # and it was previously invisible here. A recorded `granted` IS the
+        # explicit permission `permission_granted` means, so it preselects
+        # that option - every other status preselects nothing, keeping
+        # LICENSE_OPTIONS' "never guessed automatically" rule intact.
+        "consent_record": consent.get(doc_meta.get("url", "")),
+        "default_license": "permission_granted" if consent.status(doc_meta.get("url", "")) == "granted" else "",
         "license_options": LICENSE_OPTIONS,
         "category_suggestions": _category_suggestions(),
         "next_candidate": _next_review_candidate(exclude=(source_id, candidate_id)),

@@ -12,7 +12,7 @@ change to this repo."""
 from pathlib import Path
 from typing import Any, Dict
 
-from core import store, validate
+from core import consent, store, validate
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_ROOT = REPO_ROOT / "data"
@@ -40,7 +40,21 @@ def write_event(
 
     There is no replace_key: window identity is core/content_hash.window_key
     everywhere now, so what counts as "the same window" here and what counts
-    as "already approved" in core/review_state can no longer disagree."""
+    as "already approved" in core/review_state can no longer disagree.
+
+    Also the consent chokepoint: this is the single place anything reaches
+    data/, so a domain marked `denied` in core/consent.py is refused here
+    rather than at each of the three callers (review approve, review modify,
+    crawl_runner's re-confirm of an earlier approval). The crawler already
+    skips denied URLs, but candidates staged BEFORE a domain was marked
+    denied are still sitting in staging/ and would otherwise sail through."""
+    quelle_url = quelle.get("url") or ""
+    if quelle_url and consent.is_denied(quelle_url):
+        raise ApprovalError(
+            f"{consent.normalize_domain(quelle_url)} has not consented to its data being used "
+            "(consent ledger status: denied) - nothing written"
+        )
+
     datei_pfad = DATA_ROOT / category / subject_slug / "data.yaml"
     datei = store.lade_oder_erstelle(datei_pfad, subject_slug, category)
     store.merge_zeitfenster(datei, [event])
