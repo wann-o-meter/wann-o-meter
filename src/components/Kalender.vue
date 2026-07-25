@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from "vue";
-import { CalendarDays, ChartNoAxesColumn, ChevronLeft, ChevronRight, Search, Trash2, X } from "lucide-vue-next";
+import { CalendarDays, CalendarPlus, ChartNoAxesColumn, ChevronLeft, ChevronRight, Search, Trash2, X } from "lucide-vue-next";
 import { MONTH_NAMES, WEEKDAY_NAMES_LONG, isoWeekNumber } from "../../lib/date-display";
 import { daysInMonth, isoDate, isoFromDate, matchesForDay, mondayOf } from "../../lib/date-grid";
 import { COLORS } from "../../lib/calendar-colors";
@@ -85,6 +85,11 @@ const expandedGroups = ref<Set<string>>(new Set());
 
 const showEmbed = ref(false);
 const copied = ref(false);
+// Id of the layer whose feed URL is currently revealed, and the id whose URL
+// was just copied - kept separate from `copied` above, which belongs to the
+// embed panel's button label.
+const revealedFeed = ref<string | null>(null);
+const copiedFeed = ref<string | null>(null);
 
 const availableOptions = computed<CatalogEntry[]>(() => {
   const activeIds = new Set(layers.value.map((l) => l.id));
@@ -271,8 +276,29 @@ async function copyEmbedUrl() {
   }, 1500);
 }
 
-function selectEmbedUrl(e: Event) {
+function selectAllOnClick(e: Event) {
   (e.target as HTMLInputElement).select();
+}
+
+// layer.feedUrl is a relative path (lib/calendar-sources.ts) - fine as an
+// href, useless once pasted into a calendar app, so absolutize it. Same
+// SSR guard as embedUrl above: this component is server-rendered before it
+// hydrates, and there is no `window` then.
+function absoluteFeedUrl(feedUrl: string): string {
+  if (typeof window === "undefined") return feedUrl;
+  return new URL(feedUrl, window.location.origin).href;
+}
+
+function toggleFeed(id: string) {
+  revealedFeed.value = revealedFeed.value === id ? null : id;
+}
+
+async function copyFeedUrl(layer: { id: string; feedUrl: string }) {
+  await navigator.clipboard.writeText(absoluteFeedUrl(layer.feedUrl));
+  copiedFeed.value = layer.id;
+  setTimeout(() => {
+    if (copiedFeed.value === layer.id) copiedFeed.value = null;
+  }, 1500);
 }
 
 // Reads the current URL and resets EVERY piece of state to match - not just
@@ -803,9 +829,24 @@ onMounted(async () => {
               <span class="layer-label-text">{{ layer.label }}</span>
             </label>
             <span class="layer-actions">
-              <a :href="layer.feedUrl" title="Diese Ebene als ICS abonnieren">ICS</a>
+              <button
+                type="button"
+                class="feed-toggle"
+                title="Adresse des ICS-Kalenders anzeigen"
+                :aria-expanded="revealedFeed === layer.id"
+                @click="toggleFeed(layer.id)"
+              >
+                <CalendarPlus :size="13" aria-hidden="true" /> ICS
+              </button>
               <button type="button" title="Ebene entfernen" @click="removeLayer(layer.id)"><X :size="14" /></button>
             </span>
+            <div v-if="revealedFeed === layer.id" class="feed-panel">
+              <p>Diese Adresse im Kalender abonnieren - dann kommen neue Termine automatisch dazu:</p>
+              <input type="text" readonly :value="absoluteFeedUrl(layer.feedUrl)" aria-label="Adresse des ICS-Kalenders" @click="selectAllOnClick" />
+              <button type="button" @click="copyFeedUrl(layer)">Kopieren</button>
+              <span class="copy-status" role="status" aria-live="polite">{{ copiedFeed === layer.id ? "Kopiert!" : "" }}</span>
+              <p><a :href="layer.feedUrl">.ics-Datei einmalig herunterladen</a></p>
+            </div>
           </li>
         </template>
         <li v-if="layers.length === 0" class="no-layers">Noch keine Ebenen hinzugefügt.</li>
@@ -842,7 +883,7 @@ onMounted(async () => {
       <button type="button" @click="toggleEmbedPanel">Einbetten</button>
       <div v-if="showEmbed" class="embed-panel">
         <label for="embed-url">Link zum Einbetten</label>
-        <input id="embed-url" type="text" readonly :value="embedUrl" @click="selectEmbedUrl" />
+        <input id="embed-url" type="text" readonly :value="embedUrl" @click="selectAllOnClick" />
         <button type="button" @click="copyEmbedUrl">{{ copied ? "Kopiert!" : "Kopieren" }}</button>
       </div>
     </div>
@@ -1019,6 +1060,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.75rem;
   padding: 0.5rem 0.1rem;
   border-bottom: 1px solid var(--line);
@@ -1076,6 +1118,43 @@ onMounted(async () => {
   padding: 0;
 }
 .layer-actions button:hover {
+  color: var(--accent);
+}
+/* Was an <a>, now a disclosure button - keep it looking exactly the same. */
+.layer-actions .feed-toggle {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent);
+  align-items: center;
+  gap: 0.25rem;
+}
+/* Revealed feed URL, laid out like .embed-panel below (same idiom, same
+   look) but as a full-width row wrapped under its layer entry. */
+.feed-panel {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.feed-panel p {
+  width: 100%;
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.feed-panel input {
+  flex: 1;
+  min-width: 10rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+.feed-panel > button {
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+.copy-status {
+  font-size: 0.75rem;
   color: var(--accent);
 }
 .dot {

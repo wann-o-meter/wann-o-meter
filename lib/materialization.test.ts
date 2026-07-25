@@ -16,6 +16,12 @@ describe("rollingYears", () => {
 });
 
 describe("materializeRawWindow", () => {
+  // Scope note: this is about the FUNCTION's own contract - `years` is the
+  // set the caller asked to materialize over, and a window outside it is not
+  // produced. It is NOT a site-wide "historical data is hidden" rule: the
+  // only production caller (getPageEvents in lib/pages.ts) now passes a dated
+  // window its own [w.year], so pages do show windows from any year. See the
+  // "keeps a dated window outside the rolling years" test in lib/pages.test.ts.
   it("only carries over a concrete (decreed) window when its year is within the rolling window", () => {
     const raw: RawWindow = {
       type: "school_holidays",

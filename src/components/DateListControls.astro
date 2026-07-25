@@ -10,20 +10,52 @@ interface Props {
   years: number[];
 }
 const { years } = Astro.props;
+
+// A pill per year is the nicer control, but only while they all fit on a
+// line or two. Long-range sources exist (data/astronomie/sonnenfinsternis
+// spans 1901-2100, i.e. 200 years) and a wall of 200 pills is no more usable
+// than no filter at all. Past that, EVERY pill is still rendered - the pager
+// below just keeps a sliding window of them visible, centred on whichever
+// year is selected, so the markup stays static and the whole control is one
+// small script with no server-side paging.
+const WINDOW_RADIUS = 5; // years shown either side of the centre -> 11 pills
+const WINDOW_SIZE = WINDOW_RADIUS * 2 + 1;
+const paged = years.length > WINDOW_SIZE;
 ---
 
 {
   years.length > 1 && (
-    <p class="year-filter">
-      <button type="button" class="year-btn active" data-year="all">
-        Alle
-      </button>
-      {years.map((y) => (
-        <button type="button" class="year-btn" data-year={y}>
-          {y}
-        </button>
-      ))}
-    </p>
+    <div class="year-filter" data-paged={paged ? "true" : undefined}>
+      <p class="year-pills">
+        <button type="button" class="year-btn active" data-year="all">Alle</button>
+        {paged && (
+          <>
+            <button type="button" class="year-btn year-nav" data-step="first" title="Zum ersten Jahr">&laquo;</button>
+            <button type="button" class="year-btn year-nav" data-step="prev" title="Frühere Jahre">&lsaquo;</button>
+          </>
+        )}
+        {years.map((y) => (
+          <button type="button" class="year-btn year-option" data-year={y}>{y}</button>
+        ))}
+        {paged && (
+          <>
+            <button type="button" class="year-btn year-nav" data-step="next" title="Spätere Jahre">&rsaquo;</button>
+            <button type="button" class="year-btn year-nav" data-step="last" title="Zum letzten Jahr">&raquo;</button>
+          </>
+        )}
+      </p>
+
+      {paged && (
+        <p class="year-jump">
+          <span class="year-range" role="status" aria-live="polite" />
+          <label for="year-select">Jahr direkt wählen</label>
+          <select id="year-select">
+            <option value="all">Alle {years.length} Jahre</option>
+            {years.map((y) => <option value={y}>{y}</option>)}
+          </select>
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -32,17 +64,91 @@ const { years } = Astro.props;
 </p>
 
 <script>
-  const yearButtons = document.querySelectorAll<HTMLButtonElement>(".year-filter .year-btn");
+  const WINDOW_RADIUS = 5;
+  const WINDOW_SIZE = WINDOW_RADIUS * 2 + 1;
+
   const rows = document.querySelectorAll<HTMLElement>("#year-rows [data-year]");
-  for (const button of yearButtons) {
-    button.addEventListener("click", () => {
-      for (const b of yearButtons) b.classList.toggle("active", b === button);
-      const year = button.dataset.year;
-      for (const row of rows) {
-        row.hidden = year !== "all" && row.dataset.year !== year;
-      }
+  const filter = document.querySelector<HTMLElement>(".year-filter");
+  const allButton = filter?.querySelector<HTMLButtonElement>('[data-year="all"]') ?? null;
+  const options = [...(filter?.querySelectorAll<HTMLButtonElement>(".year-option") ?? [])];
+  const yearSelect = document.getElementById("year-select") as HTMLSelectElement | null;
+  const range = filter?.querySelector<HTMLElement>(".year-range") ?? null;
+  const navButtons = [...(filter?.querySelectorAll<HTMLButtonElement>(".year-nav") ?? [])];
+  // Short lists render every pill and no pager at all, so the sliding-window
+  // half of this script simply never runs for them.
+  const paged = filter?.dataset.paged === "true";
+  const years = options.map((o) => Number(o.dataset.year));
+
+  function showYear(year: string) {
+    for (const row of rows) {
+      row.hidden = year !== "all" && row.dataset.year !== year;
+    }
+    for (const button of [allButton, ...options]) {
+      if (!button) continue;
+      button.classList.toggle("active", (button.dataset.year ?? "all") === year);
+    }
+    if (yearSelect) yearSelect.value = year;
+  }
+
+  // The window's START is the state, not its centre. Tracking the centre
+  // instead looks equivalent but isn't: at either end the window has to clamp,
+  // so centre and window drift apart, and the first step back off the last
+  // page then moves by less than a full window. Starts don't drift.
+  const LAST_START = Math.max(0, years.length - WINDOW_SIZE);
+  let start = 0;
+  function renderWindow() {
+    if (!paged) return;
+    const end = start + WINDOW_SIZE;
+    options.forEach((option, i) => (option.hidden = i < start || i >= end));
+    if (range) range.textContent = `${years[start]}–${years[end - 1]} von ${years.length} Jahren`;
+    for (const nav of navButtons) {
+      const backwards = nav.dataset.step === "first" || nav.dataset.step === "prev";
+      nav.disabled = backwards ? start === 0 : start === LAST_START;
+    }
+  }
+
+  function setStart(next: number) {
+    start = Math.max(0, Math.min(next, LAST_START));
+    renderWindow();
+  }
+
+  // Puts `index` in the middle of the window (as close as the ends allow).
+  function centreOn(index: number) {
+    setStart(index - WINDOW_RADIUS);
+  }
+
+  for (const [i, option] of options.entries()) {
+    option.addEventListener("click", () => {
+      showYear(option.dataset.year ?? "all");
+      centreOn(i); // selecting a year re-centres the window on it
     });
   }
+  allButton?.addEventListener("click", () => showYear("all"));
+
+  for (const nav of navButtons) {
+    // Navigation only, deliberately: it slides the visible pills without
+    // touching which year is filtered, so you can look around without losing
+    // your selection.
+    nav.addEventListener("click", () => {
+      const step = nav.dataset.step;
+      if (step === "first") setStart(0);
+      else if (step === "last") setStart(LAST_START);
+      else setStart(start + (step === "next" ? WINDOW_SIZE : -WINDOW_SIZE));
+    });
+  }
+
+  yearSelect?.addEventListener("change", () => {
+    showYear(yearSelect.value);
+    const index = years.indexOf(Number(yearSelect.value));
+    if (index >= 0) centreOn(index);
+  });
+
+  // Opening on the earliest year is useless for a 200-year range - start at
+  // today (or the nearest year the data actually has) and let the pager go
+  // back from there. Only the WINDOW moves; nothing is filtered yet.
+  const nowYear = new Date().getFullYear();
+  const nearest = years.findIndex((y) => y >= nowYear);
+  centreOn(nearest >= 0 ? nearest : years.length - 1);
 
   // Rows are pre-sorted ascending at build time - "sorting" is just
   // reversing DOM order, no comparator needed.
@@ -61,10 +167,29 @@ const { years } = Astro.props;
     margin: 0 0 1rem;
   }
   .year-filter {
+    margin: 1rem 0;
+  }
+  .year-pills {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 0.4rem;
-    margin: 1rem 0;
+    margin: 0;
+  }
+  .year-jump {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.6rem 0 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .year-jump select {
+    font-size: 0.82rem;
+  }
+  .year-range {
+    font-variant-numeric: tabular-nums;
   }
   .year-btn {
     cursor: pointer;
@@ -84,5 +209,14 @@ const { years } = Astro.props;
     background: var(--accent);
     border-color: var(--accent);
     color: var(--accent-ink);
+  }
+  .year-nav {
+    padding: 0.3rem 0.6rem;
+  }
+  .year-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+    border-color: var(--line);
+    color: var(--muted);
   }
 </style>

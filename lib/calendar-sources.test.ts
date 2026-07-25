@@ -6,10 +6,12 @@ describe("getAllCalendarEntries", () => {
   it("returns entries for every content type, grouped by the page's real category rather than a generic bucket", () => {
     const groups = new Set(getAllCalendarEntries().map((e) => e.group));
     const pageCategories = new Set(getAllPages().map((p) => getCategoryMeta(p.category).name));
-    // Subset, not equality: a page whose windows all fall outside
-    // rollingYears() (a purely historical source) legitimately contributes
-    // no entries at all, which says nothing about how groups are named -
-    // and that's what this test is about.
+    // Subset, not equality: a page with no dated windows at all (nothing to
+    // put in a calendar) legitimately contributes no entries, which says
+    // nothing about how groups are named - and that's what this test is
+    // about. Note a purely HISTORICAL source is no longer such a case: since
+    // getPageEvents() materializes a dated window under its own year rather
+    // than the rolling one, those pages do contribute entries now.
     expect(groups.size).toBeGreaterThan(0);
     expect([...groups].filter((g) => !pageCategories.has(g))).toEqual([]);
   });

@@ -17,6 +17,7 @@
 // [category]/index.astro and [category]/[slug].astro used to render,
 // unchanged in substance, just merged into one file with an N-level
 // breadcrumb instead of a fixed 2-level one.
+import { Braces, CalendarPlus, Copy, Download } from "@lucide/astro";
 import Layout from "../layouts/Layout.astro";
 import DateListControls from "../components/DateListControls.astro";
 import SourceList from "../components/SourceList.astro";
@@ -111,7 +112,16 @@ function buildPageView(page: Page) {
   // generator.ts's own nextHolidayBlurb already makes): a build cycle stale
   // is still more useful than nothing, and this is a static site.
   const todayIso = new Date().toISOString().slice(0, 10);
-  const nextEvent = [...events].filter((e) => e.date >= todayIso).sort((a, b) => a.date.localeCompare(b.date))[0];
+  const upcoming = [...events].filter((e) => e.date >= todayIso).sort((a, b) => a.date.localeCompare(b.date));
+  const nextEvent = upcoming[0];
+  // ponytail: only the next 50 upcoming dates become schema.org Event nodes.
+  // A long-range page (data/astronomie/sonnenfinsternis: 452 eclipses, 1901-
+  // 2100) would otherwise inline ~94 KB of JSON-LD describing entries no
+  // search engine will ever surface - an Event node for the year 1901 is
+  // pure page weight. The datasetNode below still advertises the COMPLETE
+  // dataset through its JSON/ICS distributions, and the visible row list
+  // still carries every single year.
+  const structuredEvents = upcoming.slice(0, 50);
   const preview = typeof rawData.clean_markdown_preview === "string" ? rawData.clean_markdown_preview : "";
   const columns = Array.isArray(rawData.columns) ? (rawData.columns as string[]) : [];
   const rowsPreview = Array.isArray(rawData.rows_preview) ? (rawData.rows_preview as Record<string, string>[]) : [];
@@ -121,6 +131,10 @@ function buildPageView(page: Page) {
   const description = meta.description || meta.title;
   const eventLocation = pageLocation(page);
   const eventImage = new URL("/og-image.png", Astro.site).href;
+  // Absolute, because this one is meant to be copied out of the page and
+  // pasted into a calendar app as a subscription - a relative /feeds/... path
+  // means nothing outside this document.
+  const feedUrl = new URL(`/feeds/${category}/${page.slug}.ics`, Astro.site).href;
   const structuredData = graph([
     breadcrumbNode([
       { name: "Wann-O-Meter", url: new URL("/", Astro.site).href },
@@ -135,11 +149,11 @@ function buildPageView(page: Page) {
             url: pageUrl,
             distributions: [
               { url: new URL(`/api/v1/${category}/${page.slug}.json`, Astro.site).href, encodingFormat: "application/json" },
-              { url: new URL(`/feeds/${category}/${page.slug}.ics`, Astro.site).href, encodingFormat: "text/calendar" },
+              { url: feedUrl, encodingFormat: "text/calendar" },
             ],
           }),
           ...(eventLocation
-            ? events.map((e) =>
+            ? structuredEvents.map((e) =>
                 eventNode({
                   name: e.label,
                   startDate: e.date,
@@ -153,7 +167,7 @@ function buildPageView(page: Page) {
         ]
       : []),
   ]);
-  return { page, category, meta, data, events, years, nextEvent, preview, columns, rowsPreview, categoryName, description, structuredData, pageUrl };
+  return { page, category, meta, data, events, years, nextEvent, preview, columns, rowsPreview, categoryName, description, structuredData, pageUrl, feedUrl };
 }
 
 const categoryView = props.kind === "category" ? buildCategoryView(props.node) : null;
@@ -218,12 +232,32 @@ const pageView = props.kind === "page" ? buildPageView(props.page) : null;
         )
       }
 
-      <p class="actions">
-        <a class="link-button" href={`/api/v1/${pageView.category}/${pageView.page.slug}.json`}>JSON</a>
+      <div class="actions">
+        <a class="link-button" href={`/api/v1/${pageView.category}/${pageView.page.slug}.json`}>
+          <Braces size={16} aria-hidden="true" /> JSON
+        </a>
         {pageView.events.length > 0 && (
-          <a class="link-button" href={`/feeds/${pageView.category}/${pageView.page.slug}.ics`}>ICS-Kalender abonnieren</a>
+          /* ponytail: <details>/<summary> IS the reveal - native disclosure,
+             focusable, keyboard-operable, zero JS and zero state. Only the
+             copy button needs a script. */
+          <details class="feed">
+            <summary><span class="link-button"><CalendarPlus size={16} aria-hidden="true" /> ICS-Kalender abonnieren</span></summary>
+            <div class="feed-panel">
+              <p>Diese Adresse im Kalender abonnieren - dann kommen neue Termine automatisch dazu:</p>
+              <input class="feed-url" type="text" readonly value={pageView.feedUrl} aria-label="Adresse des ICS-Kalenders" />
+              <button type="button" class="link-button copy-feed" data-feed-url={pageView.feedUrl}>
+                <Copy size={14} aria-hidden="true" /> Kopieren
+              </button>
+              <span class="copy-status" role="status" aria-live="polite" />
+              <p>
+                Oder <a class="feed-download" href={`/feeds/${pageView.category}/${pageView.page.slug}.ics`}>
+                  <Download size={13} aria-hidden="true" /> die .ics-Datei einmalig herunterladen</a> - die
+                bleibt allerdings auf dem heutigen Stand stehen.
+              </p>
+            </div>
+          </details>
         )}
-      </p>
+      </div>
 
       {
         pageView.events.length > 0 && (
@@ -281,6 +315,21 @@ const pageView = props.kind === "page" ? buildPageView(props.page) : null;
   )
 }
 
+<script>
+  // ponytail: no clipboard fallback and no error path - the URL is already
+  // sitting visible in a readonly input, so "select it yourself" is the
+  // fallback, for free.
+  const copyButton = document.querySelector<HTMLButtonElement>(".copy-feed");
+  const copyStatus = document.querySelector<HTMLElement>(".copy-status");
+  copyButton?.addEventListener("click", async () => {
+    await navigator.clipboard.writeText(copyButton.dataset.feedUrl ?? "");
+    if (copyStatus) {
+      copyStatus.textContent = "Kopiert!";
+      setTimeout(() => (copyStatus.textContent = ""), 1500);
+    }
+  });
+</script>
+
 <style>
   .next-event {
     color: var(--muted);
@@ -291,8 +340,61 @@ const pageView = props.kind === "page" ? buildPageView(props.page) : null;
   }
   .actions {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
     gap: 0.6rem;
     margin: 1rem 0 1.5rem;
+  }
+  /* .link-button lives on a span INSIDE the summary, not on the summary
+     itself. Overriding a <summary>'s `display` has a history of upsetting the
+     disclosure marker and, reportedly, toggling; keeping the default sidesteps
+     the question entirely and costs nothing, since <details> is a flex item of
+     .actions and already shrink-to-fits around the pill. This rule only drops
+     the triangle and restores the pointer. */
+  .feed summary {
+    cursor: pointer;
+    list-style: none;
+  }
+  /* Pins the pill to the top of the summary's line box, so it lines up with
+     the JSON pill next to it instead of sitting a few px lower. */
+  .feed summary .link-button {
+    vertical-align: top;
+  }
+  .feed summary::-webkit-details-marker {
+    display: none;
+  }
+  .feed-panel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+    max-width: 42rem;
+  }
+  .feed-panel p {
+    width: 100%;
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .feed-url {
+    flex: 1;
+    min-width: 10rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    padding: 0.3rem 0.5rem;
+  }
+  .copy-status {
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  /* .link-button is already inline-flex with a gap, so the icons above need
+     no rule of their own. This link is different: it sits mid-sentence, so it
+     has to stay a normal inline box (an inline-flex one is atomic and would
+     refuse to wrap, stranding "Oder" on its own line) - the icon is nudged
+     onto the text baseline instead. */
+  .feed-download svg {
+    vertical-align: -0.15em;
+    margin-right: 0.25rem;
   }
 </style>

@@ -1,5 +1,6 @@
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { rollingYears } from "./materialization";
 import {
   getAllPages,
   getCategoryMeta,
@@ -261,5 +262,41 @@ describe("getPageEvents", () => {
       { date: "2026-01-01", label: "Neujahr" },
       { date: "2026-09-06", label: "Landtagswahl" },
     ]);
+  });
+
+  // The rolling year set is for TEMPLATES, not for facts. Long-range sources
+  // exist (data/astronomie/sonnenfinsternis: 452 eclipses, 1901-2100) and a
+  // window that names its own year must survive regardless of how far outside
+  // the rolling window it sits - it used to be silently dropped, which made
+  // such a page show three rows instead of 452. Guards line 347's per-window
+  // year set against being "simplified" back to a single rollingYears().
+  it("keeps a dated window outside the rolling years while still rolling out a recurring one", () => {
+    const windowsPage: Page = {
+      ...emptyPage,
+      data: {
+        ...emptyPage.data,
+        windows: [
+          {
+            type: "event",
+            year: 1901,
+            from: "1901-05-18",
+            to: "1901-05-18",
+            precision: "exact",
+            ics: true,
+            name: "Sonnenfinsternis",
+          },
+          { type: "main_season", year: null, from: "--08", to: "--09", precision: "approximate", ics: false },
+        ],
+      },
+    };
+
+    const events = getPageEvents(windowsPage);
+    expect(events.filter((e) => e.date.startsWith("1901"))).toEqual([
+      { date: "1901-05-18", to: undefined, label: "Sonnenfinsternis", value: undefined },
+    ]);
+    // The recurring window is a template with no year of its own, so it still
+    // resolves once per rolling year and no further.
+    const recurring = events.filter((e) => e.label === "main_season");
+    expect(recurring.map((e) => e.date.slice(0, 4))).toEqual(rollingYears().map(String));
   });
 });

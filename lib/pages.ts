@@ -344,13 +344,29 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 // Calendar-style pages (windows populated - Feiertage/Urlaubsfenster/
 // Saisonkalender, curated or computed facts) resolve their rows via the same
-// materializeRawWindow() used for any RawWindow, rolled out over the current
-// build's rolling years. Scraped pages (raw_data populated, windows empty)
-// fall back to LLM-extracted or regex-found dates instead - see below.
+// materializeRawWindow() used for any RawWindow. Scraped pages (raw_data
+// populated, windows empty) fall back to LLM-extracted or regex-found dates
+// instead - see below.
+//
+// The year set is chosen PER WINDOW, and that is the whole point: a recurring
+// window (year: null) is a template with no year of its own, so it has to be
+// rolled out over some finite set and rollingYears() is that set. A window
+// that names its own year is a dated fact, not a template - handing it the
+// rolling set too used to silently discard it whenever it fell outside
+// (materializeRawWindow filters targetYears against `years`), which threw
+// away every long-range source: data/astronomie/sonnenfinsternis carries 452
+// eclipses from 1901 to 2100 and only ever surfaced the three in the current
+// rolling window. Giving each dated window [w.year] makes that filter a
+// no-op for it while leaving materializeRawWindow's own contract untouched.
+// Note this deliberately reverses the previous "purely historical sources
+// contribute nothing" behavior (see lib/materialization.test.ts).
 export function getPageEvents(page: Page): PageEvent[] {
   if (page.data.windows.length > 0) {
+    const recurringYears = rollingYears();
     return page.data.windows
-      .flatMap((w) => materializeRawWindow(w, page.slug, page.data.source, rollingYears()))
+      .flatMap((w) =>
+        materializeRawWindow(w, page.slug, page.data.source, w.year === null ? recurringYears : [w.year]),
+      )
       .map((w) => ({ date: w.from, to: w.to !== w.from ? w.to : undefined, label: w.description, value: w.value }))
       .sort((a, b) => a.date.localeCompare(b.date));
   }
