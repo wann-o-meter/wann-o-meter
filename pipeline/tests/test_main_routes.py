@@ -994,6 +994,40 @@ class TestEditCrawlSource:
         assert source.schedule == "weekly"
         assert source.allowed_domains == ["example.org", "www.example.org"]
 
+    def test_switching_extraction_mode_persists_and_omitting_it_leaves_it_alone(self, client):
+        """Regex-vs-model was settable only at create time - the edit row now
+        carries it, but a POST without the field must not reset it to auto."""
+        self._source(client, "nasa-a", "astronomie", "nasa-a")
+        base = {"category": "astronomie", "subject_slug": "nasa-a"}
+
+        client.post("/crawl-sources/nasa-a/edit", data={**base, "extraction_mode": "static"},
+                    follow_redirects=False)
+        assert crawl_config.load_all_crawl_sources()["nasa-a"].extraction_mode == "static"
+
+        client.post("/crawl-sources/nasa-a/edit", data=base, follow_redirects=False)
+        assert crawl_config.load_all_crawl_sources()["nasa-a"].extraction_mode == "static"
+
+    def test_the_edit_row_shows_the_source_s_current_extraction_mode(self, client):
+        """The dropdown is fed by a Jinja global, so a missing wire-up renders
+        an empty <select> rather than failing - assert on the marked option."""
+        self._source(client, "nasa-a", "astronomie", "nasa-a")
+        client.post("/crawl-sources/nasa-a/edit", data={
+            "category": "astronomie", "subject_slug": "nasa-a", "extraction_mode": "static",
+        }, follow_redirects=False)
+
+        row = re.search(
+            r'id="crawl-source-edit-nasa-a".*?</select>',
+            client.get("/crawl-sources").text, re.S,
+        )
+        assert row and '<option value="static" selected' in row.group(0)
+
+    def test_rejects_an_unknown_extraction_mode(self, client):
+        self._source(client, "nasa-a", "astronomie", "nasa-a")
+        response = client.post("/crawl-sources/nasa-a/edit", data={
+            "category": "astronomie", "subject_slug": "nasa-a", "extraction_mode": "vibes",
+        }, follow_redirects=False)
+        assert response.status_code == 400
+
     def test_rejects_an_invalid_subject_slug(self, client):
         """A slug becomes a directory name under data/ - a trust boundary, and
         on edit it is NOT silently slugified: the operator is matching another

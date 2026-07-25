@@ -76,9 +76,9 @@
                         </p>
                         <div class="field-label">Extraction</div>
                         <select name="extraction_mode">
-                            <option value="auto" selected>auto - date tables read directly, everything else via the model</option>
-                            <option value="llm">llm - always the model (best labels, one call per 20k chars)</option>
-                            <option value="static">static - never the model (exhaustive, one shared label)</option>
+                            {% for mode, hint in extraction_mode_options %}
+                            <option value="{{ mode }}" {{ 'selected' if mode == 'auto' }}>{{ mode }} - {{ hint }}</option>
+                            {% endfor %}
                         </select>
                         <p style="font-size:0.8rem; color:var(--muted); margin:0.35rem 0 0;">
                             PDFs and images always go to the model under <code>auto</code> - their text

@@ -93,6 +93,14 @@
                             <label class="field-label">Event type hint</label><br>
                             <input type="text" name="event_type_hint" value="{{ source.event_type_hint }}" style="width:160px;">
                         </div>
+                        <div>
+                            <label class="field-label">Extraction</label><br>
+                            <select name="extraction_mode" style="width:160px;">
+                                {% for mode, hint in extraction_mode_options %}
+                                <option value="{{ mode }}" {{ 'selected' if mode == source.extraction_mode }} title="{{ hint }}">{{ mode }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                         <button type="submit" class="btn btn-primary btn-sm" {{ 'disabled' if id in running_sources else '' }}>Save</button>
                         <button type="button" class="btn btn-sm crawl-source-edit-btn" data-target="crawl-source-edit-{{ id }}">Cancel</button>
                     </form>

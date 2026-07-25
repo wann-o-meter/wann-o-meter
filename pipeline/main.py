@@ -41,6 +41,17 @@ from harvest import registry as harvest_registry
 # know copyright law, so each label states the concrete situation to match
 # rather than an abstract legal term - order follows PLAN.md's decision tree,
 # most-common civic-data case first.
+# (mode, tooltip) for the Extraction dropdowns, built FROM EXTRACTION_MODES so
+# a mode added there shows up in the UI even before it gets a description.
+_EXTRACTION_MODE_HINTS = {
+    "auto": "date tables read directly, everything else via the model",
+    "llm": "always the model - best labels, one call per 20k chars",
+    "static": "never the model - regex only, exhaustive, one shared label",
+}
+EXTRACTION_MODE_OPTIONS = [
+    (mode, _EXTRACTION_MODE_HINTS.get(mode, "")) for mode in crawl_config.EXTRACTION_MODES
+]
+
 LICENSE_OPTIONS = [
     {
         "value": "official_par5",
@@ -130,6 +141,7 @@ templates.env.globals.update(
     all_tags=lambda: _all_tags(),
     all_page_titles=lambda: sorted({p["title"] for p in _list_created_pages()}),
     all_page_slugs=lambda: sorted({p["slug"] for p in _list_created_pages()}),
+    extraction_mode_options=EXTRACTION_MODE_OPTIONS,
 )
 
 # Backs the site's dynamic /{category-path}/{slug}/ routes (lib/pages.ts
@@ -944,6 +956,7 @@ async def edit_crawl_source(
     subject_slug: str = Form(...),
     subject_name: str = Form(""),
     event_type_hint: str = Form(""),
+    extraction_mode: str = Form(""),
 ):
     """Changes where a crawl source writes - data/{category}/{subject_slug}/ -
     and migrates everything that already points at the old location, so
@@ -993,6 +1006,13 @@ async def edit_crawl_source(
         "subject_name": subject_name.strip(),
         "event_type_hint": event_type_hint.strip(),
     })
+    # Whether this source reads dates with the regex or the model was settable
+    # only at create time, so switching meant hand-editing the YAML. Omitted
+    # rather than defaulted, so a form POST without the field (the other fields
+    # here are edited by partial posts in the same way) leaves the mode alone
+    # instead of silently resetting it to auto. _parse rejects an unknown mode.
+    if extraction_mode:
+        raw["extraction_mode"] = extraction_mode
     try:
         parsed = crawl_config._parse(raw, source.config_path)
     except crawl_config.CrawlConfigError as e:
