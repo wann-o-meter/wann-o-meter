@@ -6,7 +6,7 @@ import {
   getPageDates,
   getPageEvents,
   loadCategoryTreeForTests,
-  pageRegion,
+  pageLocation,
   RESERVED_CATEGORIES,
   type Page,
 } from "./pages";
@@ -193,7 +193,7 @@ describe("getAllTags / getPagesByTag", () => {
   });
 });
 
-describe("pageRegion", () => {
+describe("pageLocation", () => {
   const page = (category: string, slug: string): Page => ({
     ...emptyPage,
     category,
@@ -201,22 +201,24 @@ describe("pageRegion", () => {
   });
 
   it("resolves a German feiertage state page from its de-{code} slug", () => {
-    expect(pageRegion(page("feiertage", "de-by"))).toBe("Bayern");
+    expect(pageLocation(page("feiertage", "de-by"))).toEqual({ name: "Bayern", addressRegion: "Bayern", addressCountry: "DE" });
   });
 
   it("resolves a schulferien/urlaubsfenster page from its bare state-code slug", () => {
-    expect(pageRegion(page("schulferien", "by"))).toBe("Bayern");
-    expect(pageRegion(page("urlaubsfenster", "by"))).toBe("Bayern");
+    expect(pageLocation(page("schulferien", "by"))?.name).toBe("Bayern");
+    expect(pageLocation(page("urlaubsfenster", "by"))?.name).toBe("Bayern");
   });
 
   it("falls back to the country name for feiertage's non-German country pages", () => {
-    expect(pageRegion(page("feiertage", "tn"))).toBeTruthy();
-    expect(pageRegion(page("feiertage", "de-by"))).not.toBe(pageRegion(page("feiertage", "tn")));
+    const tn = pageLocation(page("feiertage", "tn"));
+    expect(tn?.name).toBeTruthy();
+    expect(tn?.addressCountry).toBe("TN");
+    expect(tn).not.toHaveProperty("addressRegion");
   });
 
   it("returns undefined for categories with no real region", () => {
-    expect(pageRegion(page("fixture", "empty-fixture"))).toBeUndefined();
-    expect(pageRegion(page("saisonkalender", "gruenkohl"))).toBeUndefined();
+    expect(pageLocation(page("fixture", "empty-fixture"))).toBeUndefined();
+    expect(pageLocation(page("saisonkalender", "gruenkohl"))).toBeUndefined();
   });
 });
 
