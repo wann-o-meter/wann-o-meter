@@ -46,7 +46,11 @@ from harvest import registry as harvest_registry
 _EXTRACTION_MODE_HINTS = {
     "auto": "date tables read directly, everything else via the model",
     "llm": "always the model - best labels, one call per 20k chars",
-    "static": "never the model - regex only, exhaustive, one shared label",
+    # The regex reads ISO and the "2001 Jun 21" catalog form only, so a German
+    # page ("19. September bis 4. Oktober 2026") yields NOTHING under static -
+    # reported as "static: 0 date(s)", which looks the same as a page with no
+    # dates at all. Say so here rather than let it be discovered by a run.
+    "static": "regex only, never the model - ISO dates (2026-09-19) only, NOT '19. September'",
 }
 EXTRACTION_MODE_OPTIONS = [
     (mode, _EXTRACTION_MODE_HINTS.get(mode, "")) for mode in crawl_config.EXTRACTION_MODES

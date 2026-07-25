@@ -206,6 +206,14 @@ def _html(body):
 
 
 class TestStaticDates:
+    def test_german_written_dates_are_not_read_at_all(self):
+        """The regexes are year-FIRST (ISO, "2001 Jun 21"), so a German page
+        yields nothing under mode=static - which is why the Extraction
+        dropdown says so. Teach them German and this fails: update the
+        dropdown text in main.py's _EXTRACTION_MODE_HINTS with it."""
+        dates, negative = crawl_runner._static_dates("19. September bis 4. Oktober 2026")
+        assert (dates, negative) == ([], 0)
+
     def test_reads_iso_and_catalog_date_forms_and_dedupes_them(self):
         dates, negative = crawl_runner._static_dates("[2001-06-21.gif] [2001 Jun 21] and 2002 Dec 04")
         assert dates == ["2001-06-21", "2002-12-04"]

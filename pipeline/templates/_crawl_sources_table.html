@@ -95,9 +95,12 @@
                         </div>
                         <div>
                             <label class="field-label">Extraction</label><br>
-                            <select name="extraction_mode" style="width:160px;">
+                            {# Inline text, not title= - Chrome does not render
+                               tooltips on <option>, and the static caveat is
+                               the one thing an operator must read. #}
+                            <select name="extraction_mode">
                                 {% for mode, hint in extraction_mode_options %}
-                                <option value="{{ mode }}" {{ 'selected' if mode == source.extraction_mode }} title="{{ hint }}">{{ mode }}</option>
+                                <option value="{{ mode }}" {{ 'selected' if mode == source.extraction_mode }}>{{ mode }} - {{ hint }}</option>
                                 {% endfor %}
                             </select>
                         </div>
