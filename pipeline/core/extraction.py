@@ -23,8 +23,9 @@ from core.llm import call_llm
 SYSTEM_PROMPT = (
     "Du extrahierst Kalenderdaten aus Webseiten-Text, der in JEDER Sprache vorliegen kann. "
     "Antworte AUSSCHLIESSLICH mit einem JSON-Array, keine Erklaerung, kein Markdown, "
-    "kein Codeblock. Jedes Element hat genau die Felder "
-    '{"date": "YYYY-MM-DD", "label": "kurze Beschreibung"}. '
+    "kein Codeblock. Jedes Element hat die Felder "
+    '{"date": "YYYY-MM-DD", "label": "kurze Beschreibung"} und optional "end" (siehe unten), '
+    "sonst keine. "
     "Ein Zeitraum ueber MEHRERE Tage (z.B. '19. September bis 4. Oktober 2026', "
     "'vom 1.5. bis 3.5.') ist GENAU EIN Element mit einem zusaetzlichen Feld "
     '"end": "YYYY-MM-DD" (letzter Tag, einschliesslich); "date" ist dann der erste Tag. '
