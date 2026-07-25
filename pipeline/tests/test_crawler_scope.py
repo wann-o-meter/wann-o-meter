@@ -80,6 +80,57 @@ def test_never_fetches_a_url_outside_the_path_prefix():
     assert not any("/blog/" in u for u in fetched_urls)
 
 
+def test_a_source_with_no_path_prefix_at_all_still_scopes_by_domain():
+    """path_prefix is Optional[str] and is None - not "" - for every
+    bare-domain seed, which is the common whole-site source."""
+    source = _source(seed_url="https://example.org", path_prefix=None)
+    assert crawler.in_scope("https://example.org/anything/deep", source)
+    assert not crawler.in_scope("https://other.org/anything", source)
+
+
+def test_a_www_seed_matches_the_www_less_domain_the_create_route_derives():
+    """The create route stores netloc.removeprefix("www."), the seed keeps its
+    "www." - so a bare-domain seed scoped itself out of its own crawl."""
+    source = _source(seed_url="https://www.example.org", allowed_domains=["example.org"])
+    assert crawler.in_scope("https://www.example.org/events", source)
+    # ...and the other direction, for an operator who typed the www. form.
+    assert crawler.in_scope(
+        "https://example.org/events",
+        _source(allowed_domains=["www.example.org"]),
+    )
+
+
+def test_host_matching_is_a_www_prefix_rule_and_not_a_substring_one():
+    """The domain list is the crawl's trust boundary - stripping "www." must
+    not turn into "any host that merely contains the allowed one"."""
+    assert not crawler.in_scope("https://notexample.org/events", _source())
+    assert not crawler.in_scope("https://example.org.attacker.com/events", _source())
+    assert not crawler.in_scope("https://sub.example.org/events", _source())
+
+
+def test_a_seed_url_with_a_trailing_slash_is_inside_its_own_scope():
+    """_derive_path_prefix keeps the seed's trailing slash, normalize_url
+    strips it - so a seed pasted from a browser scoped itself OUT of its own
+    crawl and the source reported "0 docs" forever."""
+    source = _source(seed_url="https://example.org/events/", path_prefix="/events/")
+    assert crawler.in_scope("https://example.org/events", source)
+    assert crawler.in_scope("https://example.org/events/2026", source)
+
+
+def test_the_prefix_does_not_swallow_a_sibling_with_the_same_start():
+    """"/events-archiv" is a different page, not a child of "/events"."""
+    assert not crawler.in_scope("https://example.org/events-archiv", _source())
+
+
+def test_a_seed_outside_its_own_scope_is_reported_rather_than_silent():
+    reported = []
+    crawler.crawl(
+        _source(seed_url="https://example.org/blog/unrelated", path_prefix="/events"),
+        on_page=lambda url, status: reported.append((url, status)),
+    )
+    assert reported and "seed is outside" in reported[0][1]
+
+
 def test_never_fetches_past_max_depth():
     docs = crawler.crawl(_source(max_depth=2))
     fetched_urls = {d.url for d in docs}
