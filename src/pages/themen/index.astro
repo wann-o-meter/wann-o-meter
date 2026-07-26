@@ -46,40 +46,43 @@ const tags = getAllTags();
 </Layout>
 
 <script>
-  // Plain-vanilla substring filter - no framework, no build step needed for
-  // this. Pagefind (PLAN.md section 7) is explicitly deferred until >50
-  // pages; this dataset is nowhere near that yet.
-  const search = document.getElementById("search-input") as HTMLInputElement;
-  const results = document.getElementById("results")!;
-  const noResults = document.getElementById("no-results")!;
-  const entries = Array.from(results.querySelectorAll("li"));
-  const tagButtons = document.querySelectorAll<HTMLButtonElement>(".tag-filter");
+  // Re-run per navigation - see the note in Layout.astro's ClientRouter.
+  document.addEventListener("astro:page-load", () => {
+    // Plain-vanilla substring filter - no framework, no build step needed for
+    // this. Pagefind (PLAN.md section 7) is explicitly deferred until >50
+    // pages; this dataset is nowhere near that yet.
+    const search = document.getElementById("search-input") as HTMLInputElement;
+    const results = document.getElementById("results")!;
+    const noResults = document.getElementById("no-results")!;
+    const entries = Array.from(results.querySelectorAll("li"));
+    const tagButtons = document.querySelectorAll<HTMLButtonElement>(".tag-filter");
 
-  let activeTag: string | null = null;
+    let activeTag: string | null = null;
 
-  function apply() {
-    const query = search.value.trim().toLowerCase();
-    let visibleCount = 0;
-    for (const entry of entries) {
-      const title = entry.dataset.title ?? "";
-      const tags = entry.dataset.tags ?? "";
-      const matchesQuery = query === "" || title.includes(query) || tags.includes(query);
-      const matchesTag = activeTag === null || tags.split(" ").includes(activeTag);
-      const show = matchesQuery && matchesTag;
-      entry.hidden = !show;
-      if (show) visibleCount++;
+    function apply() {
+      const query = search.value.trim().toLowerCase();
+      let visibleCount = 0;
+      for (const entry of entries) {
+        const title = entry.dataset.title ?? "";
+        const tags = entry.dataset.tags ?? "";
+        const matchesQuery = query === "" || title.includes(query) || tags.includes(query);
+        const matchesTag = activeTag === null || tags.split(" ").includes(activeTag);
+        const show = matchesQuery && matchesTag;
+        entry.hidden = !show;
+        if (show) visibleCount++;
+      }
+      noResults.hidden = visibleCount > 0;
     }
-    noResults.hidden = visibleCount > 0;
-  }
 
-  search.addEventListener("input", apply);
-  for (const button of tagButtons) {
-    button.addEventListener("click", () => {
-      activeTag = activeTag === button.dataset.tag ? null : (button.dataset.tag ?? null);
-      for (const b of tagButtons) b.classList.toggle("active", b === button && activeTag !== null);
-      apply();
-    });
-  }
+    search.addEventListener("input", apply);
+    for (const button of tagButtons) {
+      button.addEventListener("click", () => {
+        activeTag = activeTag === button.dataset.tag ? null : (button.dataset.tag ?? null);
+        for (const b of tagButtons) b.classList.toggle("active", b === button && activeTag !== null);
+        apply();
+      });
+    }
+  });
 </script>
 
 <style>

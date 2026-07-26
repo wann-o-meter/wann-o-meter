@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { breadcrumbNode, datasetNode, eventNode, graph, websiteNode } from "./structured-data";
+import { breadcrumbNode, datasetNode, eventNode, faqNode, graph, websiteNode } from "./structured-data";
 
 describe("graph", () => {
   it("wraps nodes in a single @context @graph document", () => {
@@ -106,5 +106,28 @@ describe("websiteNode", () => {
       url: "https://wann.example",
       description: "d",
     });
+  });
+});
+
+describe("faqNode", () => {
+  it("builds a FAQPage with one Question per item", () => {
+    expect(faqNode([{ question: "Wann sind die Brückentage in NRW 2027?", answer: "Am 06.05.2027." }])).toEqual({
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "Wann sind die Brückentage in NRW 2027?",
+          acceptedAnswer: { "@type": "Answer", text: "Am 06.05.2027." },
+        },
+      ],
+    });
+  });
+
+  it("passes question and answer through verbatim, so the page can render the same strings", () => {
+    // The rendered HTML must contain these exact answers (Google rejects FAQ
+    // markup with no on-page counterpart), so this builder must not reword.
+    const items = [{ question: "Q1", answer: "A1" }, { question: "Q2", answer: "A2" }];
+    const node = faqNode(items) as { mainEntity: { name: string; acceptedAnswer: { text: string } }[] };
+    expect(node.mainEntity.map((q) => [q.name, q.acceptedAnswer.text])).toEqual([["Q1", "A1"], ["Q2", "A2"]]);
   });
 });

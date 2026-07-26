@@ -1,0 +1,45 @@
+subject:
+  slug: wiesnkini-de
+  category: events/feste
+windows:
+- type: event
+  year: 2026
+  from: '2026-09-19'
+  to: '2026-10-04'
+  precision: exact
+  ics: true
+  name: Oktoberfest
+  source_urls:
+  - https://wiesnkini.de/haufige-fragen/wann-findet-das-oktoberfest-statt
+- type: event
+  year: 2027
+  from: '2027-09-18'
+  to: '2027-10-03'
+  precision: exact
+  ics: true
+  name: Oktoberfest
+  source_urls:
+  - https://wiesnkini.de/haufige-fragen/wann-findet-das-oktoberfest-statt
+- type: event
+  year: 2028
+  from: '2028-09-16'
+  to: '2028-10-03'
+  precision: exact
+  ics: true
+  name: Oktoberfest
+  source_urls:
+  - https://wiesnkini.de/haufige-fragen/wann-findet-das-oktoberfest-statt
+- type: event
+  year: 2029
+  from: '2029-09-22'
+  to: '2029-10-07'
+  precision: exact
+  ics: true
+  name: Oktoberfest
+  source_urls:
+  - https://wiesnkini.de/haufige-fragen/wann-findet-das-oktoberfest-statt
+source:
+- url: https://wiesnkini.de/haufige-fragen/wann-findet-das-oktoberfest-statt
+  license: tos_checked
+  retrieved_at: '2026-07-25'
+  extraction: llm

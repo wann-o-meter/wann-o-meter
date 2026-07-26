@@ -102,6 +102,28 @@ export function datasetNode(input: DatasetInput): object {
   };
 }
 
+export interface FaqInput {
+  question: string;
+  answer: string;
+}
+
+// Every Q&A passed here MUST also be visible in the rendered HTML (see
+// src/pages/[...path].astro's year view, which renders the same list it feeds
+// this). FAQ markup whose content a user cannot find on the page is a Google
+// structured-data violation, not just an unused enhancement - so this builder
+// is deliberately dumb: it never invents or reformats a question, it only types
+// what the page already shows.
+export function faqNode(items: FaqInput[]): object {
+  return {
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
+    })),
+  };
+}
+
 export interface WebSiteInput {
   name: string;
   url: string;

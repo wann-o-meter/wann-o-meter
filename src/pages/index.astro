@@ -284,185 +284,195 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
 </style>
 
 <script>
-  // Plain-vanilla substring filter, no framework/search-index dependency -
-  // dataset is a few hundred items at most, well below the threshold where
-  // that would pay off. Non-featured items start hidden (collapsed into
-  // their type's cluster); a group's "show more" button reveals them
-  // permanently, and an active search/tag filter always overrides the
-  // collapse so nothing is unreachable.
-  const search = document.getElementById("search-input") as HTMLInputElement;
-  const noResults = document.getElementById("no-results")!;
-  const groups = Array.from(document.querySelectorAll<HTMLElement>(".group"));
-  const tagButtons = document.querySelectorAll<HTMLButtonElement>(".tag-filter");
-  const moreButtons = document.querySelectorAll<HTMLButtonElement>(".more");
+  // Re-run per navigation - see the note in Layout.astro's ClientRouter.
+  document.addEventListener("astro:page-load", () => {
+    // Plain-vanilla substring filter, no framework/search-index dependency -
+    // dataset is a few hundred items at most, well below the threshold where
+    // that would pay off. Non-featured items start hidden (collapsed into
+    // their type's cluster); a group's "show more" button reveals them
+    // permanently, and an active search/tag filter always overrides the
+    // collapse so nothing is unreachable.
+    const search = document.getElementById("search-input") as HTMLInputElement;
+    const noResults = document.getElementById("no-results")!;
+    const groups = Array.from(document.querySelectorAll<HTMLElement>(".group"));
+    const tagButtons = document.querySelectorAll<HTMLButtonElement>(".tag-filter");
+    const moreButtons = document.querySelectorAll<HTMLButtonElement>(".more");
 
-  let activeTag: string | null = null;
-  const expandedGroups = new Set<string>();
+    let activeTag: string | null = null;
+    const expandedGroups = new Set<string>();
 
-  function apply() {
-    const query = search.value.trim().toLowerCase();
-    const searchActive = query !== "" || activeTag !== null;
-    let totalVisible = 0;
+    function apply() {
+      const query = search.value.trim().toLowerCase();
+      const searchActive = query !== "" || activeTag !== null;
+      let totalVisible = 0;
 
-    for (const group of groups) {
-      const groupName = group.dataset.type ?? "";
-      let visibleInGroup = 0;
-      for (const entry of group.querySelectorAll<HTMLLIElement>("li")) {
-        const title = entry.dataset.title ?? "";
-        const tags = entry.dataset.tags ?? "";
-        const isFeatured = entry.dataset.featured === "true";
-        const matchesQuery = query === "" || title.includes(query) || tags.includes(query);
-        const matchesTag = activeTag === null || tags.split(",").includes(activeTag);
-        const collapsed = !searchActive && !isFeatured && !expandedGroups.has(groupName);
-        const show = matchesQuery && matchesTag && !collapsed;
-        entry.hidden = !show;
-        if (show) visibleInGroup++;
+      for (const group of groups) {
+        const groupName = group.dataset.type ?? "";
+        let visibleInGroup = 0;
+        for (const entry of group.querySelectorAll<HTMLLIElement>("li")) {
+          const title = entry.dataset.title ?? "";
+          const tags = entry.dataset.tags ?? "";
+          const isFeatured = entry.dataset.featured === "true";
+          const matchesQuery = query === "" || title.includes(query) || tags.includes(query);
+          const matchesTag = activeTag === null || tags.split(",").includes(activeTag);
+          const collapsed = !searchActive && !isFeatured && !expandedGroups.has(groupName);
+          const show = matchesQuery && matchesTag && !collapsed;
+          entry.hidden = !show;
+          if (show) visibleInGroup++;
+        }
+        group.hidden = visibleInGroup === 0;
+        totalVisible += visibleInGroup;
+
+        const moreButton = group.querySelector<HTMLButtonElement>(".more");
+        if (moreButton) moreButton.hidden = searchActive || expandedGroups.has(groupName);
       }
-      group.hidden = visibleInGroup === 0;
-      totalVisible += visibleInGroup;
 
-      const moreButton = group.querySelector<HTMLButtonElement>(".more");
-      if (moreButton) moreButton.hidden = searchActive || expandedGroups.has(groupName);
+      noResults.hidden = totalVisible > 0;
     }
 
-    noResults.hidden = totalVisible > 0;
-  }
+    search.addEventListener("input", apply);
+    for (const button of tagButtons) {
+      button.addEventListener("click", () => {
+        // Lowercased to match `tags` above (itself lowercased from data-tags) -
+        // without this, clicking a tag whose displayed casing isn't already
+        // all-lowercase (e.g. "Feiertage") silently matches nothing.
+        const tagValue = (button.dataset.tag ?? "").toLowerCase();
+        activeTag = activeTag === tagValue ? null : tagValue;
+        for (const b of tagButtons) {
+          b.classList.toggle("active", (b.dataset.tag ?? "").toLowerCase() === activeTag && activeTag !== null);
+        }
+        apply();
+      });
+    }
+    for (const button of moreButtons) {
+      button.addEventListener("click", () => {
+        expandedGroups.add(button.dataset.group ?? "");
+        apply();
+      });
+    }
 
-  search.addEventListener("input", apply);
-  for (const button of tagButtons) {
-    button.addEventListener("click", () => {
-      // Lowercased to match `tags` above (itself lowercased from data-tags) -
-      // without this, clicking a tag whose displayed casing isn't already
-      // all-lowercase (e.g. "Feiertage") silently matches nothing.
-      const tagValue = (button.dataset.tag ?? "").toLowerCase();
-      activeTag = activeTag === tagValue ? null : tagValue;
-      for (const b of tagButtons) {
-        b.classList.toggle("active", (b.dataset.tag ?? "").toLowerCase() === activeTag && activeTag !== null);
-      }
-      apply();
-    });
-  }
-  for (const button of moreButtons) {
-    button.addEventListener("click", () => {
-      expandedGroups.add(button.dataset.group ?? "");
-      apply();
-    });
-  }
-
-  // Nav's "Durchsuchen" link points at "/#search-input" - focus it on
-  // arrival. Covers both a fresh page load and clicking the link while
-  // already on "/" (same-document hash change, no reload/DOMContentLoaded).
-  function focusSearchIfTargeted() {
-    if (location.hash !== "#search-input") return;
-    // preventScroll + an explicit centered scrollIntoView, instead of the
-    // browser's default jump-to-top-of-viewport anchor behavior - otherwise
-    // the input lands right at the top edge, easy to miss.
-    search.focus({ preventScroll: true });
-    search.scrollIntoView({ block: "center", behavior: "smooth" });
-  }
-  focusSearchIfTargeted();
-  window.addEventListener("hashchange", focusSearchIfTargeted);
+    // Nav's "Durchsuchen" link points at "/#search-input" - focus it on
+    // arrival. Covers both a fresh page load and clicking the link while
+    // already on "/" (same-document hash change, no reload/DOMContentLoaded).
+    function focusSearchIfTargeted() {
+      if (location.hash !== "#search-input") return;
+      // preventScroll + an explicit centered scrollIntoView, instead of the
+      // browser's default jump-to-top-of-viewport anchor behavior - otherwise
+      // the input lands right at the top edge, easy to miss.
+      search.focus({ preventScroll: true });
+      search.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+    focusSearchIfTargeted();
+    window.addEventListener("hashchange", focusSearchIfTargeted);
+  });
 </script>
 
 <script>
+  // Re-run per navigation - see the note in Layout.astro's ClientRouter.
   import { pickTodayTeaser } from "../../lib/today-teaser";
 
-  const teaserLink = document.getElementById("today-teaser-link");
-  if (teaserLink instanceof HTMLAnchorElement) {
-    const d = new Date();
-    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    fetch("/api/v1/today-feed.json")
-      .then((r) => r.json())
-      .then((entries) => {
-        const teaser = pickTodayTeaser(entries, today);
-        // No hit (or the fetch/parse below failed) -> keep the static
-        // default text/href already in the template, never show nothing.
-        if (!teaser) return;
-        teaserLink.textContent = teaser.text;
-        teaserLink.href = `/kalender/?day=${teaser.day}&layers=${teaser.entryId}`;
-      })
-      .catch(() => {});
-  }
+  document.addEventListener("astro:page-load", () => {
+
+    const teaserLink = document.getElementById("today-teaser-link");
+    if (teaserLink instanceof HTMLAnchorElement) {
+      const d = new Date();
+      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      fetch("/api/v1/today-feed.json")
+        .then((r) => r.json())
+        .then((entries) => {
+          const teaser = pickTodayTeaser(entries, today);
+          // No hit (or the fetch/parse below failed) -> keep the static
+          // default text/href already in the template, never show nothing.
+          if (!teaser) return;
+          teaserLink.textContent = teaser.text;
+          teaserLink.href = `/kalender/?day=${teaser.day}&layers=${teaser.entryId}`;
+        })
+        .catch(() => {});
+    }
+  });
 </script>
 
 <script define:vars={{ questions: rotatingQuestions }}>
-  // Cycles the H1 through real questions the site can answer - the static
-  // generic H1 (set in the template) is the no-JS/SEO fallback. Skipped
-  // entirely for prefers-reduced-motion (WCAG 2.2.2: no unpausable
-  // auto-updating text).
-  const h1 = document.getElementById("h1-rotator");
-  if (h1 && questions.length > 0 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    // Renders {before, emphasis, after} (lib/homepage-questions.ts) as text +
-    // <em> + text instead of one flat string - the topic clause (e.g.
-    // "Schulferien und Feiertage in Mecklenburg-Vorpommern") reads distinctly
-    // from the generic "Wann ist/sind..." opener. Used by both the real H1
-    // update below and the height probe, so the probe measures the exact
-    // markup that'll render (italic glyphs aren't the same width as regular
-    // ones - a flat-text measurement could under/over-reserve height).
-    function renderQuestion(el, question) {
-      const em = document.createElement("em");
-      em.textContent = question.emphasis;
-      el.replaceChildren(document.createTextNode(question.before), em, document.createTextNode(question.after));
-    }
-
-    // Reserves exactly the height the tallest question needs to wrap to at
-    // the H1's *actual* current width - the CSS min-height below is only a
-    // rough fallback (2 lines), which the longer combined Schulferien+
-    // Feiertage questions can exceed, especially now that the H1 shares the
-    // row with the calendar preview and has less width than it used to.
-    // Measured with a detached clone instead of a fixed lookup table so it
-    // stays correct across font-loading, zoom, and viewport width, none of
-    // which a precomputed table could account for.
-    function reserveH1Height() {
-      const probe = document.createElement("h1");
-      probe.className = h1.className;
-      Object.assign(probe.style, {
-        position: "absolute",
-        visibility: "hidden",
-        pointerEvents: "none",
-        minHeight: "0",
-        margin: "0",
-        width: `${h1.getBoundingClientRect().width}px`,
-      });
-      document.body.appendChild(probe);
-      let max = 0;
-      for (const question of questions) {
-        renderQuestion(probe, question);
-        max = Math.max(max, probe.offsetHeight);
+  // Re-run per navigation - see the note in Layout.astro's ClientRouter.
+  document.addEventListener("astro:page-load", () => {
+    // Cycles the H1 through real questions the site can answer - the static
+    // generic H1 (set in the template) is the no-JS/SEO fallback. Skipped
+    // entirely for prefers-reduced-motion (WCAG 2.2.2: no unpausable
+    // auto-updating text).
+    const h1 = document.getElementById("h1-rotator");
+    if (h1 && questions.length > 0 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      // Renders {before, emphasis, after} (lib/homepage-questions.ts) as text +
+      // <em> + text instead of one flat string - the topic clause (e.g.
+      // "Schulferien und Feiertage in Mecklenburg-Vorpommern") reads distinctly
+      // from the generic "Wann ist/sind..." opener. Used by both the real H1
+      // update below and the height probe, so the probe measures the exact
+      // markup that'll render (italic glyphs aren't the same width as regular
+      // ones - a flat-text measurement could under/over-reserve height).
+      function renderQuestion(el, question) {
+        const em = document.createElement("em");
+        em.textContent = question.emphasis;
+        el.replaceChildren(document.createTextNode(question.before), em, document.createTextNode(question.after));
       }
-      document.body.removeChild(probe);
-      h1.style.minHeight = `${max}px`;
-    }
-    reserveH1Height();
-    let resizeTimer;
-    window.addEventListener("resize", () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(reserveH1Height, 200);
-    });
 
-    let q = questions
-    setInterval(() => {
-      const i = Math.floor(Math.random() * q.length);
-      const question = questions[i];
-      renderQuestion(h1, question);
-      // Tells HeroCalendarPreview.vue which layers this sentence is about -
-      // a CustomEvent instead of a shared Vue parent, so this script can
-      // keep owning the static-H1/reduced-motion fallback untouched.
-      window.dispatchEvent(new CustomEvent("homepage-rotate", { detail: { layerIds: question.layerIds } }));
-      // Web Animations API, not a CSS class toggle - a class-based
-      // @keyframes animation doesn't replay on repeated triggers without a
-      // reflow hack; .animate() just restarts. Slides up into place from
-      // below with a slight overshoot ("small bounce") via the easing curve.
-      h1.animate(
-        [
-          { transform: "translateY(0.6em)", opacity: 0 },
-          { transform: "translateY(-0.06em)", opacity: 1, offset: 0.7 },
-          { transform: "translateY(0)", opacity: 1 },
-        ],
-        { duration: 450, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" },
-      );
-      q = questions.filter((_, j) => j !== i);
-      if (q.length === 0) q = questions;
-    }, 3000);
-  }
+      // Reserves exactly the height the tallest question needs to wrap to at
+      // the H1's *actual* current width - the CSS min-height below is only a
+      // rough fallback (2 lines), which the longer combined Schulferien+
+      // Feiertage questions can exceed, especially now that the H1 shares the
+      // row with the calendar preview and has less width than it used to.
+      // Measured with a detached clone instead of a fixed lookup table so it
+      // stays correct across font-loading, zoom, and viewport width, none of
+      // which a precomputed table could account for.
+      function reserveH1Height() {
+        const probe = document.createElement("h1");
+        probe.className = h1.className;
+        Object.assign(probe.style, {
+          position: "absolute",
+          visibility: "hidden",
+          pointerEvents: "none",
+          minHeight: "0",
+          margin: "0",
+          width: `${h1.getBoundingClientRect().width}px`,
+        });
+        document.body.appendChild(probe);
+        let max = 0;
+        for (const question of questions) {
+          renderQuestion(probe, question);
+          max = Math.max(max, probe.offsetHeight);
+        }
+        document.body.removeChild(probe);
+        h1.style.minHeight = `${max}px`;
+      }
+      reserveH1Height();
+      let resizeTimer;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(reserveH1Height, 200);
+      });
+
+      let q = questions
+      setInterval(() => {
+        const i = Math.floor(Math.random() * q.length);
+        const question = questions[i];
+        renderQuestion(h1, question);
+        // Tells HeroCalendarPreview.vue which layers this sentence is about -
+        // a CustomEvent instead of a shared Vue parent, so this script can
+        // keep owning the static-H1/reduced-motion fallback untouched.
+        window.dispatchEvent(new CustomEvent("homepage-rotate", { detail: { layerIds: question.layerIds } }));
+        // Web Animations API, not a CSS class toggle - a class-based
+        // @keyframes animation doesn't replay on repeated triggers without a
+        // reflow hack; .animate() just restarts. Slides up into place from
+        // below with a slight overshoot ("small bounce") via the easing curve.
+        h1.animate(
+          [
+            { transform: "translateY(0.6em)", opacity: 0 },
+            { transform: "translateY(-0.06em)", opacity: 1, offset: 0.7 },
+            { transform: "translateY(0)", opacity: 1 },
+          ],
+          { duration: 450, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" },
+        );
+        q = questions.filter((_, j) => j !== i);
+        if (q.length === 0) q = questions;
+      }, 3000);
+    }
+  });
 </script>

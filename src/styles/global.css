@@ -246,20 +246,30 @@ th {
    empty tracks for a partial last row, and a container background painted
    underneath a 1px gap fills those empty tracks too, showing as a stray
    grey block with no item in it. Bordering only real items means an empty
-   track simply renders nothing. */
+   track simply renders nothing.
+
+   Which two edges each side owns is load-bearing. The items must own the
+   RIGHT and BOTTOM ones (and the container the left/top), because those are
+   the edges that close a partial last row: 6 items across 5 columns leaves
+   the lone item on row 2 with four neighbours' worth of empty track to its
+   right, so a container-drawn right border would hang far off the end of it
+   and the item itself would look unclosed. Owning its own right/bottom, that
+   item closes itself wherever it happens to sit, and the empty tracks beside
+   it still draw nothing. Its top edge is the bottom border of the item above,
+   and its left edge the container's. */
 .cards {
   list-style: none;
   padding: 0;
   margin: 0 0 2rem;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  border-top: 1px solid var(--line);
 }
 .cards li {
   background: var(--paper);
-  border-left: 1px solid var(--line);
-  border-top: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
 }
 .cards a {
   display: block;

@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { ClientRouter } from "astro:transitions";
 import { ArrowUpRight, Calendar, Monitor, Moon, Search, Sun } from "@lucide/astro";
 import { feedbackIssueUrl, feedbackMailtoUrl, newSourceIssueUrl } from "../../lib/github-issue";
 
@@ -62,12 +63,27 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
     {structuredData && (
       <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
     )}
+
+    {/* Swaps the document instead of reloading it, so the year pills in
+        DateListControls navigate without a full-page flash - they change the
+        URL (each year is its own static page) but feel like an in-place
+        filter. Consequence for every script below: a module script runs ONCE,
+        so anything that binds to per-page DOM has to re-run on
+        astro:page-load or it silently stops working after the first swap. */}
+    <ClientRouter />
   </head>
   <body>
     <header>
       <div class:list={["wrap", "header-bar", { wide }]}>
         <a href="/" class="brand">Wann-<span class="brand-accent">O</span>-Meter</a>
-        <a id="today-indicator" class="today-indicator" href="/kalender/"></a>
+        {/* transition:persist keeps THIS node across a view-transition swap
+            instead of replacing it with the next page's empty one. The label is
+            filled in by client JS (the date must be the visitor's "today", not
+            the build's), and every page ships it empty - so without this the
+            nav date blanks out on navigation and only comes back if the script
+            re-runs. Persisting is the fix that can't silently regress: the
+            element that already has the date simply stays. */}
+        <a id="today-indicator" class="today-indicator" href="/kalender/" transition:persist></a>
         <nav>
           <a href="/kalender/"><Calendar size={16} /> Kalender {!onKalenderPage && <ArrowUpRight size={14} />}</a>
           <span class="nav-divider" aria-hidden="true"></span>
@@ -104,59 +120,73 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
       // date computed at build time would freeze at whenever the site was
       // last built, not update as real days/weeks pass for a visitor.
       import { formatTodayLabel } from "../../lib/date-display";
-      const el = document.getElementById("today-indicator");
-      if (el instanceof HTMLAnchorElement) {
-        el.textContent = formatTodayLabel();
-        // Kalender.vue reads ?day= to jump straight to that day's week view.
-        const d = new Date();
-        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-        el.href = `/kalender/?day=${iso}`;
-      }
 
-      // Light/dark/system toggle. "system" is the implicit default (no
-      // localStorage entry, no data-theme attribute) - global.css's
-      // prefers-color-scheme media query decides. Explicit "light"/"dark"
-      // pin the theme via [data-theme] regardless of the OS setting; the
-      // <script is:inline> above in <head> already applied any saved
-      // override before first paint, this just keeps the button in sync
-      // and lets it cycle through the three states.
-      const THEME_LABELS = { system: "System", light: "Hell", dark: "Dunkel" };
-      const themeToggle = document.getElementById("theme-toggle");
-      function currentTheme() {
-        const t = localStorage.getItem("theme");
-        return t === "light" || t === "dark" ? t : "system";
-      }
-      function renderThemeToggle() {
-        if (!themeToggle) return;
-        const t = currentTheme();
-        // Icon-only now (see the 3 <Monitor|Sun|Moon> in the template above) -
-        // toggle which one is visible instead of swapping text, and carry the
-        // same state in aria-label since there's no visible text left for it.
-        // A CSS class instead of the `hidden` attribute/IDL property - that
-        // property's reflection onto SVG elements is inconsistent enough
-        // across browsers that it silently left all three icons visible.
-        themeToggle.setAttribute("aria-label", `Farbschema: ${THEME_LABELS[t]}`);
-        for (const icon of themeToggle.querySelectorAll("[data-theme-icon]")) {
-          icon.classList.toggle("active", icon.getAttribute("data-theme-icon") === t);
+      // Everything that touches elements INSIDE <body> runs per navigation:
+      // <ClientRouter /> swaps the body, so the nodes this found on first load
+      // are gone afterwards and any listener on them went with it.
+      // astro:page-load also fires on the initial load, so this is not a
+      // behaviour change for a normal page visit. (The Cmd+K handler at the
+      // bottom deliberately stays OUTSIDE this - see there.)
+      document.addEventListener("astro:page-load", () => {
+        const el = document.getElementById("today-indicator");
+        if (el instanceof HTMLAnchorElement) {
+          el.textContent = formatTodayLabel();
+          // Kalender.vue reads ?day= to jump straight to that day's week view.
+          const d = new Date();
+          const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          el.href = `/kalender/?day=${iso}`;
         }
-      }
-      renderThemeToggle();
-      themeToggle?.addEventListener("click", () => {
-        const order = ["system", "light", "dark"];
-        const next = order[(order.indexOf(currentTheme()) + 1) % order.length];
-        if (next === "system") {
-          localStorage.removeItem("theme");
-          delete document.documentElement.dataset.theme;
-        } else {
-          localStorage.setItem("theme", next);
-          document.documentElement.dataset.theme = next;
+
+        // Light/dark/system toggle. "system" is the implicit default (no
+        // localStorage entry, no data-theme attribute) - global.css's
+        // prefers-color-scheme media query decides. Explicit "light"/"dark"
+        // pin the theme via [data-theme] regardless of the OS setting; the
+        // <script is:inline> above in <head> already applied any saved
+        // override before first paint, this just keeps the button in sync
+        // and lets it cycle through the three states.
+        const THEME_LABELS = { system: "System", light: "Hell", dark: "Dunkel" };
+        const themeToggle = document.getElementById("theme-toggle");
+        function currentTheme() {
+          const t = localStorage.getItem("theme");
+          return t === "light" || t === "dark" ? t : "system";
+        }
+        function renderThemeToggle() {
+          if (!themeToggle) return;
+          const t = currentTheme();
+          // Icon-only now (see the 3 <Monitor|Sun|Moon> in the template above) -
+          // toggle which one is visible instead of swapping text, and carry the
+          // same state in aria-label since there's no visible text left for it.
+          // A CSS class instead of the `hidden` attribute/IDL property - that
+          // property's reflection onto SVG elements is inconsistent enough
+          // across browsers that it silently left all three icons visible.
+          themeToggle.setAttribute("aria-label", `Farbschema: ${THEME_LABELS[t]}`);
+          for (const icon of themeToggle.querySelectorAll("[data-theme-icon]")) {
+            icon.classList.toggle("active", icon.getAttribute("data-theme-icon") === t);
+          }
         }
         renderThemeToggle();
+        themeToggle?.addEventListener("click", () => {
+          const order = ["system", "light", "dark"];
+          const next = order[(order.indexOf(currentTheme()) + 1) % order.length];
+          if (next === "system") {
+            localStorage.removeItem("theme");
+            delete document.documentElement.dataset.theme;
+          } else {
+            localStorage.setItem("theme", next);
+            document.documentElement.dataset.theme = next;
+          }
+          renderThemeToggle();
+        });
       });
 
       // Cmd+K (Mac) / Ctrl+K (everyone else) jumps to the homepage search,
       // same target as the "Durchsuchen" nav link - focuses it directly if
       // we're already on "/", otherwise navigates there.
+      //
+      // Outside the astro:page-load block above ON PURPOSE: this binds to
+      // `document`, which survives a view-transition swap. Re-binding it per
+      // navigation would stack a duplicate handler every time. So this one
+      // script block has two lifetimes - per-navigation above, once here.
       document.addEventListener("keydown", (e) => {
         if (e.key.toLowerCase() !== "k" || !(e.metaKey || e.ctrlKey)) return;
         e.preventDefault();

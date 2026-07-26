@@ -1,0 +1,16 @@
+id: wiesnkini-de
+seed_url: https://wiesnkini.de/haufige-fragen/wann-findet-das-oktoberfest-statt
+category: wiesnkini-de
+subject_slug: wiesnkini-de
+subject_name: ''
+scope:
+  allowed_domains:
+  - wiesnkini.de
+  path_prefix: /haufige-fragen/wann-findet-das-oktoberfest-statt
+max_depth: 0
+formats:
+- html
+event_type_hint: ''
+schedule: manual
+extraction_mode: llm
+auto_approve_ics: false
