@@ -8,7 +8,7 @@
 // components, since the geometry that actually varies (which element you
 // click) is a real difference, not incidental duplication.
 import { computed } from "vue";
-import { type DayLayer, matchesForDay, weeksOfMonth } from "../../lib/date-grid";
+import { type DayLayer, matchesForDay, weeksOfMonth } from "../../../lib/date-grid";
 
 const WEEKDAY_NAMES = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 

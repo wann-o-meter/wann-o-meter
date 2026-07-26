@@ -1,10 +1,23 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
-import { CalendarDays, CalendarPlus, ChartNoAxesColumn, ChevronLeft, ChevronRight, Search, Trash2, X } from "lucide-vue-next";
-import { MONTH_NAMES, WEEKDAY_NAMES_LONG, isoWeekNumber } from "../../lib/date-display";
-import { daysInMonth, isoDate, isoFromDate, matchesForDay, mondayOf } from "../../lib/date-grid";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Search, Trash2, X } from "lucide-vue-next";
+import { MONTH_NAMES, isoWeekNumber } from "../../lib/date-display";
+import { isoFromDate, mondayOf } from "../../lib/date-grid";
+import {
+  type CalendarState,
+  type CalendarView,
+  YEAR_MAX,
+  YEAR_MIN,
+  buildCalendarParams,
+  isCalendarView,
+  parseCalendarUrl,
+} from "../../lib/calendar-url";
 import { COLORS } from "../../lib/calendar-colors";
-import MonthGrid from "./MonthGrid.vue";
+import GraphView from "./calendar/GraphView.vue";
+import MonthView from "./calendar/MonthView.vue";
+import PlannerView from "./calendar/PlannerView.vue";
+import WeekView from "./calendar/WeekView.vue";
+import YearView from "./calendar/YearView.vue";
 
 // Overlay mode (PLAN.md 4.2): layers render stacked, no set operations
 // (intersections are explicitly NOT V1). The component has no knowledge of
@@ -13,12 +26,26 @@ import MonthGrid from "./MonthGrid.vue";
 // with dates) is just a CatalogEntry from /api/v1/calendar.json. Adding a
 // new content type to the calendar means extending lib/calendar-sources.ts
 // server-side; nothing here needs to change.
+//
+// This file owns STATE, not rendering: the layer catalog/sidebar, the
+// visible period, the active template, and the URL sync. Every way of
+// drawing that state is a component in ./calendar/ that takes props and
+// emits navigation intent - so a new template (a Familienplaner with a row
+// per day, say) is a new file plus one entry in VIEW_OPTIONS below, not
+// another branch in here.
+const VIEW_OPTIONS: { id: CalendarView; label: string }[] = [
+  { id: "year", label: "Jahr" },
+  { id: "month", label: "Monat" },
+  { id: "week", label: "Woche" },
+  { id: "planner", label: "Planer" },
+  { id: "graph", label: "Verteilung" },
+];
 
-// ponytail: no data-driven lower bound is known (holiday/vacation data goes
-// back further than any constant here could track) - 1900 is just a sane
-// floor so the typed-year input below has something to validate against.
-const YEAR_MIN = 1900;
-const YEAR_MAX = new Date().getFullYear() + 5;
+// Templates that show one month and navigate by month - they share the
+// prev/next handlers and the "am I looking at today" check below.
+const MONTH_NAV_VIEWS: CalendarView[] = ["month", "planner"];
+const VIEW_STORAGE_KEY = "wann:kalender-view";
+
 const GROUP_DEFAULT_LIMIT = 8;
 
 interface TimeWindow {
@@ -52,12 +79,6 @@ interface CalendarEntryResponse {
   windows: { from: string; to: string; description: string }[];
 }
 
-// "graph" is a year-wide second lens over the same layer data (PLAN.md 4.2
-// stays true/false per day; this aggregates that into a per-month density
-// count per layer instead of drilling into a single day) - not tied to
-// month/week navigation the way those two are.
-type View = "year" | "month" | "week" | "graph";
-
 // Set by src/pages/kalender/embed.astro (the standalone iframe-embeddable
 // page, no header/footer/nav chrome) - hides the "Einbetten" button there,
 // since offering to embed a page that's already an embed is pointless.
@@ -70,7 +91,7 @@ const year = ref(today.getFullYear());
 const layers = ref<Layer[]>([]);
 const loading = ref(true);
 
-const view = ref<View>("year");
+const view = ref<CalendarView>("year");
 const activeMonth = ref(today.getMonth());
 const weekStart = ref(isoFromDate(mondayOf(today)));
 const selectedDay = ref<string | null>(null);
@@ -211,43 +232,29 @@ function resetLayers() {
 }
 
 // Set right before a "drill into a more specific view" mutation (openMonth,
-// openWeek, the breadcrumbs' "go up a level" clicks) so the resulting
-// writeUrl() call pushes a real history entry instead of replacing - without
-// this, the whole calendar session was one single history entry, and the
-// browser's back button skipped straight past every view the user had
-// navigated through, out of the calendar entirely.  Left false for
-// lateral/continuous changes (prev/next month or week, year +/-, layer
-// search) - each of those becoming its own back-button stop would be far
-// more annoying than helpful.
+// openWeek, the breadcrumbs' "go up a level" clicks, the view switcher) so
+// the resulting writeUrl() call pushes a real history entry instead of
+// replacing - without this, the whole calendar session was one single
+// history entry, and the browser's back button skipped straight past every
+// view the user had navigated through, out of the calendar entirely.  Left
+// false for lateral/continuous changes (prev/next month or week, year +/-,
+// layer search) - each of those becoming its own back-button stop would be
+// far more annoying than helpful.
 let pushNextUrlWrite = false;
 
-// Shared by writeUrl() (this page's own address bar) and embedUrl below (a
-// link to the standalone /kalender/embed/ page with the same state) - both
-// need the same "what does the current view look like" query string, just
-// with `live` toggling whether year/month/weekstart are the concrete
-// current values (the page's own URL, a link to exactly this moment) or the
-// literal string "current" (the embed link - loadFromUrlOrDefault() below
-// already falls back to today's actual year/month/weekstart for any value
-// that doesn't parse as a real one, e.g. Number("current") is NaN, so this
-// needs no special-casing there: an embedded widget just always shows
-// "now" instead of freezing at whatever date the embed link was copied on).
-function buildParams(live: boolean): URLSearchParams {
-  const params = new URLSearchParams();
-  params.set("year", live ? "current" : String(year.value));
-  if (view.value !== "year") params.set("view", view.value);
-  // 1-indexed in the URL (month=3 -> March) even though activeMonth is
-  // 0-indexed internally (JS Date convention) - a raw 0-index would read as
-  // April to anyone reading/writing the URL by hand.
-  if (view.value === "month" || view.value === "week") {
-    params.set("month", live ? "current" : String(activeMonth.value + 1));
-  }
-  if (view.value === "week") params.set("weekstart", live ? "current" : weekStart.value);
-  if (layers.value.length) params.set("layers", layers.value.map((l) => l.id).join(","));
-  return params;
+function currentState(): CalendarState {
+  return {
+    year: year.value,
+    view: view.value,
+    monthIndex0: activeMonth.value,
+    weekStartIso: weekStart.value,
+    selectedDay: selectedDay.value,
+    layerIds: layers.value.map((l) => l.id),
+  };
 }
 
 function writeUrl() {
-  const url = `${window.location.pathname}?${buildParams(false)}`;
+  const url = `${window.location.pathname}?${buildCalendarParams(currentState(), false)}`;
   if (pushNextUrlWrite) {
     window.history.pushState(null, "", url);
     pushNextUrlWrite = false;
@@ -261,7 +268,7 @@ function writeUrl() {
 // links to /kalender/embed/, not e.g. /presets/foo/embed/.
 const embedUrl = computed(() => {
   if (typeof window === "undefined") return "";
-  return `${window.location.origin}/kalender/embed/?${buildParams(true)}`;
+  return `${window.location.origin}/kalender/embed/?${buildCalendarParams(currentState(), true)}`;
 });
 
 function toggleEmbedPanel() {
@@ -301,63 +308,39 @@ async function copyFeedUrl(layer: { id: string; feedUrl: string }) {
   }, 1500);
 }
 
-// Reads the current URL and resets EVERY piece of state to match - not just
-// the params that happen to be present - so this is safe to call both on
-// initial mount and again on popstate (the browser back/forward buttons),
-// when a previous, differently-shaped URL needs to fully replace the
-// current state rather than merely patch it.
+// Only the switcher writes this (see selectView) - a ?day= link from a
+// topic page forces week view, and persisting *that* would pin a visitor to
+// week view forever after a single date link.
+function storedView(): CalendarView {
+  try {
+    const stored = localStorage.getItem(VIEW_STORAGE_KEY);
+    return isCalendarView(stored) ? stored : "year";
+  } catch {
+    // Safari private mode and strict-cookie setups throw here, and this sits
+    // on the only path that initializes the calendar - an escaping throw
+    // would leave the skeleton on screen forever.
+    return "year";
+  }
+}
+
+// Resets EVERY piece of state to match the current URL - not just the params
+// that happen to be present - so this is safe to call both on initial mount
+// and again on popstate (the browser back/forward buttons), when a previous,
+// differently-shaped URL needs to fully replace the current state rather
+// than merely patch it.
 async function loadFromUrlOrDefault() {
-  const params = new URLSearchParams(window.location.search);
-
-  const y = Number(params.get("year"));
-  year.value = y >= YEAR_MIN && y <= YEAR_MAX ? y : today.getFullYear();
-
-  const viewParam = params.get("view");
-  view.value =
-    viewParam === "month" || viewParam === "week" || viewParam === "graph" ? viewParam : "year";
-
-  const monthParam = Number(params.get("month"));
-  activeMonth.value = monthParam >= 1 && monthParam <= 12 ? monthParam - 1 : today.getMonth();
-
-  const weekStartParam = params.get("weekstart");
-  const parsedWeekStart =
-    weekStartParam && /^\d{4}-\d{2}-\d{2}$/.test(weekStartParam) ? new Date(`${weekStartParam}T00:00:00`) : null;
-  const validWeekStart = parsedWeekStart !== null && !Number.isNaN(parsedWeekStart.getTime());
-  // Snapped to its own Monday rather than taken verbatim - a hand-edited URL
-  // can put any date here, including one that isn't a Monday at all.
-  weekStart.value = validWeekStart ? isoFromDate(mondayOf(parsedWeekStart)) : isoFromDate(mondayOf(today));
-
-  // weekstart is the only value week view actually renders from, so once
-  // it's the active view it's treated as the sole source of truth for
-  // year/month too, overriding whatever they say - otherwise a hand-edited
-  // URL with a mismatched month= (or year=) produces a breadcrumb that
-  // contradicts the days actually shown.
-  if (view.value === "week" && validWeekStart) {
-    const monday = mondayOf(parsedWeekStart);
-    year.value = monday.getFullYear();
-    activeMonth.value = monday.getMonth();
-  }
-
-  // A data page's date link ("open the calendar on this exact day") - takes
-  // priority over year/view/weekstart above, which is why it's applied
-  // after them instead of merged into their fallback logic.
-  const dayParam = params.get("day");
-  if (dayParam && /^\d{4}-\d{2}-\d{2}$/.test(dayParam)) {
-    const d = new Date(`${dayParam}T00:00:00`);
-    selectedDay.value = dayParam;
-    view.value = "week";
-    weekStart.value = isoFromDate(mondayOf(d));
-    year.value = d.getFullYear();
-    activeMonth.value = mondayOf(d).getMonth();
-  } else {
-    selectedDay.value = null;
-  }
+  const state = parseCalendarUrl(window.location.search, today, storedView());
+  year.value = state.year;
+  view.value = state.view;
+  activeMonth.value = state.monthIndex0;
+  weekStart.value = state.weekStartIso;
+  selectedDay.value = state.selectedDay;
 
   // No baked-in defaults (no preferred Bundesland/variety) - the user builds
   // their own selection through search, see the empty-layers hint below.
   // Synced in both directions (not just "add what's missing") so navigating
   // back to a state with fewer layers actually drops the extra ones.
-  const layerIds = new Set(params.get("layers")?.split(",").filter(Boolean) ?? []);
+  const layerIds = new Set(state.layerIds);
   layers.value = layers.value.filter((l) => layerIds.has(l.id));
   await Promise.all(
     [...layerIds]
@@ -368,44 +351,50 @@ async function loadFromUrlOrDefault() {
   );
 }
 
-function formatShort(iso: string): string {
-  const [, m, d] = iso.split("-");
-  return `${d}.${m}.`;
+// The no-op guard matters: clicking the already-active switcher button would
+// otherwise arm pushNextUrlWrite with nothing to flush it, so the *next*
+// lateral change (prev month, year +/-, a layer toggle) would silently
+// become a history entry - the exact back-button pollution the flag exists
+// to avoid.
+function setView(next: CalendarView) {
+  if (view.value === next) return;
+  pushNextUrlWrite = true;
+  view.value = next;
+}
+
+// The switcher is the only deliberate "I want this template" signal, so it
+// is the only thing that persists a preference - and it persists even on a
+// re-click of the active button, which setView() above ignores.
+function selectView(next: CalendarView) {
+  setView(next);
+  try {
+    localStorage.setItem(VIEW_STORAGE_KEY, next);
+  } catch {
+    // See storedView(): storage can throw, and losing the preference is a
+    // far better outcome than losing the click.
+  }
 }
 
 function openMonth(monthIndex0: number) {
-  pushNextUrlWrite = true;
   activeMonth.value = monthIndex0;
-  view.value = "month";
+  setView("month");
 }
 
 function openWeek(mondayIso: string) {
-  pushNextUrlWrite = true;
   selectedDay.value = null;
   weekStart.value = mondayIso;
   activeMonth.value = Number(mondayIso.slice(5, 7)) - 1;
-  view.value = "week";
+  setView("week");
 }
 
-function goToYearView() {
-  pushNextUrlWrite = true;
-  view.value = "year";
+function openWeekForDay(dayIso: string) {
+  openWeek(isoFromDate(mondayOf(new Date(`${dayIso}T00:00:00`))));
 }
 
-function goToMonthView() {
-  pushNextUrlWrite = true;
-  view.value = "month";
-}
-
-function toggleGraphView() {
-  pushNextUrlWrite = true;
-  view.value = view.value === "graph" ? "year" : "graph";
-}
-
-// Jumps to "now" in whatever unit the active view actually shows - the year
-// in year/graph view, the month (+ year) in month view, this week in week
-// view. openWeek() already resets a drilled-into selectedDay, so week is
-// delegated to it instead of duplicating that reset here.
+// Jumps to "now" in whatever unit the active template actually shows - the
+// year in year/graph view, the month (+ year) in month view, this week in
+// week view. openWeek() already resets a drilled-into selectedDay, so week
+// is delegated to it instead of duplicating that reset here.
 function goToToday() {
   if (view.value === "week") {
     openWeek(isoFromDate(mondayOf(today)));
@@ -413,21 +402,16 @@ function goToToday() {
   }
   pushNextUrlWrite = true;
   year.value = today.getFullYear();
-  if (view.value === "month") activeMonth.value = today.getMonth();
+  if (MONTH_NAV_VIEWS.includes(view.value)) activeMonth.value = today.getMonth();
 }
 
 // Hides the "Heute" button once it would be a no-op - same unit goToToday()
-// itself jumps by (year in year/graph view, month in month view, this week
-// in week view).
+// itself jumps by.
 const isAtToday = computed(() => {
   if (view.value === "week") return weekStart.value === isoFromDate(mondayOf(today));
   if (year.value !== today.getFullYear()) return false;
-  return view.value !== "month" || activeMonth.value === today.getMonth();
+  return !MONTH_NAV_VIEWS.includes(view.value) || activeMonth.value === today.getMonth();
 });
-
-function openWeekForDay(dayIso: string) {
-  openWeek(isoFromDate(mondayOf(new Date(`${dayIso}T00:00:00`))));
-}
 
 function changeMonth(delta: number) {
   let m = activeMonth.value + delta;
@@ -459,6 +443,31 @@ function changeWeek(delta: number) {
   activeMonth.value = d.getMonth();
 }
 
+// One step forwards/backwards in whatever unit the active template shows -
+// what the arrow keys drive, sharing the prev/next buttons' own rules rather
+// than a second copy of them.
+function step(delta: number) {
+  if (view.value === "week") {
+    changeWeek(delta);
+  } else if (MONTH_NAV_VIEWS.includes(view.value)) {
+    changeMonth(delta);
+  } else {
+    const next = year.value + delta;
+    if (next >= YEAR_MIN && next <= YEAR_MAX) year.value = next;
+  }
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+  // A modified arrow is someone else's shortcut (word-wise caret movement,
+  // browser history, a screen reader), never ours.
+  if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+  const el = document.activeElement;
+  if (el instanceof HTMLElement && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
+  e.preventDefault();
+  step(e.key === "ArrowRight" ? 1 : -1);
+}
+
 async function startEditYear() {
   yearDraft.value = String(year.value);
   editingYear.value = true;
@@ -473,145 +482,7 @@ function commitYear() {
   editingYear.value = false;
 }
 
-const currentWeekDays = computed(() => {
-  const start = new Date(`${weekStart.value}T00:00:00`);
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(start);
-    d.setDate(d.getDate() + i);
-    return isoFromDate(d);
-  });
-});
-
 const currentWeekNumber = computed(() => isoWeekNumber(new Date(`${weekStart.value}T00:00:00`)));
-
-const weekRangeText = computed(() => {
-  const days = currentWeekDays.value;
-  return `${formatShort(days[0])}–${formatShort(days[6])} ${days[6].slice(0, 4)}`;
-});
-
-// The "graph" view's data: no numeric value/unit is populated on any window
-// yet (checked across data/**/*.yaml - lib/schema.ts's MaterializedWindow
-// already has the fields for when that lands), so the only honest thing to
-// plot today is density - how many days per bucket a layer is active - which
-// still surfaces seasonality/clustering that the true/false calendar marks
-// don't make visible at a glance. Bucket size is user-chosen (month/week) via
-// graphGranularity - the underlying windows are already day-precision (see
-// Layer.windows), so this is just a different grouping of the same data.
-// Day-level buckets (365 near-empty slivers, no useful axis) were tried and
-// dropped - week is already the finest granularity worth looking at.
-type Granularity = "month" | "week";
-const graphGranularity = ref<Granularity>("month");
-
-function isActiveDay(layer: Layer, iso: string): boolean {
-  return layer.windows.some((w) => w.start <= iso && iso <= w.end);
-}
-
-function activeDaysInMonth(layer: Layer, monthIndex0: number): number {
-  const total = daysInMonth(year.value, monthIndex0);
-  let count = 0;
-  for (let day = 1; day <= total; day++) {
-    if (isActiveDay(layer, isoDate(year.value, monthIndex0, day))) count++;
-  }
-  return count;
-}
-
-interface GraphBucket {
-  label: string;
-  count: number;
-  total: number;
-}
-
-// All ISO dates in the given year, in order - only used to build
-// yearWeekGroups below (month buckets have their own cheap dedicated path,
-// activeDaysInMonth, that doesn't need this).
-function isoDatesOfYear(y: number): string[] {
-  const dates: string[] = [];
-  for (let m = 0; m < 12; m++) {
-    const total = new Date(y, m + 1, 0).getDate();
-    for (let day = 1; day <= total; day++) {
-      dates.push(`${y}-${String(m + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
-    }
-  }
-  return dates;
-}
-
-// Every Monday-Sunday week touching the year, with the (possibly partial -
-// see below) list of that week's days that actually fall in it. Computed
-// once per year regardless of layer count, since every layer's week buckets
-// and the shared x-axis group both need the exact same weeks.
-const yearWeekGroups = computed(() => {
-  const byMonday = new Map<string, string[]>();
-  for (const iso of isoDatesOfYear(year.value)) {
-    const monday = isoFromDate(mondayOf(new Date(`${iso}T00:00:00`)));
-    if (!byMonday.has(monday)) byMonday.set(monday, []);
-    byMonday.get(monday)!.push(iso);
-  }
-  return [...byMonday.entries()].map(([mondayIso, days]) => ({ mondayIso, days }));
-});
-
-// A week's "month" is the month of its first in-year day, not of its Monday -
-// the year's first/last week is partial (a year's own isoDatesOfYear() never
-// includes the adjacent year's days, see above), so for e.g. the week
-// Monday=Dec 29 whose only in-year days are Jan 1-4, this reports January
-// (what the bar and its axis label are actually mostly showing), not
-// December (which contributed zero days to this bucket).
-function weekMonthIndex0(days: string[]): number {
-  return Number(days[0].slice(5, 7)) - 1;
-}
-
-function weekBuckets(layer: Layer): GraphBucket[] {
-  return yearWeekGroups.value.map((w) => ({
-    // Both month and week in the label (not just "KW 29") since the week
-    // view's x-axis only groups by month, not by individual week - the
-    // week number would otherwise be invisible except on hover.
-    label: `${MONTH_NAMES[weekMonthIndex0(w.days)]}, KW ${isoWeekNumber(new Date(`${w.mondayIso}T00:00:00`))}`,
-    count: w.days.filter((iso) => isActiveDay(layer, iso)).length,
-    total: w.days.length,
-  }));
-}
-
-const graphRows = computed(() => {
-  return layers.value
-    .filter((l) => l.visible)
-    .map((l) => {
-      const buckets: GraphBucket[] =
-        graphGranularity.value === "month"
-          ? MONTH_NAMES.map((name, monthIndex0) => ({
-              label: name.slice(0, 3),
-              count: activeDaysInMonth(l, monthIndex0),
-              total: daysInMonth(year.value, monthIndex0),
-            }))
-          : weekBuckets(l);
-      return { layer: l, buckets };
-    });
-});
-
-// Grid columns for the bar rows (and the x-axis row below, which must line
-// up with them exactly) - a plain 1fr split for month's fixed 12 columns, a
-// floor width for week so a year's ~52 columns don't squeeze into invisible
-// slivers (the container scrolls horizontally instead).
-const graphBarsColumns = computed(() => {
-  const n = graphRows.value[0]?.buckets.length ?? 12;
-  return graphGranularity.value === "week" ? `repeat(${n}, minmax(5px, 1fr))` : `repeat(${n}, 1fr)`;
-});
-
-// The x-axis: one label per month, each spanning however many of the grid's
-// columns belong to it - 1 column each for month granularity (trivial, one
-// bucket per month already), a run-length-encoded span of weeks for week
-// granularity (a month is ~4-5 consecutive week-columns).
-const graphAxisGroups = computed(() => {
-  if (graphGranularity.value === "month") {
-    return MONTH_NAMES.map((name) => ({ label: name.slice(0, 3), span: 1 }));
-  }
-  const groups: { label: string; span: number }[] = [];
-  for (const w of yearWeekGroups.value) {
-    const label = MONTH_NAMES[weekMonthIndex0(w.days)].slice(0, 3);
-    const last = groups[groups.length - 1];
-    if (last && last.label === label) last.span++;
-    else groups.push({ label, span: 1 });
-  }
-  return groups;
-});
 
 onMounted(async () => {
   const res = await fetch("/api/v1/calendar.json");
@@ -632,6 +503,15 @@ onMounted(async () => {
   // showing before, since nothing was listening for the user's own
   // back/forward navigation.
   window.addEventListener("popstate", loadFromUrlOrDefault);
+  window.addEventListener("keydown", onKeydown);
+});
+
+// Astro's View Transitions tear this island down and build a fresh one on
+// every navigation - without the removal, entering the calendar page N times
+// leaves N popstate listeners behind, each bound to a destroyed instance.
+onUnmounted(() => {
+  window.removeEventListener("popstate", loadFromUrlOrDefault);
+  window.removeEventListener("keydown", onKeydown);
 });
 </script>
 
@@ -641,8 +521,8 @@ onMounted(async () => {
     <div class="main-area">
       <div v-if="loading" class="skeleton" aria-hidden="true">
         <div class="skeleton-bar skeleton-breadcrumbs"></div>
-        <div class="months">
-          <div v-for="n in 12" :key="n" class="month">
+        <div class="skeleton-grid">
+          <div v-for="n in 12" :key="n" class="skeleton-cell">
             <div class="skeleton-bar skeleton-month-title"></div>
             <div class="skeleton-bar skeleton-month-body"></div>
           </div>
@@ -652,10 +532,10 @@ onMounted(async () => {
 
       <template v-else>
         <nav class="breadcrumbs">
-          <button type="button" class="crumb" @click="goToYearView">{{ year }}</button>
-          <template v-if="view === 'month' || view === 'week'">
+          <button type="button" class="crumb" @click="setView('year')">{{ year }}</button>
+          <template v-if="view === 'week' || MONTH_NAV_VIEWS.includes(view)">
             <ChevronRight :size="14" />
-            <button type="button" class="crumb" @click="goToMonthView">{{ MONTH_NAMES[activeMonth] }}</button>
+            <button type="button" class="crumb" @click="setView('month')">{{ MONTH_NAMES[activeMonth] }}</button>
           </template>
           <template v-if="view === 'week'">
             <ChevronRight :size="14" />
@@ -665,10 +545,18 @@ onMounted(async () => {
             <button v-if="!isAtToday" type="button" class="action-button" title="Zu heute springen" @click="goToToday">
               <CalendarDays :size="14" /> Heute
             </button>
-            <button type="button" class="action-button" @click="toggleGraphView">
-              <template v-if="view === 'graph'"><ChevronLeft :size="14" /> Kalender</template>
-              <template v-else><ChartNoAxesColumn :size="14" /> Verteilung ansehen</template>
-            </button>
+            <div class="view-switch" role="group" aria-label="Ansicht">
+              <button
+                v-for="option in VIEW_OPTIONS"
+                :key="option.id"
+                type="button"
+                :class="{ active: view === option.id }"
+                :aria-pressed="view === option.id"
+                @click="selectView(option.id)"
+              >
+                {{ option.label }}
+              </button>
+            </div>
           </div>
         </nav>
 
@@ -677,114 +565,63 @@ onMounted(async () => {
           oder "Sommerferien"), um sie hier farbig zu sehen.
         </p>
 
-        <div v-if="view === 'year'" class="months">
-          <div v-for="(name, monthIndex0) in MONTH_NAMES" :key="name" class="month">
-            <h3 role="button" tabindex="0" @click="openMonth(monthIndex0)" @keydown.enter="openMonth(monthIndex0)">
-              {{ name }}
-            </h3>
-            <MonthGrid
-              :year="year"
-              :month-index0="monthIndex0"
-              :layers="layers"
-              :today-iso="todayIso"
-              variant="mini"
-              @day-click="openWeekForDay"
-              @week-click="openWeek"
-            />
-          </div>
-        </div>
+        <YearView
+          v-if="view === 'year'"
+          :year="year"
+          :layers="layers"
+          :today-iso="todayIso"
+          @month-click="openMonth"
+          @day-click="openWeekForDay"
+          @week-click="openWeek"
+        />
 
-        <div v-else-if="view === 'month'" class="month-view">
-          <div class="view-nav">
-            <button type="button" :disabled="year <= YEAR_MIN && activeMonth === 0" @click="changeMonth(-1)">
-              <ChevronLeft :size="18" />
-            </button>
-            <h2>{{ MONTH_NAMES[activeMonth] }} {{ year }}</h2>
-            <button type="button" :disabled="year >= YEAR_MAX && activeMonth === 11" @click="changeMonth(1)">
-              <ChevronRight :size="18" />
-            </button>
-          </div>
-          <MonthGrid
-            :year="year"
-            :month-index0="activeMonth"
-            :layers="layers"
-            :today-iso="todayIso"
-            variant="full"
-            @week-click="openWeek"
-          />
-        </div>
+        <MonthView
+          v-else-if="view === 'month'"
+          :year="year"
+          :month-index0="activeMonth"
+          :layers="layers"
+          :today-iso="todayIso"
+          :prev-disabled="year <= YEAR_MIN && activeMonth === 0"
+          :next-disabled="year >= YEAR_MAX && activeMonth === 11"
+          @prev="changeMonth(-1)"
+          @next="changeMonth(1)"
+          @week-click="openWeek"
+        />
 
-        <div v-else-if="view === 'week'" class="week-view">
-          <div class="view-nav">
-            <button type="button" :disabled="year <= YEAR_MIN" @click="changeWeek(-1)">
-              <ChevronLeft :size="18" />
-            </button>
-            <h2>KW {{ currentWeekNumber }} · {{ weekRangeText }}</h2>
-            <button type="button" :disabled="year >= YEAR_MAX" @click="changeWeek(1)">
-              <ChevronRight :size="18" />
-            </button>
-          </div>
-          <div class="week-days">
-            <div v-for="(dayIso, i) in currentWeekDays" :key="dayIso" class="day-column" :class="{ today: dayIso === todayIso, selected: dayIso === selectedDay }">
-              <h4>{{ WEEKDAY_NAMES_LONG[i] }} <span class="day-number">{{ Number(dayIso.slice(8)) }}</span></h4>
-              <ul class="event-list">
-                <li v-for="(match, j) in matchesForDay(dayIso, layers)" :key="j">
-                  <a :href="match.url" class="event-link">
-                    <span class="dot" :style="{ background: match.color }" />
-                    {{ match.title }}
-                  </a>
-                </li>
-                <li v-if="matchesForDay(dayIso, layers).length === 0" class="no-events">–</li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        <WeekView
+          v-else-if="view === 'week'"
+          :week-start="weekStart"
+          :layers="layers"
+          :today-iso="todayIso"
+          :selected-day="selectedDay"
+          :prev-disabled="year <= YEAR_MIN"
+          :next-disabled="year >= YEAR_MAX"
+          @prev="changeWeek(-1)"
+          @next="changeWeek(1)"
+        />
 
-        <div v-else class="graph-view">
-          <div class="view-nav">
-            <button type="button" :disabled="year <= YEAR_MIN" @click="year--">
-              <ChevronLeft :size="18" />
-            </button>
-            <h2>Verteilung {{ year }}</h2>
-            <button type="button" :disabled="year >= YEAR_MAX" @click="year++">
-              <ChevronRight :size="18" />
-            </button>
-          </div>
-          <div class="granularity-toggle">
-            <button type="button" :class="{ active: graphGranularity === 'month' }" @click="graphGranularity = 'month'">Monat</button>
-            <button type="button" :class="{ active: graphGranularity === 'week' }" @click="graphGranularity = 'week'">Woche</button>
-          </div>
-          <p v-if="graphRows.length === 0" class="no-layers">Keine sichtbaren Ebenen ausgewählt.</p>
-          <template v-else>
-            <div class="graph-rows">
-              <div v-for="row in graphRows" :key="row.layer.id" class="graph-row">
-                <span class="graph-row-label" :title="row.layer.label">
-                  <span class="dot" :style="{ background: row.layer.color }" />
-                  <span class="layer-label-text">{{ row.layer.label }}</span>
-                </span>
-                <div class="graph-bars" :style="{ gridTemplateColumns: graphBarsColumns }">
-                  <div
-                    v-for="(bucket, i) in row.buckets"
-                    :key="i"
-                    class="graph-bar-slot"
-                    :title="`${bucket.label}: ${bucket.count}/${bucket.total} Tag(e)`"
-                  >
-                    <div
-                      class="graph-bar"
-                      :style="{ height: `${(bucket.count / bucket.total) * 100}%`, background: row.layer.color }"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="graph-months-row">
-              <span class="graph-row-label-spacer" />
-              <div class="graph-months" :style="{ gridTemplateColumns: graphBarsColumns }">
-                <span v-for="(group, i) in graphAxisGroups" :key="i" :style="{ gridColumn: `span ${group.span}` }">{{ group.label }}</span>
-              </div>
-            </div>
-          </template>
-        </div>
+        <PlannerView
+          v-else-if="view === 'planner'"
+          :year="year"
+          :month-index0="activeMonth"
+          :layers="layers"
+          :today-iso="todayIso"
+          :prev-disabled="year <= YEAR_MIN && activeMonth === 0"
+          :next-disabled="year >= YEAR_MAX && activeMonth === 11"
+          @prev="changeMonth(-1)"
+          @next="changeMonth(1)"
+          @remove="removeLayer"
+        />
+
+        <GraphView
+          v-else
+          :year="year"
+          :layers="layers"
+          :prev-disabled="year <= YEAR_MIN"
+          :next-disabled="year >= YEAR_MAX"
+          @prev="year--"
+          @next="year++"
+        />
       </template>
     </div>
 
@@ -934,7 +771,7 @@ onMounted(async () => {
 .breadcrumbs .crumb:hover {
   color: var(--accent);
 }
-/* Heute/Verteilung ansehen are actions, not breadcrumb trail - kept as
+/* Heute and the view switcher are actions, not breadcrumb trail - kept as
    plain bordered buttons (the global `button` default look, not reset to
    text-only like .crumb above) so they read as clickable controls instead
    of blending into the trail's plain-text year/month/week links. */
@@ -957,26 +794,28 @@ onMounted(async () => {
   color: var(--accent);
 }
 
+.view-switch {
+  display: flex;
+  gap: 0.3rem;
+}
+.view-switch button {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 0.3rem 0.6rem;
+}
+.view-switch button:not(.active):hover {
+  color: var(--accent);
+}
+.view-switch button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
 .onboarding-hint {
   color: var(--muted);
   font-size: 0.85rem;
   margin: 0 0 1rem;
-}
-
-.granularity-toggle {
-  display: flex;
-  justify-content: center;
-  gap: 0.4rem;
-  margin-bottom: 1rem;
-}
-.granularity-toggle button {
-  font-size: 0.78rem;
-  padding: 0.25rem 0.7rem;
-}
-.granularity-toggle button.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-ink);
 }
 
 .year-nav {
@@ -1013,8 +852,7 @@ onMounted(async () => {
   -webkit-appearance: none;
   margin: 0;
 }
-.year-nav button,
-.view-nav button {
+.year-nav button {
   cursor: pointer;
   background: none;
   border: none;
@@ -1022,14 +860,12 @@ onMounted(async () => {
   display: inline-flex;
   padding: 0.15rem;
 }
-.year-nav button:disabled,
-.view-nav button:disabled {
+.year-nav button:disabled {
   color: var(--muted);
   cursor: default;
   opacity: 0.4;
 }
-.year-nav button:not(:disabled):hover,
-.view-nav button:not(:disabled):hover {
+.year-nav button:not(:disabled):hover {
   color: var(--accent);
 }
 
@@ -1253,31 +1089,6 @@ onMounted(async () => {
   margin: 0;
 }
 
-.months {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
-}
-.month {
-  background: var(--paper);
-  padding: 0.9rem;
-}
-.month h3 {
-  margin: 0 0 0.6rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-  cursor: pointer;
-  width: fit-content;
-}
-.month h3:hover {
-  color: var(--accent);
-}
-
 .sr-only {
   position: absolute;
   width: 1px;
@@ -1287,9 +1098,21 @@ onMounted(async () => {
   white-space: nowrap;
 }
 
-/* Mimics the default year view's own layout (.months/.month above) instead
-   of a generic spinner, so there's no layout jump once real data replaces
-   it - the common case (no view= in the URL) resolves to this exact shape. */
+/* Mimics the year template's own layout (YearView.vue's .months/.month)
+   instead of a generic spinner, so there's no layout jump once real data
+   replaces it - deliberately a private copy of that geometry rather than a
+   shared class, since the two are allowed to drift. */
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.skeleton-cell {
+  background: var(--paper);
+  padding: 0.9rem;
+}
 .skeleton-breadcrumbs {
   width: 8rem;
   height: 0.85rem;
@@ -1321,148 +1144,6 @@ onMounted(async () => {
     animation: none;
     opacity: 0.7;
   }
-}
-
-.view-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-.view-nav h2 {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 500;
-  min-width: 14ch;
-  text-align: center;
-}
-
-.day-number {
-  font-variant-numeric: tabular-nums;
-}
-
-.week-days {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
-}
-.day-column {
-  background: var(--paper);
-  padding: 0.7rem;
-  min-height: 10rem;
-}
-.day-column.today {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-.day-column.today h4 {
-  color: var(--accent);
-}
-.day-column.selected {
-  background: var(--paper-raised);
-  outline: 2px dashed var(--accent);
-  outline-offset: -2px;
-}
-.day-column h4 {
-  margin: 0 0 0.6rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--muted);
-}
-.day-column .day-number {
-  color: var(--ink);
-  font-weight: 600;
-}
-.event-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  font-size: 0.78rem;
-}
-.event-link {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.4rem;
-  color: inherit;
-  text-decoration: none;
-}
-.event-link:hover {
-  color: var(--accent);
-}
-.event-list .dot {
-  margin-top: 0.3rem;
-  flex-shrink: 0;
-}
-.no-events {
-  color: var(--muted);
-}
-
-.graph-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 1.1rem;
-}
-.graph-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.graph-row-label,
-.graph-row-label-spacer {
-  width: 12rem;
-  flex-shrink: 0;
-}
-.graph-row-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-  font-size: 0.8rem;
-}
-.graph-bars {
-  flex: 1;
-  display: grid;
-  gap: 3px;
-  height: 3rem;
-  overflow-x: auto;
-}
-.graph-bar-slot {
-  height: 100%;
-  display: flex;
-  align-items: flex-end;
-  background: var(--paper-raised);
-}
-.graph-bar {
-  width: 100%;
-  min-height: 2px;
-}
-.graph-months-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 0.4rem;
-}
-.graph-months {
-  flex: 1;
-  display: grid;
-  gap: 3px;
-  overflow-x: auto;
-}
-.graph-months span {
-  text-align: center;
-  font-size: 0.65rem;
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .embed-bar {
@@ -1498,8 +1179,22 @@ onMounted(async () => {
     position: static;
     order: -1;
   }
-  .week-days {
-    grid-template-columns: 1fr;
+}
+
+/* Printing any template means printing the calendar, not the app around it
+   - the layer picker, the trail, the switcher and the embed box are all
+   controls, and none of them survives leaving the screen. Kept here rather
+   than in PlannerView.vue (the one template built to be printed) because
+   this chrome belongs to this component and scoped styles cannot reach up. */
+@media print {
+  .breadcrumbs,
+  .sidebar,
+  .embed-bar,
+  .onboarding-hint {
+    display: none;
+  }
+  .calendar-layout {
+    display: block;
   }
 }
 </style>

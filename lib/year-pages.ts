@@ -208,11 +208,18 @@ export function yearCopy(page: Page, year: number, events: PageEvent[]): YearCop
     ? [...events].sort((a, b) => (b.value ?? 0) - (a.value ?? 0))[0]
     : undefined;
 
-  const intro = count > 1
-    ? best
-      ? `${year} gibt es ${plural(count, "Eintrag", "Einträge")} für ${name}. Der beste: ${best.label}`
-      : `${year} gibt es ${plural(count, "Termin", "Termine")} für ${name}: ${dates}.`
-    : ``;
+  // A single event's date is the one row on the page directly below this, so
+  // an intro repeating it is pure noise (dropped in 7bb246c). An empty year
+  // still has to say so out loud - with no rows and no intro the page just
+  // looks broken, which is the one thing worse than a redundant sentence.
+  const intro =
+    count === 0
+      ? `Für ${year} liegen keine Termine für ${name} vor.`
+      : count === 1
+        ? ""
+        : best
+          ? `${year} gibt es ${plural(count, "Eintrag", "Einträge")} für ${name}. Der beste: ${best.label}`
+          : `${year} gibt es ${plural(count, "Termin", "Termine")} für ${name}: ${dates}.`;
 
   const faq: { question: string; answer: string }[] = [];
   if (count > 0) {

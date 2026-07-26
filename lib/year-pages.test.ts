@@ -96,7 +96,9 @@ describe("titles carry the abbreviation people actually search for", () => {
     expect(yearLabel(p, 2027)).toBe("Sonnenfinsternis 2027");
     const copy = yearCopy(p, 2027, [{ date: "2027-08-02", label: "Sonnenfinsternis" }]);
     expect(copy.h1).toBe("Sonnenfinsternis 2027");
-    expect(copy.intro).toContain("02.08.2027");
+    // No intro for a single event - the date is the only row on the page.
+    expect(copy.intro).toBe("");
+    expect(copy.faq[0].answer).toContain("02.08.2027");
     expect(copy.faq[0].question).toBe("Wann ist Sonnenfinsternis 2027?");
   });
 });
@@ -110,6 +112,7 @@ describe("copy is driven by the data, not by the category", () => {
     expect(withRatio.intro).toContain("Der beste:");
     const withoutRatio = yearCopy(page("astronomie", "mondfinsternis", "Mondfinsternis"), 2027, [
       { date: "2027-07-18", label: "Mondfinsternis" },
+      { date: "2027-12-20", label: "Mondfinsternis" },
     ]);
     expect(withoutRatio.intro).not.toContain("Der beste:");
     expect(withoutRatio.intro).toContain("18.07.2027");
