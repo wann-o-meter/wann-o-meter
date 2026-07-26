@@ -11,6 +11,8 @@ export const WEEKDAY_NAMES_LONG = [
   "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag",
 ];
 
+export const WEEKDAY_NAMES_SHORT = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+
 // ISO-8601 week number (Thursday rule).
 export function isoWeekNumber(d: Date): number {
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -21,6 +23,11 @@ export function isoWeekNumber(d: Date): number {
   return 1 + Math.round(diffDays / 7);
 }
 
+// "Sa., 26.07." - no "Heute:" prefix, no year, no month name: it sits in the
+// header next to the calendar and search links, where a full sentence was the
+// widest thing in the bar and told the reader what the date already implies.
 export function formatTodayLabel(d: Date = new Date()): string {
-  return `Heute: ${WEEKDAY_NAMES_LONG[(d.getDay() + 6) % 7]}, ${d.getDate()}. ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()} · KW ${isoWeekNumber(d)}`;
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  return `${WEEKDAY_NAMES_SHORT[(d.getDay() + 6) % 7]}., ${day}.${month}.`;
 }

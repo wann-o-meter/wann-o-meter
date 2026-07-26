@@ -14,7 +14,11 @@ describe("isoWeekNumber", () => {
 });
 
 describe("formatTodayLabel", () => {
-  it("formats a German 'Heute: <weekday>, <day>. <month> <year> · KW <week>' label", () => {
-    expect(formatTodayLabel(new Date("2026-07-13T12:00:00"))).toBe("Heute: Montag, 13. Juli 2026 · KW 29");
+  it("formats a short '<Wd>., <DD>.<MM>.' label for the header", () => {
+    expect(formatTodayLabel(new Date("2026-07-13T12:00:00"))).toBe("Mo., 13.07.");
+  });
+
+  it("zero-pads day and month", () => {
+    expect(formatTodayLabel(new Date("2026-01-04T12:00:00"))).toBe("So., 04.01.");
   });
 });

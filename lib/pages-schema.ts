@@ -8,6 +8,14 @@ import { rawWindowSchema, sourceSchema } from "./schema";
 export const pageMetaSchema = z.object({
   title: z.string(),
   description: z.string().default(""),
+  // Visible lead paragraph, when it should differ from `description`. The two
+  // have different jobs: `description` is the <meta name="description"> and
+  // JSON-LD text, which wants to be specific enough to earn a click from a
+  // search result; `intro` is what the reader sees once they're already on the
+  // page, where restating what the page itself shows right below is noise.
+  // Empty (the norm) means "same as description" - only data/feiertage/
+  // generator.ts needs them apart today.
+  intro: z.string().default(""),
   tags: z.array(z.string()).default([]),
   featured: z.boolean().default(true),
 });

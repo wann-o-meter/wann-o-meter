@@ -17,6 +17,10 @@ import type { RawWindow } from "../../lib/schema";
 // here (static generation, same tradeoff as lib/date-display.ts's client-side
 // "today" label): a description that's a build cycle stale is still far more
 // specific than a purely mechanical one.
+//
+// Search results only - the page body gets `intro` below instead, because the
+// "Nächster Termin" button a few lines further down (src/pages/[...path].astro)
+// already says exactly this, and saying it twice was the whole complaint.
 function nextHolidayBlurb(windows: RawWindow[]): string {
   const today = new Date().toISOString().slice(0, 10);
   const next = windows.filter((w) => w.from >= today).sort((a, b) => a.from.localeCompare(b.from))[0];
@@ -48,6 +52,7 @@ function buildPage(
     meta: parsePageMeta({
       title: name,
       description: `Gesetzliche Feiertage für ${name}.${nextHolidayBlurb(windows)}`,
+      intro: `Gesetzliche Feiertage für ${name}.`,
       featured,
     }),
     data: parsePageData({

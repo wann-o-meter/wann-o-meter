@@ -4,7 +4,6 @@ import { ArrowUpRight, Calendar, Search } from "@lucide/astro";
 import HeroCalendarPreview from "../components/HeroCalendarPreview.vue";
 import { getAllContent } from "../../lib/all-content";
 import type { ContentCard } from "../../lib/all-content";
-import { getCategoryMeta } from "../../lib/pages";
 import { graph, websiteNode } from "../../lib/structured-data";
 import { homepageQuestions } from "../../lib/homepage-questions";
 
@@ -43,11 +42,15 @@ for (const card of cards) {
 }
 const groups = [...groupsByType.entries()].map(([type, items]) => ({
   type,
-  description: getCategoryMeta(items[0].category).description,
   items: [...items].sort((a, b) => Number(b.featured) - Number(a.featured)),
   moreCount: items.filter((i) => !i.featured).length,
 }));
 
+// Two strings on purpose: `lead` is the visible one-liner under the H1,
+// `homeDescription` stays the longer keyword-carrying <meta name="description">
+// and JSON-LD text below. Shortening the visible copy shouldn't cost the
+// homepage its meta description.
+const lead = "Feiertage, Ferien, Urlaubsfenster und Saisonzeiten - als Kalender abonnierbar.";
 const homeDescription =
   "Strukturierte Antworten auf Wann-Fragen als Kalender-Abo - Feiertage, Urlaubsfenster, Saisonkalender und mehr, frei kombinierbar und einzeln abonnierbar.";
 const structuredData = graph([
@@ -82,13 +85,8 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
   <div class="hero">
     <div class="hero-text">
       <h1 id="h1-rotator">Wann ist was?</h1>
-      <p class="lead">{homeDescription}</p>
-      <p class="today-teaser">
-        <a id="today-teaser-link" href="/kalender/">
-          Was heute (nicht) Saison hat, Feiertag ist oder ansteht — im Kalender nachsehen.
-        </a>
-      </p>
-      <p><a class="cta" href="/kalender/"><Calendar size={16} /> Ebenen-Kalender öffnen <ArrowUpRight size={16} /></a></p>
+      <p class="lead">{lead}</p>
+      <p><a class="cta" href="/kalender/"><Calendar size={16} /> Kalender öffnen <ArrowUpRight size={16} /></a></p>
     </div>
 
     <div class="hero-preview">
@@ -96,13 +94,13 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
     </div>
   </div>
 
-  <h2>Alle Themen durchsuchen</h2>
+  <h2>Themen</h2>
   <div class="search-wrap">
     <Search size={16} class="search-icon" aria-hidden="true" />
     <input
       type="search"
       id="search-input"
-      placeholder="Titel oder Tag suchen…"
+      placeholder="Suchen…"
       aria-label="Seiten durchsuchen"
     />
   </div>
@@ -124,7 +122,6 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
           <h2>
             {group.type} <span class="count">{group.items.length}</span>
           </h2>
-          {group.description && <p class="group-description">{group.description}</p>}
           <ul class="cards narrow">
             {group.items.map((c) => (
               <li
@@ -139,7 +136,7 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
           </ul>
           {group.moreCount > 0 && (
             <button type="button" class="more" data-group={group.type}>
-              +{group.moreCount} weitere anzeigen
+              +{group.moreCount} mehr
             </button>
           )}
         </section>
@@ -187,17 +184,6 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
     font-size: 1.05rem;
     max-width: 34rem;
   }
-  .today-teaser {
-    margin: 0 0 1rem;
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-  }
-  .today-teaser a {
-    color: var(--muted);
-  }
-  .today-teaser a:hover {
-    color: var(--accent);
-  }
   .cta {
     margin: 0.5rem 0 1rem;
   }
@@ -239,11 +225,6 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
     align-items: baseline;
     gap: 0.5rem;
   }
-  .group-description {
-    margin: -0.5rem 0 0.75rem;
-    color: var(--muted);
-    font-size: 0.85rem;
-  }
   .count {
     color: var(--muted);
     font-size: 0.8rem;
@@ -280,6 +261,16 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
     font-style: italic;
     font-weight: 300;
     font-family: Georgia, "Times New Roman", serif;
+  }
+  /* Same runtime-built-node reason as the <em> above. The link should read as
+     the heading it is, not as a blue underlined link inside one - the accent
+     on hover is the only hint that it goes somewhere. */
+  #h1-rotator a {
+    color: inherit;
+    text-decoration: none;
+  }
+  #h1-rotator a:hover {
+    color: var(--accent);
   }
 </style>
 
@@ -367,31 +358,6 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
   });
 </script>
 
-<script>
-  // Re-run per navigation - see the note in Layout.astro's ClientRouter.
-  import { pickTodayTeaser } from "../../lib/today-teaser";
-
-  document.addEventListener("astro:page-load", () => {
-
-    const teaserLink = document.getElementById("today-teaser-link");
-    if (teaserLink instanceof HTMLAnchorElement) {
-      const d = new Date();
-      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      fetch("/api/v1/today-feed.json")
-        .then((r) => r.json())
-        .then((entries) => {
-          const teaser = pickTodayTeaser(entries, today);
-          // No hit (or the fetch/parse below failed) -> keep the static
-          // default text/href already in the template, never show nothing.
-          if (!teaser) return;
-          teaserLink.textContent = teaser.text;
-          teaserLink.href = `/kalender/?day=${teaser.day}&layers=${teaser.entryId}`;
-        })
-        .catch(() => {});
-    }
-  });
-</script>
-
 <script define:vars={{ questions: rotatingQuestions }}>
   // Re-run per navigation - see the note in Layout.astro's ClientRouter.
   document.addEventListener("astro:page-load", () => {
@@ -408,10 +374,17 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
       // update below and the height probe, so the probe measures the exact
       // markup that'll render (italic glyphs aren't the same width as regular
       // ones - a flat-text measurement could under/over-reserve height).
+      // Wrapped in an <a> to the subject's own page: the sentence names a
+      // concrete thing ("Wann sind Schulferien in Bayern?") and the page that
+      // answers it exists, so the H1 may as well go there. Also gives the
+      // homepage a rotating set of real internal links to its topic pages.
       function renderQuestion(el, question) {
         const em = document.createElement("em");
         em.textContent = question.emphasis;
-        el.replaceChildren(document.createTextNode(question.before), em, document.createTextNode(question.after));
+        const link = document.createElement("a");
+        link.href = question.url;
+        link.replaceChildren(document.createTextNode(question.before), em, document.createTextNode(question.after));
+        el.replaceChildren(link);
       }
 
       // Reserves exactly the height the tallest question needs to wrap to at
@@ -449,8 +422,17 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
         resizeTimer = setTimeout(reserveH1Height, 200);
       });
 
+      // Now that the H1 is a link, a rotation mid-aim would swap the
+      // destination out from under the cursor - so hovering or tabbing into
+      // it holds the current question until you leave again.
+      let paused = false;
+      for (const [event, value] of [["mouseenter", true], ["mouseleave", false], ["focusin", true], ["focusout", false]]) {
+        h1.addEventListener(event, () => (paused = value));
+      }
+
       let q = questions
       setInterval(() => {
+        if (paused) return;
         const i = Math.floor(Math.random() * q.length);
         const question = questions[i];
         renderQuestion(h1, question);

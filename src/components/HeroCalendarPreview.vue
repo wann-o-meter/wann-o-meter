@@ -18,8 +18,7 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { type DayLayer, matchesForDay, weeksOfMonth } from "../../lib/date-grid";
 import { COLORS } from "../../lib/calendar-colors";
-
-const WEEKDAY_NAMES = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+import { WEEKDAY_NAMES_SHORT } from "../../lib/date-display";
 
 const props = defineProps<{ initialLayerIds: string[] }>();
 
@@ -40,7 +39,6 @@ const weeks = computed(() => weeksOfMonth(year.value, monthIndex0.value));
 
 const layerIds = ref<string[]>(props.initialLayerIds);
 const layers = ref<DayLayer[]>([]);
-const href = ref(`/kalender/?layers=${layerIds.value.join(",")}`);
 
 interface EntryResponse {
   label: string;
@@ -60,7 +58,6 @@ function fetchEntry(id: string): Promise<EntryResponse> {
 }
 
 async function loadLayers(ids: string[]) {
-  href.value = `/kalender/?layers=${ids.join(",")}`;
   const entries = await Promise.all(ids.map(fetchEntry));
   // Bail if the rotator already moved on while this fetch was in flight.
   if (layerIds.value !== ids) return;
@@ -115,10 +112,15 @@ function cellStyle(dayIso: string): Record<string, string> | undefined {
 </script>
 
 <template>
-  <a class="preview" :href="href" title="Im Ebenen-Kalender öffnen">
+  <!-- Always the plain calendar, never ?layers= of whatever the rotator is
+       currently showing: the shading is illustration, and landing in a
+       pre-filtered calendar that drops the rest of the site is the "why do I
+       only see Bayern?" trap. The rotating H1 next to it carries the specific
+       link (to that subject's own page, see index.astro's rotator). -->
+  <a class="preview" href="/kalender/" title="Kalender öffnen">
     <div class="grid-header">
       <span class="kw">KW</span>
-      <span v-for="wd in WEEKDAY_NAMES" :key="wd">{{ wd }}</span>
+      <span v-for="wd in WEEKDAY_NAMES_SHORT" :key="wd">{{ wd }}</span>
     </div>
     <div v-for="week in weeks" :key="week.mondayIso" class="week-row">
       <span class="week-number">{{ week.number }}</span>

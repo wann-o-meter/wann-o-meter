@@ -208,11 +208,11 @@ export function yearCopy(page: Page, year: number, events: PageEvent[]): YearCop
     ? [...events].sort((a, b) => (b.value ?? 0) - (a.value ?? 0))[0]
     : undefined;
 
-  const intro = count
+  const intro = count > 1
     ? best
       ? `${year} gibt es ${plural(count, "Eintrag", "Einträge")} für ${name}. Der beste: ${best.label}`
       : `${year} gibt es ${plural(count, "Termin", "Termine")} für ${name}: ${dates}.`
-    : `Für ${year} liegen keine Termine für ${name} vor.`;
+    : ``;
 
   const faq: { question: string; answer: string }[] = [];
   if (count > 0) {

@@ -3,7 +3,6 @@ import { join } from "node:path";
 import { load } from "js-yaml";
 import { getAllPages } from "./pages";
 import { parseHomepageQuestionTemplates } from "./schema";
-import { seasonNoun } from "./today-teaser";
 import { STATES } from "./states";
 
 const FILE = join(process.cwd(), "data/homepage-questions.yaml");
@@ -13,6 +12,13 @@ let cache: Record<string, string> | undefined;
 function templates(): Record<string, string> {
   if (!cache) cache = parseHomepageQuestionTemplates(load(readFileSync(FILE, "utf-8")));
   return cache;
+}
+
+// "Erdbeere" -> "Erdbeersaison", not "Erdbeeresaison" - the only produce name
+// ending in "e" (see data/saisonkalender/*/data.yaml).
+function seasonNoun(produceLabel: string): string {
+  const stem = produceLabel.endsWith("e") ? produceLabel.slice(0, -1) : produceLabel;
+  return `${stem}saison`;
 }
 
 // Bundesland display name for a state-coded slug ("bw", "de-bw") - undefined
@@ -31,12 +37,16 @@ function stateName(slug: string): string | undefined {
 // data/homepage-questions.yaml) so the rotator can render that span in a
 // distinct style - `text` is the flat, marker-stripped sentence for the
 // static/no-JS H1 fallback and for callers that just want the words.
+// `url` is the topic page that actually answers the question - the rotating
+// H1 links there, so a visitor who reads "Wann sind Schulferien in Bayern?"
+// lands on the page with that answer instead of on the empty calendar.
 export interface HomeQuestion {
   text: string;
   before: string;
   emphasis: string;
   after: string;
   layerIds: string[];
+  url: string;
 }
 
 // Fills {subject} into a template, then splits it on its one **emphasis**
@@ -63,10 +73,12 @@ export function homepageQuestions(): HomeQuestion[] {
   const questions: HomeQuestion[] = [];
 
   for (const p of getAllPages()) {
+    const url = `/${p.category}/${p.slug}/`;
     if (p.category === "saisonkalender" && t.saisonkalender) {
       questions.push({
         ...render(t.saisonkalender, seasonNoun(p.meta.title)),
         layerIds: [`saisonkalender--${p.slug}`],
+        url,
       });
       continue;
     }
@@ -76,6 +88,7 @@ export function homepageQuestions(): HomeQuestion[] {
         questions.push({
           ...render(t.schulferien, name),
           layerIds: [`schulferien--${p.slug}`],
+          url,
         });
       }
       continue;
@@ -86,6 +99,7 @@ export function homepageQuestions(): HomeQuestion[] {
         questions.push({
           ...render(t.urlaubsfenster, name),
           layerIds: [`urlaubsfenster--${p.slug}`],
+          url,
         });
       }
       continue;
@@ -96,6 +110,7 @@ export function homepageQuestions(): HomeQuestion[] {
         questions.push({
           ...render(t.feiertage, name),
           layerIds: [`feiertage--${p.slug}`],
+          url,
         });
       }
     }
@@ -111,6 +126,9 @@ export function homepageQuestions(): HomeQuestion[] {
       questions.push({
         ...render(t.schulferien_feiertage, name),
         layerIds: [`feiertage--de-${slug}`, `schulferien--${slug}`],
+        // Two subjects, one link - Schulferien is the one people search for
+        // (the Feiertage page for the same state is one click away from it).
+        url: `/schulferien/${slug}/`,
       });
     }
   }

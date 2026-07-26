@@ -8,7 +8,6 @@ const presets = allPresets();
 
 <Layout title="Presets" description="Kuratierte Kalender-Ansichten für konkrete Fragen.">
   <h1>Presets</h1>
-  <p>Kuratierte Ebenen-Kombinationen für konkrete Fragen, jede eine eigene Seite.</p>
 
   <ul class="rows">
     {
@@ -16,7 +15,7 @@ const presets = allPresets();
         <li>
           <a href={`/presets/${p.slug}/`}>{p.name}</a>
           <a class="link-button" href={calendarUrl(p)}>
-            direkt im Kalender öffnen <ArrowRight size={14} />
+            Im Kalender öffnen <ArrowRight size={14} />
           </a>
         </li>
       ))

@@ -33,7 +33,7 @@ const GENERATOR_BACKED_CATEGORIES = ["feiertage", "urlaubsfenster"];
 const fixtureDatesPage: Page = {
   category: "fixture",
   slug: "dates-fixture",
-  meta: { title: "Dates Fixture", description: "", tags: [], featured: true },
+  meta: { title: "Dates Fixture", description: "", intro: "", tags: [], featured: true },
   data: {
     subject: { slug: "dates-fixture", category: "fixture" },
     source: [
@@ -52,7 +52,7 @@ const fixtureDatesPage: Page = {
 const emptyPage: Page = {
   category: "fixture",
   slug: "empty-fixture",
-  meta: { title: "Empty Fixture", description: "", tags: [], featured: true },
+  meta: { title: "Empty Fixture", description: "", intro: "", tags: [], featured: true },
   data: {
     subject: { slug: "empty-fixture", category: "fixture" },
     source: [

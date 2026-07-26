@@ -1,0 +1,59 @@
+---
+// The full trail ("Wann-O-Meter / Feiertage / Deutschland – Berlin / 2027")
+// instead of the single "← parent" link these pages used to carry. Categories
+// nest up to four levels (lib/pages.ts), and one back-link could only ever
+// show the last of them - so from a nested page there was no way up except
+// to the immediate parent, one click at a time.
+//
+// Same list the page's BreadcrumbList JSON-LD is built from (see the callers
+// in src/pages/[...path].astro), so the visible trail and the one search
+// engines read can't drift apart.
+interface Props {
+  // Root first, current page last. The last entry renders as text, not a
+  // link - a link to the page you are already on is just a bigger target.
+  crumbs: { name: string; href: string }[];
+}
+const { crumbs } = Astro.props;
+---
+
+<nav class="breadcrumbs" aria-label="Brotkrumen">
+  {
+    crumbs.map((crumb, i) => (
+      <>
+        {i > 0 && <span class="sep" aria-hidden="true">/</span>}
+        {i === crumbs.length - 1 ? (
+          <span class="current" aria-current="page">{crumb.name}</span>
+        ) : (
+          <a href={crumb.href}>{crumb.name}</a>
+        )}
+      </>
+    ))
+  }
+</nav>
+
+<style>
+  .breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .breadcrumbs a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .breadcrumbs a:hover {
+    color: var(--accent);
+  }
+  .sep {
+    color: var(--line);
+  }
+  /* The one crumb that isn't a link - kept at full ink so the trail reads as
+     "you are here", not as five equally grey words. */
+  .current {
+    color: var(--ink);
+  }
+</style>

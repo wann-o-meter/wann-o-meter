@@ -4,7 +4,15 @@ import { parsePageData, parsePageMeta } from "./pages-schema";
 describe("parsePageMeta", () => {
   it("accepts a title alone, filling description/tags with defaults", () => {
     const meta = parsePageMeta({ title: "Total Solar Eclipses" });
-    expect(meta).toEqual({ title: "Total Solar Eclipses", description: "", tags: [], featured: true });
+    expect(meta).toEqual({ title: "Total Solar Eclipses", description: "", intro: "", tags: [], featured: true });
+  });
+
+  // Empty intro is the signal "render the description as the visible lead" -
+  // only a page that wants the two to differ sets it (data/feiertage).
+  it("keeps a distinct intro apart from the description", () => {
+    const meta = parsePageMeta({ title: "Feiertage", description: "Lang, für Google.", intro: "Kurz." });
+    expect(meta.intro).toBe("Kurz.");
+    expect(meta.description).toBe("Lang, für Google.");
   });
 
   it("rejects a missing title", () => {

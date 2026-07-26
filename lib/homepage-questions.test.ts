@@ -26,7 +26,14 @@ describe("homepageQuestions", () => {
       emphasis: "Erdbeersaison?",
       after: "",
       layerIds: ["saisonkalender--erdbeere"],
+      url: "/saisonkalender/erdbeere/",
     });
+  });
+
+  // The rotating H1 is a link (src/pages/index.astro) - a question that points
+  // nowhere, or at a page that isn't the one answering it, is a dead heading.
+  it("links every question to its own topic page", () => {
+    for (const q of homepageQuestions()) expect(q.url).toMatch(/^\/[a-z]+\/[a-z0-9-]+\/$/);
   });
 
   // The trailing "?" is part of the emphasized span (not left plain in
@@ -39,6 +46,7 @@ describe("homepageQuestions", () => {
       emphasis: "Schulferien und Feiertage in Mecklenburg-Vorpommern?",
       after: "",
       layerIds: ["feiertage--de-mv", "schulferien--mv"],
+      url: "/schulferien/mv/",
     });
   });
 });
