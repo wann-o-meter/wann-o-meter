@@ -145,9 +145,12 @@ function matches(dayIso: string) {
   background: var(--accent);
   color: var(--accent-ink);
 }
-.day.other-month {
+/* :not(.today) because today can itself be an adjacent-month day - looking at
+   August's grid on 27 July, the 27th is in the leading row. This rule comes
+   after .day.today and has the same specificity, so without the guard it won
+   the cascade and painted muted grey onto the accent background: 1.22:1. */
+.day.other-month:not(.today) {
   color: var(--muted);
-  opacity: 0.5;
 }
 .marks {
   display: flex;
@@ -219,7 +222,6 @@ function matches(dayIso: string) {
 }
 .day-cell.other-month {
   color: var(--muted);
-  opacity: 0.5;
 }
 .day-cell.today {
   outline: 2px solid var(--accent);

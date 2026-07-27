@@ -104,6 +104,12 @@ function isOtherMonth(dayIso: string): boolean {
 // "highlighted" than one only a single layer marks, without needing a
 // legend to explain it.
 function cellStyle(dayIso: string): Record<string, string> | undefined {
+  // Adjacent-month days stay unshaded: they're already greyed to var(--muted),
+  // and grey text on a shaded cell measured 3.85:1 - below WCAG AA's 4.5:1, and
+  // what Lighthouse flagged. Unshaded they sit at 5.16:1. Nothing is lost that
+  // the shading of the month's *own* days doesn't already say; this grid is a
+  // teaser, and its edge days are decoration on decoration.
+  if (isOtherMonth(dayIso)) return undefined;
   const matches = matchesForDay(dayIso, layers.value);
   if (matches.length === 0) return undefined;
   const strength = Math.min(0.22 * matches.length + 0.14, 0.75);
@@ -192,7 +198,6 @@ function cellStyle(dayIso: string): Record<string, string> | undefined {
 }
 .day-cell.other-month {
   color: var(--muted);
-  opacity: 0.5;
 }
 .day-cell.today {
   outline: 2px solid var(--accent);
