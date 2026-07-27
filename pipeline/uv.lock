@@ -602,6 +602,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "pytest" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
 
 [package.metadata]
@@ -621,7 +622,10 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8.0.0" }]
+dev = [
+    { name = "pytest", specifier = ">=8.0.0" },
+    { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0" },
+]
 
 [[package]]
 name = "pluggy"
