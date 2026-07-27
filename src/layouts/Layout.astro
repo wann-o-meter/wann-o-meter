@@ -251,9 +251,18 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
   }
   /* Everything else (size, weight, colour, padding, hover) comes from the
      `nav a` rule below - it sits in the nav now and should read like the two
-     links beside it. Mono only because it's a date. */
+     links beside it, in the same sans as they are.
+
+     min-width holds the label's space before the client script fills it in:
+     it ships empty, and on a phone the date appearing was enough to wrap the
+     nav from one row to three, pushing the whole page down 86px - the single
+     shift behind the homepage's 0.37 CLS. formatTodayLabel() is always the
+     same shape ("Mo., 27.07." - zero-padded, 2-letter weekday), so the only
+     width variation left is the weekday; tabular-nums takes the digits out of
+     it, and the min-width is the widest of the seven, measured, rounded up. */
   .today-indicator {
-    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    min-width: 4.6rem;
   }
   nav {
     display: flex;
