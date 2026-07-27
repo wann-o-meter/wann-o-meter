@@ -22,16 +22,23 @@ interface Props {
 }
 const { yearLinks, category, allHref, currentYear } = Astro.props;
 
-// Only the INDEXABLE years get a pill, i.e. an <a>. data/astronomie/
+// Only the INDEXABLE years get a pill up front. data/astronomie/
 // sonnenfinsternis spans 1901-2100, and linking all 200 from every page spends
 // the site's internal link weight on years nobody searches for - the same
-// years that are noindex anyway. The rest stay one keystroke away in the
-// <select> below, which navigates by JS and is not a link at all, so the
-// archive costs nothing in the link graph. The year page we are ON is always
-// a pill: it is the active state, and a control that hides the current item is
+// years that are noindex anyway. The rest sit in a <template> and are revealed
+// by the two buttons: a template's content is NOT in the document until it is
+// cloned, so those <a>s exist for a visitor who asks for them and for nobody
+// else. (`hidden` or `display:none` would not do - a crawler renders the page
+// and follows hidden links just the same.) The year page we are ON is always a
+// pill: it is the active state, and a control that hides the current item is
 // just confusing.
-const pills = yearLinks.filter((l) => l.year === currentYear || inIndexWindow(category, l.year));
-const hasArchive = pills.length < yearLinks.length;
+const shown = (l: { year: number }) => l.year === currentYear || inIndexWindow(category, l.year);
+const pills = yearLinks.filter(shown);
+const first = pills[0]?.year ?? Infinity;
+const last = pills[pills.length - 1]?.year ?? -Infinity;
+const past = yearLinks.filter((l) => !shown(l) && l.year < first);
+const future = yearLinks.filter((l) => !shown(l) && l.year > last);
+const hasHidden = past.length + future.length > 0;
 ---
 
 {
@@ -40,12 +47,25 @@ const hasArchive = pills.length < yearLinks.length;
   yearLinks.length > 0 && (
     <div class="year-filter">
       <p class="year-pills">
+        {past.length > 0 && (
+          <button type="button" class="year-btn year-reveal" data-reveal="past">Vergangene Jahre anzeigen</button>
+        )}
         {allHref ? (
           <a class="year-btn" href={allHref} data-astro-prefetch="viewport">Alle</a>
         ) : (
           /* On the evergreen page "Alle" IS this page - the current item, not
              somewhere to navigate to. */
           <span class="year-btn active" aria-current="page">Alle</span>
+        )}
+        {/* rel="nofollow" for the moment they ARE in the document, after a
+            click: a hint rather than a rule since 2019, but it costs one
+            attribute and says what we mean. What actually keeps these years out
+            of the index is their own noindex (lib/year-pages.ts) - a robots.txt
+            Disallow would be worse than nothing, because a URL Google may not
+            fetch is a URL whose noindex it can never read. No prefetch either:
+            revealing years should not fire a page fetch per pill. */}
+        {past.length > 0 && (
+          <template data-years="past">{past.map((l) => <a class="year-btn" rel="nofollow" href={l.href}>{l.year}</a>)}</template>
         )}
         {pills.map((l) =>
           l.year === currentYear ? (
@@ -56,13 +76,23 @@ const hasArchive = pills.length < yearLinks.length;
             </a>
           ),
         )}
+        {future.length > 0 && (
+          <template data-years="future">{future.map((l) => <a class="year-btn" rel="nofollow" href={l.href}>{l.year}</a>)}</template>
+        )}
+        {future.length > 0 && (
+          <button type="button" class="year-btn year-reveal" data-reveal="future">Mehr anzeigen</button>
+        )}
       </p>
 
-      {hasArchive && (
+      {hasHidden && (
         <p class="year-jump">
-          <label for="year-select">Weiteres Jahr wählen</label>
-          {/* The option's value IS the destination, so this jumps to a year
-              page the same way the pills do. */}
+          <label for="year-select">Jahr direkt wählen</label>
+          {/* Stepping through 200 years five at a time is fine for browsing and
+              useless for "take me to 1954", which is what this is for. An
+              <option> is not a link, so listing every year here costs nothing
+              in the link graph - that is why the reveal buttons above exist
+              instead of a plain pill row, and why this select can stay
+              complete. */}
           <select id="year-select">
             <option value={allHref ?? ""}>Alle {yearLinks.length} Jahre</option>
             {yearLinks.map((l) => (
@@ -85,6 +115,25 @@ const hasArchive = pills.length < yearLinks.length;
   // once-only module script would leave the sort toggle dead. Fires on the
   // initial load too, so nothing changes for a plain visit.
   document.addEventListener("astro:page-load", () => {
+    // A click hands out the next STEP years from the button's own <template>,
+    // nearest first - the past list ends where the visible pills begin, the
+    // future one starts there. Inserting before the template needs no anchor of
+    // its own: the template already sits exactly where its years belong.
+    // Emptied, the button has nothing left to do and goes.
+    const STEP = 5;
+    const filter = document.querySelector(".year-filter");
+    for (const button of filter?.querySelectorAll<HTMLButtonElement>("[data-reveal]") ?? []) {
+      const template = filter?.querySelector<HTMLTemplateElement>(
+        `template[data-years="${button.dataset.reveal}"]`,
+      );
+      button.addEventListener("click", () => {
+        if (!template) return;
+        const years = [...template.content.children];
+        template.before(...(button.dataset.reveal === "past" ? years.slice(-STEP) : years.slice(0, STEP)));
+        if (template.content.children.length === 0) button.remove();
+      });
+    }
+
     const yearSelect = document.getElementById("year-select") as HTMLSelectElement | null;
     yearSelect?.addEventListener("change", () => {
       if (yearSelect.value) window.location.href = yearSelect.value;
@@ -151,5 +200,8 @@ const hasArchive = pills.length < yearLinks.length;
     background: var(--accent);
     border-color: var(--accent);
     color: var(--accent-ink);
+  }
+  .year-reveal {
+    border-style: dashed;
   }
 </style>
