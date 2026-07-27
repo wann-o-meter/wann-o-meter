@@ -203,22 +203,35 @@ const hasFuture = hidden.some((r) => r.side === "future");
       });
     }
 
+    // Which sides this visitor has already opened. Every year is its own page,
+    // so without this, following a revealed year (say 2090) would land on a
+    // page that has folded itself back up and offers "Mehr anzeigen" again -
+    // for a range you are already standing in. sessionStorage rather than the
+    // URL: an ?expand= parameter would mint a second URL for every year page.
+    const OPENED = "year-pills-opened";
+    const opened = new Set<string>(JSON.parse(sessionStorage.getItem(OPENED) ?? "[]"));
+
     // One click, for good: the button hands its whole <template> to the row -
     // in place, since the template already sits where its years belong - and
     // then removes itself, leaving the pager in charge of what is on screen.
     for (const button of filter?.querySelectorAll<HTMLButtonElement>("[data-reveal]") ?? []) {
+      const side = button.dataset.reveal ?? "";
       // A side can be more than one template: the year the page is about
       // splits its own hidden stretch in two (lib/year-pages.ts's yearRuns).
       const templates = [
-        ...(filter?.querySelectorAll<HTMLTemplateElement>(
-          `template[data-years="${button.dataset.reveal}"]`,
-        ) ?? []),
+        ...(filter?.querySelectorAll<HTMLTemplateElement>(`template[data-years="${side}"]`) ?? []),
       ];
-      button.addEventListener("click", () => {
+      function open() {
         for (const template of templates) template.before(template.content);
         button.remove();
         syncPager();
+      }
+      button.addEventListener("click", () => {
+        opened.add(side);
+        sessionStorage.setItem(OPENED, JSON.stringify([...opened]));
+        open();
       });
+      if (opened.has(side)) open();
     }
 
     syncPager();
