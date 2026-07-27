@@ -12,8 +12,11 @@ interface Props {
   // as a plain prop instead of a named slot so every page can pass it
   // without needing to know about <script> placement.
   structuredData?: object;
+  // "follow", not "none": the page stays out of the index but its links still
+  // pass through to the year pages that ARE indexable (lib/year-pages.ts).
+  noindex?: boolean;
 }
-const { title, description, wide = false, structuredData } = Astro.props;
+const { title, description, wide = false, structuredData, noindex = false } = Astro.props;
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
 // The arrow reads as "go here" - pointless (and a little odd) to show it
 // while already on /kalender/ or one of its sub-pages (e.g. /kalender/embed/).
@@ -38,6 +41,7 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
     </script>
     <title>{pageTitle}</title>
     {description && <meta name="description" content={description} />}
+    {noindex && <meta name="robots" content="noindex, follow" />}
     <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

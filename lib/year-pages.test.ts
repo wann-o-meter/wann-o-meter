@@ -3,6 +3,9 @@ import {
   buildYearIndex,
   eventYears,
   eventsInYear,
+  inIndexWindow,
+  includeInSitemap,
+  shouldIndexYear,
   siblingPages,
   stateSlug,
   yearCopy,
@@ -188,6 +191,45 @@ describe("cross-links point at pages that exist", () => {
   it("builds hrefs that match the generated paths", () => {
     expect(yearHref("feiertage", "de-nw", 2027)).toBe("/feiertage/de-nw/2027/");
     expect(yearHref("astronomie", "sonnenfinsternis", 2027)).toBe("/astronomie/sonnenfinsternis/2027/");
+  });
+});
+
+// Fixed "today", never new Date(): a test that reads the clock passes today
+// and fails on 1 January.
+describe("which year pages are indexable", () => {
+  const today = new Date("2026-07-28");
+
+  it("keeps last year, this year and the category's planning horizon", () => {
+    expect(inIndexWindow("feiertage", 2025, today)).toBe(true);
+    expect(inIndexWindow("feiertage", 2029, today)).toBe(true);
+    expect(inIndexWindow("schulferien", 2029, today)).toBe(true);
+    expect(inIndexWindow("astronomie", 2028, today)).toBe(true);
+    expect(inIndexWindow("saisonkalender", 2027, today)).toBe(true);
+  });
+
+  it("drops the archive and the far future, per category", () => {
+    expect(inIndexWindow("feiertage", 2024, today)).toBe(false);
+    expect(inIndexWindow("feiertage", 2030, today)).toBe(false);
+    expect(inIndexWindow("astronomie", 2003, today)).toBe(false);
+    expect(inIndexWindow("astronomie", 2029, today)).toBe(false);
+    expect(inIndexWindow("saisonkalender", 2028, today)).toBe(false);
+  });
+
+  it("also needs at least one event on the page", () => {
+    expect(shouldIndexYear("feiertage", 2027, 12, today)).toBe(true);
+    expect(shouldIndexYear("feiertage", 2027, 0, today)).toBe(false);
+  });
+
+  it("filters the sitemap to the same set, and nothing else", () => {
+    const url = (path: string) => `https://wannometer.de${path}`;
+    expect(includeInSitemap(url("/astronomie/mondfinsternis/2003/"), today)).toBe(false);
+    expect(includeInSitemap(url("/feiertage/de-bw/2027/"), today)).toBe(true);
+    // Not a year page: the evergreen page, a category, a one-off route.
+    expect(includeInSitemap(url("/feiertage/de-bw/"), today)).toBe(true);
+    expect(includeInSitemap(url("/astronomie/"), today)).toBe(true);
+    expect(includeInSitemap(url("/kalender/"), today)).toBe(true);
+    // Looks like a year page but was never generated - must not be dropped.
+    expect(includeInSitemap(url("/feiertage/de-bw/1200/"), today)).toBe(true);
   });
 });
 

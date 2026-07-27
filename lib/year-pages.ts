@@ -145,6 +145,48 @@ export function buildYearIndex(pages: Page[]): Map<string, number[]> {
   return index;
 }
 
+// How far ahead of the build's "today" a year page stays INDEXABLE. Ferien-
+// and Feiertagsordnungen are published years in advance, so their future
+// pages have real demand; an eclipse three years out has less. Outside the
+// window the page still exists and still works - it only leaves the index and
+// the sitemap, because a year like 2003 gets crawled and then never indexed
+// ("Gecrawlt - zurzeit nicht indexiert"), which costs crawl budget and says
+// nothing.
+const INDEX_YEARS_AHEAD: Record<string, number> = {
+  feiertage: 3,
+  schulferien: 3,
+  urlaubsfenster: 3,
+  astronomie: 2,
+};
+const DEFAULT_YEARS_AHEAD = 1;
+
+export function inIndexWindow(category: string, year: number, today = new Date()): boolean {
+  const now = today.getFullYear();
+  const ahead = INDEX_YEARS_AHEAD[category.split("/")[0]] ?? DEFAULT_YEARS_AHEAD;
+  return year >= now - 1 && year <= now + ahead;
+}
+
+// A year page is indexable only if it is in the window AND has something on
+// it. The second half never fires today - yearsForPage() derives the years
+// FROM the events, so a generated year page always has at least one - but it
+// is the threshold the rule is stated in, and the guard the day a category
+// starts emitting years from a schedule rather than from its own data.
+export function shouldIndexYear(category: string, year: number, eventCount: number, today = new Date()): boolean {
+  return eventCount > 0 && inIndexWindow(category, year, today);
+}
+
+// @astrojs/sitemap's `filter` (astro.config.mjs). Only year pages are ever
+// dropped, everything else passes untouched - and a URL counts as a year page
+// only if yearIndex() actually generated it, so a slug that merely looks like
+// a year cannot be mistaken for one.
+export function includeInSitemap(url: string, today = new Date()): boolean {
+  const segments = new URL(url).pathname.split("/").filter(Boolean);
+  const year = Number(segments.at(-1));
+  const subject = segments.slice(0, -1).join("/");
+  if (!Number.isInteger(year) || !(yearIndex().get(subject) ?? []).includes(year)) return true;
+  return inIndexWindow(segments.slice(0, -2).join("/"), year, today);
+}
+
 // Cross-links from a year page to the same year elsewhere. Two rules, neither
 // of which inspects a window's type: the same STATE across the state topics
 // (Brückentage NRW 2027 -> Schulferien NRW 2027), or failing that the page's
