@@ -43,10 +43,12 @@ def html_to_markdown(html: str) -> str:
 
     # Headings
     for level in range(6, 0, -1):
-        html = re.sub(rf"<h{level}[^>]*>(.*?)</h{level}>", rf"{'#' * level} \1\n\n", html, flags=re.DOTALL | re.IGNORECASE)
+        html = re.sub(
+            rf"<h{level}[^>]*>(.*?)</h{level}>", rf"{'#' * level} \1\n\n", html, flags=re.DOTALL | re.IGNORECASE
+        )
 
     # Links, bold, italic, lists, paragraphs
-    html = re.sub(r'<a[^>]*href=["\']([^"\']*)["\'][^>]*>(.*?)</a>', r'[\2](\1)', html, flags=re.DOTALL | re.IGNORECASE)
+    html = re.sub(r'<a[^>]*href=["\']([^"\']*)["\'][^>]*>(.*?)</a>', r"[\2](\1)", html, flags=re.DOTALL | re.IGNORECASE)
     html = re.sub(r"<(strong|b)[^>]*>(.*?)</\1>", r"**\2**", html, flags=re.DOTALL | re.IGNORECASE)
     html = re.sub(r"<(em|i)[^>]*>(.*?)</\1>", r"*\2*", html, flags=re.DOTALL | re.IGNORECASE)
     html = re.sub(r"<li[^>]*>(.*?)</li>", r"- \1\n", html, flags=re.DOTALL | re.IGNORECASE)
@@ -70,7 +72,7 @@ def remove_filler_words(text: str) -> str:
         r"\b(impressum|datenschutz|datenschutzerklärung|cookie-richtlinie|agb)\b",
         r"\b(menü|navigation|suche|filter|sortieren nach|seite \d+)\b",
         r"\b(vorherige|nächste|zurück zur startseite|home)\b",
-        r"\b(folgen sie uns|social media|teilen|drucken|pdf herunterladen)\b",
+        r"\b(folgen sie uns|social media|teilen|drucken|pdf herunterloadn)\b",
         r"\b(alle rechte vorbehalten|copyright|\© \d{4})\b",
     ]
     for pattern in filler_patterns:
@@ -105,7 +107,7 @@ def extract_dates(text: str) -> list[str]:
         # Non-capturing groups throughout - re.findall returns tuples of each
         # capture group instead of the full match when a pattern has groups,
         # which would mix str and tuple entries in `dates` and crash sorted().
-        r"\b(?:\d{1,2}\.\s*)?(?:Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)\s*(?:\d{4})?\b"
+        r"\b(?:\d{1,2}\.\s*)?(?:Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)\s*(?:\d{4})?\b",
     ]
     dates = []
     for p in patterns:
@@ -123,6 +125,7 @@ def extract_time_windows(text: str) -> list[dict[str, str]]:
 # ---------------------------------------------------------------------------
 # Directory listings (Apache/nginx mod_autoindex, e.g. opendata.dwd.de/.../)
 # ---------------------------------------------------------------------------
+
 
 def is_directory_listing(html: str) -> bool:
     """mod_autoindex pages all share the "Index of /path" title convention."""
@@ -145,19 +148,22 @@ def parse_directory_listing(html: str) -> list[dict[str, Any]]:
         parts = trailing.rsplit(None, 1)
         modified = parts[0] if len(parts) == 2 else (trailing or None)
         size = parts[1] if len(parts) == 2 else None
-        entries.append({
-            "name": a.get_text(strip=True) or href,
-            "href": href,
-            "is_dir": href.endswith("/"),
-            "modified": modified,
-            "size": None if size in (None, "-") else size,
-        })
+        entries.append(
+            {
+                "name": a.get_text(strip=True) or href,
+                "href": href,
+                "is_dir": href.endswith("/"),
+                "modified": modified,
+                "size": None if size in (None, "-") else size,
+            }
+        )
     return entries
 
 
 # ---------------------------------------------------------------------------
 # Tabular text: delimited (csv/semicolon) and fixed-width legacy exports
 # ---------------------------------------------------------------------------
+
 
 def sniff_delimiter(text: str) -> str | None:
     """Only trust a delimiter if the header row and a data row agree on the
@@ -211,7 +217,7 @@ def parse_fixed_width(text: str, max_rows: int = 50) -> dict[str, Any]:
     for line in lines[2:]:
         if not line.strip():
             continue
-        values = [line[s:min(e, len(line))].strip() for s, e in spans]
+        values = [line[s : min(e, len(line))].strip() for s, e in spans]
         data_rows.append(dict(zip(columns, values, strict=False)))
 
     return {
@@ -237,13 +243,13 @@ _IMAGE_MAGIC = (
 
 VISION_SYSTEM_PROMPT = (
     "Du transkribierst Bilder wortgetreu. Das Bild ist die EINZIGE Quelle. "
-    "Erfinde, ergaenze oder vervollstaendige NIEMALS Text, Zahlen oder "
+    "Erfinde, ergaenze or vervollstaendige NIEMALS Text, Zahlen or "
     "Datumsangaben aus Hintergrundwissen - auch nicht, wenn du das Motiv "
-    "erkennst (z.B. eine bekannte Karte, Grafik oder Tabelle) und glaubst, "
+    "erkennst (z.B. eine bekannte Karte, Grafik or Tabelle) und glaubst, "
     "den vollstaendigen Inhalt zu kennen. Gib nur wieder, was im Bild "
-    "tatsaechlich lesbar abgebildet ist. Ist ein Datum, eine Zahl oder ein "
+    "tatsaechlich lesbar abgebildet ist. Ist ein Datum, eine Zahl or ein "
     "Textabschnitt nicht eindeutig lesbar, schreibe '[nicht lesbar]' an "
-    "dieser Stelle statt zu raten oder aus Kontext zu schliessen. Farben und "
+    "dieser Stelle statt zu raten or aus Kontext zu schliessen. Farben und "
     "Hervorhebungen (siehe unten) sind Teil dessen, was tatsaechlich im Bild "
     "steht, und zu beschreiben ist kein Erfinden - beschreibe nur, was du "
     "siehst, nicht was du daraus ueber Bedeutung/Ursache vermutest."
@@ -254,14 +260,14 @@ VISION_PROMPT = (
     "insbesondere jeden sichtbaren Text, jede Beschriftung/Legende sowie "
     "alle erkennbaren Datums- und Zeitangaben vollstaendig wieder, statt sie "
     "zusammenzufassen - und nur das, was tatsaechlich im Bild steht. "
-    "Enthaelt das Bild eine Tabelle, Leiste oder Aufzaehlung, bei der "
-    "einzelne Eintraege (z.B. Monatszahlen 1-12) durch Hintergrundfarbe oder "
+    "Enthaelt das Bild eine Tabelle, Leiste or Aufzaehlung, bei der "
+    "einzelne Eintraege (z.B. Monatszahlen 1-12) durch Hintergrundfarbe or "
     "sonstige visuelle Hervorhebung markiert sind, beschreibe das explizit "
     "und pro Gruppe/Objekt getrennt - z.B. 'Aepfel: 1-4 gruen, 5-8 orange, "
-    "9-12 gruen' oder 'Aprikosen: nur 6-8 orange hervorgehoben, Rest grau'. "
+    "9-12 gruen' or 'Aprikosen: nur 6-8 orange hervorgehoben, Rest grau'. "
     "Diese Hervorhebung traegt oft die eigentliche Information (z.B. "
     "Erntesaison) und darf nicht ausgelassen werden, nur weil sie keine Zahl "
-    "oder kein Text im engeren Sinn ist."
+    "or kein Text im engeren Sinn ist."
 )
 
 # Anthropic (the default provider) hard-rejects a base64 image over 5MB;
@@ -315,7 +321,25 @@ PDF_RENDER_DPI = 150
 MAX_PDF_PAGES = 10
 
 
-def extract_pdf(content: bytes) -> dict[str, Any]:
+# A generated PDF carries its own text; only a scan has to be read by eye.
+# Below this many characters per page the layer is a header/watermark rather
+# than content, so rasterising is worth the vision call.
+MIN_TEXT_LAYER_CHARS_PER_PAGE = 200
+
+
+def _text_layer(pages) -> str | None:
+    """The PDF's own text in reading order, or None if there is too little of
+    it to be content. Reading order flattens a table: a multi-column layout
+    loses which column a cell belonged to, so this is better input for a
+    model than an OCR of the same page, not a substitute for parsing it."""
+    texts = [page.get_text() for page in pages]
+    joined = "\n\n".join(texts).strip()
+    if len(joined) < MIN_TEXT_LAYER_CHARS_PER_PAGE * len(texts):
+        return None
+    return joined
+
+
+def extract_pdf(content: bytes, mode: str = "auto") -> dict[str, Any]:
     try:
         doc = fitz.open(stream=content, filetype="pdf")
     except Exception as e:
@@ -326,13 +350,24 @@ def extract_pdf(content: bytes) -> dict[str, Any]:
         if page_count == 0:
             return {"kind": "unsupported_binary", "reason": "PDF has no pages", "size_bytes": len(content)}
 
-        texts = []
-        for page in doc[:MAX_PDF_PAGES]:
-            jpg_bytes = page.get_pixmap(dpi=PDF_RENDER_DPI).tobytes("jpg")
-            page_result = extract_image(jpg_bytes, "image/jpeg")
-            if page_result["kind"] != "image_page":
-                return page_result  # propagate vision failure/oversized-page as-is
-            texts.append(page_result["clean_markdown_full"])
+        pages = list(doc[:MAX_PDF_PAGES])
+        embedded = None if mode == "vision" else _text_layer(pages)
+        if embedded is not None:
+            texts = [embedded]
+        elif mode == "text":
+            return {
+                "kind": "unsupported_binary",
+                "reason": "pdf_mode: text, but this PDF has no usable text layer",
+                "size_bytes": len(content),
+            }
+        else:
+            texts = []
+            for page in pages:
+                jpg_bytes = page.get_pixmap(dpi=PDF_RENDER_DPI).tobytes("jpg")
+                page_result = extract_image(jpg_bytes, "image/jpeg")
+                if page_result["kind"] != "image_page":
+                    return page_result  # propagate vision failure/oversized-page as-is
+                texts.append(page_result["clean_markdown_full"])
     finally:
         doc.close()
 
@@ -358,6 +393,7 @@ def extract_pdf(content: bytes) -> dict[str, Any]:
 # labor as extract_pdf/extract_image above).
 # ---------------------------------------------------------------------------
 
+
 def extract_ics(content: bytes) -> dict[str, Any]:
     try:
         windows = map_calendar(content)
@@ -370,14 +406,19 @@ def extract_ics(content: bytes) -> dict[str, Any]:
 # Dispatcher
 # ---------------------------------------------------------------------------
 
-def extract_any(name: str, content: bytes, content_type: str = "") -> dict[str, Any]:
+
+def extract_any(name: str, content: bytes, content_type: str = "", pdf_mode: str = "auto") -> dict[str, Any]:
     """Sniff what `content` actually is and extract accordingly. Used both at
-    the top level and recursively for files inside a ZIP."""
+    the top level and recursively for files inside a ZIP.
+
+    pdf_mode overrides the text-layer heuristic for a source whose PDFs it
+    reads wrongly: "text" refuses to fall back to vision, "vision" skips the
+    text layer even when one is present."""
     if content[:4] == b"PK\x03\x04" or name.lower().endswith(".zip"):
         return extract_zip(content)
 
     if content[:4] == b"%PDF":
-        return extract_pdf(content)
+        return extract_pdf(content, pdf_mode)
 
     # Before decode_text/HTML sniffing - ICS is plain text but must not be
     # misread as an HTML page or fall through to tabular/plain-text below.

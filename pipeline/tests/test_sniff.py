@@ -19,6 +19,56 @@ def _pdf_bytes(page_count: int = 1) -> bytes:
     return data
 
 
+def _pdf_with_text(lines: int = 12) -> bytes:
+    """Enough text to clear MIN_TEXT_LAYER_CHARS_PER_PAGE - a single
+    insert_text call overflows the page and silently keeps only what fits."""
+    doc = fitz.open()
+    page = doc.new_page()
+    for i in range(lines):
+        page.insert_text((40, 60 + i * 12), f"Baden-Wuerttemberg Zeile {i}: 26.10. - 30.10.", fontsize=9)
+    data = doc.tobytes()
+    doc.close()
+    return data
+
+
+def test_a_pdf_with_a_text_layer_is_read_without_any_vision_call():
+    """A generated PDF carries its own text. Rasterising it to ask a model
+    what it says costs one call per page and returns an OCR of text that was
+    already there - worse input, for money."""
+    with patch("core.sniff.call_llm_vision", side_effect=AssertionError("vision must not be called")):
+        result = extract_any("kalender.pdf", _pdf_with_text(), "")
+
+    assert result["kind"] == "pdf_document"
+    assert "26.10." in result["clean_markdown_full"]
+
+
+def test_a_pdf_without_a_text_layer_still_goes_to_vision():
+    with patch("core.sniff.call_llm_vision", return_value="gerenderter Text") as mock_vision:
+        result = extract_any("scan.pdf", _pdf_bytes(), "")
+
+    assert mock_vision.called
+    assert result["kind"] == "pdf_document"
+
+
+def test_pdf_mode_vision_skips_a_present_text_layer():
+    """The escape hatch for a PDF whose text layer is there but useless -
+    wrong reading order, ligature soup, a watermark layer."""
+    with patch("core.sniff.call_llm_vision", return_value="gerenderter Text") as mock_vision:
+        extract_any("kalender.pdf", _pdf_with_text(), "", pdf_mode="vision")
+
+    assert mock_vision.called
+
+
+def test_pdf_mode_text_refuses_to_fall_back_to_vision():
+    """Says so rather than silently spending on vision for a source declared
+    to be text."""
+    with patch("core.sniff.call_llm_vision", side_effect=AssertionError("vision must not be called")):
+        result = extract_any("scan.pdf", _pdf_bytes(), "", pdf_mode="text")
+
+    assert result["kind"] == "unsupported_binary"
+    assert "text layer" in result["reason"]
+
+
 def test_html_page_keeps_full_text_alongside_truncated_preview():
     long_paragraph = "Ein Satz mit Inhalt. " * 200  # well over 1500 chars
     html = f"<html><body><p>{long_paragraph}</p></body></html>".encode()
