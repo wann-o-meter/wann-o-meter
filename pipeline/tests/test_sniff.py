@@ -7,7 +7,7 @@ import fitz
 PIPELINE_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PIPELINE_ROOT))
 
-from scraper import MAX_PDF_PAGES, extract_any, extract_dates, sniff_image_mime  # noqa: E402
+from core.sniff import MAX_PDF_PAGES, extract_any, extract_dates, sniff_image_mime  # noqa: E402
 
 
 def _pdf_bytes(page_count: int = 1) -> bytes:
@@ -61,7 +61,7 @@ def test_sniff_image_mime_recognizes_gif_png_jpeg():
 
 def test_extract_any_routes_gif_to_vision_extraction_not_plain_text():
     gif_bytes = b"GIF89a" + b"\x00" * 20  # not valid UTF-8/Latin-1-meaningful text
-    with patch("scraper.call_llm_vision") as mock_vision:
+    with patch("core.sniff.call_llm_vision") as mock_vision:
         mock_vision.return_value = "Sonnenfinsternis 2026-08-12, Totalitaet 14:00-14:03 UTC"
         result = extract_any("SE2001-25T-2.GIF", gif_bytes, "image/gif")
 
@@ -78,7 +78,7 @@ def test_extract_any_gif_falls_back_to_unsupported_binary_on_llm_error():
     from core.llm import LlmError
 
     gif_bytes = b"GIF89a" + b"\x00" * 20
-    with patch("scraper.call_llm_vision", side_effect=LlmError("no API key")):
+    with patch("core.sniff.call_llm_vision", side_effect=LlmError("no API key")):
         result = extract_any("broken.gif", gif_bytes, "image/gif")
 
     assert result["kind"] == "unsupported_binary"
@@ -86,10 +86,10 @@ def test_extract_any_gif_falls_back_to_unsupported_binary_on_llm_error():
 
 
 def test_extract_any_rejects_oversized_image_without_calling_vision():
-    from scraper import MAX_IMAGE_BYTES
+    from core.sniff import MAX_IMAGE_BYTES
 
     oversized_gif = b"GIF89a" + b"\x00" * (MAX_IMAGE_BYTES + 1)
-    with patch("scraper.call_llm_vision") as mock_vision:
+    with patch("core.sniff.call_llm_vision") as mock_vision:
         result = extract_any("huge.gif", oversized_gif, "image/gif")
 
     mock_vision.assert_not_called()
@@ -111,7 +111,7 @@ def test_extract_dates_handles_german_month_names_alongside_numeric_dates():
 
 def test_extract_any_routes_pdf_page_through_vision_extraction():
     pdf_bytes = _pdf_bytes(page_count=1)
-    with patch("scraper.call_llm_vision") as mock_vision:
+    with patch("core.sniff.call_llm_vision") as mock_vision:
         mock_vision.return_value = "Sitzungstermin 06.09.2026"
         result = extract_any("termine.pdf", pdf_bytes, "application/pdf")
 
@@ -124,7 +124,7 @@ def test_extract_any_routes_pdf_page_through_vision_extraction():
 
 def test_extract_pdf_caps_vision_calls_at_max_pages_and_notes_truncation():
     pdf_bytes = _pdf_bytes(page_count=MAX_PDF_PAGES + 3)
-    with patch("scraper.call_llm_vision") as mock_vision:
+    with patch("core.sniff.call_llm_vision") as mock_vision:
         mock_vision.return_value = "Seite ohne Datum"
         result = extract_any("huge.pdf", pdf_bytes, "application/pdf")
 
@@ -135,7 +135,7 @@ def test_extract_pdf_caps_vision_calls_at_max_pages_and_notes_truncation():
 
 def test_extract_pdf_propagates_oversized_rendered_page_as_unsupported():
     pdf_bytes = _pdf_bytes(page_count=1)
-    with patch("scraper.MAX_IMAGE_BYTES", 0), patch("scraper.call_llm_vision") as mock_vision:
+    with patch("core.sniff.MAX_IMAGE_BYTES", 0), patch("core.sniff.call_llm_vision") as mock_vision:
         result = extract_any("page.pdf", pdf_bytes, "application/pdf")
 
     mock_vision.assert_not_called()

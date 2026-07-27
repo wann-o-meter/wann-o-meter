@@ -1,29 +1,28 @@
-#!/usr/bin/env python3
-"""
-Simple web scraper for Wann-Plattform.
+"""Content sniffing: raw bytes in, a kind-tagged extraction result out.
 
 Handles more than HTML prose pages - open data portals (e.g. DWD's
 opendata.dwd.de) serve directory listings, semicolon/comma-delimited text,
-fixed-width legacy exports, and ZIP archives of all of the above. scrape()
-fetches raw bytes and dispatches by sniffed content, not by assuming
-everything is an article to markdown-ify.
+fixed-width legacy exports, and ZIP archives of all of the above.
+extract_any() dispatches by sniffed content, not by assuming everything is
+an article to markdown-ify.
 
-Pipeline: fetch bytes -> sniff kind -> kind-specific extraction.
+Pipeline: sniff kind -> kind-specific extraction. Fetching is core/fetch.py's
+job; this module never touches the network, which is what lets the crawler
+(core/crawl_runner.py), the single-fetch runner (core/generic_source.py) and
+the staging snapshot (core/staging.py) all reuse it against bytes they
+already have.
 """
 
 import csv
 import io
 import re
 import zipfile
-from datetime import datetime
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import fitz  # PyMuPDF
-import yaml
 from bs4 import BeautifulSoup
 
-from core.fetch import Config, decode_text, fetch, fetch_bytes  # noqa: F401 (fetch/Config re-exported for callers)
+from core.fetch import decode_text
 from core.ics import map_calendar
 from core.llm import LlmError, call_llm_vision
 
@@ -448,43 +447,3 @@ def extract_zip(content: bytes) -> Dict[str, Any]:
             member_result["size_bytes"] = info.file_size
             entries.append(member_result)
     return {"kind": "zip_archive", "file_count": len(entries), "entries": entries}
-
-
-class SimpleScraper:
-    def __init__(self, config: Optional[Config] = None):
-        self.config = config or Config()
-
-    def scrape(self, url: str) -> Dict[str, Any]:
-        print(f"[scraper] Fetching {url}")
-        content, content_type = fetch_bytes(url, self.config)
-
-        print(f"[scraper] Extracting ({len(content)} bytes, content-type={content_type or 'unknown'})")
-        data = extract_any(url, content, content_type)
-        data["url"] = url
-        data["extracted_at"] = datetime.now().isoformat()
-        return data
-
-    def save(self, data: Dict[str, Any], output_path: str) -> None:
-        path = Path(output_path)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("w", encoding="utf-8") as f:
-            yaml.dump(data, f, allow_unicode=True, sort_keys=False)
-        print(f"[scraper] Saved to {output_path}")
-
-
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) < 2:
-        print("Usage: python scraper.py <URL> [output.yaml]")
-        sys.exit(1)
-
-    url = sys.argv[1]
-    output = sys.argv[2] if len(sys.argv) > 2 else None
-
-    scraper = SimpleScraper()
-    result = scraper.scrape(url)
-
-    if output:
-        scraper.save(result, output)
-    else:
-        print(yaml.dump(result, allow_unicode=True, sort_keys=False))

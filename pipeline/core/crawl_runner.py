@@ -17,7 +17,7 @@ one page, not one per century). Each source keeps its own review-state and
 its own citation; store.merge_zeitfenster unions them per window.
 
 Each crawled document is extracted independently by its sniffed kind
-(scraper.py's extract_any): an ics_feed document's windows are used
+(core/sniff.py's extract_any): an ics_feed document's windows are used
 directly, no LLM (Ziel 5); an html_page/pdf_document's text goes through
 core/extraction.py's extract_dated_events, guided by the source's own
 event_type_hint."""
@@ -31,7 +31,7 @@ from core import approval, review_state, staging
 from core.crawl_config import DEFAULT_EXTRACTION_MODE, CrawlSource
 from core.crawler import CrawledDocument, crawl
 from core.extraction import ExtractionError, extract_dated_events, suggest_category, suggest_title
-from scraper import extract_any
+from core.sniff import extract_any
 
 
 def _default_quelle(url: str) -> Dict[str, Any]:

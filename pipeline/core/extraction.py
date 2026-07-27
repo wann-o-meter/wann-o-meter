@@ -497,7 +497,7 @@ def extract_season_windows(text: str, hint: str) -> List[Dict[str, Any]]:
     ranges - the right shape for e.g. "Aepfel are in season May-August every
     year", which has no specific year attached at all. `text` is expected to
     already describe any color-coding/highlighting in words (see
-    scraper.py's VISION_PROMPT for images/PDFs) - this function only
+    core/sniff.py's VISION_PROMPT for images/PDFs) - this function only
     interprets that description, it does not see the image itself.
 
     Returns a list of {"subject": {"slug": str, "name": str}, "windows":

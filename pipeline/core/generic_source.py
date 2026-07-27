@@ -23,7 +23,7 @@ from typing import Any, Dict, List
 from core.extraction import ExtractionError, extract_season_windows, extract_subjects, type_slug_from_label
 from core.fetch import decode_text
 from core.types import ExtractionResult
-from scraper import extract_any
+from core.sniff import extract_any
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_ROOT = REPO_ROOT / "data"
@@ -83,8 +83,8 @@ def extract_season(config: Dict[str, Any], raw: bytes, params: Dict[str, Any]) -
     encoded as color/highlighting on an image or PDF page (e.g. a
     Saisonkalender chart marking each fruit's harvest months in different
     colors) rather than as literal text - reads clean_markdown_full from
-    scraper.py's kind-dispatching extract_any (whose vision prompt already
-    describes that highlighting explicitly, see scraper.py's VISION_PROMPT)
+    core/sniff.py's kind-dispatching extract_any (whose vision prompt already
+    describes that highlighting explicitly, see core/sniff.py's VISION_PROMPT)
     instead of plain decode_text(raw), which would only see garbled binary
     for a PDF/image and never reach the LLM with anything useful.
 

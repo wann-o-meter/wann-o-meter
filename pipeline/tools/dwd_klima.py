@@ -34,7 +34,8 @@ from collections import defaultdict
 from datetime import date
 from typing import Any, Dict, List, Optional
 
-from scraper import decode_text, fetch_bytes, parse_directory_listing
+from core.fetch import decode_text, fetch_bytes
+from core.sniff import parse_directory_listing
 
 BASE_URL = "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/daily/kl/historical/"
 

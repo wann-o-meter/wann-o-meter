@@ -30,7 +30,7 @@ import yaml
 from core.content_hash import content_hash as _content_hash_of
 from core.content_hash import normalize_event
 from core.fetch import decode_text
-from scraper import html_to_markdown, sniff_image_mime
+from core.sniff import html_to_markdown, sniff_image_mime
 
 STAGING_ROOT = Path(__file__).resolve().parent.parent / "staging"
 
@@ -44,7 +44,7 @@ def _looks_like_html(content: bytes, content_type: str) -> bool:
 def _extension_and_bytes(content: bytes, content_type: str) -> tuple[str, bytes]:
     """Decides the stored representation: HTML is rendered to Markdown (a
     human-reviewable snapshot, not raw markup with its CSS/JS baggage) -
-    pure format conversion via scraper.py's existing html_to_markdown, not
+    pure format conversion via core/sniff.py's existing html_to_markdown, not
     "extraction" (finding events/dates), so this doesn't blur the crawler/
     extraction boundary the spec draws. Everything else is stored as its
     original bytes, already directly viewable (PDF/image) or small/textual

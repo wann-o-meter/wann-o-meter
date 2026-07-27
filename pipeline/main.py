@@ -521,7 +521,7 @@ _BLANK_LINE_RUN_RE = re.compile(r"\n{2,}")
 
 
 def _plaintext_from_markdown(md: str) -> str:
-    """The staged .md snapshot (scraper.py's html_to_markdown) keeps
+    """The staged .md snapshot (core/sniff.py's html_to_markdown) keeps
     markdown syntax - [label](url) links, **bold**, # headings - which is
     visual noise for a dense data table (e.g. the eclipse catalog: every
     row's image/plot/search links turn into bracket-and-paren clutter

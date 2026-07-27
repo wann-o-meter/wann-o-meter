@@ -5,7 +5,7 @@ PIPELINE_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PIPELINE_ROOT))
 
 from core.ics import map_calendar, map_vevent  # noqa: E402
-from scraper import extract_any  # noqa: E402
+from core.sniff import extract_any  # noqa: E402
 
 
 def _calendar(*vevents: str) -> bytes:

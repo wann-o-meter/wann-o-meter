@@ -1,5 +1,5 @@
 """HTTP fetch with timeout/retry, shared by everything in /pipeline that
-talks to the network: the admin dashboard's scraper.py, one-time tools/
+talks to the network: the admin dashboard, one-time tools/
 scripts, and source adapters via the runner."""
 
 import ssl

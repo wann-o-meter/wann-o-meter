@@ -78,7 +78,7 @@ def sniff_format(content: bytes, content_type: str) -> str:
     """Coarse format label for CrawlSource.formats filtering - "which
     document types does this source track", a scope concept (like
     allowed_domains), not extraction. Deliberately shallow: full content
-    sniffing already lives in scraper.py's extract_any() dispatch, which
+    sniffing already lives in core/sniff.py's extract_any() dispatch, which
     runs later, on documents this function already decided are worth
     keeping."""
     if _looks_like_html(content, content_type):

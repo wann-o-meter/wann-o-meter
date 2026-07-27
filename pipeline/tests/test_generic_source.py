@@ -274,7 +274,7 @@ class TestExtractSeason:
         }]
 
     def test_raises_extraction_error_when_the_scrape_produced_no_usable_text(self, monkeypatch):
-        # e.g. the vision call failed (no API key) - scraper.py's extract_any
+        # e.g. the vision call failed (no API key) - core/sniff.py's extract_any
         # returns unsupported_binary with no clean_markdown_full at all, so
         # there is nothing to feed the LLM. Must surface WHY, not silently
         # return an empty result indistinguishable from "no season data here".
