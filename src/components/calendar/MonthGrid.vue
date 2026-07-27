@@ -81,12 +81,15 @@ function matches(dayIso: string) {
       v-for="week in weeks"
       :key="week.mondayIso"
       class="week-row"
-      role="button"
-      tabindex="0"
       title="Diese Woche öffnen"
       @click="emit('week-click', week.mondayIso)"
-      @keydown.enter="emit('week-click', week.mondayIso)"
     >
+      <!-- This button is the row's keyboard/screen-reader path to the same
+           action, which is why the row itself is no longer role="button"
+           tabindex="0": that made a control containing a control (this button,
+           plus every .mark link below) - axe's nested-interactive - and put a
+           second tab stop on every week for an action already reachable here.
+           The row keeps its plain @click as a mouse convenience. -->
       <button type="button" class="week-number" title="Diese Woche öffnen" @click.stop="emit('week-click', week.mondayIso)">
         {{ week.number }}
       </button>
@@ -145,9 +148,12 @@ function matches(dayIso: string) {
   background: var(--accent);
   color: var(--accent-ink);
 }
-.day.other-month {
+/* :not(.today) because today can itself be an adjacent-month day - looking at
+   August's grid on 27 July, the 27th is in the leading row. This rule comes
+   after .day.today and has the same specificity, so without the guard it won
+   the cascade and painted muted grey onto the accent background: 1.22:1. */
+.day.other-month:not(.today) {
   color: var(--muted);
-  opacity: 0.5;
 }
 .marks {
   display: flex;
@@ -219,7 +225,6 @@ function matches(dayIso: string) {
 }
 .day-cell.other-month {
   color: var(--muted);
-  opacity: 0.5;
 }
 .day-cell.today {
   outline: 2px solid var(--accent);

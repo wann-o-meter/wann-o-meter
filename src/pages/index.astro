@@ -359,68 +359,86 @@ const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender-
 </script>
 
 <script define:vars={{ questions: rotatingQuestions }}>
+  // Cycles the H1 through real questions the site can answer - the static
+  // generic H1 (set in the template) is the no-JS/SEO fallback. Skipped
+  // entirely for prefers-reduced-motion (WCAG 2.2.2: no unpausable
+  // auto-updating text).
+  const rotates = questions.length > 0 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Renders {before, emphasis, after} (lib/homepage-questions.ts) as text +
+  // <em> + text instead of one flat string - the topic clause (e.g.
+  // "Schulferien und Feiertage in Mecklenburg-Vorpommern") reads distinctly
+  // from the generic "Wann ist/sind..." opener. Used by both the real H1
+  // update below and the height probe, so the probe measures the exact
+  // markup that'll render (italic glyphs aren't the same width as regular
+  // ones - a flat-text measurement could under/over-reserve height).
+  // Wrapped in an <a> to the subject's own page: the sentence names a
+  // concrete thing ("Wann sind Schulferien in Bayern?") and the page that
+  // answers it exists, so the H1 may as well go there. Also gives the
+  // homepage a rotating set of real internal links to its topic pages.
+  function renderQuestion(el, question) {
+    const em = document.createElement("em");
+    em.textContent = question.emphasis;
+    const link = document.createElement("a");
+    link.href = question.url;
+    link.replaceChildren(document.createTextNode(question.before), em, document.createTextNode(question.after));
+    el.replaceChildren(link);
+  }
+
+  // Reserves exactly the height the tallest question needs to wrap to at
+  // the H1's *actual* current width - the CSS min-height below is only a
+  // rough fallback (2 lines), which the longer combined Schulferien+
+  // Feiertage questions can exceed, especially now that the H1 shares the
+  // row with the calendar preview and has less width than it used to.
+  // Measured with a detached clone instead of a fixed lookup table so it
+  // stays correct across font-loading, zoom, and viewport width, none of
+  // which a precomputed table could account for.
+  function reserveH1Height() {
+    const h1 = document.getElementById("h1-rotator");
+    if (!h1 || !rotates) return;
+    const probe = document.createElement("h1");
+    probe.className = h1.className;
+    Object.assign(probe.style, {
+      position: "absolute",
+      visibility: "hidden",
+      pointerEvents: "none",
+      minHeight: "0",
+      margin: "0",
+      width: `${h1.getBoundingClientRect().width}px`,
+    });
+    document.body.appendChild(probe);
+    let max = 0;
+    for (const question of questions) {
+      renderQuestion(probe, question);
+      max = Math.max(max, probe.offsetHeight);
+    }
+    document.body.removeChild(probe);
+    h1.style.minHeight = `${max}px`;
+  }
+
+  // Called here at top level, NOT inside the astro:page-load handler below:
+  // define:vars makes this script inline and parser-blocking, so this runs
+  // while the document is still being parsed, before first paint. Deferring
+  // it to page-load meant the H1 painted at the CSS fallback height and then
+  // grew ~90px a second later, shoving the whole page down - most of what was
+  // left of the homepage's CLS after the nav date fix in Layout.astro.
+  reserveH1Height();
+  // Bound once, outside page-load: window survives a view-transition swap, so
+  // re-binding per navigation would just stack duplicate handlers. The
+  // function looks the H1 up each time, so it always finds the current one.
+  let resizeTimer;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(reserveH1Height, 200);
+  });
+
   // Re-run per navigation - see the note in Layout.astro's ClientRouter.
   document.addEventListener("astro:page-load", () => {
-    // Cycles the H1 through real questions the site can answer - the static
-    // generic H1 (set in the template) is the no-JS/SEO fallback. Skipped
-    // entirely for prefers-reduced-motion (WCAG 2.2.2: no unpausable
-    // auto-updating text).
     const h1 = document.getElementById("h1-rotator");
-    if (h1 && questions.length > 0 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      // Renders {before, emphasis, after} (lib/homepage-questions.ts) as text +
-      // <em> + text instead of one flat string - the topic clause (e.g.
-      // "Schulferien und Feiertage in Mecklenburg-Vorpommern") reads distinctly
-      // from the generic "Wann ist/sind..." opener. Used by both the real H1
-      // update below and the height probe, so the probe measures the exact
-      // markup that'll render (italic glyphs aren't the same width as regular
-      // ones - a flat-text measurement could under/over-reserve height).
-      // Wrapped in an <a> to the subject's own page: the sentence names a
-      // concrete thing ("Wann sind Schulferien in Bayern?") and the page that
-      // answers it exists, so the H1 may as well go there. Also gives the
-      // homepage a rotating set of real internal links to its topic pages.
-      function renderQuestion(el, question) {
-        const em = document.createElement("em");
-        em.textContent = question.emphasis;
-        const link = document.createElement("a");
-        link.href = question.url;
-        link.replaceChildren(document.createTextNode(question.before), em, document.createTextNode(question.after));
-        el.replaceChildren(link);
-      }
-
-      // Reserves exactly the height the tallest question needs to wrap to at
-      // the H1's *actual* current width - the CSS min-height below is only a
-      // rough fallback (2 lines), which the longer combined Schulferien+
-      // Feiertage questions can exceed, especially now that the H1 shares the
-      // row with the calendar preview and has less width than it used to.
-      // Measured with a detached clone instead of a fixed lookup table so it
-      // stays correct across font-loading, zoom, and viewport width, none of
-      // which a precomputed table could account for.
-      function reserveH1Height() {
-        const probe = document.createElement("h1");
-        probe.className = h1.className;
-        Object.assign(probe.style, {
-          position: "absolute",
-          visibility: "hidden",
-          pointerEvents: "none",
-          minHeight: "0",
-          margin: "0",
-          width: `${h1.getBoundingClientRect().width}px`,
-        });
-        document.body.appendChild(probe);
-        let max = 0;
-        for (const question of questions) {
-          renderQuestion(probe, question);
-          max = Math.max(max, probe.offsetHeight);
-        }
-        document.body.removeChild(probe);
-        h1.style.minHeight = `${max}px`;
-      }
+    if (h1 && rotates) {
+      // The H1 is a fresh node after a view-transition swap, back at the CSS
+      // fallback height - measure it again before the rotation starts.
       reserveH1Height();
-      let resizeTimer;
-      window.addEventListener("resize", () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(reserveH1Height, 200);
-      });
 
       // Now that the H1 is a link, a rotation mid-aim would swap the
       // destination out from under the cursor - so hovering or tabbing into

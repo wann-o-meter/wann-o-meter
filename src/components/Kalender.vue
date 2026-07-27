@@ -531,7 +531,7 @@ onUnmounted(() => {
       <p v-if="loading" class="sr-only">Kalender lädt…</p>
 
       <template v-else>
-        <nav class="breadcrumbs">
+        <nav class="breadcrumbs" aria-label="Brotkrumen">
           <button type="button" class="crumb" @click="setView('year')">{{ year }}</button>
           <template v-if="view === 'week' || MONTH_NAV_VIEWS.includes(view)">
             <ChevronRight :size="14" />
@@ -627,7 +627,7 @@ onUnmounted(() => {
 
     <aside class="sidebar">
       <div v-if="view === 'year'" class="year-nav">
-        <button type="button" :disabled="year <= YEAR_MIN" @click="year--"><ChevronLeft :size="16" /></button>
+        <button type="button" aria-label="Vorheriges Jahr" :disabled="year <= YEAR_MIN" @click="year--"><ChevronLeft :size="16" /></button>
         <input
           v-if="editingYear"
           ref="yearInputEl"
@@ -640,7 +640,7 @@ onUnmounted(() => {
           @blur="commitYear"
         />
         <span v-else role="button" tabindex="0" title="Jahr eingeben" @click="startEditYear" @keydown.enter="startEditYear">{{ year }}</span>
-        <button type="button" :disabled="year >= YEAR_MAX" @click="year++"><ChevronRight :size="16" /></button>
+        <button type="button" aria-label="Nächstes Jahr" :disabled="year >= YEAR_MAX" @click="year++"><ChevronRight :size="16" /></button>
       </div>
 
       <div v-if="layers.length > 0" class="layer-list-actions">
@@ -700,7 +700,7 @@ onUnmounted(() => {
         </div>
         <div class="search-results">
           <div v-for="grp in groupedOptions" :key="grp.group" class="search-group-block">
-            <h4 class="search-group-title">{{ grp.group }} <span class="search-group-count">({{ grp.total }})</span></h4>
+            <h3 class="search-group-title">{{ grp.group }} <span class="search-group-count">({{ grp.total }})</span></h3>
             <ul>
               <li v-for="option in grp.visible" :key="option.id">
                 <button type="button" @click="selectOption(option)">{{ option.label }}</button>
@@ -852,12 +852,19 @@ onUnmounted(() => {
   -webkit-appearance: none;
   margin: 0;
 }
+/* 24px floor is WCAG 2.5.8 / Lighthouse's touch-target minimum - a 16px icon
+   with 0.15rem of padding came to 21x21. Centred rather than padded up so the
+   chevrons stay optically where they were. */
 .year-nav button {
   cursor: pointer;
   background: none;
   border: none;
   color: var(--ink);
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
   padding: 0.15rem;
 }
 .year-nav button:disabled {
