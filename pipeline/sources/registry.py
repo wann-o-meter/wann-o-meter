@@ -1,7 +1,12 @@
 """Stage 1: fetch a fixed entity_class's registry (e.g. all German
-universities) into pipeline/data/registries/<entity_class>.json - kept under
-pipeline/ rather than the repo-root data/ since the Astro site treats every
-top-level folder under repo-root data/ as a page category (lib/pages.ts).
+universities) into pipeline/data/registries/<entity_class>.json.
+
+That output stays under pipeline/ and is gitignored because it is a cache,
+not published data: a bulk list of candidate domains to crawl LATER, which
+explains no fact currently under data/. (It is not kept out of data/ by the
+Astro category walk any more - lib/pages.ts skips _-prefixed directories now,
+so a data/_registries/ would work fine. The reason is provenance, not
+routing.) config/registries.yaml stays put for the same reason.
 
 Only one acquisition method is implemented so far (wikidata_sparql, see
 config/registries.yaml). Add a new method by adding a branch in
