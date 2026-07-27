@@ -38,9 +38,7 @@ _EXTRACTION_MODE_HINTS = {
     # dates at all. Say so here rather than let it be discovered by a run.
     "static": "regex only, never the model - ISO dates (2026-09-19) only, NOT '19. September'",
 }
-EXTRACTION_MODE_OPTIONS = [
-    (mode, _EXTRACTION_MODE_HINTS.get(mode, "")) for mode in crawl_config.EXTRACTION_MODES
-]
+EXTRACTION_MODE_OPTIONS = [(mode, _EXTRACTION_MODE_HINTS.get(mode, "")) for mode in crawl_config.EXTRACTION_MODES]
 
 LICENSE_OPTIONS = [
     {
@@ -92,6 +90,7 @@ class PipelineState:
     extract -> stage -> diff -> write now runs as one background operation
     per source (core/crawl_runner.py, core/runner.py), landing directly in
     pipeline/staging/ + review-state/ + data/ rather than in memory."""
+
     def __init__(self):
         self.running_sources: set[str] = set()
         self.errors: dict[str, str] = {}
@@ -130,13 +129,15 @@ templates = Jinja2Templates(directory=Path(__file__).resolve().parent / "templat
 # ships with (range, cycler, lipsum...), so every application-supplied global
 # reads as a type error. Passing a dict keeps the suppression to this one call
 # instead of one per entry.
-templates.env.globals.update({  # ty: ignore[no-matching-overload]
-    "all_categories": lambda: _category_suggestions(),
-    "all_tags": lambda: _all_tags(),
-    "all_page_titles": lambda: sorted({p["title"] for p in _list_created_pages()}),
-    "all_page_slugs": lambda: sorted({p["slug"] for p in _list_created_pages()}),
-    "extraction_mode_options": EXTRACTION_MODE_OPTIONS,
-})
+templates.env.globals.update(  # ty: ignore[no-matching-overload]
+    {
+        "all_categories": lambda: _category_suggestions(),
+        "all_tags": lambda: _all_tags(),
+        "all_page_titles": lambda: sorted({p["title"] for p in _list_created_pages()}),
+        "all_page_slugs": lambda: sorted({p["slug"] for p in _list_created_pages()}),
+        "extraction_mode_options": EXTRACTION_MODE_OPTIONS,
+    }
+)
 
 # Backs the site's dynamic /{category-path}/{slug}/ routes (lib/pages.ts
 # reads the same tree via `join(process.cwd(), "data")` from the repo root,
@@ -152,8 +153,17 @@ DATA_ROOT = REPO_ROOT / "data"
 # a page can't be created under them (would collide with an existing route).
 # Checked against segment 1 only.
 RESERVED_CATEGORIES = {
-    "kalender", "urlaubsfenster", "feiertage", "presets",
-    "seiten", "themen", "api", "feeds", "impressum", "datenschutz", "schema",
+    "kalender",
+    "urlaubsfenster",
+    "feiertage",
+    "presets",
+    "seiten",
+    "themen",
+    "api",
+    "feeds",
+    "impressum",
+    "datenschutz",
+    "schema",
 }
 
 # Must stay in sync with lib/pages.ts's RESERVED_AT_ANY_DEPTH - "tag" is
@@ -176,6 +186,7 @@ MAX_CATEGORY_DEPTH = 4
 # adding it here.
 _SAFE_RETURN_TO = re.compile(r"^/$|^/(?:crawl-sources|review)(?:/[^/]+)?/?$")
 
+
 def _slugify(text: str) -> str:
     text = text.lower().strip()
     for umlaut, ascii_form in {"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}.items():
@@ -183,12 +194,14 @@ def _slugify(text: str) -> str:
     text = re.sub(r"[^a-z0-9]+", "-", text)
     return text.strip("-") or "page"
 
+
 def _slugify_category_path(category: str) -> list[str]:
     """Splits an operator-typed category path ("Sport/Fußball/Bundesliga")
     on "/" and slugifies each segment independently - never slugify before
     splitting, that would turn "/" into "-" and collapse the hierarchy.
     Matches lib/pages-schema.ts's per-segment validation."""
     return [_slugify(seg) for seg in category.split("/") if seg.strip()]
+
 
 def _validate_category_segments(segments: list[str]) -> str | None:
     """Returns an error message if the (already-slugified) category path is
@@ -207,6 +220,7 @@ def _validate_category_segments(segments: list[str]) -> str | None:
             return f"'{segment}' is a reserved segment name and can't be used at any depth."
     return None
 
+
 def _walk_pages(segments: list[str], directory: Path, out: list[tuple[str, Path]]) -> None:
     """Recursion helper for _iter_pages() - see there for the contract."""
     for entry in sorted(directory.iterdir()):
@@ -220,6 +234,7 @@ def _walk_pages(segments: list[str], directory: Path, out: list[tuple[str, Path]
         if entry.name in RESERVED_AT_ANY_DEPTH or len(segments) >= MAX_CATEGORY_DEPTH:
             continue
         _walk_pages([*segments, entry.name], entry, out)
+
 
 def _iter_pages() -> list[tuple[str, Path]]:
     """Recursively walks data/, skipping reserved top-level segments and any
@@ -237,11 +252,13 @@ def _iter_pages() -> list[tuple[str, Path]]:
             _walk_pages([entry.name], entry, out)
     return out
 
+
 def _category_paths() -> list[str]:
     """Every distinct category path that directly holds pages (leaf
     categories, not every intermediate node) - mirrors lib/pages.ts's
     getAllCategories()."""
     return sorted({category_path for category_path, _ in _iter_pages()})
+
 
 def _category_name_for(category_path: str) -> str:
     """Reads the display-name chain for a "/"-joined slug path, joining each
@@ -268,6 +285,7 @@ def _category_name_for(category_path: str) -> str:
         names.append(name or (slug[:1].upper() + slug[1:]))
     return "/".join(names)
 
+
 def _all_tags() -> list[str]:
     """Every tag already used across all page.yaml files - shown as a
     datalist (like _category_suggestions()) so an operator can reuse one
@@ -283,6 +301,7 @@ def _all_tags() -> list[str]:
             continue
     return sorted(tags)
 
+
 def _category_suggestions() -> list[str]:
     """Existing categories' real display names (what's actually in use) plus
     the small curated seed list - shown as a datalist so an operator can
@@ -293,6 +312,7 @@ def _category_suggestions() -> list[str]:
     existing = set(_category_paths())
     paths = existing | set(SUGGESTED_CATEGORIES)
     return sorted({_category_name_for(path) for path in paths})
+
 
 def _write_category_meta_if_new(category: str) -> None:
     """Writes data/{seg1}/_category.yaml, data/{seg1}/{seg2}/_category.yaml,
@@ -315,6 +335,7 @@ def _write_category_meta_if_new(category: str) -> None:
         with meta_path.open("w", encoding="utf-8") as f:
             yaml.dump({"name": typed}, f, allow_unicode=True, sort_keys=False)
 
+
 def _list_created_pages() -> list[dict]:
     """For the dashboard's overview card - reads straight from disk (source
     of truth), not from in-memory state, so it survives a server restart."""
@@ -330,17 +351,20 @@ def _list_created_pages() -> list[dict]:
         source = page_data.get("source") or {}
         if isinstance(source, list):
             source = source[0] if source else {}
-        pages.append({
-            "category": category_path,
-            "category_display": _category_name_for(category_path),
-            "slug": folder.name,
-            "title": page_meta.get("title", folder.name),
-            "description": page_meta.get("description", ""),
-            "tags": page_meta.get("tags", []),
-            "url": source.get("url", ""),
-            "lizenz": source.get("license", ""),
-        })
+        pages.append(
+            {
+                "category": category_path,
+                "category_display": _category_name_for(category_path),
+                "slug": folder.name,
+                "title": page_meta.get("title", folder.name),
+                "description": page_meta.get("description", ""),
+                "tags": page_meta.get("tags", []),
+                "url": source.get("url", ""),
+                "license": source.get("license", ""),
+            }
+        )
     return pages
+
 
 def _harvest_registry_status() -> list[dict]:
     """One row per entity_class configured in pipeline/config/registries.yaml,
@@ -359,15 +383,18 @@ def _harvest_registry_status() -> list[dict]:
                 fetched_at = entities[0]["fetched_at"] if entities else None
             except Exception:
                 pass
-        rows.append({
-            "entity_class": entity_class,
-            "target_kinds": cfg.get("target_kinds", []),
-            "count": count,
-            "fetched_at": fetched_at,
-            "running": entity_class in harvest_registry_state.running,
-            "error": harvest_registry_state.errors.get(entity_class),
-        })
+        rows.append(
+            {
+                "entity_class": entity_class,
+                "target_kinds": cfg.get("target_kinds", []),
+                "count": count,
+                "fetched_at": fetched_at,
+                "running": entity_class in harvest_registry_state.running,
+                "error": harvest_registry_state.errors.get(entity_class),
+            }
+        )
     return rows
+
 
 def _latest_run_ts(source_id: str) -> str | None:
     source_dir = staging.STAGING_ROOT / source_id
@@ -375,6 +402,7 @@ def _latest_run_ts(source_id: str) -> str | None:
         return None
     run_dirs = sorted((p.name for p in source_dir.iterdir() if p.is_dir()), reverse=True)
     return run_dirs[0] if run_dirs else None
+
 
 def _source_pages(source_id: str) -> list[dict[str, str]]:
     """[{"url", "status"}] for the crawl source's most recent run, in crawl
@@ -397,6 +425,7 @@ def _source_pages(source_id: str) -> list[dict[str, str]]:
         return []
     return [{"url": doc["url"], "status": "crawled"} for doc in staging.list_documents(source_id, run_ts)]
 
+
 def _known_source_ids() -> list[str]:
     """Every source_id with either a data/_sources/*.yaml config or an
     existing staging/ directory - the latter covers data/_sources-based
@@ -408,6 +437,7 @@ def _known_source_ids() -> list[str]:
     if staging.STAGING_ROOT.exists():
         ids.update(p.name for p in staging.STAGING_ROOT.iterdir() if p.is_dir())
     return sorted(ids)
+
 
 def _is_known_source_id(source_id: str) -> bool:
     """Allowlist check for the /review/{source_id}/... routes below -
@@ -422,6 +452,7 @@ def _is_known_source_id(source_id: str) -> bool:
     already-existing source_id, rather than trying to enumerate every
     traversal trick."""
     return source_id in _known_source_ids()
+
 
 def _pending_candidates_for(source_id: str) -> list[dict]:
     """Candidates from source_id's most recent run whose content_hash has no
@@ -452,8 +483,10 @@ def _pending_candidates_for(source_id: str) -> list[dict]:
         pending.append(candidate)
     return pending
 
+
 def _review_queue() -> list[dict]:
     return [c for source_id in _known_source_ids() for c in _pending_candidates_for(source_id)]
+
 
 def _next_review_candidate(exclude: tuple | None = None) -> dict | None:
     """First pending candidate in the queue, other than `exclude` - lets a
@@ -465,14 +498,26 @@ def _next_review_candidate(exclude: tuple | None = None) -> dict | None:
         return candidate
     return None
 
+
 _MONTH_ABBR = {
-    1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
-    7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec",
+    1: "Jan",
+    2: "Feb",
+    3: "Mar",
+    4: "Apr",
+    5: "May",
+    6: "Jun",
+    7: "Jul",
+    8: "Aug",
+    9: "Sep",
+    10: "Oct",
+    11: "Nov",
+    12: "Dec",
 }
 _ISO_DATE_RE = re.compile(r"^(-?\d{1,4})-(\d{2})-(\d{2})$")
 
+
 def _human_date_variant(iso_date: str) -> str | None:
-    """"1901-01-07" -> "1901 Jan 07" - the format eclipse.gsfc.nasa.gov's
+    """ "1901-01-07" -> "1901 Jan 07" - the format eclipse.gsfc.nasa.gov's
     catalog pages actually write dates in (verified against a real staged
     snapshot) - a source's own date formatting varies, so this is one
     extra guess alongside the plain ISO string, not a general parser."""
@@ -483,10 +528,34 @@ def _human_date_variant(iso_date: str) -> str | None:
     abbr = _MONTH_ABBR.get(int(month))
     return f"{year} {abbr} {day}" if abbr else None
 
+
+# Keyed by format so a range can be assembled from two dates written the same
+# way - no page mixes "2026-10-26" with "30.10.".
+def _date_renderings(iso_date: str) -> dict[str, str]:
+    m = _ISO_DATE_RE.match(iso_date)
+    renderings = {"iso": iso_date}
+    if not m:
+        return renderings
+    year, month, day = m.groups()
+    abbr = _MONTH_ABBR.get(int(month))
+    if abbr:
+        renderings["catalog"] = f"{year} {abbr} {day}"
+    # kmk.org writes "26.10. - 30.10.": day.month, trailing dot, no year.
+    renderings["de_full"] = f"{day}.{month}.{year}"
+    renderings["de"] = f"{day}.{month}."
+    return renderings
+
+
+# EN DASH is deliberate: German date ranges are written with it as often
+# as with a hyphen.
+_RANGE_SEPARATORS = (" - ", " – ", " bis ", "-", "–")  # noqa: RUF001
+
+
 _MD_LINK_RE = re.compile(r"\[([^\]]*)\]\([^)]*\)")
 _MD_EMPHASIS_RE = re.compile(r"\*\*(.+?)\*\*|\*(.+?)\*", re.DOTALL)
 _MD_HEADING_MARKER_RE = re.compile(r"^#{1,6}\s*", re.MULTILINE)
 _BLANK_LINE_RUN_RE = re.compile(r"\n{2,}")
+
 
 def _plaintext_from_markdown(md: str) -> str:
     """The staged .md snapshot (core/sniff.py's html_to_markdown) keeps
@@ -514,6 +583,7 @@ def _plaintext_from_markdown(md: str) -> str:
     text = _BLANK_LINE_RUN_RE.sub("\n\n", text)
     return text.strip()
 
+
 def _highlight_dates(text: str, dates: list[str | None]) -> str:
     """Escapes `text` for safe HTML embedding, then wraps any occurrence of
     one of the candidate's own from/to dates - in ISO form or the
@@ -522,32 +592,40 @@ def _highlight_dates(text: str, dates: list[str | None]) -> str:
     input is always fully escaped first regardless of whether anything
     matched."""
     escaped = html.escape(text)
-    patterns = []
-    seen = set()
+    spellings: list[str] = []
+    if len(dates) == 2:
+        spellings.extend(_date_range_variants(dates[0], dates[1]))
     for date in dates:
-        if not date or date in seen:
-            continue
-        seen.add(date)
-        patterns.append(re.escape(html.escape(date)))
-        variant = _human_date_variant(date)
-        if variant:
-            patterns.append(re.escape(html.escape(variant)))
-    if not patterns:
+        spellings.extend(_date_variants(date))
+    if not spellings:
         return escaped
-    return re.sub("(" + "|".join(patterns) + ")", r"<mark>\1</mark>", escaped)
+    # Longest first, so a range wins over each of its own ends.
+    alternation = "|".join(re.escape(html.escape(s)) for s in sorted(set(spellings), key=len, reverse=True))
+    return re.sub("(" + alternation + ")", r"<mark>\1</mark>", escaped)
+
 
 def _date_variants(date: str | None) -> list[str]:
-    """Every spelling of one date the review UI knows how to look for - the
-    ISO string plus _human_date_variant's rendering. Shared so the
-    single-candidate highlight and the whole-document one can never drift
-    into finding different things on the same page."""
+    """Every spelling of one date the review UI knows how to look for. Shared
+    so the single-candidate highlight and the whole-document one can never
+    drift into finding different things on the same page."""
     if not date:
         return []
-    variants = [date]
-    human = _human_date_variant(date)
-    if human:
-        variants.append(human)
-    return variants
+    return list(_date_renderings(date).values())
+
+
+def _date_range_variants(start: str | None, end: str | None) -> list[str]:
+    """Spellings of a whole range. A source that writes "26.10. - 30.10."
+    must highlight as ONE hit: matching the two ends separately would put two
+    checkboxes on a single window, which reads as two things to decide."""
+    if not start or not end or start == end:
+        return []
+    starts, ends = _date_renderings(start), _date_renderings(end)
+    return [
+        f"{starts[fmt]}{separator}{ends[fmt]}"
+        for fmt in starts.keys() & ends.keys()
+        for separator in _RANGE_SEPARATORS
+    ]
+
 
 def _highlight_candidates(text: str, candidates: list[dict], source_id: str) -> str:
     """Escapes `text`, then turns every date belonging to a still-pending
@@ -573,9 +651,11 @@ def _highlight_candidates(text: str, candidates: list[dict], source_id: str) -> 
     by_pattern: dict[str, dict] = {}
     for candidate in candidates:
         event = candidate.get("event") or {}
+        variants = _date_range_variants(event.get("from"), event.get("to"))
         for date in (event.get("from"), event.get("to")):
-            for variant in _date_variants(date):
-                by_pattern.setdefault(html.escape(variant), candidate)
+            variants.extend(_date_variants(date))
+        for variant in variants:
+            by_pattern.setdefault(html.escape(variant), candidate)
     if not by_pattern:
         return escaped
 
@@ -587,7 +667,7 @@ def _highlight_candidates(text: str, candidates: list[dict], source_id: str) -> 
         return (
             f'<label class="date-hit" title="{name}">'
             f'<input type="checkbox" name="selected" value="{html.escape(source_id)}/{candidate_id}">'
-            f'<span>{match.group(0)}</span>'
+            f"<span>{match.group(0)}</span>"
             f'<a class="date-edit" href="{base}" title="Open this one on its own to edit it">&#9998;</a>'
             # formaction, not a nested <form> - HTML forbids nesting, and this
             # button lives inside the bulk form that wraps the whole document.
@@ -603,6 +683,7 @@ def _highlight_candidates(text: str, candidates: list[dict], source_id: str) -> 
     alternation = "|".join(re.escape(p) for p in sorted(by_pattern, key=len, reverse=True))
     return re.sub(alternation, _hit, escaped)
 
+
 def _load_candidate(source_id: str, run_ts: str, candidate_id: str) -> dict | None:
     """source_id must already be validated by the caller (see
     _is_known_source_id) - this only additionally guards candidate_id
@@ -614,6 +695,7 @@ def _load_candidate(source_id: str, run_ts: str, candidate_id: str) -> dict | No
     if candidates_dir not in path.parents or not path.exists():
         return None
     return yaml.safe_load(path.read_text(encoding="utf-8"))
+
 
 def _run_crawl_source_and_record(source_id: str) -> None:
     def report(update: dict[str, str]) -> None:
@@ -636,6 +718,7 @@ def _run_crawl_source_and_record(source_id: str) -> None:
         state.running_sources.discard(source_id)
         state.progress.pop(source_id, None)
 
+
 def _derive_path_prefix(seed_path: str) -> str:
     """A seed URL that points at one specific page (e.g. .../catalog/
     page.html - last segment looks like a filename) would scope the crawl
@@ -652,22 +735,24 @@ def _derive_path_prefix(seed_path: str) -> str:
         return parent if parent not in ("", "/") else ""
     return seed_path
 
-def _as_quelle_list(datei: dict[str, Any]) -> list[dict[str, Any]]:
+
+def _as_source_list(file: dict[str, Any]) -> list[dict[str, Any]]:
     """lib/pages-schema.ts accepts `source` as either a bare object or a
-    list; store.append_quelle only handles the list. Every page written
+    list; store.append_source only handles the list. Every page written
     before that list form existed still has the object on disk, so
     normalizing here is what makes merging a real page work rather than
     raising AttributeError halfway through."""
-    quellen = datei.get("source") or []
-    return [quellen] if isinstance(quellen, dict) else list(quellen)
+    sources = file.get("source") or []
+    return [sources] if isinstance(sources, dict) else list(sources)
+
 
 def _migrate_page_folder(old_folder: Path, new_folder: Path, slug: str, category: str) -> str | None:
     """Folds data/{old_category}/{old_slug}/ into data/{category}/{slug}/,
     returning why it couldn't be (nothing written) or None on success.
 
-    One code path, no move-vs-merge branch: store.lade_oder_erstelle yields
+    One code path, no move-vs-merge branch: store.load_or_create yields
     an empty skeleton when the target doesn't exist yet, so a plain move is
-    just a merge into an empty file. merge_zeitfenster then does the real
+    just a merge into an empty file. merge_windows then does the real
     work - the same window from both sources keeps one entry and unions its
     citations, a different date range replaces - which is precisely the
     aggregation CrawlSource.subject_slug exists to enable.
@@ -679,25 +764,25 @@ def _migrate_page_folder(old_folder: Path, new_folder: Path, slug: str, category
     if not old_data.exists():
         return None
 
-    old_datei = yaml.safe_load(old_data.read_text(encoding="utf-8")) or {}
-    datei = store.lade_oder_erstelle(new_folder / "data.yaml", slug, category)
-    datei["source"] = _as_quelle_list(datei)
+    old_file = yaml.safe_load(old_data.read_text(encoding="utf-8")) or {}
+    file = store.load_or_create(new_folder / "data.yaml", slug, category)
+    file["source"] = _as_source_list(file)
 
-    store.merge_zeitfenster(datei, old_datei.get("windows") or [])
-    for quelle in _as_quelle_list(old_datei):
-        store.append_quelle(datei, quelle)
+    store.merge_windows(file, old_file.get("windows") or [])
+    for source in _as_source_list(old_file):
+        store.append_source(file, source)
     # The moved windows keep their source_urls, and pageDataSchema's
     # superRefine fails the site build if one of those isn't in source[] -
     # so carrying the citations over is required, not politeness. Rewriting
     # subject also repairs a file whose slug no longer matches its folder.
-    datei["subject"] = {"slug": slug, "category": category}
+    file["subject"] = {"slug": slug, "category": category}
 
     try:
-        validate.pruefe_subjekt_datei(datei)
+        validate.pruefe_subject_file(file)
     except validate.ValidationError as e:
         return f"The merged page would be invalid, nothing written:\n{e}"
 
-    store.speichere(new_folder / "data.yaml", datei)
+    store.speichere(new_folder / "data.yaml", file)
     # Copied rather than store.schreibe_page_yaml_falls_neu'd: that would
     # write a bare title and drop the description/tags a human set here. An
     # existing target page.yaml wins - it's the one already on the site.
@@ -706,13 +791,19 @@ def _migrate_page_folder(old_folder: Path, new_folder: Path, slug: str, category
     shutil.rmtree(old_folder)
     return None
 
+
 _STAGING_DOCUMENT_MEDIA_TYPES = {
-    ".pdf": "application/pdf", ".png": "image/png", ".jpg": "image/jpeg",
-    ".gif": "image/gif", ".ics": "text/calendar", ".md": "text/markdown; charset=utf-8",
+    ".pdf": "application/pdf",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".gif": "image/gif",
+    ".ics": "text/calendar",
+    ".md": "text/markdown; charset=utf-8",
 }
 
 
 _DOC_HASH_RE = re.compile(r"^[0-9a-f]+$")
+
 
 def _redirect_to_next_review(source_id: str, candidate_id: str) -> RedirectResponse:
     """Chains straight from an approve/modify/reject decision to whatever's
@@ -721,10 +812,13 @@ def _redirect_to_next_review(source_id: str, candidate_id: str) -> RedirectRespo
     queue is empty."""
     next_candidate = _next_review_candidate(exclude=(source_id, candidate_id))
     if next_candidate:
-        return RedirectResponse(f"/review/{next_candidate['source_id']}/{next_candidate['candidate_id']}", status_code=302)
+        return RedirectResponse(
+            f"/review/{next_candidate['source_id']}/{next_candidate['candidate_id']}", status_code=302
+        )
     return RedirectResponse("/review", status_code=302)
 
-def _quelle_for_candidate(source_id: str, candidate: dict, license: str) -> dict:
+
+def _source_for_candidate(source_id: str, candidate: dict, license: str) -> dict:
     run_ts = candidate.get("run_ts") or _latest_run_ts(source_id)
     url = ""
     if run_ts:
@@ -739,6 +833,7 @@ def _quelle_for_candidate(source_id: str, candidate: dict, license: str) -> dict
         "extraction": "llm",
     }
 
+
 def _target_category_for(candidate: dict) -> str:
     """The category an approval should file this candidate under: the one its
     source configured, not the subject slug. Both halves of
@@ -750,6 +845,7 @@ def _target_category_for(candidate: dict) -> str:
     Falls back to the slug for candidates staged before `category` was
     carried on them - that IS the old default."""
     return candidate.get("category") or candidate["subject_slug"]
+
 
 def _page_title_for(candidate: dict) -> str:
     """The title page.yaml gets when approving this candidate creates it.
@@ -765,12 +861,13 @@ def _page_title_for(candidate: dict) -> str:
     existed."""
     return candidate.get("subject_name") or candidate["subject_slug"]
 
+
 def _approve_one(source_id: str, candidate_id: str, category: str, license: str) -> str | None:
     """Approves one candidate, or returns why it couldn't be. Shared by the
     single-candidate route (which turns the message into a 4xx page) and
     /review/bulk-edit (which collects the messages and reports them as a
     per-row failure list) - so a bulk run applies exactly the same
-    validation, quelle and review-state bookkeeping as approving each row by
+    validation, source and review-state bookkeeping as approving each row by
     hand, rather than a second, looser copy of it."""
     if not _is_known_source_id(source_id):
         return "unknown source"
@@ -786,9 +883,11 @@ def _approve_one(source_id: str, candidate_id: str, category: str, license: str)
     if validation_error:
         return validation_error
 
-    quelle = _quelle_for_candidate(source_id, candidate, license)
+    source = _source_for_candidate(source_id, candidate, license)
     try:
-        approval.write_event(category_path, candidate["subject_slug"], _page_title_for(candidate), candidate["event"], quelle)
+        approval.write_event(
+            category_path, candidate["subject_slug"], _page_title_for(candidate), candidate["event"], source
+        )
     except approval.ApprovalError as e:
         return f"validation failed, nothing written: {e}"
     _write_category_meta_if_new(category)
@@ -804,6 +903,7 @@ def _approve_one(source_id: str, candidate_id: str, category: str, license: str)
         review_state.reject(st, candidate["subject_slug"], candidate["event"])
         review_state.save(source_id, st)
     return None
+
 
 def _reject_one(source_id: str, candidate_id: str) -> str | None:
     """Rejects one candidate, or returns why it couldn't be - the reject-side
@@ -821,15 +921,19 @@ def _reject_one(source_id: str, candidate_id: str) -> str | None:
     review_state.save(source_id, st)
     return None
 
+
 class HarvestRegistryState:
     """Tracks in-flight harvest registry fetches per entity_class - a
     registry fetch is one blocking network call (Wikidata SPARQL), too slow
     to run inline in an async route."""
+
     def __init__(self):
         self.running: set[str] = set()
         self.errors: dict[str, str] = {}
 
+
 harvest_registry_state = HarvestRegistryState()
+
 
 def _fetch_harvest_registry_and_record(entity_class: str) -> None:
     try:
@@ -840,6 +944,7 @@ def _fetch_harvest_registry_and_record(entity_class: str) -> None:
         harvest_registry_state.errors[entity_class] = str(e)[:300]
     finally:
         harvest_registry_state.running.discard(entity_class)
+
 
 def _resolve_page_folder(full_path: str) -> Path | None:
     """Shared guard for every /pages/{full_path}/... and /page-data|/page-meta
@@ -859,6 +964,7 @@ def _resolve_page_folder(full_path: str) -> Path | None:
     if not (folder / "page.yaml").exists() or not (folder / "data.yaml").exists():
         return None
     return folder
+
 
 def _serve_page_file(full_path: str, filename: str) -> HTMLResponse:
     folder = _resolve_page_folder(full_path)
