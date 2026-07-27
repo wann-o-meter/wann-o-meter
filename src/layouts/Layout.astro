@@ -259,7 +259,9 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
      shift behind the homepage's 0.37 CLS. formatTodayLabel() is always the
      same shape ("Mo., 27.07." - zero-padded, 2-letter weekday), so the only
      width variation left is the weekday; tabular-nums takes the digits out of
-     it, and the min-width is the widest of the seven, measured, rounded up. */
+     it, and the min-width is the widest of the seven, measured, rounded up.
+     Measured at this nav's 0.9rem - change that font-size and this has to be
+     re-measured (scripts/cls.mjs) or the shift comes back. */
   .today-indicator {
     font-variant-numeric: tabular-nums;
     min-width: 4.6rem;

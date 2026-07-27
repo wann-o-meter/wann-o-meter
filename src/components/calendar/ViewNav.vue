@@ -35,12 +35,18 @@ const emit = defineEmits<{ (e: "prev"): void; (e: "next"): void }>();
   min-width: 14ch;
   text-align: center;
 }
+/* 24px floor is WCAG 2.5.8 / Lighthouse's touch-target minimum - a 16px icon
+   plus 0.15rem of padding came to 23x23. */
 .view-nav button {
   cursor: pointer;
   background: none;
   border: none;
   color: var(--ink);
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
   padding: 0.15rem;
 }
 .view-nav button:disabled {

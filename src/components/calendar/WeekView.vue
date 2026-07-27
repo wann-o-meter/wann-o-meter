@@ -60,9 +60,12 @@ function matches(dayIso: string) {
         class="day-column"
         :class="{ today: dayIso === todayIso, selected: dayIso === selectedDay }"
       >
-        <h4>
+        <!-- h2, not h4: the seven days are this view's top-level sections and
+             the only heading above them is the page's h1, so h4 skipped two
+             levels (axe heading-order). -->
+        <h2>
           {{ WEEKDAY_NAMES_LONG[i] }} <span class="day-number">{{ Number(dayIso.slice(8)) }}</span>
-        </h4>
+        </h2>
         <ul class="event-list">
           <li v-for="(match, j) in matches(dayIso)" :key="j">
             <a :href="match.url" class="event-link">
@@ -94,7 +97,7 @@ function matches(dayIso: string) {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
-.day-column.today h4 {
+.day-column.today h2 {
   color: var(--accent);
 }
 .day-column.selected {
@@ -102,8 +105,12 @@ function matches(dayIso: string) {
   outline: 2px dashed var(--accent);
   outline-offset: -2px;
 }
-.day-column h4 {
+/* border/padding reset: global.css underlines every h2, and these are column
+   captions rather than page sections. */
+.day-column h2 {
   margin: 0 0 0.6rem;
+  padding: 0;
+  border: 0;
   font-size: 0.75rem;
   font-weight: 500;
   text-transform: uppercase;
