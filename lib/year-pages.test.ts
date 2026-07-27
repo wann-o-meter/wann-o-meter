@@ -3,6 +3,9 @@ import {
   buildYearIndex,
   eventYears,
   eventsInYear,
+  inIndexWindow,
+  includeInSitemap,
+  shouldIndexYear,
   siblingPages,
   stateSlug,
   yearCopy,
@@ -11,6 +14,7 @@ import {
   yearLabel,
   yearSubject,
   yearSubjectCode,
+  yearRuns,
   yearsForPage,
 } from "./year-pages";
 import { parsePageData, parsePageMeta } from "./pages-schema";
@@ -188,6 +192,71 @@ describe("cross-links point at pages that exist", () => {
   it("builds hrefs that match the generated paths", () => {
     expect(yearHref("feiertage", "de-nw", 2027)).toBe("/feiertage/de-nw/2027/");
     expect(yearHref("astronomie", "sonnenfinsternis", 2027)).toBe("/astronomie/sonnenfinsternis/2027/");
+  });
+});
+
+// Fixed "today", never new Date(): a test that reads the clock passes today
+// and fails on 1 January.
+describe("which year pages are indexable", () => {
+  const today = new Date("2026-07-28");
+
+  it("keeps last year, this year and the category's planning horizon", () => {
+    expect(inIndexWindow("feiertage", 2025, today)).toBe(true);
+    expect(inIndexWindow("feiertage", 2029, today)).toBe(true);
+    expect(inIndexWindow("schulferien", 2029, today)).toBe(true);
+    expect(inIndexWindow("astronomie", 2028, today)).toBe(true);
+    expect(inIndexWindow("saisonkalender", 2027, today)).toBe(true);
+  });
+
+  it("drops the archive and the far future, per category", () => {
+    expect(inIndexWindow("feiertage", 2024, today)).toBe(false);
+    expect(inIndexWindow("feiertage", 2030, today)).toBe(false);
+    expect(inIndexWindow("astronomie", 2003, today)).toBe(false);
+    expect(inIndexWindow("astronomie", 2029, today)).toBe(false);
+    expect(inIndexWindow("saisonkalender", 2028, today)).toBe(false);
+  });
+
+  it("also needs at least one event on the page", () => {
+    expect(shouldIndexYear("feiertage", 2027, 12, today)).toBe(true);
+    expect(shouldIndexYear("feiertage", 2027, 0, today)).toBe(false);
+  });
+
+  it("filters the sitemap to the same set, and nothing else", () => {
+    const url = (path: string) => `https://wannometer.de${path}`;
+    expect(includeInSitemap(url("/astronomie/mondfinsternis/2003/"), today)).toBe(false);
+    expect(includeInSitemap(url("/feiertage/de-bw/2027/"), today)).toBe(true);
+    // Not a year page: the evergreen page, a category, a one-off route.
+    expect(includeInSitemap(url("/feiertage/de-bw/"), today)).toBe(true);
+    expect(includeInSitemap(url("/astronomie/"), today)).toBe(true);
+    expect(includeInSitemap(url("/kalender/"), today)).toBe(true);
+    // Looks like a year page but was never generated - must not be dropped.
+    expect(includeInSitemap(url("/feiertage/de-bw/1200/"), today)).toBe(true);
+  });
+});
+
+describe("the pill row's runs", () => {
+  // /astronomie/sonnenfinsternis/1954/: an archive year page whose own year is
+  // visible in the middle of a long hidden stretch.
+  const years = Array.from({ length: 200 }, (_, i) => ({ year: 1901 + i }));
+  const visible = (y: number) => y === 1954 || (y >= 2025 && y <= 2028);
+  const runs = yearRuns(years, visible, 2025);
+
+  it("loses no year and keeps them in order", () => {
+    expect(runs.flatMap((r) => r.years)).toEqual(years);
+  });
+
+  it("splits the hidden stretch around the year the page is about", () => {
+    expect(runs.map((r) => [r.hidden, r.side, r.years[0].year, r.years.at(-1)!.year])).toEqual([
+      [true, "past", 1901, 1953],
+      [false, "past", 1954, 1954],
+      [true, "past", 1955, 2024],
+      [false, "future", 2025, 2028],
+      [true, "future", 2029, 2100],
+    ]);
+  });
+
+  it("is one visible run when nothing is hidden", () => {
+    expect(yearRuns(years, () => true, 2025).length).toBe(2); // past | future, both visible
   });
 });
 

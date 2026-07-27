@@ -12,31 +12,52 @@
 // is not something a visitor should be able to feel. Prefetched and swapped
 // via view transitions (Layout.astro), so following one of these reads like a
 // filter updating rather than a page load.
+import { inIndexWindow, yearRuns } from "../../lib/year-pages";
+
 interface Props {
   yearLinks: { year: number; href: string }[];
+  category: string; // decides which years are indexable, see lib/year-pages.ts
   allHref?: string; // set on a year page: back to the evergreen "all years" page
   currentYear?: number; // the year page we're ON - rendered active, not as a link
 }
-const { yearLinks, allHref, currentYear } = Astro.props;
+const { yearLinks, category, allHref, currentYear } = Astro.props;
 
-// A pill per year is the nicer control, but only while they all fit on a
-// line or two. Long-range sources exist (data/astronomie/sonnenfinsternis
-// spans 1901-2100, i.e. 200 years) and a wall of 200 pills is no more usable
-// than none at all. Past that, EVERY pill is still rendered - the pager below
-// just keeps a sliding window of them visible, centred on whichever year is
-// selected, so the markup stays static and the whole control is one small
-// script with no server-side paging.
-const WINDOW_RADIUS = 5; // years shown either side of the centre -> 11 pills
-const WINDOW_SIZE = WINDOW_RADIUS * 2 + 1;
-const paged = yearLinks.length > WINDOW_SIZE;
+// Only the INDEXABLE years are in the document up front. data/astronomie/
+// sonnenfinsternis spans 1901-2100, and linking all 200 from every page spends
+// the site's internal link weight on years nobody searches for - the same
+// years that are noindex anyway. The rest sit in a <template> until a button
+// hands them over, and a template's content is NOT in the document until it is
+// cloned: `hidden` or display:none would not do, since a crawler renders the
+// page and follows hidden links just the same. The year page we are ON is
+// always visible: it is the active state, and a control that hides the current
+// item is just confusing.
+const visible = (year: number) => year === currentYear || inIndexWindow(category, year);
+// Everything below the first indexable year is the past side, the rest the
+// future side - one reveal button each. Fall back to the current year (then to
+// "everything is past") when the page has no indexable year at all.
+const edge = yearLinks.find((l) => inIndexWindow(category, l.year))?.year ?? currentYear ?? Infinity;
+const runs = yearRuns(yearLinks, visible, edge);
+const hidden = runs.filter((r) => r.hidden);
+const hasPast = hidden.some((r) => r.side === "past");
+const hasFuture = hidden.some((r) => r.side === "future");
+// Standing on /…/2000/ means standing IN the full range, so offering to unfold
+// it - either half of it - is absurd: the row opens complete, with the pager in
+// charge, which is what this control looked like before the folding existed.
+// Client-side, so the served HTML keeps its handful of links either way. Only
+// for a year outside the window: on an indexable year page both sides stay
+// folded.
+const openAll = currentYear !== undefined && !inIndexWindow(category, currentYear);
 ---
 
 {
   /* Renders even for a single year: that lone year page is only reachable
      from here, so a "one year needs no picker" gate would orphan it. */
   yearLinks.length > 0 && (
-    <div class="year-filter" data-paged={paged ? "true" : undefined} data-current-year={currentYear}>
+    <div class="year-filter" data-current-year={currentYear} data-open={openAll ? "all" : undefined}>
       <p class="year-pills">
+        {hasPast && (
+          <button type="button" class="year-btn year-reveal" data-reveal="past">Vergangene Jahre anzeigen</button>
+        )}
         {allHref ? (
           <a class="year-btn" href={allHref} data-astro-prefetch="viewport">Alle</a>
         ) : (
@@ -44,35 +65,60 @@ const paged = yearLinks.length > WINDOW_SIZE;
              somewhere to navigate to. */
           <span class="year-btn active" aria-current="page">Alle</span>
         )}
-        {paged && (
+        {/* Hidden until a reveal puts enough years in the row to need paging -
+            up front there are at most six, which fit. */}
+        {hidden.length > 0 && (
           <>
-            <button type="button" class="year-btn year-nav" data-step="first" title="Zum ersten Jahr">&laquo;</button>
-            <button type="button" class="year-btn year-nav" data-step="prev" title="Frühere Jahre">&lsaquo;</button>
+            <button type="button" class="year-btn year-nav" data-step="first" title="Zum ersten Jahr" hidden>&laquo;</button>
+            <button type="button" class="year-btn year-nav" data-step="prev" title="Frühere Jahre" hidden>&lsaquo;</button>
           </>
         )}
-        {yearLinks.map((l) =>
-          l.year === currentYear ? (
-            <span class="year-btn year-option active" aria-current="page" data-year={l.year}>{l.year}</span>
+        {/* rel="nofollow" for the moment these ARE in the document, after a
+            click: a hint rather than a rule since 2019, but it costs one
+            attribute and says what we mean. What actually keeps these years out
+            of the index is their own noindex (lib/year-pages.ts) - a robots.txt
+            Disallow would be worse than nothing, because a URL Google may not
+            fetch is a URL whose noindex it can never read. No prefetch either:
+            revealing years should not fire a page fetch per pill. */}
+        {runs.map((run) =>
+          run.hidden ? (
+            <template data-years={run.side}>
+              {run.years.map((l) => (
+                <a class="year-btn year-option" data-year={l.year} rel="nofollow" href={l.href}>{l.year}</a>
+              ))}
+            </template>
           ) : (
-            <a class="year-btn year-option" data-year={l.year} href={l.href} data-astro-prefetch="viewport">
-              {l.year}
-            </a>
+            run.years.map((l) =>
+              l.year === currentYear ? (
+                <span class="year-btn year-option active" aria-current="page" data-year={l.year}>{l.year}</span>
+              ) : (
+                <a class="year-btn year-option" data-year={l.year} href={l.href} data-astro-prefetch="viewport">
+                  {l.year}
+                </a>
+              ),
+            )
           ),
         )}
-        {paged && (
+        {hidden.length > 0 && (
           <>
-            <button type="button" class="year-btn year-nav" data-step="next" title="Spätere Jahre">&rsaquo;</button>
-            <button type="button" class="year-btn year-nav" data-step="last" title="Zum letzten Jahr">&raquo;</button>
+            <button type="button" class="year-btn year-nav" data-step="next" title="Spätere Jahre" hidden>&rsaquo;</button>
+            <button type="button" class="year-btn year-nav" data-step="last" title="Zum letzten Jahr" hidden>&raquo;</button>
           </>
+        )}
+        {hasFuture && (
+          <button type="button" class="year-btn year-reveal" data-reveal="future">Mehr anzeigen</button>
         )}
       </p>
 
-      {paged && (
+      {hidden.length > 0 && (
         <p class="year-jump">
-          <span class="year-range" role="status" aria-live="polite" />
+          <span class="year-range" role="status" aria-live="polite" hidden />
           <label for="year-select">Jahr direkt wählen</label>
-          {/* The option's value IS the destination, so this jumps to a year
-              page the same way the pills do. */}
+          {/* Paging through 200 years is fine for browsing and useless for
+              "take me to 1954", which is what this is for. An <option> is not a
+              link, so listing every year here costs nothing in the link graph -
+              that is the whole reason the years above are revealed rather than
+              rendered. */}
           <select id="year-select">
             <option value={allHref ?? ""}>Alle {yearLinks.length} Jahre</option>
             {yearLinks.map((l) => (
@@ -95,47 +141,68 @@ const paged = yearLinks.length > WINDOW_SIZE;
   // once-only module script would leave the sort toggle dead. Fires on the
   // initial load too, so nothing changes for a plain visit.
   document.addEventListener("astro:page-load", () => {
-    const WINDOW_RADIUS = 5;
+    const WINDOW_RADIUS = 5; // years shown either side of the centre -> 11 pills
     const WINDOW_SIZE = WINDOW_RADIUS * 2 + 1;
 
     const filter = document.querySelector<HTMLElement>(".year-filter");
+    const range = filter?.querySelector<HTMLElement>(".year-range") ?? null;
+    const navButtons = [...(filter?.querySelectorAll<HTMLButtonElement>(".year-nav") ?? [])];
+
+    // Re-read from the DOM rather than captured once: a reveal adds pills, and
+    // the window has to be rebuilt around them.
     // HTMLElement, not HTMLButtonElement: these are <a> (and one <span> for the
     // current year). The pager only reads data-year and sets .hidden, which
     // every element has - nothing here needs them to be buttons.
-    const options = [...(filter?.querySelectorAll<HTMLElement>(".year-option") ?? [])];
-    const yearSelect = document.getElementById("year-select") as HTMLSelectElement | null;
-    const range = filter?.querySelector<HTMLElement>(".year-range") ?? null;
-    const navButtons = [...(filter?.querySelectorAll<HTMLButtonElement>(".year-nav") ?? [])];
-    // Short lists render every pill and no pager at all, so the sliding-window
-    // half of this script simply never runs for them.
-    const paged = filter?.dataset.paged === "true";
-    const years = options.map((o) => Number(o.dataset.year));
-
+    let options: HTMLElement[] = [];
+    let years: number[] = [];
     // The window's START is the state, not its centre. Tracking the centre
     // instead looks equivalent but isn't: at either end the window has to clamp,
     // so centre and window drift apart, and the first step back off the last
     // page then moves by less than a full window. Starts don't drift.
-    const LAST_START = Math.max(0, years.length - WINDOW_SIZE);
     let start = 0;
+    const lastStart = () => Math.max(0, years.length - WINDOW_SIZE);
+    // side -> the function that unfolds it, removed once it has been used.
+    const openers = new Map<string, () => void>();
+
     function renderWindow() {
-      if (!paged) return;
+      // A short row needs no pager at all - that is the state before any
+      // reveal, and after one on a page with few years.
+      const paged = years.length > WINDOW_SIZE;
+      for (const nav of navButtons) nav.hidden = !paged;
+      if (range) range.hidden = !paged;
+      if (!paged) {
+        for (const option of options) option.hidden = false;
+        return;
+      }
       const end = start + WINDOW_SIZE;
       options.forEach((option, i) => (option.hidden = i < start || i >= end));
       if (range) range.textContent = `${years[start]}–${years[end - 1]} von ${years.length} Jahren`;
       for (const nav of navButtons) {
         const backwards = nav.dataset.step === "first" || nav.dataset.step === "prev";
-        nav.disabled = backwards ? start === 0 : start === LAST_START;
+        // Only dead once that side holds nothing more - a greyed-out « with 124
+        // years still folded away behind the other button is a lie.
+        nav.disabled = backwards
+          ? start === 0 && !openers.has("past")
+          : start === lastStart() && !openers.has("future");
       }
     }
 
     function setStart(next: number) {
-      start = Math.max(0, Math.min(next, LAST_START));
+      start = Math.max(0, Math.min(next, lastStart()));
       renderWindow();
     }
 
-    // Puts `index` in the middle of the window (as close as the ends allow).
-    function centreOn(index: number) {
-      setStart(index - WINDOW_RADIUS);
+    // Opening on the earliest year is useless for a 200-year range - centre on
+    // the year this page is ABOUT (a year page) or else today, and let the
+    // pager go back from there. Without the data-current-year branch,
+    // /astronomie/sonnenfinsternis/1954/ would open its pager around 2026 with
+    // its own pill scrolled out of sight.
+    function syncPager() {
+      options = [...(filter?.querySelectorAll<HTMLElement>(".year-option") ?? [])];
+      years = options.map((o) => Number(o.dataset.year));
+      const centreYear = Number(filter?.dataset.currentYear) || new Date().getFullYear();
+      const nearest = years.findIndex((y) => y >= centreYear);
+      setStart((nearest >= 0 ? nearest : years.length - 1) - WINDOW_RADIUS);
     }
 
     for (const nav of navButtons) {
@@ -143,24 +210,70 @@ const paged = yearLinks.length > WINDOW_SIZE;
       // leaving the page, so you can look around before picking a year.
       nav.addEventListener("click", () => {
         const step = nav.dataset.step;
+        const backwards = step === "first" || step === "prev";
+        // Running out of revealed years unfolds the next stretch instead of
+        // stopping - "zum ersten Jahr" means 1901, not "the first one I have
+        // already been shown". Decided before opening anything, since that
+        // moves `start`.
+        const wantsPast = step === "first" || (backwards && start === 0);
+        const wantsFuture = step === "last" || (!backwards && start === lastStart());
+        // The year the window currently starts at: revealing the past shifts
+        // every index, so the position has to be restored by year, not by index.
+        const anchor = years[start];
+        if (wantsPast) openers.get("past")?.();
+        if (wantsFuture) openers.get("future")?.();
+        const anchorNow = years.indexOf(anchor);
         if (step === "first") setStart(0);
-        else if (step === "last") setStart(LAST_START);
-        else setStart(start + (step === "next" ? WINDOW_SIZE : -WINDOW_SIZE));
+        else if (step === "last") setStart(lastStart());
+        else setStart((anchorNow >= 0 ? anchorNow : start) + (backwards ? -WINDOW_SIZE : WINDOW_SIZE));
       });
     }
 
+    // Which sides this visitor has already opened. Every year is its own page,
+    // so without this, following a revealed year (say 2090) would land on a
+    // page that has folded itself back up and offers "Mehr anzeigen" again -
+    // for a range you are already standing in. sessionStorage rather than the
+    // URL: an ?expand= parameter would mint a second URL for every year page.
+    const OPENED = "year-pills-opened";
+    const opened = new Set<string>(JSON.parse(sessionStorage.getItem(OPENED) ?? "[]"));
+
+    // One click, for good: the button hands its whole <template> to the row -
+    // in place, since the template already sits where its years belong - and
+    // then removes itself, leaving the pager in charge of what is on screen.
+    // A side drops out of `openers` once opened, which is also how the pager
+    // knows whether « / » still have somewhere to go.
+    for (const button of filter?.querySelectorAll<HTMLButtonElement>("[data-reveal]") ?? []) {
+      const side = button.dataset.reveal ?? "";
+      // A side can be more than one template: the year the page is about
+      // splits its own hidden stretch in two (lib/year-pages.ts's yearRuns).
+      const templates = [
+        ...(filter?.querySelectorAll<HTMLTemplateElement>(`template[data-years="${side}"]`) ?? []),
+      ];
+      openers.set(side, () => {
+        for (const template of templates) template.before(template.content);
+        button.remove();
+        openers.delete(side);
+        syncPager();
+      });
+      button.addEventListener("click", () => {
+        opened.add(side);
+        sessionStorage.setItem(OPENED, JSON.stringify([...opened]));
+        openers.get(side)?.();
+      });
+    }
+
+    syncPager();
+    // A page whose own year is outside the window opens complete; otherwise
+    // whatever was opened earlier this session. Neither is recorded back into
+    // the session: landing on one archive page should not leave every later
+    // page unfolded.
+    const sides = filter?.dataset.open === "all" ? [...openers.keys()] : [...opened];
+    for (const side of sides) openers.get(side)?.();
+
+    const yearSelect = document.getElementById("year-select") as HTMLSelectElement | null;
     yearSelect?.addEventListener("change", () => {
       if (yearSelect.value) window.location.href = yearSelect.value;
     });
-
-    // Opening on the earliest year is useless for a 200-year range - start at
-    // the year this page is ABOUT (a year page) or else today, and let the
-    // pager go back from there. Without the data-current-year branch,
-    // /astronomie/sonnenfinsternis/1954/ would open its pager around 2026 with
-    // its own pill scrolled out of sight.
-    const centreYear = Number(filter?.dataset.currentYear) || new Date().getFullYear();
-    const nearest = years.findIndex((y) => y >= centreYear);
-    centreOn(nearest >= 0 ? nearest : years.length - 1);
 
     // Rows are pre-sorted ascending at build time - "sorting" is just
     // reversing DOM order, no comparator needed.
@@ -220,8 +333,8 @@ const paged = yearLinks.length > WINDOW_SIZE;
   }
   /* The `display` above is an AUTHOR declaration, so it beats the UA
      stylesheet's `[hidden] { display: none }` outright - without this rule the
-     pager's `option.hidden = ...` stops hiding anything and a 200-year source
-     renders all 200 pills at once. */
+     pager's `option.hidden = ...` stops hiding anything and a revealed
+     200-year source renders all 200 pills at once. */
   .year-btn[hidden] {
     display: none;
   }
@@ -233,6 +346,9 @@ const paged = yearLinks.length > WINDOW_SIZE;
     background: var(--accent);
     border-color: var(--accent);
     color: var(--accent-ink);
+  }
+  .year-reveal {
+    border-style: dashed;
   }
   .year-nav {
     padding: 0.3rem 0.6rem;

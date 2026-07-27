@@ -145,6 +145,81 @@ export function buildYearIndex(pages: Page[]): Map<string, number[]> {
   return index;
 }
 
+// How far ahead of the build's "today" a year page stays INDEXABLE. Ferien-
+// and Feiertagsordnungen are published years in advance, so their future
+// pages have real demand; an eclipse three years out has less. Outside the
+// window the page still exists and still works - it only leaves the index and
+// the sitemap, because a year like 2003 gets crawled and then never indexed
+// ("Gecrawlt - zurzeit nicht indexiert"), which costs crawl budget and says
+// nothing.
+const INDEX_YEARS_AHEAD: Record<string, number> = {
+  feiertage: 3,
+  schulferien: 3,
+  urlaubsfenster: 3,
+  astronomie: 2,
+};
+const DEFAULT_YEARS_AHEAD = 1;
+
+export function inIndexWindow(category: string, year: number, today = new Date()): boolean {
+  const now = today.getFullYear();
+  const ahead = INDEX_YEARS_AHEAD[category.split("/")[0]] ?? DEFAULT_YEARS_AHEAD;
+  return year >= now - 1 && year <= now + ahead;
+}
+
+// A year page is indexable only if it is in the window AND has something on
+// it. The second half never fires today - yearsForPage() derives the years
+// FROM the events, so a generated year page always has at least one - but it
+// is the threshold the rule is stated in, and the guard the day a category
+// starts emitting years from a schedule rather than from its own data.
+export function shouldIndexYear(category: string, year: number, eventCount: number, today = new Date()): boolean {
+  return eventCount > 0 && inIndexWindow(category, year, today);
+}
+
+// @astrojs/sitemap's `filter` (astro.config.mjs). Only year pages are ever
+// dropped, everything else passes untouched - and a URL counts as a year page
+// only if yearIndex() actually generated it, so a slug that merely looks like
+// a year cannot be mistaken for one.
+export function includeInSitemap(url: string, today = new Date()): boolean {
+  const segments = new URL(url).pathname.split("/").filter(Boolean);
+  const year = Number(segments.at(-1));
+  const subject = segments.slice(0, -1).join("/");
+  if (!Number.isInteger(year) || !(yearIndex().get(subject) ?? []).includes(year)) return true;
+  return inIndexWindow(segments.slice(0, -2).join("/"), year, today);
+}
+
+// The pill row of DateListControls, in order: neighbouring years grouped into
+// runs of visible and hidden, the hidden ones split further by which side of
+// the indexable window they fall on (one reveal button per side). Runs rather
+// than a plain past/visible/future split, because the year page we are ON is
+// visible even when it sits deep inside a hidden stretch - /astronomie/
+// sonnenfinsternis/1954/ has to render 1901-1953 hidden, 1954 visible,
+// 1955-2024 hidden again. Splitting on the extremes of the visible set instead
+// would drop those middle 70 years out of the row entirely.
+//
+// The invariant, worth keeping: concatenating the runs reproduces `years`
+// exactly, in the same order.
+export interface YearRun<T> {
+  hidden: boolean;
+  side: "past" | "future";
+  years: T[];
+}
+
+export function yearRuns<T extends { year: number }>(
+  years: T[],
+  isVisible: (year: number) => boolean,
+  edge: number,
+): YearRun<T>[] {
+  const runs: YearRun<T>[] = [];
+  for (const item of years) {
+    const hidden = !isVisible(item.year);
+    const side = item.year < edge ? "past" : "future";
+    const open = runs[runs.length - 1];
+    if (open && open.hidden === hidden && open.side === side) open.years.push(item);
+    else runs.push({ hidden, side, years: [item] });
+  }
+  return runs;
+}
+
 // Cross-links from a year page to the same year elsewhere. Two rules, neither
 // of which inspects a window's type: the same STATE across the state topics
 // (Brückentage NRW 2027 -> Schulferien NRW 2027), or failing that the page's

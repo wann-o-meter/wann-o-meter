@@ -5,6 +5,8 @@ import vue from '@astrojs/vue';
 
 import sitemap from '@astrojs/sitemap';
 
+import { includeInSitemap } from './lib/year-pages';
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://wannometer.de',
@@ -13,5 +15,7 @@ export default defineConfig({
   // target is already in cache by the time you click and the swap reads as an
   // in-place filter rather than a page load.
   prefetch: true,
-  integrations: [vue(), sitemap()]
+  // A year page outside its indexing window carries noindex, so listing it in
+  // the sitemap would be a contradiction - the filter keeps the two in step.
+  integrations: [vue(), sitemap({ filter: includeInSitemap })]
 });
