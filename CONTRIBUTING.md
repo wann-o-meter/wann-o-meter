@@ -29,13 +29,15 @@ data/{category}/{slug}/
   data.yaml   # subject, source, and either `windows` (calendar-style facts)
               # or `raw_data` (arbitrary scraped content) - see lib/schema.ts
               # and lib/pages-schema.ts for the exact shape.
+  meta.toml   # subject, category, mode = "manual" for a hand-authored page,
+              # and `sources = [...]` if a data/_sources/ entry feeds it.
 ```
 
 Every field is validated against the same Zod schema the site's build uses
 (`bun run build` runs this automatically) - a malformed file fails the build
 instead of silently shipping bad data, so that's your review gate. Open a PR
-with your `data.yaml`/`page.yaml` pair; a maintainer reviews and merges it
-like anything else here (no auto-merge, GitHub is the queue).
+with your `data.yaml`/`page.yaml`/`meta.toml` set; a maintainer reviews and
+merges it like anything else here (no auto-merge).
 
 ### Attribution
 

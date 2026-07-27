@@ -13,27 +13,33 @@ Landingpages.
 
 ## Architektur: Definition vs. Materialisierung
 
-- **Definitionsschicht** (`/data/{kategorie}/{subjekt}.yaml`): handgepflegte/Pipeline-Fakten im
-  Zod-validierten Format aus `lib/schema.ts`. Schulferien (dekretiert, KMK, ein `typ` pro
-  Ferienart wie `schulferien-sommer`) und Saisonkalender (dekretiert/erfahrungsbasiert, BZfE).
-- **Berechnungsregeln** (`/lib`): Feiertage (jedes Land/Bundesland) und daraus abgeleitete
-  Bruecktage-Fenster (nur DE) sind Code, nicht Daten (`lib/feiertage.ts`, `lib/urlaubsfenster.ts`).
-  Feiertage sind eine eigene, laenderuebergreifende Kategorie (`lib/feiertage-kategorie.ts`),
-  losgeloest von Urlaubsfenster/Bruecktage.
-- **Materialisierung** (`lib/materialisierung.ts`): fuehrt beides zu konkreten Zeitfenstern pro
+- **Definitionsschicht** (`/data/{kategorie}/{subjekt}/data.yaml`): handgepflegte/Pipeline-Fakten
+  im Zod-validierten Format aus `lib/schema.ts`, je Subjekt begleitet von `page.yaml` (Titel) und
+  `meta.toml` (Modus + Quellen). Schulferien (dekretiert, KMK, ein `typ` pro Ferienart wie
+  `schulferien-sommer`) und Saisonkalender (dekretiert/erfahrungsbasiert, BZfE).
+- **Herkunft** (`/data/_sources/{id}.yaml`): eine Datei pro Upstream. Nicht im Subjektordner,
+  weil Quelle und Subjekt in beide Richtungen n:m sind - eine KMK-Seite speist 16 Subjekte, zwei
+  NASA-Kataloge speisen eine Seite. Der Unterstrich haelt den Ordner aus dem Kategorie-Walk.
+- **Berechnungsregeln** (`/lib` + `data/{kategorie}/generator.ts`): Feiertage (jedes
+  Land/Bundesland) und daraus abgeleitete Bruecktage-Fenster (nur DE) sind Code, nicht Daten
+  (`lib/holidays.ts`, `lib/vacation-windows.ts`, `data/feiertage/generator.ts`,
+  `data/urlaubsfenster/generator.ts`).
+- **Materialisierung** (`lib/materialization.ts`): fuehrt beides zu konkreten Zeitfenstern pro
   Jahr zusammen, rollierend fuer das aktuelle Jahr + 2. Kalender-UI, Seiten, JSON und ICS
-  konsumieren ausschliesslich diese materialisierte Schicht (`lib/subjekte.ts`,
-  `lib/saisonkalender.ts`, `lib/feiertage-kategorie.ts`).
+  konsumieren ausschliesslich diese materialisierte Schicht (ueber `lib/pages.ts`, das ein
+  einziges Seitenmodell fuer alle Kategorien liefert).
 
 ## Struktur
 
 ```text
 /lib                 Plattformneutrales TypeScript: Zod-Schema, ISO-8601-Teilangaben-Parser,
                       Feiertage/Bruecktage-Berechnung, Materialisierung, ICS-Generator
-/data/urlaubsfenster  Ein YAML pro Bundesland (alle 16): Schulferien-Fakten + Quellen/Lizenzen
+/data/_sources        Eine YAML pro Upstream-Quelle (Crawler- und Batch-Quellen)
+/data/schulferien     Ein Ordner pro Bundesland (alle 16): Schulferien-Fakten + Quellen/Lizenzen
 /data/saisonkalender  Ein Ordner (data.yaml) pro Obst-/Gemüsesorte: wiederkehrende Saisonfenster
+/data/urlaubsfenster  generator.ts: Bruecktage aus Feiertagen + Schulferien, kein YAML
 /data/presets         Kuratierte Kalender-URLs (Region + aktive Ebenen)
-/pipeline             Python: amtliche Quellen -> LLM-Extraktion -> YAML auf Branch -> PR
+/pipeline             Python: Quellen -> Extraktion -> staging/ -> lokales Review -> data/
 /src/components        Kalender.vue - die eine Vue-Insel (Ebenen-Picker, URL-als-Zustand)
 /src/pages            Astro-Seiten, /api/v1/-JSON-Endpunkte, /feeds/-ICS-Endpunkte
 ```
@@ -57,9 +63,17 @@ cd pipeline
 uv run python -m core.runner schulferien_kmk --jahr 2028
 ```
 
-Kreislauf: Fetch -> LLM-Extraktion -> Validierung gegen `lib/schema.ts` -> YAML-Aenderung auf
-einem Branch -> Pull Request. GitHub ist die Freigabe-Queue - kein Auto-Merge, kein eigenes
-Review-Tool. Siehe `pipeline/README.md` fuer die Pipeline-Struktur (core/sources/tools) und die
+Kreislauf: Fetch -> Extraktion -> Validierung gegen `lib/schema.ts` -> `pipeline/staging/` ->
+lokales Review -> `data/`.
+
+**Das lokale Review ist die Freigabe, GitHub ist Merge-Gate und Audit-Log** - zwei verschiedene
+Dinge. Ein LLM kann raten, deshalb sieht ein Mensch jeden Kandidaten, bevor er in `data/`
+landet; bei 300 Kandidaten pro Lauf ist das eine eigene App (`pipeline/review/`) und keine
+PR-Diskussion. Der Scraper schreibt **nie** direkt nach `data/`. Was freigegeben wurde, wird
+anschliessend committet und gepusht wie jede andere Aenderung auch - der PR dokumentiert sie,
+er entscheidet sie nicht.
+
+Siehe `pipeline/README.md` fuer die Pipeline-Struktur (core/sources/review) und die
 Extraktions-Strategie pro Quelle.
 
 ## Bekannte Datenluecke
