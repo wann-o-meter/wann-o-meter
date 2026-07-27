@@ -77,9 +77,7 @@ def test_anthropic_request_shape_and_response_parsing(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "anthropic")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
     with patch("httpx.post") as mock_post:
-        mock_post.return_value = _fake_response(
-            json_body={"content": [{"type": "text", "text": "hello back"}]}
-        )
+        mock_post.return_value = _fake_response(json_body={"content": [{"type": "text", "text": "hello back"}]})
         result = llm.call_llm("hi", system="be terse")
 
     assert result == "hello back"
@@ -95,9 +93,7 @@ def test_openai_request_shape_and_response_parsing(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "openai")
     monkeypatch.setenv("OPENAI_API_KEY", "test-key")
     with patch("httpx.post") as mock_post:
-        mock_post.return_value = _fake_response(
-            json_body={"choices": [{"message": {"content": "hello back"}}]}
-        )
+        mock_post.return_value = _fake_response(json_body={"choices": [{"message": {"content": "hello back"}}]})
         result = llm.call_llm("hi", system="be terse")
 
     assert result == "hello back"
@@ -112,9 +108,7 @@ def test_mistral_request_shape_and_response_parsing(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "mistral")
     monkeypatch.setenv("MISTRAL_API_KEY", "test-key")
     with patch("httpx.post") as mock_post:
-        mock_post.return_value = _fake_response(
-            json_body={"choices": [{"message": {"content": "hello back"}}]}
-        )
+        mock_post.return_value = _fake_response(json_body={"choices": [{"message": {"content": "hello back"}}]})
         result = llm.call_llm("hi", system="be terse")
 
     assert result == "hello back"
@@ -129,9 +123,7 @@ def test_openrouter_request_shape_and_response_parsing(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "openrouter")
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
     with patch("httpx.post") as mock_post:
-        mock_post.return_value = _fake_response(
-            json_body={"choices": [{"message": {"content": "hello back"}}]}
-        )
+        mock_post.return_value = _fake_response(json_body={"choices": [{"message": {"content": "hello back"}}]})
         result = llm.call_llm("hi", system="be terse")
 
     assert result == "hello back"
@@ -177,9 +169,7 @@ def test_anthropic_vision_request_shape_and_response_parsing(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "anthropic")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
     with patch("httpx.post") as mock_post:
-        mock_post.return_value = _fake_response(
-            json_body={"content": [{"type": "text", "text": "a map"}]}
-        )
+        mock_post.return_value = _fake_response(json_body={"content": [{"type": "text", "text": "a map"}]})
         result = llm.call_llm_vision(b"gifbytes", "image/gif", "describe this")
 
     assert result == "a map"
@@ -195,9 +185,7 @@ def test_openai_vision_request_shape_and_response_parsing(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "openai")
     monkeypatch.setenv("OPENAI_API_KEY", "test-key")
     with patch("httpx.post") as mock_post:
-        mock_post.return_value = _fake_response(
-            json_body={"choices": [{"message": {"content": "a map"}}]}
-        )
+        mock_post.return_value = _fake_response(json_body={"choices": [{"message": {"content": "a map"}}]})
         result = llm.call_llm_vision(b"gifbytes", "image/gif", "describe this")
 
     assert result == "a map"
@@ -212,9 +200,7 @@ def test_google_vision_request_shape_and_response_parsing(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "google")
     monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
     with patch("httpx.post") as mock_post:
-        mock_post.return_value = _fake_response(
-            json_body={"candidates": [{"content": {"parts": [{"text": "a map"}]}}]}
-        )
+        mock_post.return_value = _fake_response(json_body={"candidates": [{"content": {"parts": [{"text": "a map"}]}}]})
         result = llm.call_llm_vision(b"gifbytes", "image/gif", "describe this")
 
     assert result == "a map"
@@ -228,9 +214,7 @@ def test_mistral_vision_request_shape_and_response_parsing(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "mistral")
     monkeypatch.setenv("MISTRAL_API_KEY", "test-key")
     with patch("httpx.post") as mock_post:
-        mock_post.return_value = _fake_response(
-            json_body={"choices": [{"message": {"content": "a map"}}]}
-        )
+        mock_post.return_value = _fake_response(json_body={"choices": [{"message": {"content": "a map"}}]})
         result = llm.call_llm_vision(b"gifbytes", "image/gif", "describe this")
 
     assert result == "a map"
@@ -244,9 +228,7 @@ def test_openrouter_vision_request_shape_and_response_parsing(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "openrouter")
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
     with patch("httpx.post") as mock_post:
-        mock_post.return_value = _fake_response(
-            json_body={"choices": [{"message": {"content": "a map"}}]}
-        )
+        mock_post.return_value = _fake_response(json_body={"choices": [{"message": {"content": "a map"}}]})
         result = llm.call_llm_vision(b"gifbytes", "image/gif", "describe this")
 
     assert result == "a map"

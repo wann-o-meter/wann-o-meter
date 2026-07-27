@@ -1,5 +1,5 @@
 """Unit tests for core/store.py's merge (per-window source citation
-feature). merge_zeitfenster() keys on core/content_hash.window_key:
+feature). merge_windows() keys on core/content_hash.window_key:
 
   - two runs reporting the SAME window (identical window_key)
     -> MERGE: keep one window, union source_urls so both citations survive.
@@ -52,7 +52,7 @@ def test_second_source_reporting_the_same_window_merges_citations():
     file = make_file([make_window(source_urls=["https://source-a.example/ferien"])])
 
     incoming = [make_window(source_urls=["https://source-b.example/ferien"])]
-    store.merge_zeitfenster(file, incoming)
+    store.merge_windows(file, incoming)
 
     assert len(file["windows"]) == 1
     assert file["windows"][0]["source_urls"] == [
@@ -67,7 +67,7 @@ def test_merging_the_same_source_again_does_not_duplicate_its_citation():
     file = make_file([make_window(source_urls=["https://source-a.example/ferien"])])
 
     incoming = [make_window(source_urls=["https://source-a.example/ferien"])]
-    store.merge_zeitfenster(file, incoming)
+    store.merge_windows(file, incoming)
 
     assert len(file["windows"]) == 1
     assert file["windows"][0]["source_urls"] == ["https://source-a.example/ferien"]
@@ -86,7 +86,7 @@ def test_a_different_date_range_is_its_own_window_not_a_replacement():
             source_urls=["https://source-b.example/ferien"],
         )
     ]
-    store.merge_zeitfenster(file, incoming)
+    store.merge_windows(file, incoming)
 
     assert sorted(w["from"] for w in file["windows"]) == ["2028-07-20", "2028-07-27"]
 
@@ -97,7 +97,7 @@ def test_non_overlapping_windows_are_simply_added():
     file = make_file([make_window(year=2027, source_urls=["https://source-a.example/ferien"])])
 
     incoming = [make_window(year=2028, source_urls=["https://source-b.example/ferien"])]
-    store.merge_zeitfenster(file, incoming)
+    store.merge_windows(file, incoming)
 
     assert len(file["windows"]) == 2
     years = {w["year"] for w in file["windows"]}
@@ -120,7 +120,7 @@ def test_merge_preserves_windows_untouched_by_this_run():
     )
 
     incoming = [make_window(type="school_holidays-summer", year=2028, source_urls=["https://source-b.example/ferien"])]
-    store.merge_zeitfenster(file, incoming)
+    store.merge_windows(file, incoming)
 
     autumn = [w for w in file["windows"] if w["type"] == "school_holidays-autumn"]
     assert len(autumn) == 1
@@ -137,33 +137,61 @@ def test_merge_works_without_source_urls_on_either_side():
 
     incoming_window = make_window()
     del incoming_window["source_urls"]
-    store.merge_zeitfenster(file, [incoming_window])
+    store.merge_windows(file, [incoming_window])
 
     assert len(file["windows"]) == 1
     assert "source_urls" not in file["windows"][0]
 
 
-def test_append_quelle_dedups_by_url_instead_of_growing_unbounded():
+def test_append_source_dedups_by_url_instead_of_growing_unbounded():
     """Re-running an adapter against an unchanged URL should update the
     existing Source entry (freshest retrieved_at wins), not append a
     near-duplicate."""
     file = make_file(
-        sources=[{"url": "https://source-a.example/ferien", "retrieved_at": "2026-01-01", "license": "official_par5", "extraction": "llm"}]
+        sources=[
+            {
+                "url": "https://source-a.example/ferien",
+                "retrieved_at": "2026-01-01",
+                "license": "official_par5",
+                "extraction": "llm",
+            }
+        ]
     )
 
-    store.append_quelle(
-        file, {"url": "https://source-a.example/ferien", "retrieved_at": "2026-07-01", "license": "official_par5", "extraction": "llm"}
+    store.append_source(
+        file,
+        {
+            "url": "https://source-a.example/ferien",
+            "retrieved_at": "2026-07-01",
+            "license": "official_par5",
+            "extraction": "llm",
+        },
     )
 
     assert len(file["source"]) == 1
     assert file["source"][0]["retrieved_at"] == "2026-07-01"
 
 
-def test_append_quelle_keeps_distinct_urls_separate():
-    file = make_file(sources=[{"url": "https://source-a.example/ferien", "retrieved_at": "2026-01-01", "license": "official_par5", "extraction": "llm"}])
+def test_append_source_keeps_distinct_urls_separate():
+    file = make_file(
+        sources=[
+            {
+                "url": "https://source-a.example/ferien",
+                "retrieved_at": "2026-01-01",
+                "license": "official_par5",
+                "extraction": "llm",
+            }
+        ]
+    )
 
-    store.append_quelle(
-        file, {"url": "https://source-b.example/ferien", "retrieved_at": "2026-01-01", "license": "official_par5", "extraction": "llm"}
+    store.append_source(
+        file,
+        {
+            "url": "https://source-b.example/ferien",
+            "retrieved_at": "2026-01-01",
+            "license": "official_par5",
+            "extraction": "llm",
+        },
     )
 
     assert len(file["source"]) == 2
@@ -179,7 +207,7 @@ def test_writing_two_windows_one_at_a_time_keeps_both():
     file = make_file([])
 
     for from_, to in [("2026-03-25", "2026-04-01"), ("2026-04-07", "2026-04-10")]:
-        store.merge_zeitfenster(file, [make_window(year=2026, **{"from": from_, "to": to})])
+        store.merge_windows(file, [make_window(year=2026, **{"from": from_, "to": to})])
 
     assert sorted(w["from"] for w in file["windows"]) == ["2026-03-25", "2026-04-07"]
 
@@ -193,7 +221,7 @@ def test_the_merge_key_is_the_shared_window_key():
     b = make_window(**{"from": "2028-07-27", "to": "2028-09-10"})
 
     file = make_file([a])
-    store.merge_zeitfenster(file, [b])
+    store.merge_windows(file, [b])
 
     assert window_key(a) != window_key(b)
     assert len(file["windows"]) == 2

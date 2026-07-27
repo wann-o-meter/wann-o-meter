@@ -23,11 +23,13 @@ def normalize_url(url: str) -> str:
     if len(path) > 1 and path.endswith("/"):
         path = path.rstrip("/")
 
-    return urlunparse((
-        parsed.scheme.lower(),
-        parsed.netloc.lower(),
-        path,
-        parsed.params,
-        urlencode(query_pairs),
-        "",  # fragment already stripped
-    ))
+    return urlunparse(
+        (
+            parsed.scheme.lower(),
+            parsed.netloc.lower(),
+            path,
+            parsed.params,
+            urlencode(query_pairs),
+            "",  # fragment already stripped
+        )
+    )

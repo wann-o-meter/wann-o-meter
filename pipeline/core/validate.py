@@ -25,17 +25,17 @@ class ValidationError(Exception):
     pass
 
 
-def pruefe_subjekt_datei(datei: dict[str, Any]) -> None:
-    """Raises ValidationError with the Zod issue list if `datei` doesn't
+def pruefe_subject_file(file: dict[str, Any]) -> None:
+    """Raises ValidationError with the Zod issue list if `file` doesn't
     match pageDataSchema. Call this BEFORE writing to data/, not after the
     Astro build fails on it."""
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
-        json.dump(datei, f)
-        temp_pfad = f.name
+        json.dump(file, f)
+        temp_path = f.name
 
     try:
         result = subprocess.run(
-            ["bun", "run", str(VALIDATE_SCRIPT), temp_pfad],
+            ["bun", "run", str(VALIDATE_SCRIPT), temp_path],
             capture_output=True,
             text=True,
             cwd=REPO_ROOT,
@@ -44,7 +44,7 @@ def pruefe_subjekt_datei(datei: dict[str, Any]) -> None:
     except subprocess.TimeoutExpired as e:
         raise ValidationError(f"Validation timed out after {VALIDATE_TIMEOUT_SECONDS}s") from e
     finally:
-        Path(temp_pfad).unlink(missing_ok=True)
+        Path(temp_path).unlink(missing_ok=True)
 
     if result.returncode != 0:
         raise ValidationError(result.stderr.strip() or result.stdout.strip() or "Validierung fehlgeschlagen")

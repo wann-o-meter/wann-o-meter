@@ -43,6 +43,7 @@ def window_key(window: dict[str, Any]) -> tuple[Any, ...]:
 
     `name` is case/whitespace-normalized for the same reason normalize_event
     did it - "Osterferien" and " osterferien " are one window."""
+
     def _identity(field: str) -> Any:
         value = window.get(field)
         return value.strip().lower() if field == "name" and isinstance(value, str) else value

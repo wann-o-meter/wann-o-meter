@@ -37,10 +37,10 @@ def test_writes_data_yaml_and_page_yaml_for_a_new_subject(_isolate_data_root):
     path = approval.write_event("veranstaltungen", "hechingen", "Stadtfest Hechingen", VALID_EVENT, VALID_QUELLE)
 
     assert path.exists()
-    datei = yaml.safe_load(path.read_text(encoding="utf-8"))
-    assert datei["subject"] == {"slug": "hechingen", "category": "veranstaltungen"}
-    assert len(datei["windows"]) == 1
-    assert datei["windows"][0]["type"] == "market"
+    file = yaml.safe_load(path.read_text(encoding="utf-8"))
+    assert file["subject"] == {"slug": "hechingen", "category": "veranstaltungen"}
+    assert len(file["windows"]) == 1
+    assert file["windows"][0]["type"] == "market"
 
     page_path = path.parent / "page.yaml"
     assert page_path.exists()
@@ -50,8 +50,11 @@ def test_writes_data_yaml_and_page_yaml_for_a_new_subject(_isolate_data_root):
 def test_page_yaml_is_not_overwritten_on_a_second_write(_isolate_data_root):
     approval.write_event("veranstaltungen", "hechingen", "Stadtfest Hechingen", VALID_EVENT, VALID_QUELLE)
     path = approval.write_event(
-        "veranstaltungen", "hechingen", "A Different Title (should be ignored)",
-        {**VALID_EVENT, "from": "2027-08-15", "to": "2027-08-15", "year": 2027}, VALID_QUELLE,
+        "veranstaltungen",
+        "hechingen",
+        "A Different Title (should be ignored)",
+        {**VALID_EVENT, "from": "2027-08-15", "to": "2027-08-15", "year": 2027},
+        VALID_QUELLE,
     )
 
     page_path = path.parent / "page.yaml"
@@ -70,13 +73,15 @@ def test_raises_approval_error_without_writing_anything_on_invalid_event(_isolat
 def test_second_window_for_the_same_subject_merges_instead_of_replacing(_isolate_data_root):
     approval.write_event("veranstaltungen", "hechingen", "Stadtfest Hechingen", VALID_EVENT, VALID_QUELLE)
     path = approval.write_event(
-        "veranstaltungen", "hechingen", "Stadtfest Hechingen",
+        "veranstaltungen",
+        "hechingen",
+        "Stadtfest Hechingen",
         {**VALID_EVENT, "type": "flea_market", "from": "2026-09-01", "to": "2026-09-01", "name": "Flohmarkt"},
         VALID_QUELLE,
     )
 
-    datei = yaml.safe_load(path.read_text(encoding="utf-8"))
-    assert len(datei["windows"]) == 2
+    file = yaml.safe_load(path.read_text(encoding="utf-8"))
+    assert len(file["windows"]) == 2
 
 
 def test_same_type_and_name_on_a_different_date_is_kept_as_its_own_window(_isolate_data_root):
@@ -86,13 +91,15 @@ def test_same_type_and_name_on_a_different_date_is_kept_as_its_own_window(_isola
     window. window_key separates them by date."""
     approval.write_event("wissenschaft", "finsternisse", "Finsternisse", VALID_EVENT, VALID_QUELLE)
     path = approval.write_event(
-        "wissenschaft", "finsternisse", "Finsternisse",
+        "wissenschaft",
+        "finsternisse",
+        "Finsternisse",
         {**VALID_EVENT, "year": 2027, "from": "2027-08-02", "to": "2027-08-02"},
         VALID_QUELLE,
     )
 
-    datei = yaml.safe_load(path.read_text(encoding="utf-8"))
-    assert [w["from"] for w in datei["windows"]] == ["2026-08-15", "2027-08-02"]
+    file = yaml.safe_load(path.read_text(encoding="utf-8"))
+    assert [w["from"] for w in file["windows"]] == ["2026-08-15", "2027-08-02"]
 
 
 def test_a_corrected_end_date_lands_as_its_own_window(_isolate_data_root):
@@ -103,9 +110,12 @@ def test_a_corrected_end_date_lands_as_its_own_window(_isolate_data_root):
     Removing the superseded one is a hand-edit of data.yaml."""
     approval.write_event("wissenschaft", "finsternisse", "Finsternisse", VALID_EVENT, VALID_QUELLE)
     path = approval.write_event(
-        "wissenschaft", "finsternisse", "Finsternisse",
-        {**VALID_EVENT, "to": "2026-08-17"}, VALID_QUELLE,
+        "wissenschaft",
+        "finsternisse",
+        "Finsternisse",
+        {**VALID_EVENT, "to": "2026-08-17"},
+        VALID_QUELLE,
     )
 
-    datei = yaml.safe_load(path.read_text(encoding="utf-8"))
-    assert sorted(w["to"] for w in datei["windows"]) == ["2026-08-15", "2026-08-17"]
+    file = yaml.safe_load(path.read_text(encoding="utf-8"))
+    assert sorted(w["to"] for w in file["windows"]) == ["2026-08-15", "2026-08-17"]

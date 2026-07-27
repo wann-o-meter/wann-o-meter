@@ -50,16 +50,27 @@ def _approve_like_the_review_ui_would(source_id: str, event: dict) -> None:
     what is approved, so there is no second bookkeeping step. A fresh
     candidate is never waved through on its own (review_state.diff: not in
     the file -> needs_review); a human action puts it there."""
-    approval.write_event("veranstaltungen", source_id, source_id, event, {
-        "url": "https://example.org/events.ics", "license": "tos_checked",
-        "retrieved_at": "2026-07-24", "extraction": "llm",
-    })
+    approval.write_event(
+        "veranstaltungen",
+        source_id,
+        source_id,
+        event,
+        {
+            "url": "https://example.org/events.ics",
+            "license": "tos_checked",
+            "retrieved_at": "2026-07-24",
+            "extraction": "llm",
+        },
+    )
 
 
 def test_a_brand_new_candidate_is_queued_for_review_not_written_or_reconfirmed(monkeypatch):
     monkeypatch.setattr(
-        crawl_runner, "crawl",
-        lambda source, on_progress=None, on_page=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
+        crawl_runner,
+        "crawl",
+        lambda source, on_progress=None, on_page=None: [
+            CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)
+        ],
     )
 
     result = crawl_runner.run(_source())
@@ -75,16 +86,24 @@ def test_a_brand_new_candidate_is_queued_for_review_not_written_or_reconfirmed(m
 
 def test_a_previously_approved_candidate_auto_waves_through_on_a_later_run(monkeypatch):
     monkeypatch.setattr(
-        crawl_runner, "crawl",
-        lambda source, on_progress=None, on_page=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
+        crawl_runner,
+        "crawl",
+        lambda source, on_progress=None, on_page=None: [
+            CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)
+        ],
     )
     first = crawl_runner.run(_source())
     assert first["needs_review"] == 1
 
     target_file = str(Path(approval.DATA_ROOT) / "veranstaltungen" / "test-source" / "data.yaml")
     event = {
-        "type": "event", "year": 2026, "from": "2026-08-15", "to": "2026-08-15",
-        "precision": "exact", "ics": True, "name": "Stadtfest",
+        "type": "event",
+        "year": 2026,
+        "from": "2026-08-15",
+        "to": "2026-08-15",
+        "precision": "exact",
+        "ics": True,
+        "name": "Stadtfest",
     }
     _approve_like_the_review_ui_would("test-source", event)
 
@@ -93,20 +112,28 @@ def test_a_previously_approved_candidate_auto_waves_through_on_a_later_run(monke
     assert result["reconfirmed"] == 1
     assert result["needs_review"] == 0
 
-    datei = yaml.safe_load(Path(target_file).read_text(encoding="utf-8"))
-    assert len(datei["windows"]) == 1
+    file = yaml.safe_load(Path(target_file).read_text(encoding="utf-8"))
+    assert len(file["windows"]) == 1
 
 
 def test_new_event_alongside_an_already_approved_one_only_queues_the_new_one(monkeypatch):
     monkeypatch.setattr(
-        crawl_runner, "crawl",
-        lambda source, on_progress=None, on_page=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
+        crawl_runner,
+        "crawl",
+        lambda source, on_progress=None, on_page=None: [
+            CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)
+        ],
     )
     crawl_runner.run(_source())
 
     event = {
-        "type": "event", "year": 2026, "from": "2026-08-15", "to": "2026-08-15",
-        "precision": "exact", "ics": True, "name": "Stadtfest",
+        "type": "event",
+        "year": 2026,
+        "from": "2026-08-15",
+        "to": "2026-08-15",
+        "precision": "exact",
+        "ics": True,
+        "name": "Stadtfest",
     }
     _approve_like_the_review_ui_would("test-source", event)
 
@@ -117,8 +144,11 @@ def test_new_event_alongside_an_already_approved_one_only_queues_the_new_one(mon
         b"END:VCALENDAR\r\n"
     )
     monkeypatch.setattr(
-        crawl_runner, "crawl",
-        lambda source, on_progress=None, on_page=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", second_event_ics)],
+        crawl_runner,
+        "crawl",
+        lambda source, on_progress=None, on_page=None: [
+            CrawledDocument("https://example.org/events.ics", "text/calendar", second_event_ics)
+        ],
     )
 
     result = crawl_runner.run(_source())
@@ -133,15 +163,20 @@ def test_an_llm_extraction_failure_is_reported_not_silently_swallowed(monkeypatc
     dates" - see _windows_from_document's docstring. Regression test for
     the crawl_runner.run() -> [] short-circuit that used to hide this."""
     monkeypatch.setattr(
-        crawl_runner, "crawl",
-        lambda source, on_progress=None, on_page=None: [CrawledDocument("https://example.org/events.html", "text/html", b"<html><body>some content</body></html>")],
+        crawl_runner,
+        "crawl",
+        lambda source, on_progress=None, on_page=None: [
+            CrawledDocument("https://example.org/events.html", "text/html", b"<html><body>some content</body></html>")
+        ],
     )
     monkeypatch.setattr(
-        crawl_runner, "extract_any",
+        crawl_runner,
+        "extract_any",
         lambda url, content, content_type: {"kind": "html_page", "clean_markdown_full": "some content"},
     )
     monkeypatch.setattr(
-        crawl_runner, "extract_dated_events",
+        crawl_runner,
+        "extract_dated_events",
         lambda text, on_progress=None: (_ for _ in ()).throw(ExtractionError("LLM call failed: missing API key")),
     )
 
@@ -154,8 +189,11 @@ def test_an_llm_extraction_failure_is_reported_not_silently_swallowed(monkeypatc
 
 def test_on_progress_is_called_with_crawl_and_per_document_updates(monkeypatch):
     monkeypatch.setattr(
-        crawl_runner, "crawl",
-        lambda source, on_progress=None, on_page=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
+        crawl_runner,
+        "crawl",
+        lambda source, on_progress=None, on_page=None: [
+            CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)
+        ],
     )
     messages = []
 
@@ -172,7 +210,8 @@ class TestSubjectName:
 
     def _doc(self, title):
         return CrawledDocument(
-            "https://example.org/x", "text/html",
+            "https://example.org/x",
+            "text/html",
             f"<html><head><title>{title}</title></head><body>hi</body></html>".encode(),
         )
 
@@ -183,6 +222,7 @@ class TestSubjectName:
     def test_falls_back_to_the_raw_title_when_the_model_fails(self, monkeypatch):
         def boom(text, raw):
             raise crawl_runner.ExtractionError("no api key")
+
         monkeypatch.setattr(crawl_runner, "suggest_title", boom)
         assert crawl_runner._subject_name([self._doc("Solar Eclipse 2027")], "fallback-id") == "Solar Eclipse 2027"
 
@@ -196,8 +236,7 @@ class TestSubjectName:
 
 
 CATALOG_ROWS = "\n".join(
-    f"[{i:05d}](../map/20{i:02d}-06-21.gif) [20{i:02d} Jun 21](../s.php) 12:04:46 T"
-    for i in range(20, 40)
+    f"[{i:05d}](../map/20{i:02d}-06-21.gif) [20{i:02d} Jun 21](../s.php) 12:04:46 T" for i in range(20, 40)
 )
 
 
@@ -236,6 +275,7 @@ class TestExtractorChoice:
     def test_a_date_table_is_read_directly_without_calling_the_model(self, monkeypatch):
         def no_llm(*a, **k):
             raise AssertionError("the model must not be called for a date table")
+
         monkeypatch.setattr(crawl_runner, "extract_dated_events", no_llm)
 
         windows, note = crawl_runner._windows_from_document(_html(CATALOG_ROWS), "Sonnenfinsternis")
@@ -246,7 +286,8 @@ class TestExtractorChoice:
 
     def test_prose_with_a_couple_of_dates_still_goes_to_the_model(self, monkeypatch):
         monkeypatch.setattr(
-            crawl_runner, "extract_dated_events",
+            crawl_runner,
+            "extract_dated_events",
             lambda text, on_progress=None: [{"date": "2026-09-12", "label": "Stadtfest"}],
         )
         windows, note = crawl_runner._windows_from_document(_html("Das Stadtfest ist am 2026-09-12."), "x")
@@ -256,7 +297,8 @@ class TestExtractorChoice:
 
     def test_a_multi_day_span_becomes_one_window_from_first_to_last_day(self, monkeypatch):
         monkeypatch.setattr(
-            crawl_runner, "extract_dated_events",
+            crawl_runner,
+            "extract_dated_events",
             lambda text, on_progress=None: [
                 {"date": "2026-09-19", "end": "2026-10-04", "label": "Oktoberfest"},
             ],
@@ -273,6 +315,7 @@ class TestExtractorChoice:
     def test_mode_static_skips_the_model_even_on_a_page_with_few_dates(self, monkeypatch):
         def no_llm(*a, **k):
             raise AssertionError("mode=static must never call the model")
+
         monkeypatch.setattr(crawl_runner, "extract_dated_events", no_llm)
         windows, note = crawl_runner._windows_from_document(_html("nur am 2026-09-12"), "Termin", mode="static")
         assert [w["from"] for w in windows] == ["2026-09-12"]
@@ -291,10 +334,7 @@ class TestExtractorChoice:
 def _staged_candidates(source_id: str) -> list:
     """Every candidate file a run wrote, newest run first."""
     runs = sorted((Path(staging.STAGING_ROOT) / source_id).iterdir(), reverse=True)
-    return [
-        yaml.safe_load(p.read_text(encoding="utf-8"))
-        for p in sorted((runs[0] / "candidates").glob("*.yaml"))
-    ]
+    return [yaml.safe_load(p.read_text(encoding="utf-8")) for p in sorted((runs[0] / "candidates").glob("*.yaml"))]
 
 
 class TestCandidateCarriesSubjectNameAndSourceUrl:
@@ -305,16 +345,21 @@ class TestCandidateCarriesSubjectNameAndSourceUrl:
     @pytest.fixture
     def html_run(self, monkeypatch):
         monkeypatch.setattr(
-            crawl_runner, "crawl",
-            lambda source, on_progress=None, on_page=None: [CrawledDocument(
-                "https://example.org/termine.html", "text/html",
-                b"<html><head><title>Sonnenfinsternisse 2001 - 2100 | NASA</title></head>"
-                b"<body><p>Am 2026-08-12.</p></body></html>",
-            )],
+            crawl_runner,
+            "crawl",
+            lambda source, on_progress=None, on_page=None: [
+                CrawledDocument(
+                    "https://example.org/termine.html",
+                    "text/html",
+                    b"<html><head><title>Sonnenfinsternisse 2001 - 2100 | NASA</title></head>"
+                    b"<body><p>Am 2026-08-12.</p></body></html>",
+                )
+            ],
         )
         monkeypatch.setattr(crawl_runner, "suggest_title", lambda text, raw_title: "Sonnenfinsternis")
         monkeypatch.setattr(
-            crawl_runner, "extract_dated_events",
+            crawl_runner,
+            "extract_dated_events",
             lambda text, on_progress=None: [{"date": "2026-08-12", "label": "Sonnenfinsternis"}],
         )
         crawl_runner.run(_source(formats=["html"], event_type_hint=""))
@@ -331,15 +376,22 @@ class TestCandidateCarriesSubjectNameAndSourceUrl:
         core/content_hash.py) - if it leaked in, adding the stamp would
         re-open every already-decided candidate for review."""
         from core.content_hash import content_hash, normalize_event
+
         event = html_run[0]["event"]
         assert html_run[0]["content_hash"] == content_hash(normalize_event(event, "test-source"))
-        assert content_hash(normalize_event({**event, "source_urls": ["https://other.invalid"]}, "test-source")) == html_run[0]["content_hash"]
+        assert (
+            content_hash(normalize_event({**event, "source_urls": ["https://other.invalid"]}, "test-source"))
+            == html_run[0]["content_hash"]
+        )
 
 
 def test_a_document_without_a_title_falls_back_to_the_source_id(monkeypatch):
     monkeypatch.setattr(
-        crawl_runner, "crawl",
-        lambda source, on_progress=None, on_page=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)],
+        crawl_runner,
+        "crawl",
+        lambda source, on_progress=None, on_page=None: [
+            CrawledDocument("https://example.org/events.ics", "text/calendar", ICS_BYTES)
+        ],
     )
     crawl_runner.run(_source())
 
@@ -356,20 +408,26 @@ class TestSeveralSourcesAggregateIntoOnePage:
 
     def _source_for(self, source_id: str, url: str):
         return _source(
-            id=source_id, seed_url=url, category="astronomie",
-            subject_slug="sonnenfinsternis", subject_name="Sonnenfinsternis",
-            formats=["html"], event_type_hint="Sonnenfinsternis",
+            id=source_id,
+            seed_url=url,
+            category="astronomie",
+            subject_slug="sonnenfinsternis",
+            subject_name="Sonnenfinsternis",
+            formats=["html"],
+            event_type_hint="Sonnenfinsternis",
         )
 
     def _run(self, monkeypatch, source_id: str, url: str, own_date: str):
         monkeypatch.setattr(
-            crawl_runner, "crawl",
+            crawl_runner,
+            "crawl",
             lambda source, on_progress=None, on_page=None: [
                 CrawledDocument(url, "text/html", b"<html><body>dates</body></html>")
             ],
         )
         monkeypatch.setattr(
-            crawl_runner, "extract_dated_events",
+            crawl_runner,
+            "extract_dated_events",
             lambda text, on_progress=None: [
                 {"date": own_date, "label": "Sonnenfinsternis"},
                 {"date": self.OVERLAP, "label": "Sonnenfinsternis"},
@@ -380,7 +438,9 @@ class TestSeveralSourcesAggregateIntoOnePage:
         # What review/service.py's approve route does with each queued candidate.
         for candidate in _staged_candidates(source_id):
             approval.write_event(
-                candidate["category"], candidate["subject_slug"], candidate["subject_name"],
+                candidate["category"],
+                candidate["subject_slug"],
+                candidate["subject_name"],
                 candidate["event"],
                 {"url": url, "license": "official_par5", "retrieved_at": "2026-07-25", "extraction": "llm"},
             )
@@ -423,15 +483,13 @@ class TestSeveralSourcesAggregateIntoOnePage:
     def test_the_shared_window_has_one_identity_but_is_reviewed_per_source(self, merged):
         """content_hash covers subject_slug, so under a shared page the same
         real-world event hashes identically across sources - that is what lets
-        merge_zeitfenster recognise it as one window. Review state stays
+        merge_windows recognise it as one window. Review state stays
         per-source though (one file each), so a second source reporting an
         already-approved event is still reviewed rather than waved through on
         another source's decision."""
+
         def shared_hash(source_id):
-            return next(
-                c["content_hash"] for c in _staged_candidates(source_id)
-                if c["event"]["from"] == self.OVERLAP
-            )
+            return next(c["content_hash"] for c in _staged_candidates(source_id) if c["event"]["from"] == self.OVERLAP)
 
         assert shared_hash("nasa-1901-2000") == shared_hash("nasa-2001-2100")
         assert review_state._path_for("nasa-1901-2000") != review_state._path_for("nasa-2001-2100")
@@ -443,11 +501,13 @@ class TestSuggestedCategory:
     from the domain, giving pages like "eclipse-gsfc-nasa-gov"."""
 
     def _docs(self):
-        return [CrawledDocument(
-            url="https://eclipse.invalid/SEcat5",
-            content=b"<html><body>Solar eclipses 1901-2000</body></html>",
-            content_type="text/html",
-        )]
+        return [
+            CrawledDocument(
+                url="https://eclipse.invalid/SEcat5",
+                content=b"<html><body>Solar eclipses 1901-2000</body></html>",
+                content_type="text/html",
+            )
+        ]
 
     def test_a_configured_category_is_never_second_guessed(self, monkeypatch):
         monkeypatch.setattr(crawl_runner, "suggest_category", lambda *a, **k: "should-not-be-called")
@@ -465,8 +525,10 @@ class TestSuggestedCategory:
 
     def test_a_failed_suggestion_falls_back_to_the_configured_value(self, monkeypatch):
         """A category guess must never be the thing that fails a whole crawl."""
+
         def _boom(*a, **k):
             raise ExtractionError("no API key")
+
         monkeypatch.setattr(crawl_runner, "suggest_category", _boom)
         source = _source(id="nasa", category="nasa")
 

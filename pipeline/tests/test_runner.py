@@ -13,10 +13,10 @@ from core.types import ExtractionResult  # noqa: E402
 BATCH_CONFIG = (
     "kind: batch\n"
     "id: schulferien_kmk\n"
-    "kategorie: schulferien\n"
+    "category: schulferien\n"
     "url: https://www.kmk.org/service/ferienregelung/ferienkalender.html\n"
-    "lizenz: official_par5\n"
-    "strategie: llm\n"
+    "license: official_par5\n"
+    "strategy: llm\n"
 )
 
 
@@ -34,18 +34,20 @@ def isolated(tmp_path, monkeypatch):
     monkeypatch.setattr(runner, "fetch_bytes", lambda url: (b"<html></html>", "text/html"))
 
     result = ExtractionResult(
-        subjekt={"slug": "by", "name": "Schulferien Bayern", "category": "schulferien"},
-        datei_pfad=tmp_path / "data" / "schulferien" / "by" / "data.yaml",
-        zeitfenster=[{
-            "type": "school_holidays-autumn",
-            "year": 2028,
-            "from": "2028-10-30",
-            "to": "2028-11-03",
-            "precision": "exact",
-            "ics": False,
-            "name": "Herbstferien",
-        }],
-        quelle={
+        subject={"slug": "by", "name": "Schulferien Bayern", "category": "schulferien"},
+        file_path=tmp_path / "data" / "schulferien" / "by" / "data.yaml",
+        zeitfenster=[
+            {
+                "type": "school_holidays-autumn",
+                "year": 2028,
+                "from": "2028-10-30",
+                "to": "2028-11-03",
+                "precision": "exact",
+                "ics": False,
+                "name": "Herbstferien",
+            }
+        ],
+        source={
             "url": "https://www.kmk.org/service/ferienregelung/ferienkalender.html",
             "license": "official_par5",
             "retrieved_at": "2028-01-01",
@@ -82,3 +84,21 @@ def test_a_staged_candidate_carries_the_readable_subject_name(isolated):
     runner.run("schulferien_kmk", {"jahr": "2028"})
 
     assert _staged_candidate(isolated)["subject_name"] == "Schulferien Bayern"
+
+
+def test_every_url_in_the_list_is_fetched_and_staged(isolated, monkeypatch):
+    """One school year per PDF: two documents, two snapshots, one source."""
+    (isolated / "_sources" / "schulferien_kmk.yaml").write_text(
+        BATCH_CONFIG.replace(
+            "url: https://www.kmk.org/service/ferienregelung/ferienkalender.html\n",
+            "urls:\n  - https://kmk.invalid/FER2025_26.pdf\n  - https://kmk.invalid/FER2026_27.pdf\n",
+        ),
+        encoding="utf-8",
+    )
+    fetched = []
+    monkeypatch.setattr(runner, "fetch_bytes", lambda url: (fetched.append(url), (url.encode(), "text/html"))[1])
+
+    runner.run("schulferien_kmk", {})
+
+    assert fetched == ["https://kmk.invalid/FER2025_26.pdf", "https://kmk.invalid/FER2026_27.pdf"]
+    assert len(list((isolated / "staging").glob("**/documents/*.md"))) == 2

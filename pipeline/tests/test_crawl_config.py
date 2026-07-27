@@ -78,4 +78,6 @@ def test_a_blank_subject_name_is_normalised_away():
     """Blank means "fall back to the crawled <title>", which crawl_runner
     tests with `or` - whitespace would defeat that."""
     assert crawl_config._parse(_raw(subject_name="   "), Path("x.yaml")).subject_name == ""
-    assert crawl_config._parse(_raw(subject_name=" Sonnenfinsternis "), Path("x.yaml")).subject_name == "Sonnenfinsternis"
+    assert (
+        crawl_config._parse(_raw(subject_name=" Sonnenfinsternis "), Path("x.yaml")).subject_name == "Sonnenfinsternis"
+    )

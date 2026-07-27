@@ -23,20 +23,22 @@ FAKE_SITE = {
         "text/html",
     ),
     "https://example.org/events/market": (
-        b"<html><body>"
-        b'<a href="/events/market/deep">one level deeper</a>'
-        b"</body></html>",
+        b'<html><body><a href="/events/market/deep">one level deeper</a></body></html>',
         "text/html",
     ),
     "https://example.org/events/market/deep": (
-        b"<html><body>"
-        b'<a href="/events/market/deep/deeper">too deep</a>'
-        b"</body></html>",
+        b'<html><body><a href="/events/market/deep/deeper">too deep</a></body></html>',
         "text/html",
     ),
-    "https://example.org/events/market/deep/deeper": (b"<html><body>should never be fetched</body></html>", "text/html"),
+    "https://example.org/events/market/deep/deeper": (
+        b"<html><body>should never be fetched</body></html>",
+        "text/html",
+    ),
     "https://other.org/steal-focus": (b"<html><body>off-domain, must not be fetched</body></html>", "text/html"),
-    "https://example.org/blog/unrelated": (b"<html><body>off path_prefix, must not be fetched</body></html>", "text/html"),
+    "https://example.org/blog/unrelated": (
+        b"<html><body>off path_prefix, must not be fetched</body></html>",
+        "text/html",
+    ),
 }
 
 
@@ -118,7 +120,7 @@ def test_a_seed_url_with_a_trailing_slash_is_inside_its_own_scope():
 
 
 def test_the_prefix_does_not_swallow_a_sibling_with_the_same_start():
-    """"/events-archiv" is a different page, not a child of "/events"."""
+    """ "/events-archiv" is a different page, not a child of "/events"."""
     assert not crawler.in_scope("https://example.org/events-archiv", _source())
 
 
@@ -160,9 +162,7 @@ def test_formats_filter_excludes_documents_not_in_the_configured_list(monkeypatc
     monkeypatch.setitem(FAKE_SITE, "https://example.org/events/flyer.pdf", (b"%PDF-1.4 fake", "application/pdf"))
     site_with_pdf = dict(FAKE_SITE)
     site_with_pdf["https://example.org/events"] = (
-        FAKE_SITE["https://example.org/events"][0].replace(
-            b"</body>", b'<a href="/events/flyer.pdf">flyer</a></body>'
-        ),
+        FAKE_SITE["https://example.org/events"][0].replace(b"</body>", b'<a href="/events/flyer.pdf">flyer</a></body>'),
         "text/html",
     )
 
@@ -181,16 +181,18 @@ def test_formats_filter_excludes_documents_not_in_the_configured_list(monkeypatc
 class TestCrawlConfig:
     def test_loads_a_valid_source_config(self, tmp_path):
         (tmp_path / "test-source.yaml").write_text(
-            yaml.dump({
-                "id": "test-source",
-                "seed_url": "https://example.org/events",
-                "category": "veranstaltungen",
-                "scope": {"allowed_domains": ["example.org"], "path_prefix": "/events"},
-                "max_depth": 2,
-                "formats": ["html", "pdf"],
-                "event_type_hint": "Stadtfeste",
-                "schedule": "yearly",
-            }),
+            yaml.dump(
+                {
+                    "id": "test-source",
+                    "seed_url": "https://example.org/events",
+                    "category": "veranstaltungen",
+                    "scope": {"allowed_domains": ["example.org"], "path_prefix": "/events"},
+                    "max_depth": 2,
+                    "formats": ["html", "pdf"],
+                    "event_type_hint": "Stadtfeste",
+                    "schedule": "yearly",
+                }
+            ),
             encoding="utf-8",
         )
         source = crawl_config.load_crawl_source(tmp_path / "test-source.yaml")
@@ -201,13 +203,15 @@ class TestCrawlConfig:
     def test_rejects_max_depth_above_the_hard_cap(self, tmp_path):
         path = tmp_path / "test-source.yaml"
         path.write_text(
-            yaml.dump({
-                "id": "test-source",
-                "seed_url": "https://example.org/events",
-                "category": "veranstaltungen",
-                "scope": {"allowed_domains": ["example.org"]},
-                "max_depth": 10,
-            }),
+            yaml.dump(
+                {
+                    "id": "test-source",
+                    "seed_url": "https://example.org/events",
+                    "category": "veranstaltungen",
+                    "scope": {"allowed_domains": ["example.org"]},
+                    "max_depth": 10,
+                }
+            ),
             encoding="utf-8",
         )
         with pytest.raises(CrawlConfigError, match="max_depth"):
@@ -216,7 +220,14 @@ class TestCrawlConfig:
     def test_rejects_missing_allowed_domains(self, tmp_path):
         path = tmp_path / "test-source.yaml"
         path.write_text(
-            yaml.dump({"id": "test-source", "seed_url": "https://example.org/events", "category": "veranstaltungen", "scope": {}}),
+            yaml.dump(
+                {
+                    "id": "test-source",
+                    "seed_url": "https://example.org/events",
+                    "category": "veranstaltungen",
+                    "scope": {},
+                }
+            ),
             encoding="utf-8",
         )
         with pytest.raises(CrawlConfigError, match="allowed_domains"):
@@ -225,12 +236,14 @@ class TestCrawlConfig:
     def test_rejects_id_filename_mismatch(self, tmp_path):
         path = tmp_path / "wrong-name.yaml"
         path.write_text(
-            yaml.dump({
-                "id": "test-source",
-                "seed_url": "https://example.org/events",
-                "category": "veranstaltungen",
-                "scope": {"allowed_domains": ["example.org"]},
-            }),
+            yaml.dump(
+                {
+                    "id": "test-source",
+                    "seed_url": "https://example.org/events",
+                    "category": "veranstaltungen",
+                    "scope": {"allowed_domains": ["example.org"]},
+                }
+            ),
             encoding="utf-8",
         )
         with pytest.raises(CrawlConfigError, match="does not match filename"):
@@ -242,12 +255,14 @@ class TestCrawlConfig:
     def test_load_all_loads_every_yaml_file_in_the_directory(self, tmp_path):
         for source_id in ("a", "b"):
             (tmp_path / f"{source_id}.yaml").write_text(
-                yaml.dump({
-                    "id": source_id,
-                    "seed_url": "https://example.org/events",
-                    "category": "veranstaltungen",
-                    "scope": {"allowed_domains": ["example.org"]},
-                }),
+                yaml.dump(
+                    {
+                        "id": source_id,
+                        "seed_url": "https://example.org/events",
+                        "category": "veranstaltungen",
+                        "scope": {"allowed_domains": ["example.org"]},
+                    }
+                ),
                 encoding="utf-8",
             )
         sources = crawl_config.load_all_crawl_sources(tmp_path)

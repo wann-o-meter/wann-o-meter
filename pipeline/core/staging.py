@@ -30,7 +30,7 @@ import yaml
 from core.content_hash import content_hash as _content_hash_of
 from core.content_hash import normalize_event
 from core.fetch import decode_text
-from core.sniff import html_to_markdown, sniff_image_mime
+from core.sniff import html_to_markdown, pdf_text, sniff_image_mime
 
 STAGING_ROOT = Path(__file__).resolve().parent.parent / "staging"
 
@@ -50,7 +50,11 @@ def _extension_and_bytes(content: bytes, content_type: str) -> tuple[str, bytes]
     original bytes, already directly viewable (PDF/image) or small/textual
     enough not to need conversion (ICS)."""
     if content[:4] == b"%PDF":
-        return ".pdf", content
+        # A PDF renders nowhere in the review UI, which only shows .md/.ics
+        # inline. Its own text layer is a reviewable snapshot; a scan has none
+        # and stays a PDF.
+        text = pdf_text(content)
+        return (".md", text.encode("utf-8")) if text else (".pdf", content)
     image_mime = sniff_image_mime(content)
     if image_mime:
         return _IMAGE_EXTENSIONS.get(image_mime, ".bin"), content

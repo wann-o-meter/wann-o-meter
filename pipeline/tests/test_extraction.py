@@ -292,7 +292,10 @@ def test_subjects_validates_ranges_per_subject():
         )
         result = extract_subjects("text", "hint")
     assert result == [
-        {"subject": {"slug": "bw", "name": "BW"}, "ranges": [{"start": "2028-03-27", "end": "2028-04-08", "label": "gut"}]}
+        {
+            "subject": {"slug": "bw", "name": "BW"},
+            "ranges": [{"start": "2028-03-27", "end": "2028-04-08", "label": "gut"}],
+        }
     ]
 
 
@@ -347,9 +350,7 @@ def test_season_windows_allows_a_window_spanning_the_year_boundary():
         )
         result = extract_season_windows("Gruenkohl: 11-12 und 1-2 gruen hervorgehoben", "hint")
 
-    assert result[0]["windows"] == [
-        {"type": "main_season", "name": "Hauptsaison", "from": "--11", "to": "--02"}
-    ]
+    assert result[0]["windows"] == [{"type": "main_season", "name": "Hauptsaison", "from": "--11", "to": "--02"}]
 
 
 def test_season_windows_rejects_dated_or_malformed_ranges():
@@ -459,8 +460,7 @@ def test_title_strips_years_and_duplicated_site_name():
         mock_call.return_value = "Islamische Feiertage"
         result = suggest_title(
             "text",
-            "Islamische Feiertage 2026 - 2029 - Islamisches Zentrum "
-            "MünchenIslamisches Zentrum München",
+            "Islamische Feiertage 2026 - 2029 - Islamisches Zentrum MünchenIslamisches Zentrum München",
         )
     assert result == "Islamische Feiertage"
 
@@ -483,9 +483,7 @@ def test_multi_day_span_is_one_event_with_an_inclusive_end():
     # "19. September bis 4. Oktober 2026" (Oktoberfest, wiesnkini.de) is one
     # window, not two point dates - `to` is the last day, inclusive.
     with patch("core.extraction.call_llm") as mock_call:
-        mock_call.return_value = (
-            '[{"date": "2026-09-19", "end": "2026-10-04", "label": "Oktoberfest"}]'
-        )
+        mock_call.return_value = '[{"date": "2026-09-19", "end": "2026-10-04", "label": "Oktoberfest"}]'
         result = extract_dated_events("19. September bis 4. Oktober 2026")
 
     assert result == [{"date": "2026-09-19", "end": "2026-10-04", "label": "Oktoberfest"}]

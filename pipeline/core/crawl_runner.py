@@ -14,7 +14,7 @@ SEVERAL sources may point at the same subject_slug + category on purpose -
 that is how one page aggregates several overlapping sources (NASA's eclipse
 catalog splits the same subject across one page per century; a reader wants
 one page, not one per century). Each source keeps its own review-state and
-its own citation; store.merge_zeitfenster unions them per window.
+its own citation; store.merge_windows unions them per window.
 
 Each crawled document is extracted independently by its sniffed kind
 (core/sniff.py's extract_any): an ics_feed document's windows are used
@@ -35,7 +35,7 @@ from core.extraction import ExtractionError, extract_dated_events, suggest_categ
 from core.sniff import extract_any
 
 
-def _default_quelle(url: str) -> dict[str, Any]:
+def _default_source(url: str) -> dict[str, Any]:
     """A scoped-crawler source's license is a per-source, human decision
     (see data/_sources/*.yaml) - "tos_checked" here is only
     the placeholder default for a source config that hasn't set one yet,
@@ -50,8 +50,18 @@ def _default_quelle(url: str) -> dict[str, Any]:
 
 
 _MONTHS = {
-    "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
-    "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+    "jan": 1,
+    "feb": 2,
+    "mar": 3,
+    "apr": 4,
+    "may": 5,
+    "jun": 6,
+    "jul": 7,
+    "aug": 8,
+    "sep": 9,
+    "oct": 10,
+    "nov": 11,
+    "dec": 12,
 }
 
 # Two unambiguous machine-written date forms: ISO ("2001-06-21") and the
@@ -96,7 +106,9 @@ def _static_dates(text: str) -> tuple[list[str], int]:
             # writes each date twice (once in a .gif URL, once as text), so a
             # raw match count reported double what the page actually lists.
             target = negative if year < 1 else found
-            target.setdefault(f"{year:05d}-{month:02d}-{day:02d}" if year < 1 else f"{year:04d}-{month:02d}-{day:02d}", None)
+            target.setdefault(
+                f"{year:05d}-{month:02d}-{day:02d}" if year < 1 else f"{year:04d}-{month:02d}-{day:02d}", None
+            )
     return list(found), len(negative)
 
 
@@ -186,13 +198,13 @@ def _existing_categories() -> list[str]:
     # gives the category path at any nesting depth. A page sitting directly
     # under data/ has no category and relative_to() yields "." - not a name
     # anything should be offered for reuse.
-    return sorted({
-        path for path in (
-            str(data_file.parent.parent.relative_to(root))
-            for data_file in root.glob("*/**/data.yaml")
-        )
-        if path != "."
-    })
+    return sorted(
+        {
+            path
+            for path in (str(data_file.parent.parent.relative_to(root)) for data_file in root.glob("*/**/data.yaml"))
+            if path != "."
+        }
+    )
 
 
 def _suggested_category(source: CrawlSource, documents: list[CrawledDocument], title: str) -> str:
@@ -267,6 +279,7 @@ def run(
     URL, chunk N/M, chars sent) - a slow run (many in-scope pages, or
     several LLM calls for one large chunked page) shows something better
     than a static "Running..." for however long that takes."""
+
     def report(phase: str, detail: str) -> None:
         if on_progress:
             on_progress({"phase": phase, "detail": detail})
@@ -310,26 +323,28 @@ def run(
             # Same job core/types.py's SourceResult.__post_init__ does for
             # adapter sources ("this is core's job, not each source
             # adapter's"), which the crawl path bypassed entirely - without
-            # it store.merge_zeitfenster has no citations to union when a
+            # it store.merge_windows has no citations to union when a
             # second source reports the same window, so the per-window
             # citation merge silently no-ops for everything crawled.
             # source_urls is excluded from the content hash on purpose (see
             # core/content_hash.py), so this changes no candidate's identity.
             window.setdefault("source_urls", [doc.url])
             candidate = staging.build_candidate(
-                source.id, source.subject_slug, window, doc_hash,
-                subject_name=subject_name, category=category,
+                source.id,
+                source.subject_slug,
+                window,
+                doc_hash,
+                subject_name=subject_name,
+                category=category,
             )
             staging.write_candidate(source.id, run_ts, candidate)
             all_candidates.append(candidate)
 
     report("diffing", "Comparing against the page and the rejected set...")
     state = review_state.load(source.id)
-    auto_waved_through, needs_review = review_state.diff(
-        all_candidates, state, source.category, source.subject_slug
-    )
+    auto_waved_through, needs_review = review_state.diff(all_candidates, state, source.category, source.subject_slug)
 
-    quelle = _default_quelle(source.seed_url)
+    default_source = _default_source(source.seed_url)
     written = 0
     for candidate in auto_waved_through:
         try:
@@ -338,7 +353,7 @@ def run(
                 subject_slug=source.subject_slug,
                 subject_name=subject_name,
                 event=candidate["event"],
-                quelle=quelle,
+                source=default_source,
             )
             written += 1
         except approval.ApprovalError:

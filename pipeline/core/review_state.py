@@ -106,7 +106,7 @@ def already_approved(category: str, subject_slug: str, window: dict[str, Any]) -
 
     THE approved-set lookup. It reads the real file, so a hand-edit is
     immediately authoritative - which is the point of keeping no second
-    copy. Uses window_key, the same function core/store.merge_zeitfenster
+    copy. Uses window_key, the same function core/store.merge_windows
     merges by; if these two ever disagreed the result would be an
     approve -> replace -> re-queue loop that never terminates."""
     return window_key(window) in _approved_keys(category, subject_slug)
@@ -116,8 +116,8 @@ def _approved_keys(category: str, subject_slug: str) -> set:
     path = DATA_ROOT / category / subject_slug / "data.yaml"
     if not path.exists():
         return set()
-    datei = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    return {window_key(w) for w in (datei.get("windows") or [])}
+    file = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    return {window_key(w) for w in (file.get("windows") or [])}
 
 
 def diff(

@@ -89,7 +89,9 @@ class TestValidateCategorySegments:
 class TestIterPagesAndCategoryPaths:
     def test_walks_arbitrary_depth_and_skips_reserved_segments(self, data_root):
         _write_page(data_root / "astronomie" / "eclipse", "astronomie", "eclipse")
-        _write_page(data_root / "sport" / "fussball" / "bundesliga" / "spielplan", "sport/fussball/bundesliga", "spielplan")
+        _write_page(
+            data_root / "sport" / "fussball" / "bundesliga" / "spielplan", "sport/fussball/bundesliga", "spielplan"
+        )
         _write_page(data_root / "kalender" / "should-be-skipped", "kalender", "should-be-skipped")
         (data_root / "sport" / "tag").mkdir(parents=True, exist_ok=True)  # reserved at any depth, must be skipped
 
@@ -100,7 +102,9 @@ class TestIterPagesAndCategoryPaths:
         }
 
     def test_category_paths_only_reports_leaf_categories_with_pages(self, data_root):
-        _write_page(data_root / "sport" / "fussball" / "bundesliga" / "spielplan", "sport/fussball/bundesliga", "spielplan")
+        _write_page(
+            data_root / "sport" / "fussball" / "bundesliga" / "spielplan", "sport/fussball/bundesliga", "spielplan"
+        )
         assert service._category_paths() == ["sport/fussball/bundesliga"]
 
 

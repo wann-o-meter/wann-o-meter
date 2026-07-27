@@ -10,10 +10,7 @@ from core.sniff import extract_any  # noqa: E402
 
 def _calendar(*vevents: str) -> bytes:
     body = "\n".join(vevents)
-    return (
-        "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//test//test//EN\r\n"
-        f"{body}\r\nEND:VCALENDAR\r\n"
-    ).encode()
+    return (f"BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//test//test//EN\r\n{body}\r\nEND:VCALENDAR\r\n").encode()
 
 
 def _vevent(**fields) -> str:
@@ -73,9 +70,7 @@ def test_utc_datetime_is_normalized_to_europe_berlin_wall_clock():
 
 
 def test_rrule_is_preserved_verbatim():
-    raw = _calendar(
-        _vevent(SUMMARY="Wochenmarkt", DTSTART="20260801", DTEND="20260802", RRULE="FREQ=WEEKLY;BYDAY=SA")
-    )
+    raw = _calendar(_vevent(SUMMARY="Wochenmarkt", DTSTART="20260801", DTEND="20260802", RRULE="FREQ=WEEKLY;BYDAY=SA"))
     windows = map_calendar(raw)
 
     assert windows[0]["rrule"] == "FREQ=WEEKLY;BYDAY=SA"

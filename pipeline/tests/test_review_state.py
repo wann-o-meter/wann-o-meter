@@ -28,8 +28,14 @@ def _isolate(tmp_path, monkeypatch):
 
 def _event(date="2026-08-15", name="Stadtfest", **overrides):
     return {
-        "type": "market", "year": int(date[:4]), "from": date, "to": date,
-        "precision": "exact", "ics": True, "name": name, **overrides,
+        "type": "market",
+        "year": int(date[:4]),
+        "from": date,
+        "to": date,
+        "precision": "exact",
+        "ics": True,
+        "name": name,
+        **overrides,
     }
 
 
@@ -52,7 +58,10 @@ class TestTheFileIsTheRecord:
         _write_page(_isolate, "veranstaltungen", "hechingen", [event])
 
         waved, pending = review_state.diff(
-            [_candidate(event)], review_state.load("src"), "veranstaltungen", "hechingen",
+            [_candidate(event)],
+            review_state.load("src"),
+            "veranstaltungen",
+            "hechingen",
         )
 
         assert len(waved) == 1
@@ -67,7 +76,10 @@ class TestTheFileIsTheRecord:
         _write_page(_isolate, "veranstaltungen", "hechingen", [])  # hand-deleted
 
         waved, pending = review_state.diff(
-            [_candidate(event)], review_state.load("src"), "veranstaltungen", "hechingen",
+            [_candidate(event)],
+            review_state.load("src"),
+            "veranstaltungen",
+            "hechingen",
         )
 
         assert waved == []
@@ -80,14 +92,20 @@ class TestTheFileIsTheRecord:
         _write_page(_isolate, "veranstaltungen", "hechingen", [event])
 
         _, pending = review_state.diff(
-            [_candidate(event)], review_state.load("src"), "veranstaltungen", "hechingen",
+            [_candidate(event)],
+            review_state.load("src"),
+            "veranstaltungen",
+            "hechingen",
         )
 
         assert pending == []
 
     def test_a_page_that_does_not_exist_yet_queues_everything(self, _isolate):
         _, pending = review_state.diff(
-            [_candidate(_event())], review_state.load("src"), "veranstaltungen", "hechingen",
+            [_candidate(_event())],
+            review_state.load("src"),
+            "veranstaltungen",
+            "hechingen",
         )
         assert len(pending) == 1
 
@@ -98,7 +116,10 @@ class TestTheFileIsTheRecord:
         _write_page(_isolate, "veranstaltungen", "hechingen", [_event(date="2026-08-16")])
 
         _, pending = review_state.diff(
-            [_candidate(_event(date="2026-08-15"))], review_state.load("src"), "veranstaltungen", "hechingen",
+            [_candidate(_event(date="2026-08-15"))],
+            review_state.load("src"),
+            "veranstaltungen",
+            "hechingen",
         )
 
         assert [c["event"]["from"] for c in pending] == ["2026-08-15"]
@@ -182,7 +203,9 @@ class TestPerPageReview:
         event = _event()
         _, pending = review_state.diff(
             [_candidate(event), {**_candidate(event), "source_id": "other", "candidate_id": "other:x"}],
-            review_state.load("src"), "veranstaltungen", "hechingen",
+            review_state.load("src"),
+            "veranstaltungen",
+            "hechingen",
         )
 
         assert len(pending) == 1
@@ -192,7 +215,10 @@ class TestPerPageReview:
         _write_page(_isolate, "veranstaltungen", "hechingen", [event])
 
         waved, pending = review_state.diff(
-            [{**_candidate(event), "source_id": "other"}], review_state.load("src"), "veranstaltungen", "hechingen",
+            [{**_candidate(event), "source_id": "other"}],
+            review_state.load("src"),
+            "veranstaltungen",
+            "hechingen",
         )
 
         assert len(waved) == 1
@@ -200,7 +226,7 @@ class TestPerPageReview:
 
 
 def test_the_already_approved_lookup_uses_the_merge_key(_isolate):
-    """The non-termination guard: core/store.merge_zeitfenster and this module
+    """The non-termination guard: core/store.merge_windows and this module
     must decide "same window" with the same function, or an approved window
     can fail its own lookup and re-queue forever."""
     event = _event()

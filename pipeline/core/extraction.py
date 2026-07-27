@@ -39,14 +39,14 @@ SYSTEM_PROMPT = (
     "Loese relative/implizite Jahresangaben auf (z.B. eine Jahreszahl als Tabellen-"
     "ueberschrift, die fuer mehrere darunterliegende Zeilen gilt). "
     "Ueberspringe JEDEN Eintrag, der keinen konkreten Tag nennt (z.B. nur 'Herbst 2028' "
-    "oder nur eine Jahreszahl ohne Tag/Monat) - lass ihn komplett aus der Antwort weg. "
-    "Erfinde NIEMALS einen Tag oder Monat, den der Text nicht explizit nennt - insbesondere "
+    "or nur eine Jahreszahl ohne Tag/Monat) - lass ihn komplett aus der Antwort weg. "
+    "Erfinde NIEMALS einen Tag or Monat, den der Text nicht explizit nennt - insbesondere "
     "ist '01' als Platzhalter-Tag/Monat (z.B. \"2028-01-01\" fuer einen Eintrag, der nur "
-    "'2028' oder 'Herbst 2028' sagt) IMMER falsch. Der gegebene Text ist die EINZIGE Quelle: "
+    "'2028' or 'Herbst 2028' sagt) IMMER falsch. Der gegebene Text ist die EINZIGE Quelle: "
     "ergaenze KEIN Ereignis und KEIN Datum aus Hintergrundwissen, selbst wenn du das Thema "
-    "erkennst (z.B. bekannte Feiertage, Ereignisse oder ein Datumsmuster) und glaubst, "
+    "erkennst (z.B. bekannte Feiertage, Ereignisse or ein Datumsmuster) und glaubst, "
     "weitere Termine zu kennen, die im Text nicht stehen. Im Zweifel: Eintrag weglassen "
-    "statt raten oder ergaenzen."
+    "statt raten or ergaenzen."
 )
 
 
@@ -207,7 +207,7 @@ def extract_dated_events(text: str, on_progress: Callable[[str], None] | None = 
 TAGS_SYSTEM_PROMPT = (
     "Du schlaegst Tags fuer eine Wann-Frage-Seite vor. Titel und Text koennen in "
     "JEDER Sprache vorliegen - die Tags sind aber IMMER kurze, kleingeschriebene "
-    "deutsche Substantive (z.B. \"religion\", \"sport\"), auch wenn der Quelltext in "
+    'deutsche Substantive (z.B. "religion", "sport"), auch wenn der Quelltext in '
     "einer anderen Sprache ist. Antworte AUSSCHLIESSLICH mit einem JSON-Array aus "
     "solchen Substantiven, keine Erklaerung, kein Markdown, kein Codeblock. "
     "Bevorzuge IMMER einen der 'Bereits verwendete Tags' unten, wenn einer davon "
@@ -266,11 +266,11 @@ TITLE_SYSTEM_PROMPT = (
     "Du bereinigst den Titel fuer eine Wann-Frage-Seite (z.B. 'Islamische Feiertage', "
     "'Schulferien Bayern'). Der rohe Titel kommt unbearbeitet aus dem <title>-Tag der "
     "gescrapten Seite und enthaelt oft Muell: Jahreszahlen/Jahresspannen, Organisations- "
-    "oder Websitenamen, Trennzeichen wie '-' oder '|', und manchmal denselben Namen "
+    "or Websitenamen, Trennzeichen wie '-' or '|', und manchmal denselben Namen "
     "versehentlich doppelt. Antworte AUSSCHLIESSLICH mit dem bereinigten Titel als "
     "Klartext - keine Anfuehrungszeichen, kein Markdown, keine Erklaerung. Der bereinigte "
     "Titel nennt NUR das eigentliche Thema (z.B. 'Islamische Feiertage'), OHNE Jahreszahlen, "
-    "Datumsspannen, Organisationsnamen oder sonstigen Zusatz. Nicht mehr, nicht weniger. "
+    "Datumsspannen, Organisationsnamen or sonstigen Zusatz. Nicht mehr, nicht weniger. "
     "Der rohe Titel kann in JEDER Sprache vorliegen - der bereinigte Titel ist IMMER auf "
     "Deutsch, uebersetze ihn also gegebenenfalls (z.B. 'Solar Eclipse 2027 - NASA' -> "
     "'Sonnenfinsternis'). "
@@ -296,9 +296,7 @@ def suggest_title(text: str, raw_title: str) -> str:
         return ""
 
     prompt = (
-        f"Roher Titel: {raw_title}\n\n"
-        f"Text (zur Einordnung):\n\n{text[:1500]}\n\n"
-        "Gib den bereinigten Titel zurueck."
+        f"Roher Titel: {raw_title}\n\nText (zur Einordnung):\n\n{text[:1500]}\n\nGib den bereinigten Titel zurueck."
     )
     try:
         raw = call_llm(prompt, system=TITLE_SYSTEM_PROMPT)
@@ -388,7 +386,7 @@ SUBJECT_SYSTEM_PROMPT = (
     "Jahresangaben auf (z.B. eine Jahreszahl als Tabellenueberschrift, die fuer "
     "mehrere darunterliegende Zeilen gilt). Ueberspringe Datumsspannen ohne konkrete "
     "Anfangs- und Enddaten. Erfinde keine Daten - wenn ein Subjekt keine konkreten "
-    "Zeitraeume nennt, gib fuer es ein leeres \"ranges\"-Array zurueck."
+    'Zeitraeume nennt, gib fuer es ein leeres "ranges"-Array zurueck.'
 )
 
 
@@ -435,18 +433,20 @@ def extract_subjects(text: str, hint: str) -> list[dict[str, Any]]:
         name = str(subject.get("name", "")).strip()
         if not slug or not name:
             continue
-        subjects.append({
-            "subject": {"slug": slug, "name": name},
-            "ranges": _validate_ranges(item.get("ranges") or []),
-        })
+        subjects.append(
+            {
+                "subject": {"slug": slug, "name": name},
+                "ranges": _validate_ranges(item.get("ranges") or []),
+            }
+        )
 
     return subjects
 
 
 SEASON_SYSTEM_PROMPT = (
     "Du extrahierst wiederkehrende JAEHRLICHE Saisonfenster (z.B. Ernte-/"
-    "Verfuegbarkeitssaison von Obst oder Gemuese) aus Text, der die farbliche "
-    "oder sonstige visuelle Hervorhebung einzelner Monate PRO OBJEKT/SORTE "
+    "Verfuegbarkeitssaison von Obst or Gemuese) aus Text, der die farbliche "
+    "or sonstige visuelle Hervorhebung einzelner Monate PRO OBJEKT/SORTE "
     "BESCHREIBT (z.B. 'Aepfel: 1-4 gruen, 5-8 orange, 9-12 gruen', 'Aprikosen: "
     "nur 6-8 orange hervorgehoben, Rest grau'). Der Text kann in JEDER Sprache "
     "vorliegen. Antworte AUSSCHLIESSLICH mit einem JSON-Array, keine Erklaerung, "
@@ -527,10 +527,12 @@ def extract_season_windows(text: str, hint: str) -> list[dict[str, Any]]:
         name = str(subject.get("name", "")).strip()
         if not slug or not name:
             continue
-        subjects.append({
-            "subject": {"slug": slug, "name": name},
-            "windows": _validate_season_windows(item.get("windows") or []),
-        })
+        subjects.append(
+            {
+                "subject": {"slug": slug, "name": name},
+                "windows": _validate_season_windows(item.get("windows") or []),
+            }
+        )
 
     return subjects
 

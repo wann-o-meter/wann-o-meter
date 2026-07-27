@@ -339,6 +339,18 @@ def _text_layer(pages) -> str | None:
     return joined
 
 
+def pdf_text(content: bytes) -> str | None:
+    """The PDF's own text, or None if it has none worth using."""
+    try:
+        doc = fitz.open(stream=content, filetype="pdf")
+    except Exception:
+        return None
+    try:
+        return _text_layer(list(doc[:MAX_PDF_PAGES])) if doc.page_count else None
+    finally:
+        doc.close()
+
+
 def extract_pdf(content: bytes, mode: str = "auto") -> dict[str, Any]:
     try:
         doc = fitz.open(stream=content, filetype="pdf")

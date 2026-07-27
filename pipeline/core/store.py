@@ -12,19 +12,19 @@ import yaml
 from core.content_hash import window_key
 
 
-def lade_oder_erstelle(pfad: Path, slug: str, kategorie: str) -> dict[str, Any]:
-    if pfad.exists():
-        with pfad.open() as f:
+def load_or_create(path: Path, slug: str, category: str) -> dict[str, Any]:
+    if path.exists():
+        with path.open() as f:
             return yaml.safe_load(f)
     return {
-        "subject": {"slug": slug, "category": kategorie},
+        "subject": {"slug": slug, "category": category},
         "windows": [],
         "source": [],
     }
 
 
-def merge_zeitfenster(datei: dict[str, Any], neue_eintraege: list[dict[str, Any]]) -> None:
-    """Merges neue_eintraege into datei["windows"] by window_key: same key ->
+def merge_windows(file: dict[str, Any], neue_eintraege: list[dict[str, Any]]) -> None:
+    """Merges neue_eintraege into file["windows"] by window_key: same key ->
     one entry with both citations, different key -> both kept.
 
     Two sources independently reporting the same window is the business model
@@ -46,7 +46,7 @@ def merge_zeitfenster(datei: dict[str, Any], neue_eintraege: list[dict[str, Any]
     run leaves the correction alone. It is also what review always believed -
     the old content_hash included `to`, so an amended end date already came
     back as a fresh candidate."""
-    by_key = {window_key(w): w for w in datei["windows"]}
+    by_key = {window_key(w): w for w in file["windows"]}
     for incoming in neue_eintraege:
         key = window_key(incoming)
         existing = by_key.get(key) or {}
@@ -57,35 +57,33 @@ def merge_zeitfenster(datei: dict[str, Any], neue_eintraege: list[dict[str, Any]
         if urls:
             merged["source_urls"] = urls
         by_key[key] = merged
-    datei["windows"] = list(by_key.values())
+    file["windows"] = list(by_key.values())
 
 
-def append_quelle(datei: dict[str, Any], quelle: dict[str, Any]) -> None:
-    """Appends quelle to the file's flat source list, deduped by URL - without
+def append_source(file: dict[str, Any], source: dict[str, Any]) -> None:
+    """Appends source to the file's flat source list, deduped by URL - without
     this, re-running the same adapter against an unchanged URL grows the list
     with near-duplicate Source entries over time (same url, only retrieved_at
     ticking forward). A URL match replaces the prior entry instead of
     appending, so the freshest retrieved_at/license_note/confidence wins."""
-    datei["source"] = [
-        s for s in datei["source"] if s.get("url") != quelle.get("url")
-    ] + [quelle]
+    file["source"] = [s for s in file["source"] if s.get("url") != source.get("url")] + [source]
 
 
-def speichere(pfad: Path, datei: dict[str, Any]) -> None:
-    pfad.parent.mkdir(parents=True, exist_ok=True)
-    with pfad.open("w", encoding="utf-8") as f:
-        yaml.dump(datei, f, allow_unicode=True, sort_keys=False)
+def speichere(path: Path, file: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        yaml.dump(file, f, allow_unicode=True, sort_keys=False)
 
 
-def schreibe_page_yaml_falls_neu(pfad: Path, title: str, tags: list[str] | None = None) -> None:
+def schreibe_page_yaml_falls_neu(path: Path, title: str, tags: list[str] | None = None) -> None:
     """Same written-once convention as pipeline/review/service.py's POST /create-page:
     page.yaml carries title/description/tags and is left untouched by a later
     re-run, so a human's edits survive a re-scrape. Every data.yaml folder
     needs one (lib/pages.ts only recognizes a folder as a page when both
     page.yaml AND data.yaml are present)."""
-    if pfad.exists():
+    if path.exists():
         return
-    pfad.parent.mkdir(parents=True, exist_ok=True)
+    path.parent.mkdir(parents=True, exist_ok=True)
     page = {"title": title, "description": "", "tags": tags or []}
-    with pfad.open("w", encoding="utf-8") as f:
+    with path.open("w", encoding="utf-8") as f:
         yaml.dump(page, f, allow_unicode=True, sort_keys=False)

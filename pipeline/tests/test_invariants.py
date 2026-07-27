@@ -35,11 +35,10 @@ def _subject_folders():
 
 # --- Invariant 1: every subject folder describes itself -------------------
 
+
 def test_every_subject_folder_has_exactly_one_meta_toml():
     missing = [
-        str(folder.relative_to(REPO_ROOT))
-        for folder in _subject_folders()
-        if not (folder / "meta.toml").is_file()
+        str(folder.relative_to(REPO_ROOT)) for folder in _subject_folders() if not (folder / "meta.toml").is_file()
     ]
     assert missing == [], f"subject folders without a meta.toml: {missing}"
 
@@ -70,6 +69,7 @@ def test_every_source_a_meta_toml_names_exists(folder):
 
 # --- Invariant 2: source config lives under data/ -------------------------
 
+
 def test_no_source_config_lives_outside_data():
     """The rule that stops the four-directory sprawl coming back. Scoped to
     config that describes the provenance of a PUBLISHED fact: pipeline/config/
@@ -96,11 +96,12 @@ def _looks_like_source_config(path: Path) -> bool:
         return False
     if not isinstance(raw, dict):
         return False
-    # A seed_url means a crawler source; a url + lizenz means a batch source.
-    return "seed_url" in raw or ("url" in raw and "lizenz" in raw)
+    # A seed_url means a crawler source; a url + license means a batch source.
+    return "seed_url" in raw or ("url" in raw and "license" in raw)
 
 
 # --- Invariant 3: core/ does not import its callers -----------------------
+
 
 def test_core_imports_neither_sources_nor_review():
     """The decoupling a repo split would have bought, without a repo split.

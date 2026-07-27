@@ -13,11 +13,7 @@ from sources.registry import _entities_from_bindings, _normalized_domain, _slugi
 FETCHED_AT = "2026-07-14T00:00:00+00:00"
 
 EXISTING_CONFIG = (
-    "university_de:\n"
-    "  method: wikidata_sparql\n"
-    "  sparql: |\n"
-    "    SELECT ?x\n"
-    "  target_kinds: [semestertermine]\n"
+    "university_de:\n  method: wikidata_sparql\n  sparql: |\n    SELECT ?x\n  target_kinds: [semestertermine]\n"
 )
 
 
@@ -85,9 +81,7 @@ def test_add_registry_config_writes_block_style_sparql(tmp_path, monkeypatch):
     config_path.write_text(EXISTING_CONFIG, encoding="utf-8")
     monkeypatch.setattr(registry, "REGISTRIES_CONFIG", config_path)
 
-    registry.add_registry_config(
-        "museum_de", "SELECT ?item WHERE {\n  ?item wdt:P31 wd:Q1 .\n}", ["oeffnungszeiten"]
-    )
+    registry.add_registry_config("museum_de", "SELECT ?item WHERE {\n  ?item wdt:P31 wd:Q1 .\n}", ["oeffnungszeiten"])
 
     written = config_path.read_text(encoding="utf-8")
     assert written.count("sparql: |") == 2  # both the existing and new entry stay block-style
@@ -110,7 +104,8 @@ def test_add_registry_config_rejects_duplicate_entity_class(tmp_path, monkeypatc
 def test_delete_registry_config_removes_entry_and_data(tmp_path, monkeypatch):
     config_path = tmp_path / "registries.yaml"
     config_path.write_text(
-        EXISTING_CONFIG + "museum_de:\n  method: wikidata_sparql\n  sparql: |\n    SELECT ?x\n  target_kinds: [oeffnungszeiten]\n",
+        EXISTING_CONFIG
+        + "museum_de:\n  method: wikidata_sparql\n  sparql: |\n    SELECT ?x\n  target_kinds: [oeffnungszeiten]\n",
         encoding="utf-8",
     )
     monkeypatch.setattr(registry, "REGISTRIES_CONFIG", config_path)
@@ -139,12 +134,14 @@ def test_delete_registry_config_rejects_unknown_entity_class(tmp_path, monkeypat
 def test_search_wikidata_classes_parses_id_label_description(monkeypatch):
     import json as json_module
 
-    fake_response = json_module.dumps({
-        "search": [
-            {"id": "Q33506", "label": "museum", "description": "institution that holds artifacts"},
-            {"id": "Q123", "label": "no description here"},  # description missing entirely
-        ]
-    }).encode("utf-8")
+    fake_response = json_module.dumps(
+        {
+            "search": [
+                {"id": "Q33506", "label": "museum", "description": "institution that holds artifacts"},
+                {"id": "Q123", "label": "no description here"},  # description missing entirely
+            ]
+        }
+    ).encode("utf-8")
     monkeypatch.setattr(registry, "fetch_bytes", lambda url, config=None: (fake_response, ""))
 
     results = registry.search_wikidata_classes("museum")

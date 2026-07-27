@@ -154,20 +154,22 @@ def _call_anthropic_vision(image_bytes: bytes, mime_type: str, prompt: str, syst
         "model": model,
         "max_tokens": 4096,
         "temperature": 0,
-        "messages": [{
-            "role": "user",
-            "content": [
-                {
-                    "type": "image",
-                    "source": {
-                        "type": "base64",
-                        "media_type": mime_type,
-                        "data": base64.b64encode(image_bytes).decode("ascii"),
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": mime_type,
+                            "data": base64.b64encode(image_bytes).decode("ascii"),
+                        },
                     },
-                },
-                {"type": "text", "text": prompt},
-            ],
-        }],
+                    {"type": "text", "text": prompt},
+                ],
+            }
+        ],
     }
     if system:
         body["system"] = system
@@ -211,13 +213,15 @@ def _call_openai_vision(image_bytes: bytes, mime_type: str, prompt: str, system:
     if system:
         messages.append({"role": "system", "content": system})
     data_url = f"data:{mime_type};base64,{base64.b64encode(image_bytes).decode('ascii')}"
-    messages.append({
-        "role": "user",
-        "content": [
-            {"type": "text", "text": prompt},
-            {"type": "image_url", "image_url": {"url": data_url}},
-        ],
-    })
+    messages.append(
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {"url": data_url}},
+            ],
+        }
+    )
     resp = httpx.post(
         "https://api.openai.com/v1/chat/completions",
         headers={"Authorization": f"Bearer {api_key}", "content-type": "application/json"},
@@ -254,13 +258,15 @@ def _call_google(prompt: str, system: str | None, model: str) -> str:
 def _call_google_vision(image_bytes: bytes, mime_type: str, prompt: str, system: str | None, model: str) -> str:
     api_key = _require_key("GOOGLE_API_KEY")
     body = {
-        "contents": [{
-            "role": "user",
-            "parts": [
-                {"inline_data": {"mime_type": mime_type, "data": base64.b64encode(image_bytes).decode("ascii")}},
-                {"text": prompt},
-            ],
-        }],
+        "contents": [
+            {
+                "role": "user",
+                "parts": [
+                    {"inline_data": {"mime_type": mime_type, "data": base64.b64encode(image_bytes).decode("ascii")}},
+                    {"text": prompt},
+                ],
+            }
+        ],
         "generationConfig": {"temperature": 0},
     }
     if system:
@@ -307,13 +313,15 @@ def _call_mistral_vision(image_bytes: bytes, mime_type: str, prompt: str, system
     if system:
         messages.append({"role": "system", "content": system})
     data_url = f"data:{mime_type};base64,{base64.b64encode(image_bytes).decode('ascii')}"
-    messages.append({
-        "role": "user",
-        "content": [
-            {"type": "text", "text": prompt},
-            {"type": "image_url", "image_url": {"url": data_url}},
-        ],
-    })
+    messages.append(
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {"url": data_url}},
+            ],
+        }
+    )
     resp = httpx.post(
         "https://api.mistral.ai/v1/chat/completions",
         headers={"Authorization": f"Bearer {api_key}", "content-type": "application/json"},
@@ -358,13 +366,15 @@ def _call_openrouter_vision(image_bytes: bytes, mime_type: str, prompt: str, sys
     if system:
         messages.append({"role": "system", "content": system})
     data_url = f"data:{mime_type};base64,{base64.b64encode(image_bytes).decode('ascii')}"
-    messages.append({
-        "role": "user",
-        "content": [
-            {"type": "text", "text": prompt},
-            {"type": "image_url", "image_url": {"url": data_url}},
-        ],
-    })
+    messages.append(
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {"url": data_url}},
+            ],
+        }
+    )
     resp = httpx.post(
         "https://openrouter.ai/api/v1/chat/completions",
         headers={"Authorization": f"Bearer {api_key}", "content-type": "application/json"},

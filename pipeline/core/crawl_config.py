@@ -69,7 +69,7 @@ class CrawlSource:
     #
     # Set the SAME category + subject_slug on several sources to aggregate
     # them into one page - the point of the whole pipeline (see
-    # store.merge_zeitfenster: same window from two sources keeps one entry
+    # store.merge_windows: same window from two sources keeps one entry
     # and unions the citations). BOTH fields have to match; a shared
     # subject_slug under different categories silently yields two pages
     # again, since the file path is what identifies the subject.

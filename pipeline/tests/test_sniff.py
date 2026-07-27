@@ -198,3 +198,10 @@ def test_extract_pdf_broken_file_returns_unsupported_binary_without_crashing():
 
     assert result["kind"] == "unsupported_binary"
     assert "could not be opened" in result["reason"]
+
+
+def test_staging_stores_a_text_pdf_as_markdown_so_review_can_render_it():
+    from core import staging
+
+    assert staging._extension_and_bytes(_pdf_with_text(), "application/pdf")[0] == ".md"
+    assert staging._extension_and_bytes(_pdf_bytes(), "application/pdf")[0] == ".pdf"

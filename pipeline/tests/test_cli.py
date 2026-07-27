@@ -25,12 +25,7 @@ CRAWL_YAML = (
     "category: events/feste\n"
     "scope:\n  allowed_domains: [wiesnkini.de]\n"
 )
-BATCH_YAML = (
-    "kind: batch\n"
-    "id: schulferien_kmk\n"
-    "kategorie: schulferien\n"
-    "url: https://www.kmk.org/service/ferien.html\n"
-)
+BATCH_YAML = "kind: batch\nid: schulferien_kmk\ncategory: schulferien\nurl: https://www.kmk.org/service/ferien.html\n"
 
 
 @pytest.fixture

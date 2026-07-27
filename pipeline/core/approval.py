@@ -1,5 +1,5 @@
 """Writes one approved/modified/re-verified event into data/ - the ONLY
-place store.merge_zeitfenster + validate.pruefe_subjekt_datei are invoked
+place store.merge_windows + validate.pruefe_subject_file are invoked
 from, now that core/runner.py and the scoped crawler no longer write
 directly (see core/review_state.py's diff() and review/service.py's /review routes,
 the two callers of write_event below).
@@ -17,6 +17,7 @@ from core import store, validate
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_ROOT = REPO_ROOT / "data"
 
+
 class ApprovalError(Exception):
     """Raised when the approved event fails real Zod validation. Nothing is
     written when this happens - unlike the old runner.py (which validated
@@ -31,26 +32,26 @@ def write_event(
     subject_slug: str,
     subject_name: str,
     event: dict[str, Any],
-    quelle: dict[str, Any],
+    source: dict[str, Any],
 ) -> Path:
     """Merges `event` (one RawWindow-shaped dict) into
-    data/{category}/{subject_slug}/data.yaml via store.merge_zeitfenster and
+    data/{category}/{subject_slug}/data.yaml via store.merge_windows and
     writes page.yaml the first time only. Raises ApprovalError, writing
     nothing, if the result fails Zod validation.
 
     There is no replace_key: window identity is core/content_hash.window_key
     everywhere now, so what counts as "the same window" here and what counts
     as "already approved" in core/review_state can no longer disagree."""
-    datei_pfad = DATA_ROOT / category / subject_slug / "data.yaml"
-    datei = store.lade_oder_erstelle(datei_pfad, subject_slug, category)
-    store.merge_zeitfenster(datei, [event])
-    store.append_quelle(datei, quelle)
+    file_path = DATA_ROOT / category / subject_slug / "data.yaml"
+    file = store.load_or_create(file_path, subject_slug, category)
+    store.merge_windows(file, [event])
+    store.append_source(file, source)
 
     try:
-        validate.pruefe_subjekt_datei(datei)
+        validate.pruefe_subject_file(file)
     except validate.ValidationError as e:
         raise ApprovalError(str(e)) from e
 
-    store.speichere(datei_pfad, datei)
-    store.schreibe_page_yaml_falls_neu(datei_pfad.parent / "page.yaml", subject_name)
-    return datei_pfad
+    store.speichere(file_path, file)
+    store.schreibe_page_yaml_falls_neu(file_path.parent / "page.yaml", subject_name)
+    return file_path

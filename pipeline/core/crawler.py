@@ -36,7 +36,7 @@ class CrawledDocument:
 
 
 def _host_key(host: str) -> str:
-    """"www.site.de" and "site.de" are the same host written two ways, and the
+    """ "www.site.de" and "site.de" are the same host written two ways, and the
     two writers disagree here too: the create route derives allowed_domains
     from netloc.removeprefix("www.") while the seed URL keeps its "www.".
     ONLY the "www." prefix is stripped - anything looser (matching registrable
@@ -71,7 +71,11 @@ def in_scope(url: str, source: CrawlSource) -> bool:
 
 
 def _looks_like_html(content: bytes, content_type: str) -> bool:
-    return content[:15].lstrip().lower().startswith(b"<!doctype html") or content[:6].lower() == b"<html>" or "html" in content_type.lower()
+    return (
+        content[:15].lstrip().lower().startswith(b"<!doctype html")
+        or content[:6].lower() == b"<html>"
+        or "html" in content_type.lower()
+    )
 
 
 def sniff_format(content: bytes, content_type: str) -> str:
@@ -123,6 +127,7 @@ def _discover_links(html: bytes, base_url: str) -> tuple[list[str], list[str]]:
     <link type="text/calendar"> tags (spec: also look for ICS feeds
     advertised on HTML pages, not just linked-to .ics files)."""
     soup = BeautifulSoup(html, "html.parser")
+
     # bs4 hands back list[str] for multi-valued attributes. href is not one of
     # them, but malformed markup can still produce a list, and urljoin raises
     # on anything that is not str/bytes - so normalise before joining.
