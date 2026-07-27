@@ -131,7 +131,11 @@ def run(source_id: str, params: dict[str, str]) -> int:
         slug = ergebnis.subjekt["slug"]
         subjects_by_slug[slug] = ergebnis
         for window in ergebnis.zeitfenster:
-            candidate = staging.build_candidate(source_id, slug, window, doc_hash, extracted_at)
+            candidate = staging.build_candidate(
+                source_id, slug, window, doc_hash, extracted_at,
+                subject_name=ergebnis.subjekt["name"],
+                category=ergebnis.subjekt["category"],
+            )
             staging.write_candidate(source_id, run_ts, candidate)
             candidates_by_subject.setdefault(slug, []).append(candidate)
 

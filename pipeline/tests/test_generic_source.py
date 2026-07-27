@@ -1,8 +1,8 @@
 """Fixture-Test fuer core/generic_source.py, ueber das schulferien_kmk jetzt
 laeuft (siehe pipeline/README.md "Pipeline-Struktur") - kein bespoke
 sources/schulferien_kmk.py-Adapter mehr, nur die data/_sources-Konfiguration.
-raw_sample.html ist ein echter, einmalig gespeicherter Abruf von
-kmk.org/service/ferien.html. erwartet.yaml steht fuer eine aufgezeichnete
+raw_sample.html ist ein echter, einmalig gespeicherter Abruf der
+KMK-Ferienuebersicht. erwartet.yaml steht fuer eine aufgezeichnete
 Modell-Antwort (zwei Bundeslaender, um den Subjekt-Split-Mechanismus zu
 testen) - in den meisten Tests hier per monkeypatch von
 generic_source.extract_subjects direkt geliefert; das testet den generischen
@@ -56,7 +56,7 @@ def test_extract_liefert_ein_ergebnis_pro_subjekt(monkeypatch, config, raw_sampl
     for result in results:
         assert result.subjekt["category"] == "schulferien"
         assert result.quelle["extraction"] == "llm"
-        assert result.quelle["url"] == "https://www.kmk.org/service/ferien.html"
+        assert result.quelle["url"] == config["url"]
         assert "2028" in result.quelle["license_note"]
 
 
