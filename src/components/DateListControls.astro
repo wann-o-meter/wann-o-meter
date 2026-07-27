@@ -40,13 +40,20 @@ const runs = yearRuns(yearLinks, visible, edge);
 const hidden = runs.filter((r) => r.hidden);
 const hasPast = hidden.some((r) => r.side === "past");
 const hasFuture = hidden.some((r) => r.side === "future");
+// Standing on /…/2000/ means standing IN the full range, so offering to unfold
+// it - either half of it - is absurd: the row opens complete, with the pager in
+// charge, which is what this control looked like before the folding existed.
+// Client-side, so the served HTML keeps its handful of links either way. Only
+// for a year outside the window: on an indexable year page both sides stay
+// folded.
+const openAll = currentYear !== undefined && !inIndexWindow(category, currentYear);
 ---
 
 {
   /* Renders even for a single year: that lone year page is only reachable
      from here, so a "one year needs no picker" gate would orphan it. */
   yearLinks.length > 0 && (
-    <div class="year-filter" data-current-year={currentYear}>
+    <div class="year-filter" data-current-year={currentYear} data-open={openAll ? "all" : undefined}>
       <p class="year-pills">
         {hasPast && (
           <button type="button" class="year-btn year-reveal" data-reveal="past">Vergangene Jahre anzeigen</button>
@@ -154,6 +161,8 @@ const hasFuture = hidden.some((r) => r.side === "future");
     // page then moves by less than a full window. Starts don't drift.
     let start = 0;
     const lastStart = () => Math.max(0, years.length - WINDOW_SIZE);
+    // side -> the function that unfolds it, removed once it has been used.
+    const openers = new Map<string, () => void>();
 
     function renderWindow() {
       // A short row needs no pager at all - that is the state before any
@@ -170,7 +179,11 @@ const hasFuture = hidden.some((r) => r.side === "future");
       if (range) range.textContent = `${years[start]}–${years[end - 1]} von ${years.length} Jahren`;
       for (const nav of navButtons) {
         const backwards = nav.dataset.step === "first" || nav.dataset.step === "prev";
-        nav.disabled = backwards ? start === 0 : start === lastStart();
+        // Only dead once that side holds nothing more - a greyed-out « with 124
+        // years still folded away behind the other button is a lie.
+        nav.disabled = backwards
+          ? start === 0 && !openers.has("past")
+          : start === lastStart() && !openers.has("future");
       }
     }
 
@@ -197,9 +210,22 @@ const hasFuture = hidden.some((r) => r.side === "future");
       // leaving the page, so you can look around before picking a year.
       nav.addEventListener("click", () => {
         const step = nav.dataset.step;
+        const backwards = step === "first" || step === "prev";
+        // Running out of revealed years unfolds the next stretch instead of
+        // stopping - "zum ersten Jahr" means 1901, not "the first one I have
+        // already been shown". Decided before opening anything, since that
+        // moves `start`.
+        const wantsPast = step === "first" || (backwards && start === 0);
+        const wantsFuture = step === "last" || (!backwards && start === lastStart());
+        // The year the window currently starts at: revealing the past shifts
+        // every index, so the position has to be restored by year, not by index.
+        const anchor = years[start];
+        if (wantsPast) openers.get("past")?.();
+        if (wantsFuture) openers.get("future")?.();
+        const anchorNow = years.indexOf(anchor);
         if (step === "first") setStart(0);
         else if (step === "last") setStart(lastStart());
-        else setStart(start + (step === "next" ? WINDOW_SIZE : -WINDOW_SIZE));
+        else setStart((anchorNow >= 0 ? anchorNow : start) + (backwards ? -WINDOW_SIZE : WINDOW_SIZE));
       });
     }
 
@@ -214,6 +240,8 @@ const hasFuture = hidden.some((r) => r.side === "future");
     // One click, for good: the button hands its whole <template> to the row -
     // in place, since the template already sits where its years belong - and
     // then removes itself, leaving the pager in charge of what is on screen.
+    // A side drops out of `openers` once opened, which is also how the pager
+    // knows whether « / » still have somewhere to go.
     for (const button of filter?.querySelectorAll<HTMLButtonElement>("[data-reveal]") ?? []) {
       const side = button.dataset.reveal ?? "";
       // A side can be more than one template: the year the page is about
@@ -221,20 +249,26 @@ const hasFuture = hidden.some((r) => r.side === "future");
       const templates = [
         ...(filter?.querySelectorAll<HTMLTemplateElement>(`template[data-years="${side}"]`) ?? []),
       ];
-      function open() {
+      openers.set(side, () => {
         for (const template of templates) template.before(template.content);
         button.remove();
+        openers.delete(side);
         syncPager();
-      }
+      });
       button.addEventListener("click", () => {
         opened.add(side);
         sessionStorage.setItem(OPENED, JSON.stringify([...opened]));
-        open();
+        openers.get(side)?.();
       });
-      if (opened.has(side)) open();
     }
 
     syncPager();
+    // A page whose own year is outside the window opens complete; otherwise
+    // whatever was opened earlier this session. Neither is recorded back into
+    // the session: landing on one archive page should not leave every later
+    // page unfolded.
+    const sides = filter?.dataset.open === "all" ? [...openers.keys()] : [...opened];
+    for (const side of sides) openers.get(side)?.();
 
     const yearSelect = document.getElementById("year-select") as HTMLSelectElement | null;
     yearSelect?.addEventListener("change", () => {
