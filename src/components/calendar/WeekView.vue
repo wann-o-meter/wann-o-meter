@@ -34,7 +34,9 @@ function formatShort(iso: string): string {
 
 const title = computed(() => {
   const d = days.value;
-  return `KW ${weekNumber.value} · ${formatShort(d[0])}–${formatShort(d[6])} ${d[6].slice(0, 4)}`;
+  // No space before the year: formatShort already ends in the separating dot,
+  // so "09.08." + "2026" is the German "09.08.2026", not "09.08. 2026".
+  return `KW ${weekNumber.value} · ${formatShort(d[0])}–${formatShort(d[6])}${d[6].slice(0, 4)}`;
 });
 
 function matches(dayIso: string) {

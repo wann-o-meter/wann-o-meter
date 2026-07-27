@@ -76,7 +76,7 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
     <header>
       <div class:list={["wrap", "header-bar", { wide }]}>
         <a href="/" class="brand">Wann-<span class="brand-accent">O</span>-Meter</a>
-        <nav>
+        <nav aria-label="Hauptnavigation">
           {/* transition:persist keeps THIS node across a view-transition swap
               instead of replacing it with the next page's empty one. The label is
               filled in by client JS (the date must be the visitor's "today", not
