@@ -6,6 +6,7 @@ import { isoFromDate, mondayOf } from "../../lib/date-grid";
 import {
   type CalendarState,
   type CalendarView,
+  DEFAULT_VIEW,
   YEAR_MAX,
   YEAR_MIN,
   buildCalendarParams,
@@ -91,7 +92,7 @@ const year = ref(today.getFullYear());
 const layers = ref<Layer[]>([]);
 const loading = ref(true);
 
-const view = ref<CalendarView>("year");
+const view = ref<CalendarView>(DEFAULT_VIEW);
 const activeMonth = ref(today.getMonth());
 const weekStart = ref(isoFromDate(mondayOf(today)));
 const selectedDay = ref<string | null>(null);
@@ -314,12 +315,12 @@ async function copyFeedUrl(layer: { id: string; feedUrl: string }) {
 function storedView(): CalendarView {
   try {
     const stored = localStorage.getItem(VIEW_STORAGE_KEY);
-    return isCalendarView(stored) ? stored : "year";
+    return isCalendarView(stored) ? stored : DEFAULT_VIEW;
   } catch {
     // Safari private mode and strict-cookie setups throw here, and this sits
     // on the only path that initializes the calendar - an escaping throw
     // would leave the skeleton on screen forever.
-    return "year";
+    return DEFAULT_VIEW;
   }
 }
 

@@ -16,6 +16,12 @@ export const YEAR_MAX = new Date().getFullYear() + 5;
 // src/components/calendar/ plus an entry in this union.
 export type CalendarView = "year" | "month" | "week" | "planner" | "graph";
 
+// What a visitor with no view= and no stored preference gets, and the one
+// value buildCalendarParams omits from the URL - those two have to stay the
+// same view, or a shared link round-trips into a different template than the
+// one it was copied from.
+export const DEFAULT_VIEW: CalendarView = "month";
+
 // Month-scoped templates: the ones whose URL has to carry month= to be a
 // meaningful deep link.
 const MONTH_SCOPED: CalendarView[] = ["month", "week", "planner"];
@@ -49,8 +55,12 @@ export function isCalendarView(value: unknown): value is CalendarView {
 // the current state rather than merely amend it.
 //
 // `fallbackView` is where the stored preference goes: an explicit view= in
-// the URL always wins over it, and it in turn wins over "year".
-export function parseCalendarUrl(search: string, today: Date, fallbackView: CalendarView = "year"): CalendarState {
+// the URL always wins over it, and it in turn wins over DEFAULT_VIEW.
+export function parseCalendarUrl(
+  search: string,
+  today: Date,
+  fallbackView: CalendarView = DEFAULT_VIEW,
+): CalendarState {
   const params = new URLSearchParams(search);
 
   const y = Number(params.get("year"));
@@ -117,7 +127,7 @@ export function parseCalendarUrl(search: string, today: Date, fallbackView: Cale
 export function buildCalendarParams(state: CalendarState, live: boolean): URLSearchParams {
   const params = new URLSearchParams();
   params.set("year", live ? "current" : String(state.year));
-  if (state.view !== "year") params.set("view", state.view);
+  if (state.view !== DEFAULT_VIEW) params.set("view", state.view);
   if (MONTH_SCOPED.includes(state.view)) {
     params.set("month", live ? "current" : String(state.monthIndex0 + 1));
   }

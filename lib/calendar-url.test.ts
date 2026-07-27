@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type CalendarState, buildCalendarParams, parseCalendarUrl } from "./calendar-url";
+import { type CalendarState, DEFAULT_VIEW, buildCalendarParams, parseCalendarUrl } from "./calendar-url";
 
 const TODAY = new Date("2026-07-26T00:00:00"); // a Sunday
 const THIS_MONDAY = "2026-07-20";
@@ -8,7 +8,7 @@ describe("parseCalendarUrl", () => {
   it("falls back to today for an empty query", () => {
     expect(parseCalendarUrl("", TODAY)).toEqual({
       year: 2026,
-      view: "year",
+      view: DEFAULT_VIEW,
       monthIndex0: 6,
       weekStartIso: THIS_MONDAY,
       selectedDay: null,
@@ -87,6 +87,10 @@ describe("state -> URL -> state", () => {
       selectedDay: null,
       layerIds: [],
     };
+    // Month is DEFAULT_VIEW, so it is the one view omitted from the URL - the
+    // round trip below is what proves the omitted value and the parse fallback
+    // are still the same view.
+    expect(buildCalendarParams(state, false).has("view")).toBe(false);
     expect(roundTrip(state)).toEqual(state);
   });
 
