@@ -12,7 +12,7 @@
 // is not something a visitor should be able to feel. Prefetched and swapped
 // via view transitions (Layout.astro), so following one of these reads like a
 // filter updating rather than a page load.
-import { inIndexWindow } from "../../lib/year-pages";
+import { inIndexWindow, yearRuns } from "../../lib/year-pages";
 
 interface Props {
   yearLinks: { year: number; href: string }[];
@@ -31,13 +31,15 @@ const { yearLinks, category, allHref, currentYear } = Astro.props;
 // page and follows hidden links just the same. The year page we are ON is
 // always visible: it is the active state, and a control that hides the current
 // item is just confusing.
-const shown = (l: { year: number }) => l.year === currentYear || inIndexWindow(category, l.year);
-const pills = yearLinks.filter(shown);
-const first = pills[0]?.year ?? Infinity;
-const last = pills[pills.length - 1]?.year ?? -Infinity;
-const past = yearLinks.filter((l) => !shown(l) && l.year < first);
-const future = yearLinks.filter((l) => !shown(l) && l.year > last);
-const hasHidden = past.length + future.length > 0;
+const visible = (year: number) => year === currentYear || inIndexWindow(category, year);
+// Everything below the first indexable year is the past side, the rest the
+// future side - one reveal button each. Fall back to the current year (then to
+// "everything is past") when the page has no indexable year at all.
+const edge = yearLinks.find((l) => inIndexWindow(category, l.year))?.year ?? currentYear ?? Infinity;
+const runs = yearRuns(yearLinks, visible, edge);
+const hidden = runs.filter((r) => r.hidden);
+const hasPast = hidden.some((r) => r.side === "past");
+const hasFuture = hidden.some((r) => r.side === "future");
 ---
 
 {
@@ -46,7 +48,7 @@ const hasHidden = past.length + future.length > 0;
   yearLinks.length > 0 && (
     <div class="year-filter" data-current-year={currentYear}>
       <p class="year-pills">
-        {past.length > 0 && (
+        {hasPast && (
           <button type="button" class="year-btn year-reveal" data-reveal="past">Vergangene Jahre anzeigen</button>
         )}
         {allHref ? (
@@ -58,7 +60,7 @@ const hasHidden = past.length + future.length > 0;
         )}
         {/* Hidden until a reveal puts enough years in the row to need paging -
             up front there are at most six, which fit. */}
-        {hasHidden && (
+        {hidden.length > 0 && (
           <>
             <button type="button" class="year-btn year-nav" data-step="first" title="Zum ersten Jahr" hidden>&laquo;</button>
             <button type="button" class="year-btn year-nav" data-step="prev" title="Frühere Jahre" hidden>&lsaquo;</button>
@@ -71,41 +73,37 @@ const hasHidden = past.length + future.length > 0;
             Disallow would be worse than nothing, because a URL Google may not
             fetch is a URL whose noindex it can never read. No prefetch either:
             revealing years should not fire a page fetch per pill. */}
-        {past.length > 0 && (
-          <template data-years="past">
-            {past.map((l) => (
-              <a class="year-btn year-option" data-year={l.year} rel="nofollow" href={l.href}>{l.year}</a>
-            ))}
-          </template>
-        )}
-        {pills.map((l) =>
-          l.year === currentYear ? (
-            <span class="year-btn year-option active" aria-current="page" data-year={l.year}>{l.year}</span>
+        {runs.map((run) =>
+          run.hidden ? (
+            <template data-years={run.side}>
+              {run.years.map((l) => (
+                <a class="year-btn year-option" data-year={l.year} rel="nofollow" href={l.href}>{l.year}</a>
+              ))}
+            </template>
           ) : (
-            <a class="year-btn year-option" data-year={l.year} href={l.href} data-astro-prefetch="viewport">
-              {l.year}
-            </a>
+            run.years.map((l) =>
+              l.year === currentYear ? (
+                <span class="year-btn year-option active" aria-current="page" data-year={l.year}>{l.year}</span>
+              ) : (
+                <a class="year-btn year-option" data-year={l.year} href={l.href} data-astro-prefetch="viewport">
+                  {l.year}
+                </a>
+              ),
+            )
           ),
         )}
-        {future.length > 0 && (
-          <template data-years="future">
-            {future.map((l) => (
-              <a class="year-btn year-option" data-year={l.year} rel="nofollow" href={l.href}>{l.year}</a>
-            ))}
-          </template>
-        )}
-        {hasHidden && (
+        {hidden.length > 0 && (
           <>
             <button type="button" class="year-btn year-nav" data-step="next" title="Spätere Jahre" hidden>&rsaquo;</button>
             <button type="button" class="year-btn year-nav" data-step="last" title="Zum letzten Jahr" hidden>&raquo;</button>
           </>
         )}
-        {future.length > 0 && (
+        {hasFuture && (
           <button type="button" class="year-btn year-reveal" data-reveal="future">Mehr anzeigen</button>
         )}
       </p>
 
-      {hasHidden && (
+      {hidden.length > 0 && (
         <p class="year-jump">
           <span class="year-range" role="status" aria-live="polite" hidden />
           <label for="year-select">Jahr direkt wählen</label>
@@ -209,11 +207,15 @@ const hasHidden = past.length + future.length > 0;
     // in place, since the template already sits where its years belong - and
     // then removes itself, leaving the pager in charge of what is on screen.
     for (const button of filter?.querySelectorAll<HTMLButtonElement>("[data-reveal]") ?? []) {
-      const template = filter?.querySelector<HTMLTemplateElement>(
-        `template[data-years="${button.dataset.reveal}"]`,
-      );
+      // A side can be more than one template: the year the page is about
+      // splits its own hidden stretch in two (lib/year-pages.ts's yearRuns).
+      const templates = [
+        ...(filter?.querySelectorAll<HTMLTemplateElement>(
+          `template[data-years="${button.dataset.reveal}"]`,
+        ) ?? []),
+      ];
       button.addEventListener("click", () => {
-        if (template) template.before(template.content);
+        for (const template of templates) template.before(template.content);
         button.remove();
         syncPager();
       });

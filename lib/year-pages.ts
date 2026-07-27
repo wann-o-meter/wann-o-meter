@@ -187,6 +187,39 @@ export function includeInSitemap(url: string, today = new Date()): boolean {
   return inIndexWindow(segments.slice(0, -2).join("/"), year, today);
 }
 
+// The pill row of DateListControls, in order: neighbouring years grouped into
+// runs of visible and hidden, the hidden ones split further by which side of
+// the indexable window they fall on (one reveal button per side). Runs rather
+// than a plain past/visible/future split, because the year page we are ON is
+// visible even when it sits deep inside a hidden stretch - /astronomie/
+// sonnenfinsternis/1954/ has to render 1901-1953 hidden, 1954 visible,
+// 1955-2024 hidden again. Splitting on the extremes of the visible set instead
+// would drop those middle 70 years out of the row entirely.
+//
+// The invariant, worth keeping: concatenating the runs reproduces `years`
+// exactly, in the same order.
+export interface YearRun<T> {
+  hidden: boolean;
+  side: "past" | "future";
+  years: T[];
+}
+
+export function yearRuns<T extends { year: number }>(
+  years: T[],
+  isVisible: (year: number) => boolean,
+  edge: number,
+): YearRun<T>[] {
+  const runs: YearRun<T>[] = [];
+  for (const item of years) {
+    const hidden = !isVisible(item.year);
+    const side = item.year < edge ? "past" : "future";
+    const open = runs[runs.length - 1];
+    if (open && open.hidden === hidden && open.side === side) open.years.push(item);
+    else runs.push({ hidden, side, years: [item] });
+  }
+  return runs;
+}
+
 // Cross-links from a year page to the same year elsewhere. Two rules, neither
 // of which inspects a window's type: the same STATE across the state topics
 // (Brückentage NRW 2027 -> Schulferien NRW 2027), or failing that the page's

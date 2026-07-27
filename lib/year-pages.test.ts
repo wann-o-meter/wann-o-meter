@@ -14,6 +14,7 @@ import {
   yearLabel,
   yearSubject,
   yearSubjectCode,
+  yearRuns,
   yearsForPage,
 } from "./year-pages";
 import { parsePageData, parsePageMeta } from "./pages-schema";
@@ -230,6 +231,32 @@ describe("which year pages are indexable", () => {
     expect(includeInSitemap(url("/kalender/"), today)).toBe(true);
     // Looks like a year page but was never generated - must not be dropped.
     expect(includeInSitemap(url("/feiertage/de-bw/1200/"), today)).toBe(true);
+  });
+});
+
+describe("the pill row's runs", () => {
+  // /astronomie/sonnenfinsternis/1954/: an archive year page whose own year is
+  // visible in the middle of a long hidden stretch.
+  const years = Array.from({ length: 200 }, (_, i) => ({ year: 1901 + i }));
+  const visible = (y: number) => y === 1954 || (y >= 2025 && y <= 2028);
+  const runs = yearRuns(years, visible, 2025);
+
+  it("loses no year and keeps them in order", () => {
+    expect(runs.flatMap((r) => r.years)).toEqual(years);
+  });
+
+  it("splits the hidden stretch around the year the page is about", () => {
+    expect(runs.map((r) => [r.hidden, r.side, r.years[0].year, r.years.at(-1)!.year])).toEqual([
+      [true, "past", 1901, 1953],
+      [false, "past", 1954, 1954],
+      [true, "past", 1955, 2024],
+      [false, "future", 2025, 2028],
+      [true, "future", 2029, 2100],
+    ]);
+  });
+
+  it("is one visible run when nothing is hidden", () => {
+    expect(yearRuns(years, () => true, 2025).length).toBe(2); // past | future, both visible
   });
 });
 
