@@ -515,3 +515,15 @@ def test_span_seen_start_only_by_the_overlapping_chunk_does_not_duplicate():
         result = extract_dated_events("x" * (MAX_TEXT_LENGTH + 1))
 
     assert result == [{"date": "2026-09-19", "end": "2026-10-04", "label": "Oktoberfest"}]
+
+
+def test_type_slug_transliterates_umlauts_instead_of_eating_them():
+    """[^a-z0-9]+ turned "Frühlingsferien" into "fr-hlingsferien". type is part
+    of window_key, so a mangled slug is a permanently distinct window."""
+    assert type_slug_from_label("Frühlingsferien") == "school_holidays-easter"
+    assert "-hlings" not in type_slug_from_label("Frühlingsferien")
+
+
+def test_type_slug_maps_the_regional_names_for_known_holidays():
+    assert type_slug_from_label("Allerheiligenferien") == "school_holidays-autumn"
+    assert type_slug_from_label("Frühjahrsferien") == "school_holidays-easter"

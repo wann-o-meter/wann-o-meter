@@ -553,6 +553,9 @@ _TYPE_SLUG_KEYWORDS = [
     ("fasching", "school_holidays-winter"),
     ("fasnet", "school_holidays-winter"),
     ("winter", "school_holidays-winter"),
+    ("allerheiligen", "school_holidays-autumn"),
+    ("fruehjahr", "school_holidays-easter"),
+    ("fruehling", "school_holidays-easter"),
 ]
 
 
@@ -567,6 +570,8 @@ def type_slug_from_label(label: str) -> str:
     Bundesland-specific bridge day, or a wholly different domain's labels)
     rather than dropping the entry."""
     lower = label.lower()
+    for umlaut, ascii_form in (("ä", "ae"), ("ö", "oe"), ("ü", "ue"), ("ß", "ss")):
+        lower = lower.replace(umlaut, ascii_form)
     for keyword, typ in _TYPE_SLUG_KEYWORDS:
         if keyword in lower:
             return typ
