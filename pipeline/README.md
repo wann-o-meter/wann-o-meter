@@ -22,14 +22,32 @@ FastAPI + Jinja2 SSR admin interface for the scoped crawler + review workflow.
   preserved verbatim, no LLM call) - the same staging/review/diff flow as everything else.
 - **Live Updates**: HTMX-powered dashboard (no full page reloads needed).
 
-## Run the Admin Dashboard
+## `wom` - the CLI
 
 ```bash
 cd pipeline
-uv run uvicorn review.app:app --reload
+uv run wom sources                      # every source, and which runner owns it
+uv run wom run wiesnkini-de             # crawl a source, stage its candidates
+uv run wom run schulferien_kmk --jahr 2028   # batch sources take --key value params
+uv run wom review                       # serve the review app on :8000
+uv run wom registry university_de       # fetch a Wikidata entity registry
 ```
 
-Then open: **http://localhost:8000**
+`wom run` dispatches on the source's `kind` (see `data/_sources/`): a `kind: batch`
+file goes to `core/runner.py`, one without to `core/crawl_runner.py`. Crawl sources
+had no CLI at all before this - they could only be started from the dashboard's
+**Run** button.
+
+Both paths end the same way, and it is the rule the whole design rests on: candidates
+that were already reviewed are written to `data/`, everything else waits in
+`staging/` for `wom review`. **Nothing here writes an unreviewed candidate to
+`data/`.**
+
+The subcommands are thin wrappers - each calls the same function the dashboard
+calls, so the CLI and the UI cannot drift apart. `uv run wom` works from any
+directory; every path is resolved from `__file__`, not the cwd.
+
+`wom review` then serves **http://localhost:8000**.
 
 ## Lint, types, tests
 
@@ -63,10 +81,6 @@ five, each a tool limitation rather than a concession:
 
 Plus `# noqa: E402` on the tests' imports, which follow a deliberate
 `sys.path.insert` preamble.
-
-```bash
-uv run pytest tests/ -v   # verbose, per-test
-```
 
 Fixture-based per source (`tests/fixtures/{source_id}/raw_sample... + erwartet.yaml`) - see
 `tests/test_schulferien_kmk.py` for the pattern. LLM calls are mocked with the fixture's
@@ -185,7 +199,7 @@ Quelle einen `data/_sources/<id>.yaml` mit `kind: batch` (`kategorie`, `url`, `l
 
 ```bash
 cd pipeline
-uv run python -m core.runner schulferien_kmk --jahr 2028
+uv run wom run schulferien_kmk --jahr 2028
 ```
 
 Kein Python noetig in beiden Faellen - `core/generic_source.py`/`core/crawler.py`
@@ -237,7 +251,7 @@ implemented so far:
 
 ```bash
 cd pipeline
-uv run python -m sources.registry university_de
+uv run wom registry university_de
 ```
 
 Writes `pipeline/data/registries/university_de.json` (one row per university:

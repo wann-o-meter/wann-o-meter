@@ -173,7 +173,7 @@ def run(source_id: str, params: dict[str, str]) -> int:
 
 def main() -> int:
     if len(sys.argv) < 2:
-        print("Nutzung: python -m core.runner <source_id> [--key wert ...]", file=sys.stderr)
+        print("Nutzung: wom run <source_id> [--key wert ...]", file=sys.stderr)
         return 2
     source_id = sys.argv[1]
     try:

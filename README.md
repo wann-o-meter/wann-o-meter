@@ -60,7 +60,7 @@ von `date-holidays` unterstuetzten Laender (>200) ab, jedes einzeln als Kalender
 
 ```sh
 cd pipeline
-uv run python -m core.runner schulferien_kmk --jahr 2028
+uv run wom run schulferien_kmk --jahr 2028
 ```
 
 Kreislauf: Fetch -> Extraktion -> Validierung gegen `lib/schema.ts` -> `pipeline/staging/` ->
