@@ -2,26 +2,6 @@
 
 FastAPI + Jinja2 SSR admin interface for the scoped crawler + review workflow.
 
-## Features
-
-- **Scoped Crawler**: each source is a config file (`data/_sources/<id>.yaml` -
-  seed URL, allowed domains, path prefix, max depth, formats, category). Add one from the
-  dashboard by pasting just the seed URL - ID/domain/category are derived from it, with an
-  Advanced section to override any of them - or hand-write the YAML file directly. Delete
-  removes only the config file - review-state history and anything already written to
-  `data/` are kept, so re-adding the same source later picks its history back up. Respects
-  robots.txt and a per-domain rate limit.
-- **Staging + diff-based re-crawling**: every crawl's fetched documents and extracted
-  candidates land in `staging/`, diffed against `review-state/` - already-approved/modified
-  candidates auto-wave-through on a later run (with `last_verified` re-stamped), rejected ones
-  stay silently dropped, only genuinely new/changed candidates reach a human.
-- **Review workflow**: approve/modify/reject a candidate next to its source document snapshot.
-  Approved/modified candidates write straight to `data/` - no PR-per-run; you commit/push
-  yourself, like any other local change.
-- **ICS as a deterministic path**: an `.ics` feed is parsed directly into windows (RRULE
-  preserved verbatim, no LLM call) - the same staging/review/diff flow as everything else.
-- **Live Updates**: HTMX-powered dashboard (no full page reloads needed).
-
 ## `wom` - the CLI
 
 ```bash
@@ -65,6 +45,26 @@ LLM_MODEL=                  # optional; each provider has a small/cheap default
 `.env` surfaces as "ANTHROPIC_API_KEY is not set" regardless of which key you
 actually hold. If you see that on a machine configured for another provider,
 the variable is not reaching the process.
+
+## Features
+
+- **Scoped Crawler**: each source is a config file (`data/_sources/<id>.yaml` -
+  seed URL, allowed domains, path prefix, max depth, formats, category). Add one from the
+  dashboard by pasting just the seed URL - ID/domain/category are derived from it, with an
+  Advanced section to override any of them - or hand-write the YAML file directly. Delete
+  removes only the config file - review-state history and anything already written to
+  `data/` are kept, so re-adding the same source later picks its history back up. Respects
+  robots.txt and a per-domain rate limit.
+- **Staging + diff-based re-crawling**: every crawl's fetched documents and extracted
+  candidates land in `staging/`, diffed against `review-state/` - already-approved/modified
+  candidates auto-wave-through on a later run (with `last_verified` re-stamped), rejected ones
+  stay silently dropped, only genuinely new/changed candidates reach a human.
+- **Review workflow**: approve/modify/reject a candidate next to its source document snapshot.
+  Approved/modified candidates write straight to `data/` - no PR-per-run; you commit/push
+  yourself, like any other local change.
+- **ICS as a deterministic path**: an `.ics` feed is parsed directly into windows (RRULE
+  preserved verbatim, no LLM call) - the same staging/review/diff flow as everything else.
+- **Live Updates**: HTMX-powered dashboard (no full page reloads needed).
 
 ## Lint, types, tests
 

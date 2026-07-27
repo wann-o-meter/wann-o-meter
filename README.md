@@ -56,11 +56,13 @@ von `date-holidays` unterstuetzten Laender (>200) ab, jedes einzeln als Kalender
 | `bun run build`  | Production-Build nach `./dist/` (inkl. Zod-Validierung der Zeitfenster) |
 | `bun run test`   | Vitest-Suite fuer `/lib`                                              |
 
-## Pipeline (neue Schulferien-Daten vorschlagen)
+## Pipeline
 
 ```sh
 cd pipeline
-uv run wom run schulferien_kmk --jahr 2028
+uv run wom sources                            # welche Quellen es gibt
+uv run wom run schulferien_kmk --jahr 2028    # Quelle abrufen, Kandidaten stagen
+uv run wom review                             # Review-UI auf http://localhost:8000
 ```
 
 Kreislauf: Fetch -> Extraktion -> Validierung gegen `lib/schema.ts` -> `pipeline/staging/` ->
