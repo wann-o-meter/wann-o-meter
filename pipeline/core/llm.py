@@ -25,12 +25,26 @@ unrelated models behind one key.
 
 Model IDs drift over time - the defaults below are current as of this
 writing; override with LLM_MODEL if a provider has moved on.
+
+pipeline/.env is loaded HERE rather than by each entry point. It used to be
+loaded only by the review app, so `wom run` / `python -m core.runner` ran with
+LLM_PROVIDER unset, silently fell back to the anthropic default, and demanded
+an ANTHROPIC_API_KEY on a machine configured for Mistral. Loading it in the
+module that reads the variables means every caller - CLI, web app, a bare
+`python -c` - sees the same configuration.
 """
 
 import base64
 import os
+from pathlib import Path
 
 import httpx
+from dotenv import load_dotenv
+
+# Explicit path, not a cwd-relative search: `wom` is installed as a console
+# script and runs from wherever the operator happens to be. override=False so a
+# real exported variable still beats the file.
+load_dotenv(Path(__file__).resolve().parent.parent / ".env", override=False)
 
 DEFAULT_MODELS = {
     # "or" rather than dict .get(..., default): an *_MODEL var present in

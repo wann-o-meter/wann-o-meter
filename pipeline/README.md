@@ -49,6 +49,23 @@ directory; every path is resolved from `__file__`, not the cwd.
 
 `wom review` then serves **http://localhost:8000**.
 
+### LLM configuration
+
+Anything that extracts with a model reads `pipeline/.env` (loaded by
+`core/llm.py`, so every entry point sees the same config - CLI and web app
+alike):
+
+```sh
+LLM_PROVIDER=mistral        # anthropic | openai | google | mistral | openrouter
+MISTRAL_API_KEY=...         # whichever provider's key matches
+LLM_MODEL=                  # optional; each provider has a small/cheap default
+```
+
+`LLM_PROVIDER` defaults to `anthropic` when unset, so a missing or unread
+`.env` surfaces as "ANTHROPIC_API_KEY is not set" regardless of which key you
+actually hold. If you see that on a machine configured for another provider,
+the variable is not reaching the process.
+
 ## Lint, types, tests
 
 ```bash

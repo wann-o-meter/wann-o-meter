@@ -23,6 +23,43 @@ def _fake_response(status_code=200, json_body=None, text=""):
     return resp
 
 
+def test_the_env_file_is_loaded_by_importing_llm_not_by_each_entry_point():
+    """pipeline/.env used to be loaded only by the review app, so `wom run` and
+    `python -m core.runner` saw no LLM_PROVIDER, fell through to the anthropic
+    default, and asked for an ANTHROPIC_API_KEY on a Mistral-configured machine.
+    The import side effect is the fix, so it is what gets pinned here."""
+    import dotenv
+
+    source = (PIPELINE_ROOT / "core" / "llm.py").read_text(encoding="utf-8")
+    assert "load_dotenv(" in source, "core/llm.py must load pipeline/.env itself"
+    assert "Path(__file__)" in source, "the .env path must not depend on the cwd - wom runs from anywhere"
+    assert hasattr(dotenv, "load_dotenv")
+
+
+def test_the_configured_provider_decides_which_key_is_demanded(monkeypatch):
+    """The symptom of the bug above was an ANTHROPIC_API_KEY error while
+    LLM_PROVIDER=mistral. Whatever the provider is, the key it asks for has to
+    be that provider's."""
+    monkeypatch.setenv("LLM_PROVIDER", "mistral")
+    monkeypatch.delenv("MISTRAL_API_KEY", raising=False)
+    monkeypatch.delenv("LLM_MODEL", raising=False)
+
+    with pytest.raises(llm.LlmError, match="MISTRAL_API_KEY"):
+        llm.call_llm("hi")
+
+
+def test_a_configured_provider_is_the_one_that_gets_called(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "mistral")
+    monkeypatch.setenv("MISTRAL_API_KEY", "test-key")
+    monkeypatch.delenv("LLM_MODEL", raising=False)
+    body = {"choices": [{"message": {"content": "ok"}}]}
+
+    with patch("httpx.post", return_value=_fake_response(json_body=body)) as post:
+        llm.call_llm("hi")
+
+    assert "api.mistral.ai" in post.call_args[0][0]
+
+
 def test_unknown_provider_raises(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "carrier-pigeon")
     with pytest.raises(llm.LlmError, match="Unknown LLM_PROVIDER"):
