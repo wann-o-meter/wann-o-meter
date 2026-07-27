@@ -68,6 +68,14 @@ const GENERATORS: Record<string, () => Page[]> = {
 // a top-level RESERVED_CATEGORIES collision.
 const RESERVED_AT_ANY_DEPTH = ["tag"];
 
+// A directory whose name starts with "_" is never a category: data/_sources/
+// holds one source-config file per upstream (pipeline/core/crawl_config.py's
+// CRAWL_SOURCES_DIR), which belongs to the dataset but describes no page.
+// Files already escape the walk by not being directories (_category.yaml);
+// this gives directories the same escape hatch, and the underscore sorts
+// them to the top of a `ls` as a bonus.
+const isCategoryDir = (name: string) => !name.startsWith("_") && !RESERVED_AT_ANY_DEPTH.includes(name);
+
 export interface Page {
   category: string;
   slug: string;
@@ -143,7 +151,7 @@ function walkCategory(segments: string[], dir: string, nodes: Map<string, Catego
 
   const entries = readdirSync(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory());
   for (const entry of entries) {
-    if (RESERVED_AT_ANY_DEPTH.includes(entry.name)) continue;
+    if (!isCategoryDir(entry.name)) continue;
 
     const sub = join(dir, entry.name);
     const metaPath = join(sub, "page.yaml");
@@ -183,7 +191,7 @@ function walkRoot(root: string, topLevelFilter: (name: string) => boolean): Load
   const pages = existsSync(root)
     ? readdirSync(root, { withFileTypes: true })
         .filter((entry) => entry.isDirectory())
-        .filter((entry) => topLevelFilter(entry.name) && !RESERVED_AT_ANY_DEPTH.includes(entry.name))
+        .filter((entry) => topLevelFilter(entry.name) && isCategoryDir(entry.name))
         .flatMap((entry) => walkCategory([entry.name], join(root, entry.name), nodes))
     : [];
   return { pages, nodes };

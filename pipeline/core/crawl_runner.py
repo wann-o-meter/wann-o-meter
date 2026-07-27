@@ -2,7 +2,7 @@
 pipeline overhaul): crawl -> for each document, sniff+extract -> stage ->
 diff against review-state -> write auto-approved/modified, queue the rest.
 
-The crawl_sources/*.yaml equivalent of core/runner.py, which does the same
+The data/_sources/*.yaml equivalent of core/runner.py, which does the same
 fetch->stage->diff->write lifecycle for a single-fetch automated source -
 shares core/staging.py, core/review_state.py, core/approval.py with it. One
 crawl source produces one subject (source.subject_slug, which defaults to
@@ -36,7 +36,7 @@ from core.sniff import extract_any
 
 def _default_quelle(url: str) -> Dict[str, Any]:
     """A scoped-crawler source's license is a per-source, human decision
-    (see pipeline/config/crawl_sources/*.yaml) - "tos_checked" here is only
+    (see data/_sources/*.yaml) - "tos_checked" here is only
     the placeholder default for a source config that hasn't set one yet,
     same spirit as this project's license enum never being auto-guessed
     (see main.py's LICENSE_OPTIONS docstring)."""

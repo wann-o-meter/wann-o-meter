@@ -4,7 +4,7 @@ Wann-Plattform Admin Dashboard
 FastAPI + Jinja2 (SSR) + HTMX
 
 Features:
-- Configure and run scoped crawl sources (pipeline/config/crawl_sources/*.yaml)
+- Configure and run scoped crawl sources (data/_sources/*.yaml)
 - Review extracted candidates (approve/modify/reject) against their source
   document snapshot, with already-reviewed candidates auto-waved-through
 - Maintain already-created pages (edit/delete/tag)
@@ -422,7 +422,7 @@ def _source_pages(source_id: str) -> List[Dict[str, str]]:
 
 
 def _known_source_ids() -> List[str]:
-    """Every source_id with either a crawl_sources/*.yaml config or an
+    """Every source_id with either a data/_sources/*.yaml config or an
     existing staging/ directory - the latter covers sources.yaml-based
     automated sources too (e.g. schulferien_kmk, run via `python -m
     core.runner`), since both subsystems write into the same
@@ -770,7 +770,7 @@ async def crawl_source_status(source_id: str):
 
 @app.post("/crawl-sources/{source_id}/delete")
 async def delete_crawl_source(source_id: str):
-    """Removes config/crawl_sources/{source_id}.yaml only - review-state
+    """Removes data/_sources/{source_id}.yaml only - review-state
     history and anything already written to data/ are kept, same reasoning
     as /pages/{path}/delete never touching review-state. A source can be
     re-added later (see create_crawl_source) and picks its history back up
@@ -822,7 +822,7 @@ async def create_crawl_source(
     extraction_mode: str = Form(crawl_config.DEFAULT_EXTRACTION_MODE),
     auto_approve_ics: bool = Form(False),
 ):
-    """Writes a new pipeline/config/crawl_sources/{id}.yaml from the
+    """Writes a new data/_sources/{id}.yaml from the
     dashboard - the file stays the actual source of truth (git-diffable,
     same as sources.yaml), this just saves hand-editing it. Only seed_url
     is required: id/category/allowed_domains/path_prefix are all derived

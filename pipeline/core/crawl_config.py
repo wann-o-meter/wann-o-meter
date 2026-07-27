@@ -1,9 +1,20 @@
-"""Loads pipeline/config/crawl_sources/*.yaml - one file per scoped-crawler
-source (Ziel 1 of the pipeline overhaul). Lives under pipeline/config/
-(alongside the existing registries.yaml) rather than pipeline/sources/
-(already a Python adapter package) or pipeline/sources.yaml (already the
-automated batch pipeline's single config file) - three genuinely different
-things that would collide under any shared name."""
+"""Loads data/_sources/*.yaml - one file per scoped-crawler source.
+
+Source config lives under data/ (not pipeline/) because it describes where
+a published fact came from, which is the dataset's business, not the
+scraper's. It cannot live inside the subject folder it feeds: source and
+subject are many-to-many in both directions - two NASA catalog sources feed
+one astronomie/sonnenfinsternis page (see CrawlSource.subject_slug below),
+one KMK page feeds sixteen schulferien subjects, and a source config exists
+before its subject folder does. The leading underscore keeps _sources/ out
+of the Astro category walk (lib/pages.ts), which treats every other
+directory under data/ as a page category.
+
+Still YAML rather than the TOML the redesign sketched: these files are
+machine-written by the review UI's create/edit routes, and Python has no
+TOML writer in the stdlib. Hand-authored, read-only files (a subject's
+meta.toml) can be TOML; this one would have cost a dependency to keep a
+format promise nothing depends on."""
 
 import re
 from dataclasses import dataclass, field
@@ -12,7 +23,7 @@ from typing import Any, Dict, List, Optional
 
 import yaml
 
-CRAWL_SOURCES_DIR = Path(__file__).resolve().parent.parent / "config" / "crawl_sources"
+CRAWL_SOURCES_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "_sources"
 
 DEFAULT_MAX_DEPTH = 2
 MAX_ALLOWED_DEPTH = 3
