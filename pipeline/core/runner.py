@@ -3,10 +3,10 @@ against review-state -> write auto-approved/modified candidates to data/,
 queue the rest for human review. This is the ONLY place that lifecycle
 lives. Two ways a source can implement extract(): a sources/<id>.py adapter
 module (escape hatch for genuinely bespoke logic, e.g. a Strategie-1
-parser), or - the common case for strategie: llm sources, and the only path
+parser), or - the common case for strategy: llm sources, and the only path
 schulferien_kmk uses now - no Python at all: core/generic_source.py drives
 extraction purely from the source's data/_sources/ config (url,
-extraction_hint). strategie: llm_season is the same idea for sources whose
+extraction_hint). strategy: llm_season is the same idea for sources whose
 actual info is color-coded on an image/PDF (e.g. a Saisonkalender) instead
 of literal text - see generic_source.extract_season(). Run from within
 pipeline/:
@@ -35,7 +35,7 @@ from core.fetch import fetch_bytes
 SOURCES_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "_sources"
 
 
-def lade_quellen_config() -> dict[str, Any]:
+def load_sources_config() -> dict[str, Any]:
     """Every `kind: batch` file in data/_sources/, keyed by source id. Was a
     single pipeline/sources.yaml registry; one file per source instead means
     a new source is a new file rather than an edit to a shared one, and puts
@@ -72,11 +72,11 @@ def parse_params(argv: list[str]) -> dict[str, str]:
 
 
 def run(source_id: str, params: dict[str, str]) -> int:
-    quellen_config = lade_quellen_config()
-    if source_id not in quellen_config:
-        print(f"[runner] Unbekannte Quelle '{source_id}'. Bekannt: {', '.join(quellen_config)}", file=sys.stderr)
+    sources_config = load_sources_config()
+    if source_id not in sources_config:
+        print(f"[runner] Unbekannte Quelle '{source_id}'. Bekannt: {', '.join(sources_config)}", file=sys.stderr)
         return 1
-    config = quellen_config[source_id]
+    config = sources_config[source_id]
 
     try:
         adapter = importlib.import_module(f"sources.{source_id}")
@@ -85,7 +85,7 @@ def run(source_id: str, params: dict[str, str]) -> int:
             raise
         adapter = None
 
-    url = config["url"].format(**params)
+    url = config["url"].format(**generic_source.template_params(params))
     print(f"[runner] Fetching {url}", file=sys.stderr)
     raw, content_type = fetch_bytes(url)
 
@@ -96,13 +96,13 @@ def run(source_id: str, params: dict[str, str]) -> int:
     try:
         if adapter is not None:
             ergebnisse = [adapter.extract(raw, params)]
-        elif config.get("strategie") == "llm":
+        elif config.get("strategy") == "llm":
             ergebnisse = generic_source.extract(config, raw, params)
-        elif config.get("strategie") == "llm_season":
+        elif config.get("strategy") == "llm_season":
             ergebnisse = generic_source.extract_season(config, raw, params)
         else:
             print(
-                f"[runner] Kein sources/{source_id}.py gefunden und strategie nicht llm/llm_season - "
+                f"[runner] Kein sources/{source_id}.py gefunden und strategy nicht llm/llm_season - "
                 "kein generischer Fallback moeglich.",
                 file=sys.stderr,
             )
@@ -116,8 +116,7 @@ def run(source_id: str, params: dict[str, str]) -> int:
         return 1
 
     print(
-        f"[runner] {len(ergebnisse)} Subjekt(e) gefunden: "
-        f"{', '.join(e.subjekt['slug'] for e in ergebnisse)}",
+        f"[runner] {len(ergebnisse)} Subjekt(e) gefunden: {', '.join(e.subject['slug'] for e in ergebnisse)}",
         file=sys.stderr,
     )
 
@@ -128,13 +127,17 @@ def run(source_id: str, params: dict[str, str]) -> int:
     candidates_by_subject: dict[str, list[dict[str, Any]]] = {}
     subjects_by_slug = {}
     for ergebnis in ergebnisse:
-        slug = ergebnis.subjekt["slug"]
+        slug = ergebnis.subject["slug"]
         subjects_by_slug[slug] = ergebnis
         for window in ergebnis.zeitfenster:
             candidate = staging.build_candidate(
-                source_id, slug, window, doc_hash, extracted_at,
-                subject_name=ergebnis.subjekt["name"],
-                category=ergebnis.subjekt["category"],
+                source_id,
+                slug,
+                window,
+                doc_hash,
+                extracted_at,
+                subject_name=ergebnis.subject["name"],
+                category=ergebnis.subject["category"],
             )
             staging.write_candidate(source_id, run_ts, candidate)
             candidates_by_subject.setdefault(slug, []).append(candidate)
@@ -145,9 +148,7 @@ def run(source_id: str, params: dict[str, str]) -> int:
     auto_waved_through, needs_review = [], []
     for slug, candidates in candidates_by_subject.items():
         ergebnis = subjects_by_slug[slug]
-        waved, pending = review_state.diff(
-            candidates, state, ergebnis.subjekt["category"], slug
-        )
+        waved, pending = review_state.diff(candidates, state, ergebnis.subject["category"], slug)
         auto_waved_through.extend(waved)
         needs_review.extend(pending)
 
@@ -155,11 +156,11 @@ def run(source_id: str, params: dict[str, str]) -> int:
         ergebnis = subjects_by_slug[candidate["subject_slug"]]
         try:
             approval.write_event(
-                ergebnis.subjekt["category"],
-                ergebnis.subjekt["slug"],
-                ergebnis.subjekt["name"],
+                ergebnis.subject["category"],
+                ergebnis.subject["slug"],
+                ergebnis.subject["name"],
                 candidate["event"],
-                ergebnis.quelle,
+                ergebnis.source,
             )
         except approval.ApprovalError as e:
             print(f"[runner] Re-Verifikation fehlgeschlagen fuer {candidate['candidate_id']}: {e}", file=sys.stderr)
@@ -168,8 +169,7 @@ def run(source_id: str, params: dict[str, str]) -> int:
     review_state.save(source_id, state)
 
     print(
-        f"[runner] {len(auto_waved_through)} bereits reviewt (durchgewunken), "
-        f"{len(needs_review)} neu zur Review.",
+        f"[runner] {len(auto_waved_through)} bereits reviewt (durchgewunken), {len(needs_review)} neu zur Review.",
         file=sys.stderr,
     )
     return 0

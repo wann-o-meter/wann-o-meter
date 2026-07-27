@@ -1,5 +1,5 @@
 """Generic LLM-driven multi-subject extraction engine. core/runner.py falls
-back to this whenever a data/_sources/ entry has strategie: llm/llm_season and
+back to this whenever a data/_sources/ entry has strategy: llm/llm_season and
 no sources/<id>.py module exists - i.e. the common case needs zero
 per-source Python, only a data/_sources/ entry (url, extraction_hint,
 window_key).
@@ -10,7 +10,7 @@ what replaces e.g. schulferien_kmk.py's per-Bundesland Python adapter,
 invoked once per Bundesland by an external caller, with one run that
 discovers all Bundeslaender from the one page that already lists them.
 
-extract_season() below is the same idea for strategie: llm_season sources -
+extract_season() below is the same idea for strategy: llm_season sources -
 where the actual information is color/highlighting on an image or PDF (e.g.
 a Saisonkalender chart) rather than literal text, and the result is a
 year-less recurring month window (extract_season_windows), not a concrete
@@ -29,8 +29,15 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_ROOT = REPO_ROOT / "data"
 
 
+def template_params(params: dict[str, Any]) -> dict[str, Any]:
+    """`jahr` defaults to the current year: a config template referencing it
+    must not make the parameter mandatory, and .format() raises KeyError on a
+    missing placeholder rather than leaving it blank."""
+    return {"jahr": date.today().year, **params}
+
+
 def extract(config: dict[str, Any], raw: bytes, params: dict[str, Any]) -> list[ExtractionResult]:
-    """config is the source's data/_sources/ entry (kategorie, url, lizenz,
+    """config is the source's data/_sources/ entry (category, url, license,
     extraction_hint, optional license_note). `url` and
     `extraction_hint` are both `.format(**params)`'d, same templating
     its source config's `url` already used before this module existed."""
@@ -38,21 +45,20 @@ def extract(config: dict[str, Any], raw: bytes, params: dict[str, Any]) -> list[
     if not text:
         raise ExtractionError("Could not decode fetched content as text")
 
-    kategorie = config["kategorie"]
-    url = config["url"].format(**params)
-    hint = config["extraction_hint"].format(**params)
-    jahr = int(params["jahr"]) if "jahr" in params else date.today().year
+    category = config["category"]
+    url = config["url"].format(**template_params(params))
+    hint = config["extraction_hint"].format(**template_params(params))
 
     subjects = extract_subjects(text, hint)
 
-    quelle_basis = {
+    source_basis = {
         "url": url,
-        "license": config["lizenz"],
+        "license": config["license"],
         "retrieved_at": date.today().isoformat(),
         "extraction": "llm",
     }
     if "license_note" in config:
-        quelle_basis["license_note"] = config["license_note"].format(**params)
+        source_basis["license_note"] = config["license_note"].format(**template_params(params))
 
     ergebnisse = []
     for entry in subjects:
@@ -60,7 +66,11 @@ def extract(config: dict[str, Any], raw: bytes, params: dict[str, Any]) -> list[
         zeitfenster = [
             {
                 "type": type_slug_from_label(r["label"]),
-                "year": jahr,
+                # From the date, not from --jahr: a school year spans two
+                # calendar years, so the parameter cannot describe both ends
+                # and stamping it produced windows reading year: 2028 next to
+                # from: 2026-11-02. _validate_ranges guarantees YYYY-MM-DD.
+                "year": int(r["start"][:4]),
                 "from": r["start"],
                 "to": r["end"],
                 "precision": "exact",
@@ -69,12 +79,14 @@ def extract(config: dict[str, Any], raw: bytes, params: dict[str, Any]) -> list[
             }
             for r in entry["ranges"]
         ]
-        ergebnisse.append(ExtractionResult(
-            subjekt={"slug": slug, "name": entry["subject"]["name"], "category": kategorie},
-            datei_pfad=DATA_ROOT / kategorie / slug / "data.yaml",
-            zeitfenster=zeitfenster,
-            quelle=dict(quelle_basis),
-        ))
+        ergebnisse.append(
+            ExtractionResult(
+                subject={"slug": slug, "name": entry["subject"]["name"], "category": category},
+                file_path=DATA_ROOT / category / slug / "data.yaml",
+                zeitfenster=zeitfenster,
+                source=dict(source_basis),
+            )
+        )
     return ergebnisse
 
 
@@ -93,29 +105,28 @@ def extract_season(config: dict[str, Any], raw: bytes, params: dict[str, Any]) -
     rawWindowSchema and lib/materialization.ts), not the concrete-dated
     windows extract() above produces - the right shape for "in season
     May-August every year", which was never tied to one specific year."""
-    kategorie = config["kategorie"]
-    url = config["url"].format(**params)
-    hint = config["extraction_hint"].format(**params)
+    category = config["category"]
+    url = config["url"].format(**template_params(params))
+    hint = config["extraction_hint"].format(**template_params(params))
 
     scraped = extract_any(url, raw)
     text = scraped.get("clean_markdown_full") or scraped.get("clean_markdown_preview", "")
     if not text.strip():
         reason = scraped.get("reason")
         raise ExtractionError(
-            f"Fetched content has no usable text (kind={scraped.get('kind')})"
-            + (f": {reason}" if reason else "")
+            f"Fetched content has no usable text (kind={scraped.get('kind')})" + (f": {reason}" if reason else "")
         )
 
     subjects = extract_season_windows(text, hint)
 
-    quelle_basis = {
+    source_basis = {
         "url": url,
-        "license": config["lizenz"],
+        "license": config["license"],
         "retrieved_at": date.today().isoformat(),
         "extraction": "llm",
     }
     if "license_note" in config:
-        quelle_basis["license_note"] = config["license_note"].format(**params)
+        source_basis["license_note"] = config["license_note"].format(**template_params(params))
 
     ergebnisse = []
     for entry in subjects:
@@ -132,10 +143,12 @@ def extract_season(config: dict[str, Any], raw: bytes, params: dict[str, Any]) -
             }
             for w in entry["windows"]
         ]
-        ergebnisse.append(ExtractionResult(
-            subjekt={"slug": slug, "name": entry["subject"]["name"], "category": kategorie},
-            datei_pfad=DATA_ROOT / kategorie / slug / "data.yaml",
-            zeitfenster=zeitfenster,
-            quelle=dict(quelle_basis),
-        ))
+        ergebnisse.append(
+            ExtractionResult(
+                subject={"slug": slug, "name": entry["subject"]["name"], "category": category},
+                file_path=DATA_ROOT / category / slug / "data.yaml",
+                zeitfenster=zeitfenster,
+                source=dict(source_basis),
+            )
+        )
     return ergebnisse
