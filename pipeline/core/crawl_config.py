@@ -160,4 +160,16 @@ def load_all_crawl_sources(directory: Optional[Path] = None) -> Dict[str, CrawlS
         directory = CRAWL_SOURCES_DIR
     if not directory.exists():
         return {}
-    return {p.stem: load_crawl_source(p) for p in sorted(directory.glob("*.yaml"))}
+    return {p.stem: load_crawl_source(p) for p in sorted(directory.glob("*.yaml")) if _is_crawl_source(p)}
+
+
+def _is_crawl_source(path: Path) -> bool:
+    """data/_sources/ holds every source config, and core/runner.py's
+    single-fetch batch sources sit in the same directory (they answer the
+    same "where did this come from" question). They mark themselves with an
+    explicit `kind`; a file with no `kind` is a crawler source, so a typo in
+    a real crawl config still raises through _parse() instead of being
+    silently skipped."""
+    with path.open(encoding="utf-8") as f:
+        raw = yaml.safe_load(f) or {}
+    return not isinstance(raw, dict) or "kind" not in raw

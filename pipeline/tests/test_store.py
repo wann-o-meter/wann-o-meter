@@ -173,7 +173,7 @@ def test_writing_two_windows_one_at_a_time_keeps_both():
     """The clobber core/approval.write_event used to be able to cause: it
     merges ONE event per call, and the old key-then-drop-siblings pass threw
     away every existing window sharing the incoming coarse key. Under
-    sources.yaml's ("type", "year") override that was live - data/schulferien/
+    its source config's ("type", "year") override that was live - data/schulferien/
     bw/data.yaml holds two Osterferien windows in 2026, and the next adapter
     run would have left one."""
     file = make_file([])

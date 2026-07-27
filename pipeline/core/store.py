@@ -34,7 +34,7 @@ def merge_zeitfenster(datei: Dict[str, Any], neue_eintraege: List[Dict[str, Any]
     There is no replace_key parameter anymore. It was strictly COARSER than
     the identity review already used, so "same window" and "already approved"
     could disagree - see core/content_hash.py's window_key for why that
-    combination cannot terminate. sources.yaml's per-source ("type", "year")
+    combination cannot terminate. its source config's per-source ("type", "year")
     override went with it: its stated job was keeping a --jahr 2029 run from
     overwriting 2026, and a key containing `from` cannot collide across years
     at all.

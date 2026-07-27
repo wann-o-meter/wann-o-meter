@@ -1,7 +1,7 @@
 """Generic LLM-driven multi-subject extraction engine. core/runner.py falls
-back to this whenever a sources.yaml entry has strategie: llm/llm_season and
+back to this whenever a data/_sources/ entry has strategie: llm/llm_season and
 no sources/<id>.py module exists - i.e. the common case needs zero
-per-source Python, only a sources.yaml entry (url, extraction_hint,
+per-source Python, only a data/_sources/ entry (url, extraction_hint,
 window_key).
 
 Turns one fetched page into however many ExtraktionsErgebnis the LLM
@@ -30,10 +30,10 @@ DATA_ROOT = REPO_ROOT / "data"
 
 
 def extract(config: Dict[str, Any], raw: bytes, params: Dict[str, Any]) -> List[ExtractionResult]:
-    """config is the source's sources.yaml entry (kategorie, url, lizenz,
+    """config is the source's data/_sources/ entry (kategorie, url, lizenz,
     extraction_hint, optional license_note). `url` and
     `extraction_hint` are both `.format(**params)`'d, same templating
-    sources.yaml's `url` already used before this module existed."""
+    its source config's `url` already used before this module existed."""
     text = decode_text(raw)
     if not text:
         raise ExtractionError("Could not decode fetched content as text")

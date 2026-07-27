@@ -423,7 +423,7 @@ def _source_pages(source_id: str) -> List[Dict[str, str]]:
 
 def _known_source_ids() -> List[str]:
     """Every source_id with either a data/_sources/*.yaml config or an
-    existing staging/ directory - the latter covers sources.yaml-based
+    existing staging/ directory - the latter covers data/_sources-based
     automated sources too (e.g. schulferien_kmk, run via `python -m
     core.runner`), since both subsystems write into the same
     pipeline/staging/ + review-state/ structure (Decision B: one unified
@@ -824,7 +824,7 @@ async def create_crawl_source(
 ):
     """Writes a new data/_sources/{id}.yaml from the
     dashboard - the file stays the actual source of truth (git-diffable,
-    same as sources.yaml), this just saves hand-editing it. Only seed_url
+    same as a data/_sources/ file), this just saves hand-editing it. Only seed_url
     is required: id/category/allowed_domains/path_prefix are all derived
     from it when left blank, so pasting a URL and clicking Add is enough -
     the template's Advanced section lets an operator override any of them.

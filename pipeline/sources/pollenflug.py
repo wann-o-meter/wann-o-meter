@@ -3,7 +3,7 @@
 Pollenflugkalender (apotheken-umschau.de, Daten von wetter.com): einmaliges,
 deterministisches Batch-Skript - wie tools/dwd_klima.py, kein Crawler, kein
 LLM. Die Seite nennt selbst "Durchschnittswerte aus vergangenen Jahren", es
-gibt also nichts periodisch neu abzuholen (deshalb kein sources.yaml-Eintrag,
+gibt also nichts periodisch neu abzuholen (deshalb kein data/_sources-Eintrag,
 siehe deren Kopfkommentar).
 
 Warum ueberhaupt ein Parser: die eigentliche Information steckt NICHT im Text,

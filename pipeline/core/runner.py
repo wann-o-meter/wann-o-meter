@@ -5,7 +5,7 @@ lives. Two ways a source can implement extract(): a sources/<id>.py adapter
 module (escape hatch for genuinely bespoke logic, e.g. a Strategie-1
 parser), or - the common case for strategie: llm sources, and the only path
 schulferien_kmk uses now - no Python at all: core/generic_source.py drives
-extraction purely from the source's sources.yaml config (url,
+extraction purely from the source's data/_sources/ config (url,
 extraction_hint). strategie: llm_season is the same idea for sources whose
 actual info is color-coded on an image/PDF (e.g. a Saisonkalender) instead
 of literal text - see generic_source.extract_season(). Run from within
@@ -32,12 +32,26 @@ from core import approval, generic_source, review_state, staging
 from core.extraction import ExtractionError
 from core.fetch import fetch_bytes
 
-SOURCES_YAML = Path(__file__).resolve().parent.parent / "sources.yaml"
+SOURCES_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "_sources"
 
 
 def lade_quellen_config() -> Dict[str, Any]:
-    with SOURCES_YAML.open() as f:
-        return yaml.safe_load(f)
+    """Every `kind: batch` file in data/_sources/, keyed by source id. Was a
+    single pipeline/sources.yaml registry; one file per source instead means
+    a new source is a new file rather than an edit to a shared one, and puts
+    it in the same directory as the crawler's sources, which answer the same
+    question. Files with no `kind` are crawler sources (core/crawl_config.py)
+    and are skipped here."""
+    sources: Dict[str, Any] = {}
+    if not SOURCES_DIR.exists():
+        return sources
+    for path in sorted(SOURCES_DIR.glob("*.yaml")):
+        with path.open(encoding="utf-8") as f:
+            raw = yaml.safe_load(f) or {}
+        if raw.get("kind") != "batch":
+            continue
+        sources[raw.get("id", path.stem)] = raw
+    return sources
 
 
 def parse_params(argv: List[str]) -> Dict[str, str]:

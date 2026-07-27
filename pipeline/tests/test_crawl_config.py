@@ -47,6 +47,33 @@ def test_a_subject_slug_that_is_not_a_plain_slug_is_rejected(bad):
         crawl_config._parse(_raw(subject_slug=bad), Path("x.yaml"))
 
 
+def test_a_batch_source_sharing_the_directory_is_skipped_not_parsed(tmp_path):
+    """data/_sources/ holds BOTH crawler sources and core/runner.py's
+    single-fetch batch sources (schulferien_kmk). A batch file has no
+    seed_url/scope, so parsing it as a crawl source would raise - it has to
+    be skipped on its explicit `kind` instead."""
+    (tmp_path / "schulferien_kmk.yaml").write_text(
+        "kind: batch\nid: schulferien_kmk\nurl: https://www.kmk.org/service/ferien.html\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "wiesnkini-de.yaml").write_text(
+        "id: wiesnkini-de\nseed_url: https://wiesnkini.de/\ncategory: events/feste\n"
+        "scope:\n  allowed_domains: [wiesnkini.de]\n",
+        encoding="utf-8",
+    )
+
+    assert list(crawl_config.load_all_crawl_sources(tmp_path)) == ["wiesnkini-de"]
+
+
+def test_a_crawl_source_missing_a_field_still_raises_rather_than_being_skipped(tmp_path):
+    """The flip side of the test above: absence of `kind` means "crawler
+    source", so a malformed one is reported, not quietly dropped."""
+    (tmp_path / "broken.yaml").write_text("id: broken\ncategory: astronomie\n", encoding="utf-8")
+
+    with pytest.raises(crawl_config.CrawlConfigError, match="seed_url"):
+        crawl_config.load_all_crawl_sources(tmp_path)
+
+
 def test_a_blank_subject_name_is_normalised_away():
     """Blank means "fall back to the crawled <title>", which crawl_runner
     tests with `or` - whitespace would defeat that."""

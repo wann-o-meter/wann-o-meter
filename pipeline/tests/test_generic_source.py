@@ -1,6 +1,6 @@
 """Fixture-Test fuer core/generic_source.py, ueber das schulferien_kmk jetzt
 laeuft (siehe pipeline/README.md "Pipeline-Struktur") - kein bespoke
-sources/schulferien_kmk.py-Adapter mehr, nur die sources.yaml-Konfiguration.
+sources/schulferien_kmk.py-Adapter mehr, nur die data/_sources-Konfiguration.
 raw_sample.html ist ein echter, einmalig gespeicherter Abruf von
 kmk.org/service/ferien.html. erwartet.yaml steht fuer eine aufgezeichnete
 Modell-Antwort (zwei Bundeslaender, um den Subjekt-Split-Mechanismus zu

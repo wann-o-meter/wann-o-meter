@@ -33,7 +33,7 @@ def window_key(window: Dict[str, Any]) -> Tuple[Any, ...]:
     each write drops the other, both come back as candidates, forever. That
     is the shape of the incident core/approval.py:47-56 documents (151
     approvals producing a one-window data.yaml), and it was still live under
-    sources.yaml's ("type", "year") override - data/schulferien/bw/data.yaml
+    its source config's ("type", "year") override - data/schulferien/bw/data.yaml
     holds 10 windows but only 8 distinct (type, year), so the next adapter
     run would silently have dropped two.
 

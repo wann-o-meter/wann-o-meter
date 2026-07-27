@@ -397,7 +397,7 @@ def extract_subjects(text: str, hint: str) -> List[Dict[str, Any]]:
     what lets a single fetch of a page like kmk.org/service/ferien.html
     (which already lists all 16 Bundeslaender) become 16 pages in one run,
     with no per-source Python deciding the split in advance. `hint` is
-    caller-supplied domain framing from sources.yaml's extraction_hint
+    caller-supplied domain framing from its source config's extraction_hint
     (subject vocabulary, slug format, what the ranges mean) - the model does
     the actual subject discovery from the real page content, the hint only
     orients it.
