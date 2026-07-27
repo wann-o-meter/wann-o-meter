@@ -18,12 +18,12 @@ purpose:
 
 import hashlib
 import json
-from typing import Any, Dict, Tuple
+from typing import Any
 
 _IDENTITY_FIELDS = ("type", "year", "from", "to", "name", "value", "unit", "rrule")
 
 
-def window_key(window: Dict[str, Any]) -> Tuple[Any, ...]:
+def window_key(window: dict[str, Any]) -> tuple[Any, ...]:
     """What makes two windows the SAME real-world window - the one identity
     function core/store.py merges by and core/review_state.py's
     already-approved lookup reads.
@@ -43,20 +43,19 @@ def window_key(window: Dict[str, Any]) -> Tuple[Any, ...]:
 
     `name` is case/whitespace-normalized for the same reason normalize_event
     did it - "Osterferien" and " osterferien " are one window."""
-    return tuple(
-        window.get(field).strip().lower()
-        if field == "name" and isinstance(window.get(field), str)
-        else window.get(field)
-        for field in _IDENTITY_FIELDS
-    )
+    def _identity(field: str) -> Any:
+        value = window.get(field)
+        return value.strip().lower() if field == "name" and isinstance(value, str) else value
+
+    return tuple(_identity(field) for field in _IDENTITY_FIELDS)
 
 
-def normalize_event(window: Dict[str, Any], subject_slug: str) -> Dict[str, Any]:
+def normalize_event(window: dict[str, Any], subject_slug: str) -> dict[str, Any]:
     """Projects a window/candidate dict down to just its identity fields,
     with the name field case/whitespace-normalized (two extractions of the
     same real-world event shouldn't hash differently over "Osterferien" vs
     " osterferien ")."""
-    normalized: Dict[str, Any] = {"subject_slug": subject_slug}
+    normalized: dict[str, Any] = {"subject_slug": subject_slug}
     for field in _IDENTITY_FIELDS:
         value = window.get(field)
         if field == "name" and isinstance(value, str):
@@ -65,6 +64,6 @@ def normalize_event(window: Dict[str, Any], subject_slug: str) -> Dict[str, Any]
     return normalized
 
 
-def content_hash(normalized: Dict[str, Any]) -> str:
+def content_hash(normalized: dict[str, Any]) -> str:
     encoded = json.dumps(normalized, sort_keys=True, default=str).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()

@@ -5,6 +5,28 @@ on:
     branches: [main]
 
 jobs:
+  # The Python pipeline writes data/, which the site build then validates - but
+  # nothing here checked it until now, so a broken pipeline only showed up
+  # locally. Runs in parallel with the deploy job: it guards contributions to
+  # pipeline/, and must not hold up publishing a data-only change.
+  pipeline:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: pipeline
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      # `ruff format` is deliberately NOT enforced: it wants 1746 lines across
+      # 35 files, and some of it reads worse (a 12-entry month map compacted
+      # onto two lines becomes twelve). Available as `uvx ruff format` if that
+      # trade ever looks worth taking.
+      - run: uvx ruff check .
+      - run: uvx ty check
+      - run: uv run pytest -q
+
   test-and-deploy:
     runs-on: ubuntu-latest
     permissions:

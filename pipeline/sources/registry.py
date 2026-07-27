@@ -19,7 +19,7 @@ import sys
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 from urllib.parse import quote, urlencode, urlparse
 
 import yaml
@@ -38,8 +38,8 @@ class Entity:
     entity_class: str
     name: str
     domain: str
-    wikidata_id: Optional[str]
-    region: Optional[str]
+    wikidata_id: str | None
+    region: str | None
     registry_source: str
     fetched_at: str
 
@@ -59,7 +59,7 @@ WIKIDATA_SEARCH_ENDPOINT = "https://www.wikidata.org/w/api.php"
 USER_AGENT = "wann-harvester/1.0 (+https://github.com/am9zZWY/wann; contact: am9zzwy@gmail.com)"
 
 
-def search_wikidata_classes(term: str, limit: int = 8) -> List[Dict[str, str]]:
+def search_wikidata_classes(term: str, limit: int = 8) -> list[dict[str, str]]:
     """Looks up candidate Wikidata item IDs for a free-text term (e.g.
     "museum" -> Q33506) via Wikidata's entity search API - backs the Add
     Registry form's class search, so an operator doesn't have to leave the
@@ -82,7 +82,7 @@ def search_wikidata_classes(term: str, limit: int = 8) -> List[Dict[str, str]]:
     ]
 
 
-def load_registries_config() -> Dict[str, Any]:
+def load_registries_config() -> dict[str, Any]:
     with REGISTRIES_CONFIG.open(encoding="utf-8") as f:
         return yaml.safe_load(f)
 
@@ -102,7 +102,7 @@ def _block_str_representer(dumper: yaml.Dumper, data: str):
 _BlockStringDumper.add_representer(str, _block_str_representer)
 
 
-def add_registry_config(entity_class: str, sparql: str, target_kinds: List[str]) -> None:
+def add_registry_config(entity_class: str, sparql: str, target_kinds: list[str]) -> None:
     """Appends a new wikidata_sparql entity_class to config/registries.yaml -
     the only method the Admin UI's Add Registry form supports; csv_import (or
     any future method) still has to be added by hand, see fetch_registry()."""
@@ -152,7 +152,7 @@ def _normalized_domain(url: str) -> str:
     return host[4:] if host.startswith("www.") else host
 
 
-def _query_wikidata(sparql: str) -> List[Dict[str, Any]]:
+def _query_wikidata(sparql: str) -> list[dict[str, Any]]:
     url = f"{WIKIDATA_ENDPOINT}?query={quote(sparql)}&format=json"
     config = Config()
     config.user_agent = USER_AGENT
@@ -161,12 +161,12 @@ def _query_wikidata(sparql: str) -> List[Dict[str, Any]]:
 
 
 def _entities_from_bindings(
-    entity_class: str, bindings: List[Dict[str, Any]], fetched_at: str
-) -> List[Entity]:
+    entity_class: str, bindings: list[dict[str, Any]], fetched_at: str
+) -> list[Entity]:
     """Pure transform, split out from _entities_from_wikidata so tests can
     feed it a fixed bindings list instead of hitting the network."""
-    by_domain: Dict[str, Entity] = {}
-    slugs_used: Dict[str, int] = {}
+    by_domain: dict[str, Entity] = {}
+    slugs_used: dict[str, int] = {}
 
     for row in bindings:
         website = row.get("website", {}).get("value")
@@ -200,13 +200,13 @@ def _entities_from_bindings(
     return list(by_domain.values())
 
 
-def _entities_from_wikidata(entity_class: str, sparql: str) -> List[Entity]:
+def _entities_from_wikidata(entity_class: str, sparql: str) -> list[Entity]:
     bindings = _query_wikidata(sparql)
     fetched_at = datetime.now(timezone.utc).isoformat()
     return _entities_from_bindings(entity_class, bindings, fetched_at)
 
 
-def fetch_registry(entity_class: str) -> List[Entity]:
+def fetch_registry(entity_class: str) -> list[Entity]:
     config = load_registries_config()
     if entity_class not in config:
         raise ValueError(f"Unknown entity_class '{entity_class}'. Known: {', '.join(config)}")
@@ -220,7 +220,7 @@ def fetch_registry(entity_class: str) -> List[Entity]:
     return sorted(entities, key=lambda e: e.entity_id)
 
 
-def load_registry_domains(entity_class: str) -> List[str]:
+def load_registry_domains(entity_class: str) -> list[str]:
     """Domains from an already-fetched registry (pipeline/data/registries/
     <entity_class>.json) - lets the crawler bulk-seed itself from harvest
     data instead of an operator typing hundreds of domains by hand (see
@@ -232,7 +232,7 @@ def load_registry_domains(entity_class: str) -> List[str]:
     return [e["domain"] for e in entities if e.get("domain")]
 
 
-def write_registry(entity_class: str, entities: List[Entity]) -> Path:
+def write_registry(entity_class: str, entities: list[Entity]) -> Path:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     out_path = OUTPUT_DIR / f"{entity_class}.json"
     with out_path.open("w", encoding="utf-8") as f:

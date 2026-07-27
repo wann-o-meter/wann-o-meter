@@ -24,8 +24,9 @@ event_type_hint."""
 
 import html
 import re
+from collections.abc import Callable
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 from core import approval, review_state, staging
 from core.crawl_config import DEFAULT_EXTRACTION_MODE, CrawlSource
@@ -34,7 +35,7 @@ from core.extraction import ExtractionError, extract_dated_events, suggest_categ
 from core.sniff import extract_any
 
 
-def _default_quelle(url: str) -> Dict[str, Any]:
+def _default_quelle(url: str) -> dict[str, Any]:
     """A scoped-crawler source's license is a per-source, human decision
     (see data/_sources/*.yaml) - "tos_checked" here is only
     the placeholder default for a source config that hasn't set one yet,
@@ -73,7 +74,7 @@ _STATIC_DATE_RES = (
 STATIC_DATE_THRESHOLD = 15
 
 
-def _static_dates(text: str) -> Tuple[List[str], int]:
+def _static_dates(text: str) -> tuple[list[str], int]:
     """Deterministic date scrape: ([storable "YYYY-MM-DD" in page order],
     count of recognised-but-unstorable pre-year-1 dates).
 
@@ -82,8 +83,8 @@ def _static_dates(text: str) -> Tuple[List[str], int]:
     no dates at all - which is exactly how eclipse.gsfc.nasa.gov's BCE
     catalogs presented (see lib/date.ts's DAY_RE: no sign, so a negative
     year cannot be represented at all)."""
-    found: Dict[str, None] = {}
-    negative: Dict[str, None] = {}
+    found: dict[str, None] = {}
+    negative: dict[str, None] = {}
     for regex in _STATIC_DATE_RES:
         for match in regex.finditer(text):
             year_str, month_str, day_str = match.groups()
@@ -99,7 +100,7 @@ def _static_dates(text: str) -> Tuple[List[str], int]:
     return list(found), len(negative)
 
 
-def _window(date: str, label: str, end: str = "") -> Dict[str, Any]:
+def _window(date: str, label: str, end: str = "") -> dict[str, Any]:
     """`end` is the inclusive last day of a multi-day span (Oktoberfest,
     a festival week); empty for the single-day case, where from == to."""
     return {
@@ -117,8 +118,8 @@ def _windows_from_document(
     doc: CrawledDocument,
     label: str,
     mode: str = DEFAULT_EXTRACTION_MODE,
-    on_progress: Optional[Callable[[str], None]] = None,
-) -> Tuple[List[Dict[str, Any]], str]:
+    on_progress: Callable[[str], None] | None = None,
+) -> tuple[list[dict[str, Any]], str]:
     """Returns (windows, note) where note names which extractor ran and what
     it produced - reported per page so "why did this give me one event" is
     answerable from the UI instead of by reading the source.
@@ -173,7 +174,7 @@ def _windows_from_document(
     return [], f"no extractor for kind '{kind}'"
 
 
-def _existing_categories() -> List[str]:
+def _existing_categories() -> list[str]:
     """Category paths that already hold pages, so a suggestion can reuse one
     instead of fragmenting the tree. Derived from disk rather than imported
     from review/service.py's _category_paths - review/ imports this module, so the
@@ -194,7 +195,7 @@ def _existing_categories() -> List[str]:
     })
 
 
-def _suggested_category(source: CrawlSource, documents: List[CrawledDocument], title: str) -> str:
+def _suggested_category(source: CrawlSource, documents: list[CrawledDocument], title: str) -> str:
     """The category this source's candidates should be filed under.
 
     An explicitly configured category always wins. It's the create form's
@@ -227,7 +228,7 @@ def _suggested_category(source: CrawlSource, documents: List[CrawledDocument], t
 _TITLE_RE = re.compile(rb"<title[^>]*>(.*?)</title>", re.IGNORECASE | re.DOTALL)
 
 
-def _subject_name(documents: List[CrawledDocument], fallback: str) -> str:
+def _subject_name(documents: list[CrawledDocument], fallback: str) -> str:
     """A readable page title for the subject this source writes, taken from
     the first crawled document's <title> and cleaned up by the model (see
     extraction.suggest_title - the raw tag is usually full of year ranges and
@@ -255,9 +256,9 @@ def _subject_name(documents: List[CrawledDocument], fallback: str) -> str:
 
 def run(
     source: CrawlSource,
-    on_progress: Optional[Callable[[Dict[str, str]], None]] = None,
-    on_page: Optional[Callable[[str, str], None]] = None,
-) -> Dict[str, Any]:
+    on_progress: Callable[[dict[str, str]], None] | None = None,
+    on_page: Callable[[str, str], None] | None = None,
+) -> dict[str, Any]:
     """on_progress, if given, is called with {"phase": "crawling"|
     "extracting"|"diffing", "detail": str} at each meaningful step - the
     phase is what lets review/service.py's dashboard show "Crawling" vs "Extracting"
@@ -290,8 +291,8 @@ def run(
     label = source.event_type_hint or subject_name
     category = _suggested_category(source, documents, subject_name)
 
-    all_candidates: List[Dict[str, Any]] = []
-    extraction_errors: List[str] = []
+    all_candidates: list[dict[str, Any]] = []
+    extraction_errors: list[str] = []
     for i, doc in enumerate(documents, start=1):
         doc_hash = staging.write_document(source.id, run_ts, doc.url, doc.content_type, doc.content)
         report("extracting", f"Document {i}/{len(documents)}: {doc.url}")

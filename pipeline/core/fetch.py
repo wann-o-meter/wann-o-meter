@@ -4,7 +4,6 @@ scripts, and source adapters via the runner."""
 
 import ssl
 import time
-from typing import Optional, Tuple
 import urllib.request
 
 import certifi
@@ -25,7 +24,7 @@ class Config:
     delay_between_requests: float = 0.5
 
 
-def fetch_bytes(url: str, config: Optional[Config] = None) -> Tuple[bytes, str]:
+def fetch_bytes(url: str, config: Config | None = None) -> tuple[bytes, str]:
     """Fetch a URL and return (raw_bytes, content_type_header). Raw bytes,
     not text - a ZIP or PDF force-decoded as UTF-8 becomes useless before
     we even get a chance to look at it."""
@@ -44,13 +43,13 @@ def fetch_bytes(url: str, config: Optional[Config] = None) -> Tuple[bytes, str]:
     return b"", ""
 
 
-def fetch(url: str, config: Optional[Config] = None) -> str:
+def fetch(url: str, config: Config | None = None) -> str:
     """Text convenience wrapper over fetch_bytes, for HTML/prose callers."""
     content, _ = fetch_bytes(url, config)
     return content.decode("utf-8", errors="replace")
 
 
-def decode_text(content: bytes) -> Optional[str]:
+def decode_text(content: bytes) -> str | None:
     """Try UTF-8, then Latin-1 (common in older German government exports,
     e.g. DWD's station list). Returns None if it's genuinely binary."""
     for encoding in ("utf-8", "latin-1"):

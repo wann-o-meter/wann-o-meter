@@ -28,7 +28,7 @@ month-only case. An RRULE captured here doesn't change that; it's just
 carried along as inert metadata until a future generator.ts expands it."""
 
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 from zoneinfo import ZoneInfo
 
 from icalendar import Calendar
@@ -47,7 +47,7 @@ def _wall_clock_string(value) -> tuple:
     return value.isoformat(), True
 
 
-def map_vevent(vevent, type_hint: str = "event") -> Optional[Dict[str, Any]]:
+def map_vevent(vevent, type_hint: str = "event") -> dict[str, Any] | None:
     """Maps one icalendar VEVENT component to a RawWindow-shaped dict.
     Returns None if the VEVENT has no DTSTART (malformed, nothing to map)."""
     dtstart_prop = vevent.get("dtstart")
@@ -70,7 +70,7 @@ def map_vevent(vevent, type_hint: str = "event") -> Optional[Dict[str, Any]]:
     rrule_prop = vevent.get("rrule")
     rrule_str = rrule_prop.to_ical().decode("ascii") if rrule_prop else None
 
-    notes_parts: List[str] = []
+    notes_parts: list[str] = []
     if vevent.get("location"):
         notes_parts.append(f"Ort: {vevent.get('location')}")
     if vevent.get("description"):
@@ -78,7 +78,7 @@ def map_vevent(vevent, type_hint: str = "event") -> Optional[Dict[str, Any]]:
     if vevent.get("url"):
         notes_parts.append(str(vevent.get("url")))
 
-    window: Dict[str, Any] = {
+    window: dict[str, Any] = {
         "type": type_hint,
         "year": dtstart.year,
         "from": from_str,
@@ -94,7 +94,7 @@ def map_vevent(vevent, type_hint: str = "event") -> Optional[Dict[str, Any]]:
     return window
 
 
-def map_calendar(raw: bytes, type_hint: str = "event") -> List[Dict[str, Any]]:
+def map_calendar(raw: bytes, type_hint: str = "event") -> list[dict[str, Any]]:
     """Parses a VCALENDAR's bytes and maps every VEVENT it contains.
     Malformed VEVENTs (no DTSTART) are skipped, not fatal - one bad entry
     in a feed shouldn't drop every other real event."""

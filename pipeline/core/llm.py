@@ -29,7 +29,6 @@ writing; override with LLM_MODEL if a provider has moved on.
 
 import base64
 import os
-from typing import Optional
 
 import httpx
 
@@ -60,7 +59,7 @@ class LlmError(Exception):
     why, not get back fabricated or empty data pretending to be real."""
 
 
-def call_llm(prompt: str, system: Optional[str] = None) -> str:
+def call_llm(prompt: str, system: str | None = None) -> str:
     """Sends `prompt` (+ optional system instructions) to the configured
     provider, returns the raw text response."""
     provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
@@ -79,7 +78,7 @@ def call_llm(prompt: str, system: Optional[str] = None) -> str:
     raise LlmError(f"Unknown LLM_PROVIDER '{provider}' (expected anthropic|openai|google|mistral|openrouter)")
 
 
-def call_llm_vision(image_bytes: bytes, mime_type: str, prompt: str, system: Optional[str] = None) -> str:
+def call_llm_vision(image_bytes: bytes, mime_type: str, prompt: str, system: str | None = None) -> str:
     """Sends an image + prompt to the configured provider's vision-capable
     model, returns the raw text response. Same LLM_PROVIDER/LLM_MODEL env
     vars as call_llm - whichever provider the operator has a key for."""
@@ -106,7 +105,7 @@ def _require_key(env_var: str) -> str:
     return key
 
 
-def _call_anthropic(prompt: str, system: Optional[str], model: str) -> str:
+def _call_anthropic(prompt: str, system: str | None, model: str) -> str:
     api_key = _require_key("ANTHROPIC_API_KEY")
     # temperature=0: this is used for structured extraction (find dates in
     # text), not creative generation - the default sampling temperature
@@ -135,7 +134,7 @@ def _call_anthropic(prompt: str, system: Optional[str], model: str) -> str:
     return "".join(block.get("text", "") for block in data.get("content", []))
 
 
-def _call_anthropic_vision(image_bytes: bytes, mime_type: str, prompt: str, system: Optional[str], model: str) -> str:
+def _call_anthropic_vision(image_bytes: bytes, mime_type: str, prompt: str, system: str | None, model: str) -> str:
     api_key = _require_key("ANTHROPIC_API_KEY")
     body = {
         "model": model,
@@ -174,7 +173,7 @@ def _call_anthropic_vision(image_bytes: bytes, mime_type: str, prompt: str, syst
     return "".join(block.get("text", "") for block in data.get("content", []))
 
 
-def _call_openai(prompt: str, system: Optional[str], model: str) -> str:
+def _call_openai(prompt: str, system: str | None, model: str) -> str:
     api_key = _require_key("OPENAI_API_KEY")
     messages = []
     if system:
@@ -192,7 +191,7 @@ def _call_openai(prompt: str, system: Optional[str], model: str) -> str:
     return data["choices"][0]["message"]["content"]
 
 
-def _call_openai_vision(image_bytes: bytes, mime_type: str, prompt: str, system: Optional[str], model: str) -> str:
+def _call_openai_vision(image_bytes: bytes, mime_type: str, prompt: str, system: str | None, model: str) -> str:
     api_key = _require_key("OPENAI_API_KEY")
     messages = []
     if system:
@@ -217,7 +216,7 @@ def _call_openai_vision(image_bytes: bytes, mime_type: str, prompt: str, system:
     return data["choices"][0]["message"]["content"]
 
 
-def _call_google(prompt: str, system: Optional[str], model: str) -> str:
+def _call_google(prompt: str, system: str | None, model: str) -> str:
     api_key = _require_key("GOOGLE_API_KEY")
     body = {
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
@@ -238,7 +237,7 @@ def _call_google(prompt: str, system: Optional[str], model: str) -> str:
     return data["candidates"][0]["content"]["parts"][0]["text"]
 
 
-def _call_google_vision(image_bytes: bytes, mime_type: str, prompt: str, system: Optional[str], model: str) -> str:
+def _call_google_vision(image_bytes: bytes, mime_type: str, prompt: str, system: str | None, model: str) -> str:
     api_key = _require_key("GOOGLE_API_KEY")
     body = {
         "contents": [{
@@ -265,7 +264,7 @@ def _call_google_vision(image_bytes: bytes, mime_type: str, prompt: str, system:
     return data["candidates"][0]["content"]["parts"][0]["text"]
 
 
-def _call_mistral(prompt: str, system: Optional[str], model: str) -> str:
+def _call_mistral(prompt: str, system: str | None, model: str) -> str:
     # Mistral's Chat Completions API is OpenAI-compatible - same request/
     # response shape, just a different endpoint and key.
     api_key = _require_key("MISTRAL_API_KEY")
@@ -285,7 +284,7 @@ def _call_mistral(prompt: str, system: Optional[str], model: str) -> str:
     return data["choices"][0]["message"]["content"]
 
 
-def _call_mistral_vision(image_bytes: bytes, mime_type: str, prompt: str, system: Optional[str], model: str) -> str:
+def _call_mistral_vision(image_bytes: bytes, mime_type: str, prompt: str, system: str | None, model: str) -> str:
     # Same OpenAI-compatible image_url shape as _call_openai_vision, just a
     # different endpoint/key. Requires a Pixtral-family model - override
     # LLM_MODEL if the configured default isn't vision-capable.
@@ -313,7 +312,7 @@ def _call_mistral_vision(image_bytes: bytes, mime_type: str, prompt: str, system
     return data["choices"][0]["message"]["content"]
 
 
-def _call_openrouter(prompt: str, system: Optional[str], model: str) -> str:
+def _call_openrouter(prompt: str, system: str | None, model: str) -> str:
     # OpenRouter (openrouter.ai) proxies many providers behind one
     # OpenAI-compatible Chat Completions endpoint - same request/response
     # shape as _call_openai/_call_mistral, just routed by `model` (e.g.
@@ -335,7 +334,7 @@ def _call_openrouter(prompt: str, system: Optional[str], model: str) -> str:
     return data["choices"][0]["message"]["content"]
 
 
-def _call_openrouter_vision(image_bytes: bytes, mime_type: str, prompt: str, system: Optional[str], model: str) -> str:
+def _call_openrouter_vision(image_bytes: bytes, mime_type: str, prompt: str, system: str | None, model: str) -> str:
     # Same OpenAI-compatible image_url data-URL shape as _call_openai_vision/
     # _call_mistral_vision - requires a vision-capable model on OpenRouter's
     # side (check the model's "input_modalities" via openrouter.ai/api/v1/models

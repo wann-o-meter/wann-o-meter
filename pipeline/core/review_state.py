@@ -20,7 +20,7 @@ rejection is a human judgement and re-deriving it is not possible."""
 
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import yaml
 
@@ -34,7 +34,7 @@ def _path_for(source_id: str) -> Path:
     return REVIEW_STATE_ROOT / f"{source_id}.yaml"
 
 
-def load(source_id: str) -> Dict[str, Any]:
+def load(source_id: str) -> dict[str, Any]:
     path = _path_for(source_id)
     if not path.exists():
         return {"rejected": []}
@@ -44,18 +44,18 @@ def load(source_id: str) -> Dict[str, Any]:
     return state
 
 
-def save(source_id: str, state: Dict[str, Any]) -> None:
+def save(source_id: str, state: dict[str, Any]) -> None:
     path = _path_for(source_id)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
         yaml.dump(state, f, allow_unicode=True, sort_keys=False)
 
 
-def _entry_key(entry: Dict[str, Any]) -> Tuple[Any, ...]:
-    return (entry.get("subject_slug"),) + window_key(entry)
+def _entry_key(entry: dict[str, Any]) -> tuple[Any, ...]:
+    return (entry.get("subject_slug"), *window_key(entry))
 
 
-def reject(state: Dict[str, Any], subject_slug: str, window: Dict[str, Any]) -> None:
+def reject(state: dict[str, Any], subject_slug: str, window: dict[str, Any]) -> None:
     """Records "a human saw this window and said no", scoped to the page it
     would have landed on.
 
@@ -75,7 +75,7 @@ def reject(state: Dict[str, Any], subject_slug: str, window: Dict[str, Any]) -> 
         state["rejected"].append(entry)
 
 
-def _identity_fields(window: Dict[str, Any]) -> Dict[str, Any]:
+def _identity_fields(window: dict[str, Any]) -> dict[str, Any]:
     """The window projected down to what window_key reads, so a stored entry
     round-trips through window_key identically to the live window."""
     from core.content_hash import _IDENTITY_FIELDS
@@ -89,19 +89,19 @@ def _identity_fields(window: Dict[str, Any]) -> Dict[str, Any]:
     return projected
 
 
-def is_rejected(state: Dict[str, Any], subject_slug: str, window: Dict[str, Any]) -> bool:
-    key = (subject_slug,) + window_key(window)
+def is_rejected(state: dict[str, Any], subject_slug: str, window: dict[str, Any]) -> bool:
+    key = (subject_slug, *window_key(window))
     return any(_entry_key(e) == key for e in state["rejected"])
 
 
-def repoint(state: Dict[str, Any], new_subject_slug: str) -> Dict[str, Any]:
+def repoint(state: dict[str, Any], new_subject_slug: str) -> dict[str, Any]:
     """Re-points every rejection at a different page. This is the whole cost
     of moving a source's output now: subject_slug is a plain field, so there
     is nothing to re-hash and nothing that can fail to round-trip."""
     return {"rejected": [{**e, "subject_slug": new_subject_slug} for e in state["rejected"]]}
 
 
-def already_approved(category: str, subject_slug: str, window: Dict[str, Any]) -> bool:
+def already_approved(category: str, subject_slug: str, window: dict[str, Any]) -> bool:
     """Is this window already in the data.yaml it would be written to?
 
     THE approved-set lookup. It reads the real file, so a hand-edit is
@@ -121,11 +121,11 @@ def _approved_keys(category: str, subject_slug: str) -> set:
 
 
 def diff(
-    candidates: List[Dict[str, Any]],
-    state: Dict[str, Any],
+    candidates: list[dict[str, Any]],
+    state: dict[str, Any],
     category: str,
     subject_slug: str,
-) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Splits this run's candidates (see core/staging.py's build_candidate)
     into (auto_waved_through, needs_review).
 
@@ -141,8 +141,8 @@ def diff(
     the identical two dates, four decisions for two judgements."""
     approved = _approved_keys(category, subject_slug)
 
-    auto_waved_through: List[Dict[str, Any]] = []
-    needs_review: List[Dict[str, Any]] = []
+    auto_waved_through: list[dict[str, Any]] = []
+    needs_review: list[dict[str, Any]] = []
     seen: set = set()
     for candidate in candidates:
         key = window_key(candidate["event"])

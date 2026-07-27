@@ -4,19 +4,19 @@ validate, publish) is core/'s job, never a source's."""
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Protocol, Tuple
+from typing import Any, Protocol
 
 
 @dataclass
 class ExtractionResult:
-    subjekt: Dict[str, Any]            # slug, name, category - name is only used
+    subjekt: dict[str, Any]            # slug, name, category - name is only used
     # for the page.yaml title (written once on first creation), the data.yaml
     # subject block itself is just {slug, category} (pageDataSchema, lib/pages-schema.ts)
     datei_pfad: Path                   # e.g. data/urlaubsfenster/bw.yaml - often
     # depends on params (Schulferien: one file PER Bundesland), so it's set
     # by the adapter instead of guessed by the runner.
-    zeitfenster: List[Dict[str, Any]]  # RawWindow shape, see lib/schema.ts
-    quelle: Dict[str, Any]             # Source shape: url, license, extraction, ...
+    zeitfenster: list[dict[str, Any]]  # RawWindow shape, see lib/schema.ts
+    quelle: dict[str, Any]             # Source shape: url, license, extraction, ...
 
     def __post_init__(self) -> None:
         """Stamps each window with its originating source URL by default -
@@ -38,4 +38,4 @@ class SourceAdapter(Protocol):
     id: str
     kategorie: str
 
-    def extract(self, raw: bytes, params: Dict[str, Any]) -> ExtractionResult: ...
+    def extract(self, raw: bytes, params: dict[str, Any]) -> ExtractionResult: ...

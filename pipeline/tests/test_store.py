@@ -18,7 +18,7 @@ from pathlib import Path
 PIPELINE_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PIPELINE_ROOT))
 
-from core import store
+from core import store  # noqa: E402
 from core.content_hash import window_key  # noqa: E402
 
 

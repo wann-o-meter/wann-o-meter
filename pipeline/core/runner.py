@@ -24,7 +24,7 @@ import importlib
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml
 
@@ -35,14 +35,14 @@ from core.fetch import fetch_bytes
 SOURCES_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "_sources"
 
 
-def lade_quellen_config() -> Dict[str, Any]:
+def lade_quellen_config() -> dict[str, Any]:
     """Every `kind: batch` file in data/_sources/, keyed by source id. Was a
     single pipeline/sources.yaml registry; one file per source instead means
     a new source is a new file rather than an edit to a shared one, and puts
     it in the same directory as the crawler's sources, which answer the same
     question. Files with no `kind` are crawler sources (core/crawl_config.py)
     and are skipped here."""
-    sources: Dict[str, Any] = {}
+    sources: dict[str, Any] = {}
     if not SOURCES_DIR.exists():
         return sources
     for path in sorted(SOURCES_DIR.glob("*.yaml")):
@@ -54,11 +54,11 @@ def lade_quellen_config() -> Dict[str, Any]:
     return sources
 
 
-def parse_params(argv: List[str]) -> Dict[str, str]:
+def parse_params(argv: list[str]) -> dict[str, str]:
     """--key wert --key2 wert2 -> {"key": "wert", "key2": "wert2"}. Kein
     argparse-Schema pro Quelle noetig - jeder Adapter liest aus params, was
     er braucht, und meldet selbst, wenn etwas fehlt."""
-    params: Dict[str, str] = {}
+    params: dict[str, str] = {}
     it = iter(argv)
     for token in it:
         if not token.startswith("--"):
@@ -71,7 +71,7 @@ def parse_params(argv: List[str]) -> Dict[str, str]:
     return params
 
 
-def run(source_id: str, params: Dict[str, str]) -> int:
+def run(source_id: str, params: dict[str, str]) -> int:
     quellen_config = lade_quellen_config()
     if source_id not in quellen_config:
         print(f"[runner] Unbekannte Quelle '{source_id}'. Bekannt: {', '.join(quellen_config)}", file=sys.stderr)
@@ -125,7 +125,7 @@ def run(source_id: str, params: Dict[str, str]) -> int:
     # reviewable windows, e.g. Osterferien + Sommerferien) into one staged
     # candidate per window - review is per-event, not per-subject/run.
     extracted_at = datetime.now(timezone.utc).isoformat()
-    candidates_by_subject: Dict[str, List[Dict[str, Any]]] = {}
+    candidates_by_subject: dict[str, list[dict[str, Any]]] = {}
     subjects_by_slug = {}
     for ergebnis in ergebnisse:
         slug = ergebnis.subjekt["slug"]

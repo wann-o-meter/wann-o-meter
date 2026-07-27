@@ -4,7 +4,7 @@ from pathlib import Path
 PIPELINE_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PIPELINE_ROOT))
 
-from core.ics import map_calendar, map_vevent  # noqa: E402
+from core.ics import map_calendar  # noqa: E402
 from core.sniff import extract_any  # noqa: E402
 
 
@@ -13,7 +13,7 @@ def _calendar(*vevents: str) -> bytes:
     return (
         "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//test//test//EN\r\n"
         f"{body}\r\nEND:VCALENDAR\r\n"
-    ).encode("utf-8")
+    ).encode()
 
 
 def _vevent(**fields) -> str:
@@ -123,7 +123,7 @@ def test_vevent_without_dtstart_is_skipped_not_fatal():
         "BEGIN:VEVENT\r\nUID:broken@example.org\r\nSUMMARY:Kaputt\r\nEND:VEVENT\r\n"
         f"{_vevent(SUMMARY='Gut', DTSTART='20260815', DTEND='20260816')}\r\n"
         "END:VCALENDAR\r\n"
-    ).encode("utf-8")
+    ).encode()
 
     windows = map_calendar(calendar_text)
 

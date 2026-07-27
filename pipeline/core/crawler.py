@@ -12,7 +12,7 @@ core/staging.py and core/runner.py for what happens to a crawl's output)."""
 
 import time
 import urllib.robotparser
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from collections.abc import Callable
 from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
@@ -101,7 +101,7 @@ class _RobotsCache:
 
     def __init__(self, user_agent: str):
         self._user_agent = user_agent
-        self._parsers: Dict[str, Optional[urllib.robotparser.RobotFileParser]] = {}
+        self._parsers: dict[str, urllib.robotparser.RobotFileParser | None] = {}
 
     def allowed(self, url: str) -> bool:
         domain = urlparse(url).netloc
@@ -118,14 +118,21 @@ class _RobotsCache:
         return rp is None or rp.can_fetch(self._user_agent, url)
 
 
-def _discover_links(html: bytes, base_url: str) -> Tuple[List[str], List[str]]:
+def _discover_links(html: bytes, base_url: str) -> tuple[list[str], list[str]]:
     """Returns (page_links, ics_feed_links) - ics_feed_links come from
     <link type="text/calendar"> tags (spec: also look for ICS feeds
     advertised on HTML pages, not just linked-to .ics files)."""
     soup = BeautifulSoup(html, "html.parser")
-    page_links = [urljoin(base_url, a["href"]) for a in soup.find_all("a", href=True)]
+    # bs4 hands back list[str] for multi-valued attributes. href is not one of
+    # them, but malformed markup can still produce a list, and urljoin raises
+    # on anything that is not str/bytes - so normalise before joining.
+    def _href(tag) -> str:
+        value = tag["href"]
+        return value[0] if isinstance(value, list) else value
+
+    page_links = [urljoin(base_url, _href(a)) for a in soup.find_all("a", href=True)]
     ics_links = [
-        urljoin(base_url, link["href"])
+        urljoin(base_url, _href(link))
         for link in soup.find_all("link", attrs={"type": "text/calendar"})
         if link.get("href")
     ]
@@ -134,9 +141,9 @@ def _discover_links(html: bytes, base_url: str) -> Tuple[List[str], List[str]]:
 
 def crawl(
     source: CrawlSource,
-    on_progress: Optional[Callable[[str], None]] = None,
-    on_page: Optional[Callable[[str, str], None]] = None,
-) -> List[CrawledDocument]:
+    on_progress: Callable[[str], None] | None = None,
+    on_page: Callable[[str, str], None] | None = None,
+) -> list[CrawledDocument]:
     """on_progress, if given, is called with a short status string before
     each actual fetch (politeness-delay wait doesn't count - that's dead
     time, not progress) - the BFS loop can run long on a source with many
@@ -152,11 +159,11 @@ def crawl(
     (silently absent) to anything reading the crawl's output. Out-of-scope
     URLs are deliberately NOT reported - every external link on every page
     hits that branch, which would bury the real rows."""
-    documents: List[CrawledDocument] = []
-    visited: Set[str] = set()
-    queue: List[Tuple[str, int]] = [(normalize_url(source.seed_url), 0)]
+    documents: list[CrawledDocument] = []
+    visited: set[str] = set()
+    queue: list[tuple[str, int]] = [(normalize_url(source.seed_url), 0)]
     robots = _RobotsCache(USER_AGENT)
-    last_fetch_at: Dict[str, float] = {}
+    last_fetch_at: dict[str, float] = {}
     config = Config()
     config.user_agent = USER_AGENT
     fetched = 0

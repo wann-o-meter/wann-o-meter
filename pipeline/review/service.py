@@ -6,24 +6,27 @@ template. The module-level DATA_ROOT lives here too, which is what lets a test
 repoint the whole app at a tmp_path by patching one attribute.
 """
 
-import asyncio
 import html
 import json
 import re
 import shutil
-import threading
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
-from urllib.parse import urlparse
+from typing import Any
 
 import yaml
+from dotenv import load_dotenv
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from dotenv import load_dotenv
 
 from core import approval, crawl_config, crawl_runner, review_state, staging, store, validate
-from core.extraction import ExtractionError, suggest_tags
+
+# Re-exported, not used here: routes reach these as service.suggest_tags /
+# service.ExtractionError so there is ONE place to monkeypatch the model call
+# (see tests/test_review_routes.py's TestSuggestTags). Importing them directly
+# in routes/pages.py would bind the real function at import time and make the
+# stub unreachable. F401 cannot see a use that only happens via getattr.
+from core.extraction import ExtractionError, suggest_tags  # noqa: F401
 from sources import registry as harvest_registry
 
 _EXTRACTION_MODE_HINTS = {
@@ -81,6 +84,7 @@ SUGGESTED_CATEGORIES = ["politik"]
 
 load_dotenv()
 
+
 class PipelineState:
     """Tracks in-flight crawl_sources runs (background task + polling) -
     replaces the old CrawlerState/SeedRun bookkeeping entirely. There's no
@@ -89,10 +93,13 @@ class PipelineState:
     per source (core/crawl_runner.py, core/runner.py), landing directly in
     pipeline/staging/ + review-state/ + data/ rather than in memory."""
     def __init__(self):
-        self.running_sources: Set[str] = set()
-        self.errors: Dict[str, str] = {}
-        self.last_result: Dict[str, dict] = {}
-        self.progress: Dict[str, str] = {}
+        self.running_sources: set[str] = set()
+        self.errors: dict[str, str] = {}
+        self.last_result: dict[str, dict] = {}
+        # {source_id: {"phase": ..., "detail": ...}} - crawl_runner.run passes
+        # the phase separately so the dashboard can show "Crawling: ..." as a
+        # glanceable label (_crawl_sources_table.html reads p.phase/p.detail).
+        self.progress: dict[str, dict[str, str]] = {}
         # {source_id: {url: status}} for the most recent run of each source,
         # in insertion order (crawl order). Deliberately NOT cleared when a
         # run finishes - it's the per-page record the crawl-sources table
@@ -100,7 +107,7 @@ class PipelineState:
         # dropped (robots, fetch error, wrong format) exist at all; staging/
         # only ever holds the survivors. Lost on restart, which is fine: it
         # falls back to the staged documents then (see _source_pages).
-        self.pages: Dict[str, Dict[str, str]] = {}
+        self.pages: dict[str, dict[str, str]] = {}
 
     def to_dict(self) -> dict:
         return {
@@ -119,13 +126,17 @@ templates = Jinja2Templates(directory=Path(__file__).resolve().parent / "templat
 # had category suggestions but the page-title and page-slug fields beside it
 # silently had none. Read straight from disk on each render, same philosophy
 # as _list_created_pages(); this is a local admin tool, not a hot path.
-templates.env.globals.update(
-    all_categories=lambda: _category_suggestions(),
-    all_tags=lambda: _all_tags(),
-    all_page_titles=lambda: sorted({p["title"] for p in _list_created_pages()}),
-    all_page_slugs=lambda: sorted({p["slug"] for p in _list_created_pages()}),
-    extraction_mode_options=EXTRACTION_MODE_OPTIONS,
-)
+# jinja2 leaves env.globals' value type to be inferred from the builtins it
+# ships with (range, cycler, lipsum...), so every application-supplied global
+# reads as a type error. Passing a dict keeps the suppression to this one call
+# instead of one per entry.
+templates.env.globals.update({  # ty: ignore[no-matching-overload]
+    "all_categories": lambda: _category_suggestions(),
+    "all_tags": lambda: _all_tags(),
+    "all_page_titles": lambda: sorted({p["title"] for p in _list_created_pages()}),
+    "all_page_slugs": lambda: sorted({p["slug"] for p in _list_created_pages()}),
+    "extraction_mode_options": EXTRACTION_MODE_OPTIONS,
+})
 
 # Backs the site's dynamic /{category-path}/{slug}/ routes (lib/pages.ts
 # reads the same tree via `join(process.cwd(), "data")` from the repo root,
@@ -172,14 +183,14 @@ def _slugify(text: str) -> str:
     text = re.sub(r"[^a-z0-9]+", "-", text)
     return text.strip("-") or "page"
 
-def _slugify_category_path(category: str) -> List[str]:
+def _slugify_category_path(category: str) -> list[str]:
     """Splits an operator-typed category path ("Sport/Fußball/Bundesliga")
     on "/" and slugifies each segment independently - never slugify before
     splitting, that would turn "/" into "-" and collapse the hierarchy.
     Matches lib/pages-schema.ts's per-segment validation."""
     return [_slugify(seg) for seg in category.split("/") if seg.strip()]
 
-def _validate_category_segments(segments: List[str]) -> Optional[str]:
+def _validate_category_segments(segments: list[str]) -> str | None:
     """Returns an error message if the (already-slugified) category path is
     invalid, else None. Mirrors lib/pages.ts's reserved-name handling
     (segment 1 vs. "tag" at any depth) and lib/pages-schema.ts's max-depth
@@ -196,7 +207,7 @@ def _validate_category_segments(segments: List[str]) -> Optional[str]:
             return f"'{segment}' is a reserved segment name and can't be used at any depth."
     return None
 
-def _walk_pages(segments: List[str], directory: Path, out: List[tuple[str, Path]]) -> None:
+def _walk_pages(segments: list[str], directory: Path, out: list[tuple[str, Path]]) -> None:
     """Recursion helper for _iter_pages() - see there for the contract."""
     for entry in sorted(directory.iterdir()):
         if not entry.is_dir():
@@ -208,9 +219,9 @@ def _walk_pages(segments: List[str], directory: Path, out: List[tuple[str, Path]
             continue
         if entry.name in RESERVED_AT_ANY_DEPTH or len(segments) >= MAX_CATEGORY_DEPTH:
             continue
-        _walk_pages(segments + [entry.name], entry, out)
+        _walk_pages([*segments, entry.name], entry, out)
 
-def _iter_pages() -> List[tuple[str, Path]]:
+def _iter_pages() -> list[tuple[str, Path]]:
     """Recursively walks data/, skipping reserved top-level segments and any
     "tag"-named segment at any depth, yielding (category_path, page_folder)
     for every folder that's a page leaf (page.yaml + data.yaml present).
@@ -220,13 +231,13 @@ def _iter_pages() -> List[tuple[str, Path]]:
     in sync."""
     if not DATA_ROOT.exists():
         return []
-    out: List[tuple[str, Path]] = []
+    out: list[tuple[str, Path]] = []
     for entry in sorted(DATA_ROOT.iterdir()):
         if entry.is_dir() and entry.name not in RESERVED_CATEGORIES and entry.name not in RESERVED_AT_ANY_DEPTH:
             _walk_pages([entry.name], entry, out)
     return out
 
-def _category_paths() -> List[str]:
+def _category_paths() -> list[str]:
     """Every distinct category path that directly holds pages (leaf
     categories, not every intermediate node) - mirrors lib/pages.ts's
     getAllCategories()."""
@@ -257,12 +268,12 @@ def _category_name_for(category_path: str) -> str:
         names.append(name or (slug[:1].upper() + slug[1:]))
     return "/".join(names)
 
-def _all_tags() -> List[str]:
+def _all_tags() -> list[str]:
     """Every tag already used across all page.yaml files - shown as a
     datalist (like _category_suggestions()) so an operator can reuse one
     instead of typing a near-duplicate, and fed to the LLM tag-suggestion
     prompt so it prefers reusing these over inventing new ones."""
-    tags: Set[str] = set()
+    tags: set[str] = set()
     for _category_path, folder in _iter_pages():
         page_path = folder / "page.yaml"
         try:
@@ -272,7 +283,7 @@ def _all_tags() -> List[str]:
             continue
     return sorted(tags)
 
-def _category_suggestions() -> List[str]:
+def _category_suggestions() -> list[str]:
     """Existing categories' real display names (what's actually in use) plus
     the small curated seed list - shown as a datalist so an operator can
     reuse a name instead of inventing a near-duplicate one. Suggests the
@@ -304,7 +315,7 @@ def _write_category_meta_if_new(category: str) -> None:
         with meta_path.open("w", encoding="utf-8") as f:
             yaml.dump({"name": typed}, f, allow_unicode=True, sort_keys=False)
 
-def _list_created_pages() -> List[dict]:
+def _list_created_pages() -> list[dict]:
     """For the dashboard's overview card - reads straight from disk (source
     of truth), not from in-memory state, so it survives a server restart."""
     pages = []
@@ -331,7 +342,7 @@ def _list_created_pages() -> List[dict]:
         })
     return pages
 
-def _harvest_registry_status() -> List[dict]:
+def _harvest_registry_status() -> list[dict]:
     """One row per entity_class configured in pipeline/config/registries.yaml,
     joined with whatever pipeline/data/registries/<entity_class>.json already
     holds - reads straight from disk (source of truth), not from in-memory
@@ -358,14 +369,14 @@ def _harvest_registry_status() -> List[dict]:
         })
     return rows
 
-def _latest_run_ts(source_id: str) -> Optional[str]:
+def _latest_run_ts(source_id: str) -> str | None:
     source_dir = staging.STAGING_ROOT / source_id
     if not source_dir.exists():
         return None
     run_dirs = sorted((p.name for p in source_dir.iterdir() if p.is_dir()), reverse=True)
     return run_dirs[0] if run_dirs else None
 
-def _source_pages(source_id: str) -> List[Dict[str, str]]:
+def _source_pages(source_id: str) -> list[dict[str, str]]:
     """[{"url", "status"}] for the crawl source's most recent run, in crawl
     order - shown inline in the crawl-sources table (expandable row) and
     refreshed live from the same /status poll while a run is in flight.
@@ -386,7 +397,7 @@ def _source_pages(source_id: str) -> List[Dict[str, str]]:
         return []
     return [{"url": doc["url"], "status": "crawled"} for doc in staging.list_documents(source_id, run_ts)]
 
-def _known_source_ids() -> List[str]:
+def _known_source_ids() -> list[str]:
     """Every source_id with either a data/_sources/*.yaml config or an
     existing staging/ directory - the latter covers data/_sources-based
     automated sources too (e.g. schulferien_kmk, run via `python -m
@@ -412,7 +423,7 @@ def _is_known_source_id(source_id: str) -> bool:
     traversal trick."""
     return source_id in _known_source_ids()
 
-def _pending_candidates_for(source_id: str) -> List[dict]:
+def _pending_candidates_for(source_id: str) -> list[dict]:
     """Candidates from source_id's most recent run whose content_hash has no
     decision yet - recomputed live from disk each call rather than cached,
     same "reads straight from disk" philosophy as _list_created_pages()."""
@@ -441,10 +452,10 @@ def _pending_candidates_for(source_id: str) -> List[dict]:
         pending.append(candidate)
     return pending
 
-def _review_queue() -> List[dict]:
+def _review_queue() -> list[dict]:
     return [c for source_id in _known_source_ids() for c in _pending_candidates_for(source_id)]
 
-def _next_review_candidate(exclude: Optional[tuple] = None) -> Optional[dict]:
+def _next_review_candidate(exclude: tuple | None = None) -> dict | None:
     """First pending candidate in the queue, other than `exclude` - lets a
     reviewer chain straight from one decision (or an explicit Skip) to the
     next one instead of bouncing back through /review's list every time."""
@@ -460,7 +471,7 @@ _MONTH_ABBR = {
 }
 _ISO_DATE_RE = re.compile(r"^(-?\d{1,4})-(\d{2})-(\d{2})$")
 
-def _human_date_variant(iso_date: str) -> Optional[str]:
+def _human_date_variant(iso_date: str) -> str | None:
     """"1901-01-07" -> "1901 Jan 07" - the format eclipse.gsfc.nasa.gov's
     catalog pages actually write dates in (verified against a real staged
     snapshot) - a source's own date formatting varies, so this is one
@@ -503,7 +514,7 @@ def _plaintext_from_markdown(md: str) -> str:
     text = _BLANK_LINE_RUN_RE.sub("\n\n", text)
     return text.strip()
 
-def _highlight_dates(text: str, dates: List[Optional[str]]) -> str:
+def _highlight_dates(text: str, dates: list[str | None]) -> str:
     """Escapes `text` for safe HTML embedding, then wraps any occurrence of
     one of the candidate's own from/to dates - in ISO form or the
     human-readable variant above - in <mark>. Best-effort: a miss just
@@ -525,7 +536,7 @@ def _highlight_dates(text: str, dates: List[Optional[str]]) -> str:
         return escaped
     return re.sub("(" + "|".join(patterns) + ")", r"<mark>\1</mark>", escaped)
 
-def _date_variants(date: Optional[str]) -> List[str]:
+def _date_variants(date: str | None) -> list[str]:
     """Every spelling of one date the review UI knows how to look for - the
     ISO string plus _human_date_variant's rendering. Shared so the
     single-candidate highlight and the whole-document one can never drift
@@ -538,7 +549,7 @@ def _date_variants(date: Optional[str]) -> List[str]:
         variants.append(human)
     return variants
 
-def _highlight_candidates(text: str, candidates: List[dict], source_id: str) -> str:
+def _highlight_candidates(text: str, candidates: list[dict], source_id: str) -> str:
     """Escapes `text`, then turns every date belonging to a still-pending
     candidate into a selectable checkbox in place.
 
@@ -559,7 +570,7 @@ def _highlight_candidates(text: str, candidates: List[dict], source_id: str) -> 
     by two candidates selects the first - they are duplicates of each other,
     and review is per page now, so approving one clears both."""
     escaped = html.escape(text)
-    by_pattern: Dict[str, dict] = {}
+    by_pattern: dict[str, dict] = {}
     for candidate in candidates:
         event = candidate.get("event") or {}
         for date in (event.get("from"), event.get("to")):
@@ -592,7 +603,7 @@ def _highlight_candidates(text: str, candidates: List[dict], source_id: str) -> 
     alternation = "|".join(re.escape(p) for p in sorted(by_pattern, key=len, reverse=True))
     return re.sub(alternation, _hit, escaped)
 
-def _load_candidate(source_id: str, run_ts: str, candidate_id: str) -> Optional[dict]:
+def _load_candidate(source_id: str, run_ts: str, candidate_id: str) -> dict | None:
     """source_id must already be validated by the caller (see
     _is_known_source_id) - this only additionally guards candidate_id
     (also straight from the URL): resolve()+parent-check the same way
@@ -605,8 +616,8 @@ def _load_candidate(source_id: str, run_ts: str, candidate_id: str) -> Optional[
     return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 def _run_crawl_source_and_record(source_id: str) -> None:
-    def report(msg: str) -> None:
-        state.progress[source_id] = msg
+    def report(update: dict[str, str]) -> None:
+        state.progress[source_id] = update
 
     def report_page(url: str, status: str) -> None:
         state.pages.setdefault(source_id, {})[url] = status
@@ -641,7 +652,7 @@ def _derive_path_prefix(seed_path: str) -> str:
         return parent if parent not in ("", "/") else ""
     return seed_path
 
-def _as_quelle_list(datei: Dict[str, Any]) -> List[Dict[str, Any]]:
+def _as_quelle_list(datei: dict[str, Any]) -> list[dict[str, Any]]:
     """lib/pages-schema.ts accepts `source` as either a bare object or a
     list; store.append_quelle only handles the list. Every page written
     before that list form existed still has the object on disk, so
@@ -650,7 +661,7 @@ def _as_quelle_list(datei: Dict[str, Any]) -> List[Dict[str, Any]]:
     quellen = datei.get("source") or []
     return [quellen] if isinstance(quellen, dict) else list(quellen)
 
-def _migrate_page_folder(old_folder: Path, new_folder: Path, slug: str, category: str) -> Optional[str]:
+def _migrate_page_folder(old_folder: Path, new_folder: Path, slug: str, category: str) -> str | None:
     """Folds data/{old_category}/{old_slug}/ into data/{category}/{slug}/,
     returning why it couldn't be (nothing written) or None on success.
 
@@ -754,7 +765,7 @@ def _page_title_for(candidate: dict) -> str:
     existed."""
     return candidate.get("subject_name") or candidate["subject_slug"]
 
-def _approve_one(source_id: str, candidate_id: str, category: str, license: str) -> Optional[str]:
+def _approve_one(source_id: str, candidate_id: str, category: str, license: str) -> str | None:
     """Approves one candidate, or returns why it couldn't be. Shared by the
     single-candidate route (which turns the message into a 4xx page) and
     /review/bulk-edit (which collects the messages and reports them as a
@@ -794,7 +805,7 @@ def _approve_one(source_id: str, candidate_id: str, category: str, license: str)
         review_state.save(source_id, st)
     return None
 
-def _reject_one(source_id: str, candidate_id: str) -> Optional[str]:
+def _reject_one(source_id: str, candidate_id: str) -> str | None:
     """Rejects one candidate, or returns why it couldn't be - the reject-side
     twin of _approve_one, shared by the single-candidate route and the bulk
     one for the same reason."""
@@ -815,8 +826,8 @@ class HarvestRegistryState:
     registry fetch is one blocking network call (Wikidata SPARQL), too slow
     to run inline in an async route."""
     def __init__(self):
-        self.running: Set[str] = set()
-        self.errors: Dict[str, str] = {}
+        self.running: set[str] = set()
+        self.errors: dict[str, str] = {}
 
 harvest_registry_state = HarvestRegistryState()
 
@@ -830,7 +841,7 @@ def _fetch_harvest_registry_and_record(entity_class: str) -> None:
     finally:
         harvest_registry_state.running.discard(entity_class)
 
-def _resolve_page_folder(full_path: str) -> Optional[Path]:
+def _resolve_page_folder(full_path: str) -> Path | None:
     """Shared guard for every /pages/{full_path}/... and /page-data|/page-meta
     route below. full_path is "{category-path}/{slug}", where category-path
     may itself be several "/"-joined segments now that categories can nest -

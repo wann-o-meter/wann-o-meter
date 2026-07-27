@@ -32,7 +32,7 @@ import sys
 import zipfile
 from collections import defaultdict
 from datetime import date
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core.fetch import decode_text, fetch_bytes
 from core.sniff import parse_directory_listing
@@ -47,7 +47,7 @@ FELD_NIEDERSCHLAG = "RSK"       # Tagesniederschlagshoehe (mm)
 FEHLWERT = "-999"
 
 
-def find_station_zip_url(station_id: str) -> Optional[str]:
+def find_station_zip_url(station_id: str) -> str | None:
     """Sucht in der historical/-Verzeichnisliste nach der ZIP-Datei einer Station."""
     content, _ = fetch_bytes(BASE_URL)
     html = decode_text(content) or ""
@@ -58,7 +58,7 @@ def find_station_zip_url(station_id: str) -> Optional[str]:
     return None
 
 
-def parse_produkt_datei(text: str) -> List[Dict[str, str]]:
+def parse_produkt_datei(text: str) -> list[dict[str, str]]:
     """DWD-Spalten sind leerzeichen-gepolstert (z.B. '  TMK'), Werte auch -
     csv.DictReader trennt korrekt an ';', wir stripen selbst nach."""
     reader = csv.DictReader(text.splitlines(), delimiter=";")
@@ -66,7 +66,7 @@ def parse_produkt_datei(text: str) -> List[Dict[str, str]]:
     return [{k: v.strip() for k, v in row.items() if k} for row in reader]
 
 
-def parse_station_zip(content: bytes) -> List[Dict[str, str]]:
+def parse_station_zip(content: bytes) -> list[dict[str, str]]:
     """Extrahiert die produkt_klima_tag_*.txt (die eigentlichen Tageswerte,
     nicht die 30 Metadaten-Begleitdateien) aus der ZIP und parst sie."""
     with zipfile.ZipFile(io.BytesIO(content)) as zf:
@@ -79,7 +79,7 @@ def parse_station_zip(content: bytes) -> List[Dict[str, str]]:
     return parse_produkt_datei(text)
 
 
-def zu_float(wert: str) -> Optional[float]:
+def zu_float(wert: str) -> float | None:
     try:
         f = float(wert)
     except ValueError:
@@ -94,11 +94,11 @@ def iso_woche(datum_str: str) -> str:
     return f"{d.isocalendar().week:02d}"
 
 
-def wochen_bins(rows: List[Dict[str, str]], jahre_zurueck: Optional[int] = None) -> Dict[str, Dict[str, Any]]:
+def wochen_bins(rows: list[dict[str, str]], jahre_zurueck: int | None = None) -> dict[str, dict[str, Any]]:
     """Aggregiert Tageswerte zu historischen Wochen-Bins."""
     grenzjahr = date.today().year - jahre_zurueck if jahre_zurueck else None
-    temps_pro_woche: Dict[str, List[float]] = defaultdict(list)
-    regen_pro_woche: Dict[str, List[float]] = defaultdict(list)
+    temps_pro_woche: dict[str, list[float]] = defaultdict(list)
+    regen_pro_woche: dict[str, list[float]] = defaultdict(list)
 
     for row in rows:
         datum_str = row.get("MESS_DATUM", "")

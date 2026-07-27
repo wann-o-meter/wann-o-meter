@@ -1,24 +1,10 @@
 """The review queue: inspect a candidate, then approve/modify/reject it."""
 
-import asyncio
-import html
-import json
-import re
-import shutil
-import threading
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
-from urllib.parse import urlparse
 
-import yaml
-from fastapi import APIRouter, BackgroundTasks, Form, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi import APIRouter, Form, Request
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
-from core import approval, crawl_config, crawl_runner, review_state, staging, store, validate
-from core.extraction import ExtractionError
-from sources import registry as harvest_registry
-
+from core import approval, review_state, staging
 from review import service
 
 router = APIRouter()
@@ -43,8 +29,10 @@ async def review_document(request: Request, source_id: str, doc_hash: str):
     if not service._is_known_source_id(source_id) or not service._DOC_HASH_RE.match(doc_hash):
         return HTMLResponse("Not found", status_code=404)
     run_ts = service._latest_run_ts(source_id)
-    documents_dir = staging.STAGING_ROOT / source_id / run_ts / "documents" if run_ts else None
-    doc_path = next((p for p in documents_dir.glob(f"{doc_hash}.*") if p.suffix != ".yaml"), None) if documents_dir and documents_dir.exists() else None
+    if run_ts is None:
+        return HTMLResponse("Not found - only text snapshots can be reviewed inline.", status_code=404)
+    documents_dir = staging.STAGING_ROOT / source_id / run_ts / "documents"
+    doc_path = next((p for p in documents_dir.glob(f"{doc_hash}.*") if p.suffix != ".yaml"), None) if documents_dir.exists() else None
     if doc_path is None or doc_path.suffix not in (".md", ".ics"):
         return HTMLResponse("Not found - only text snapshots can be reviewed inline.", status_code=404)
 
@@ -72,7 +60,9 @@ async def review_candidate_detail(request: Request, source_id: str, candidate_id
     if not service._is_known_source_id(source_id):
         return HTMLResponse("Not found", status_code=404)
     run_ts = service._latest_run_ts(source_id)
-    candidate = service._load_candidate(source_id, run_ts, candidate_id) if run_ts else None
+    if run_ts is None:
+        return HTMLResponse("Not found - this candidate may already have been reviewed.", status_code=404)
+    candidate = service._load_candidate(source_id, run_ts, candidate_id)
     if candidate is None:
         return HTMLResponse("Not found - this candidate may already have been reviewed.", status_code=404)
 
@@ -139,7 +129,7 @@ async def approve_candidate(
 @router.post("/review/bulk-edit")
 async def bulk_approve_candidates(
     request: Request,
-    selected: List[str] = Form(default=[]),
+    selected: list[str] = Form(default=[]),
     # Not required: a rejection writes no data.yaml, so it has no Quelle to
     # stamp a license on. The approve branch below still demands a real one.
     license: str = Form(""),
@@ -175,7 +165,12 @@ async def bulk_approve_candidates(
         if action == "reject":
             error = service._reject_one(source_id, candidate_id)
         else:
-            candidate = service._load_candidate(source_id, service._latest_run_ts(source_id), candidate_id) if service._is_known_source_id(source_id) else None
+            # A source can be "known" on its config alone, before it has ever
+            # run - _latest_run_ts is then None, and _load_candidate would do
+            # STAGING_ROOT / source_id / None and raise. Guard it here rather
+            # than let one unrunnable row 500 the whole batch.
+            run_ts = service._latest_run_ts(source_id) if service._is_known_source_id(source_id) else None
+            candidate = service._load_candidate(source_id, run_ts, candidate_id) if run_ts else None
             # Category default matches _candidate_review.html's prefilled field.
             category = service._target_category_for(candidate) if candidate else ""
             error = service._approve_one(source_id, candidate_id, category, license)

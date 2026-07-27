@@ -1,24 +1,12 @@
 """Dashboard, and maintenance of already-created pages."""
 
-import asyncio
-import html
-import json
-import re
 import shutil
-import threading
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
-from urllib.parse import urlparse
 
 import yaml
-from fastapi import APIRouter, BackgroundTasks, Form, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi import APIRouter, Form, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
-from core import approval, crawl_config, crawl_runner, review_state, staging, store, validate
 from core.extraction import ExtractionError
-from sources import registry as harvest_registry
-
 from review import service
 
 router = APIRouter()

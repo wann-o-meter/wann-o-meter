@@ -10,7 +10,7 @@ import json
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 VALIDATE_SCRIPT = REPO_ROOT / "lib" / "validate-cli.ts"
@@ -25,7 +25,7 @@ class ValidationError(Exception):
     pass
 
 
-def pruefe_subjekt_datei(datei: Dict[str, Any]) -> None:
+def pruefe_subjekt_datei(datei: dict[str, Any]) -> None:
     """Raises ValidationError with the Zod issue list if `datei` doesn't
     match pageDataSchema. Call this BEFORE writing to data/, not after the
     Astro build fails on it."""

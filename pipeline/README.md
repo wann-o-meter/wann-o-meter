@@ -31,11 +31,41 @@ uv run uvicorn review.app:app --reload
 
 Then open: **http://localhost:8000**
 
-## Tests
+## Lint, types, tests
 
 ```bash
 cd pipeline
-uv run pytest tests/ -v
+uvx ruff check .        # lint  (--fix applies the safe fixes)
+uvx ty check            # types
+uv run pytest -q        # tests
+```
+
+All three run on every push (`.github/workflows/deploy.yml`). No install step and
+no lockfile entry - `uvx` fetches both tools on demand; their config lives in
+`pyproject.toml` under `[tool.ruff]`.
+
+The ruff ruleset is pinned explicitly rather than left to the tool's default,
+which has broadened between releases and would otherwise turn CI red on an
+upgrade that changed nothing here. `ruff format` is available but not enforced:
+it wants ~1700 lines across 35 files, and some of that reads worse than what it
+replaces.
+
+A `# noqa` / `# ty: ignore` here is expected to say WHY beside it. There are
+five, each a tool limitation rather than a concession:
+
+| where | why |
+| :---- | :-- |
+| `review/service.py` F401 | a re-export reached only as `service.suggest_tags`, which pyflakes cannot see |
+| `review/service.py` no-matching-overload | jinja2 infers `env.globals`' value type from its own builtins, so any app global looks wrong |
+| `core/sniff.py` RUF001 | the EN DASH is deliberate - German date ranges are written "1.5. – 3.5." |
+| `core/crawl_config.py` invalid-assignment | `field(default=None)` on a `Path`, already carrying a mypy ignore |
+| `tests/test_invariants.py` unresolved-import | `tomllib` is 3.11+, imported behind a `try`/`except` |
+
+Plus `# noqa: E402` on the tests' imports, which follow a deliberate
+`sys.path.insert` preamble.
+
+```bash
+uv run pytest tests/ -v   # verbose, per-test
 ```
 
 Fixture-based per source (`tests/fixtures/{source_id}/raw_sample... + erwartet.yaml`) - see

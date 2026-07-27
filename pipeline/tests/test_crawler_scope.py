@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from unittest.mock import patch
+from typing import Any
 
 import pytest
 import yaml
@@ -41,7 +41,7 @@ FAKE_SITE = {
 
 
 def _source(**overrides):
-    base = dict(
+    base: dict[str, Any] = dict(
         id="test-source",
         seed_url="https://example.org/events",
         category="veranstaltungen",

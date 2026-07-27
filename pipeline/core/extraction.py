@@ -16,7 +16,8 @@ means, not a general-purpose extraction framework."""
 
 import json
 import re
-from typing import Any, Callable, Dict, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 from core.llm import call_llm
 
@@ -73,7 +74,7 @@ MAX_TEXT_LENGTH = 20_000
 CHUNK_OVERLAP = 1_000
 
 
-def _split_into_chunks(text: str, max_length: int = MAX_TEXT_LENGTH, overlap: int = CHUNK_OVERLAP) -> List[str]:
+def _split_into_chunks(text: str, max_length: int = MAX_TEXT_LENGTH, overlap: int = CHUNK_OVERLAP) -> list[str]:
     """Text under max_length is returned as a single chunk (the common
     case, and identical to the pre-chunking behavior). Otherwise splits on
     the nearest paragraph/line break before the max_length cutoff where one
@@ -105,7 +106,7 @@ _VAGUE_SEASON_WORDS = ("frühjahr", "fruehjahr", "sommer", "herbst", "winter")
 _DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
-def _parse_json_array(raw: str) -> List[Dict[str, Any]]:
+def _parse_json_array(raw: str) -> list[dict[str, Any]]:
     """Models sometimes wrap JSON in ```json ... ``` despite instructions not
     to - strip that before parsing rather than failing on it."""
     text = raw.strip()
@@ -121,7 +122,7 @@ def _parse_json_array(raw: str) -> List[Dict[str, Any]]:
     return data
 
 
-def _extract_dated_events_chunk(text: str) -> List[Dict[str, str]]:
+def _extract_dated_events_chunk(text: str) -> list[dict[str, str]]:
     """One single-shot extraction call over a chunk already guaranteed to be
     <= MAX_TEXT_LENGTH (see _split_into_chunks). Raises ExtractionError on
     any failure, uncaught - one bad chunk fails the whole page rather than
@@ -163,7 +164,7 @@ def _extract_dated_events_chunk(text: str) -> List[Dict[str, str]]:
     return events
 
 
-def extract_dated_events(text: str, on_progress: Optional[Callable[[str], None]] = None) -> List[Dict[str, str]]:
+def extract_dated_events(text: str, on_progress: Callable[[str], None] | None = None) -> list[dict[str, str]]:
     """Returns a list of {"date": "YYYY-MM-DD", "label": str}, validated,
     de-duplicated and sorted. A multi-day span carries an additional
     "end": "YYYY-MM-DD" (inclusive last day); a single-day entry has no "end". Raises ExtractionError (missing config, API
@@ -183,7 +184,7 @@ def extract_dated_events(text: str, on_progress: Optional[Callable[[str], None]]
         return []
 
     chunks = _split_into_chunks(text)
-    all_events: List[Dict[str, str]] = []
+    all_events: list[dict[str, str]] = []
     for i, chunk in enumerate(chunks, start=1):
         if on_progress:
             suffix = f" (chunk {i}/{len(chunks)})" if len(chunks) > 1 else ""
@@ -194,7 +195,7 @@ def extract_dated_events(text: str, on_progress: Optional[Callable[[str], None]]
     # is seen whole by one chunk and start-only by the next (CHUNK_OVERLAP is
     # 1000 chars, a multi-day range can be wider), which would otherwise leave
     # both the real range and a spurious single-day window for the same event.
-    best: Dict[tuple, Dict[str, str]] = {}
+    best: dict[tuple, dict[str, str]] = {}
     for event in sorted(all_events, key=lambda e: e["date"]):
         key = (event["date"], event["label"])
         previous = best.get(key)
@@ -216,7 +217,7 @@ TAGS_SYSTEM_PROMPT = (
 )
 
 
-def suggest_tags(text: str, title: str, existing_tags: List[str], max_tags: int = 5) -> List[str]:
+def suggest_tags(text: str, title: str, existing_tags: list[str], max_tags: int = 5) -> list[str]:
     """Suggests up to `max_tags` tags for a page, preferring reuse of
     `existing_tags` (the site's current tag vocabulary) over inventing new
     ones - keeps the tag set from fragmenting into near-duplicates
@@ -319,7 +320,7 @@ CATEGORY_SYSTEM_PROMPT = (
 )
 
 
-def suggest_category(text: str, title: str, existing_categories: List[str]) -> str:
+def suggest_category(text: str, title: str, existing_categories: list[str]) -> str:
     """Suggests the best-fit category for a page, preferring reuse of
     existing_categories over inventing a new one - same "reuse over
     fragment" policy as suggest_tags(). Raises ExtractionError on failure,
@@ -342,7 +343,7 @@ def suggest_category(text: str, title: str, existing_categories: List[str]) -> s
     return raw.strip().strip('"').strip("'")
 
 
-def _validate_ranges(items: List[Dict[str, Any]]) -> List[Dict[str, str]]:
+def _validate_ranges(items: list[dict[str, Any]]) -> list[dict[str, str]]:
     """Shared start/end/label validation, dedup, sort-by-start for a raw
     parsed-JSON list of range-shaped items - used by extract_subjects for
     each discovered subject's ranges. Silently drops malformed/inverted
@@ -391,7 +392,7 @@ SUBJECT_SYSTEM_PROMPT = (
 )
 
 
-def extract_subjects(text: str, hint: str) -> List[Dict[str, Any]]:
+def extract_subjects(text: str, hint: str) -> list[dict[str, Any]]:
     """Discovers however many distinct subjects `text` actually covers (one
     Bundesland, one fruit, ...) instead of assuming exactly one - this is
     what lets a single fetch of a page like kmk.org/service/ferien.html
@@ -423,7 +424,7 @@ def extract_subjects(text: str, hint: str) -> List[Dict[str, Any]]:
 
     items = _parse_json_array(raw)
 
-    subjects: List[Dict[str, Any]] = []
+    subjects: list[dict[str, Any]] = []
     for item in items:
         if not isinstance(item, dict):
             continue
@@ -470,7 +471,7 @@ SEASON_SYSTEM_PROMPT = (
 _MONTH_ONLY_PATTERN = re.compile(r"^--(0[1-9]|1[0-2])$")
 
 
-def _validate_season_windows(items: List[Dict[str, Any]]) -> List[Dict[str, str]]:
+def _validate_season_windows(items: list[dict[str, Any]]) -> list[dict[str, str]]:
     windows = []
     seen = set()
     for item in items:
@@ -490,7 +491,7 @@ def _validate_season_windows(items: List[Dict[str, Any]]) -> List[Dict[str, str]
     return windows
 
 
-def extract_season_windows(text: str, hint: str) -> List[Dict[str, Any]]:
+def extract_season_windows(text: str, hint: str) -> list[dict[str, Any]]:
     """Like extract_subjects above, but for year-less RECURRING month
     windows (RawWindow's year: null / "--MM" shape, see lib/schema.ts and
     the hand-authored data/saisonkalender/*) instead of concrete dated
@@ -515,7 +516,7 @@ def extract_season_windows(text: str, hint: str) -> List[Dict[str, Any]]:
 
     items = _parse_json_array(raw)
 
-    subjects: List[Dict[str, Any]] = []
+    subjects: list[dict[str, Any]] = []
     for item in items:
         if not isinstance(item, dict):
             continue

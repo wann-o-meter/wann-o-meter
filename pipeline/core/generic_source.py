@@ -18,18 +18,18 @@ dated range (extract_subjects)."""
 
 from datetime import date
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from core.extraction import ExtractionError, extract_season_windows, extract_subjects, type_slug_from_label
 from core.fetch import decode_text
-from core.types import ExtractionResult
 from core.sniff import extract_any
+from core.types import ExtractionResult
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_ROOT = REPO_ROOT / "data"
 
 
-def extract(config: Dict[str, Any], raw: bytes, params: Dict[str, Any]) -> List[ExtractionResult]:
+def extract(config: dict[str, Any], raw: bytes, params: dict[str, Any]) -> list[ExtractionResult]:
     """config is the source's data/_sources/ entry (kategorie, url, lizenz,
     extraction_hint, optional license_note). `url` and
     `extraction_hint` are both `.format(**params)`'d, same templating
@@ -78,7 +78,7 @@ def extract(config: Dict[str, Any], raw: bytes, params: Dict[str, Any]) -> List[
     return ergebnisse
 
 
-def extract_season(config: Dict[str, Any], raw: bytes, params: Dict[str, Any]) -> List[ExtractionResult]:
+def extract_season(config: dict[str, Any], raw: bytes, params: dict[str, Any]) -> list[ExtractionResult]:
     """Like extract() above, but for sources whose actual information is
     encoded as color/highlighting on an image or PDF page (e.g. a
     Saisonkalender chart marking each fruit's harvest months in different

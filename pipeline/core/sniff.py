@@ -17,7 +17,7 @@ import csv
 import io
 import re
 import zipfile
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import fitz  # PyMuPDF
 from bs4 import BeautifulSoup
@@ -92,7 +92,7 @@ def remove_filler_words(text: str) -> str:
     return text.strip()
 
 
-def extract_dates(text: str) -> List[str]:
+def extract_dates(text: str) -> list[str]:
     patterns = [
         r"\b(?:0?[1-9]|[12][0-9]|3[01])\.(?:0?[1-9]|1[0-2])\.(?:\d{2})?\d{2}\b",
         # Lookbehind rather than \b: \b matches between the "-" and the "1" of
@@ -113,8 +113,10 @@ def extract_dates(text: str) -> List[str]:
     return sorted(set(dates))
 
 
-def extract_time_windows(text: str) -> List[Dict[str, str]]:
-    pattern = r"(?:vom\s+)?(\d{1,2}\.\d{1,2}\.\d{4})\s+(?:bis|–|-)\s+(\d{1,2}\.\d{1,2}\.\d{4})"
+def extract_time_windows(text: str) -> list[dict[str, str]]:
+    # noqa on the EN DASH: German date ranges are written "1.5. – 3.5."
+    # at least as often as with a hyphen, so it is matched deliberately.
+    pattern = r"(?:vom\s+)?(\d{1,2}\.\d{1,2}\.\d{4})\s+(?:bis|–|-)\s+(\d{1,2}\.\d{1,2}\.\d{4})"  # noqa: RUF001
     return [{"from": m.group(1), "to": m.group(2)} for m in re.finditer(pattern, text, re.IGNORECASE)]
 
 
@@ -128,7 +130,7 @@ def is_directory_listing(html: str) -> bool:
     return bool(title and title.group(1).strip().lower().startswith("index of"))
 
 
-def parse_directory_listing(html: str) -> List[Dict[str, Any]]:
+def parse_directory_listing(html: str) -> list[dict[str, Any]]:
     """Each entry is one <a href> plus a trailing '<date>  <size>' text node -
     the standard mod_autoindex row shape. '-' size means it's a directory."""
     soup = BeautifulSoup(html, "html.parser")
@@ -136,6 +138,7 @@ def parse_directory_listing(html: str) -> List[Dict[str, Any]]:
     entries = []
     for a in pre.find_all("a", href=True):
         href = a["href"]
+        href = href[0] if isinstance(href, list) else href
         if href in ("../", "/", "?C=N;O=D", "?C=M;O=A"):  # nav links some servers add
             continue
         trailing = str(a.next_sibling or "").strip()
@@ -156,10 +159,10 @@ def parse_directory_listing(html: str) -> List[Dict[str, Any]]:
 # Tabular text: delimited (csv/semicolon) and fixed-width legacy exports
 # ---------------------------------------------------------------------------
 
-def sniff_delimiter(text: str) -> Optional[str]:
+def sniff_delimiter(text: str) -> str | None:
     """Only trust a delimiter if the header row and a data row agree on the
     field count - otherwise a stray semicolon in prose would false-positive."""
-    lines = [l for l in text.splitlines() if l.strip()][:5]
+    lines = [line for line in text.splitlines() if line.strip()][:5]
     if len(lines) < 2:
         return None
     for delimiter in (";", ",", "\t"):
@@ -169,13 +172,13 @@ def sniff_delimiter(text: str) -> Optional[str]:
     return None
 
 
-def parse_delimited(text: str, delimiter: str, max_rows: int = 50) -> Dict[str, Any]:
+def parse_delimited(text: str, delimiter: str, max_rows: int = 50) -> dict[str, Any]:
     reader = csv.reader(text.splitlines(), delimiter=delimiter)
     rows = list(reader)
     if not rows:
         return {"columns": [], "row_count": 0, "rows_preview": []}
     columns = [c.strip() for c in rows[0]]
-    data_rows = [dict(zip(columns, (c.strip() for c in r))) for r in rows[1:] if r]
+    data_rows = [dict(zip(columns, (c.strip() for c in r), strict=False)) for r in rows[1:] if r]
     return {
         "columns": columns,
         "row_count": len(data_rows),
@@ -192,7 +195,7 @@ def looks_fixed_width(text: str) -> bool:
     return bool(re.fullmatch(r"[-\s]+", lines[1]) and "-" in lines[1])
 
 
-def parse_fixed_width(text: str, max_rows: int = 50) -> Dict[str, Any]:
+def parse_fixed_width(text: str, max_rows: int = 50) -> dict[str, Any]:
     """Best-effort: column widths come from the ruler line under the header.
     Ground truth from opendata.dwd.de: the ruler often describes the HEADER's
     widths, not the actual data rows' widths (DWD's own export is inconsistent
@@ -209,7 +212,7 @@ def parse_fixed_width(text: str, max_rows: int = 50) -> Dict[str, Any]:
         if not line.strip():
             continue
         values = [line[s:min(e, len(line))].strip() for s, e in spans]
-        data_rows.append(dict(zip(columns, values)))
+        data_rows.append(dict(zip(columns, values, strict=False)))
 
     return {
         "columns": columns,
@@ -267,14 +270,14 @@ VISION_PROMPT = (
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 
 
-def sniff_image_mime(content: bytes) -> Optional[str]:
+def sniff_image_mime(content: bytes) -> str | None:
     for magic, mime in _IMAGE_MAGIC:
         if content.startswith(magic):
             return mime
     return None
 
 
-def extract_image(content: bytes, mime_type: str) -> Dict[str, Any]:
+def extract_image(content: bytes, mime_type: str) -> dict[str, Any]:
     """Same result shape as the html_page branch (dates/time_windows/
     clean_markdown_full) so downstream LLM date extraction, which reads
     clean_markdown_full, works unchanged regardless of whether the source
@@ -312,7 +315,7 @@ PDF_RENDER_DPI = 150
 MAX_PDF_PAGES = 10
 
 
-def extract_pdf(content: bytes) -> Dict[str, Any]:
+def extract_pdf(content: bytes) -> dict[str, Any]:
     try:
         doc = fitz.open(stream=content, filetype="pdf")
     except Exception as e:
@@ -355,7 +358,7 @@ def extract_pdf(content: bytes) -> Dict[str, Any]:
 # labor as extract_pdf/extract_image above).
 # ---------------------------------------------------------------------------
 
-def extract_ics(content: bytes) -> Dict[str, Any]:
+def extract_ics(content: bytes) -> dict[str, Any]:
     try:
         windows = map_calendar(content)
     except Exception as e:
@@ -367,7 +370,7 @@ def extract_ics(content: bytes) -> Dict[str, Any]:
 # Dispatcher
 # ---------------------------------------------------------------------------
 
-def extract_any(name: str, content: bytes, content_type: str = "") -> Dict[str, Any]:
+def extract_any(name: str, content: bytes, content_type: str = "") -> dict[str, Any]:
     """Sniff what `content` actually is and extract accordingly. Used both at
     the top level and recursively for files inside a ZIP."""
     if content[:4] == b"PK\x03\x04" or name.lower().endswith(".zip"):
@@ -432,7 +435,7 @@ def extract_any(name: str, content: bytes, content_type: str = "") -> Dict[str, 
     return {"kind": "plain_text", "preview": text[:1500] + ("..." if len(text) > 1500 else "")}
 
 
-def extract_zip(content: bytes) -> Dict[str, Any]:
+def extract_zip(content: bytes) -> dict[str, Any]:
     entries = []
     with zipfile.ZipFile(io.BytesIO(content)) as zf:
         for info in zf.infolist():
@@ -442,7 +445,7 @@ def extract_zip(content: bytes) -> Dict[str, Any]:
                 member_bytes = zf.read(info.filename)
                 member_result = extract_any(info.filename, member_bytes)
             except Exception as e:
-                member_result = {"kind": "error", "reason": str(e)}
+                member_result: dict[str, Any] = {"kind": "error", "reason": str(e)}
             member_result["name"] = info.filename
             member_result["size_bytes"] = info.file_size
             entries.append(member_result)

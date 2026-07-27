@@ -21,7 +21,7 @@ def _pdf_bytes(page_count: int = 1) -> bytes:
 
 def test_html_page_keeps_full_text_alongside_truncated_preview():
     long_paragraph = "Ein Satz mit Inhalt. " * 200  # well over 1500 chars
-    html = f"<html><body><p>{long_paragraph}</p></body></html>".encode("utf-8")
+    html = f"<html><body><p>{long_paragraph}</p></body></html>".encode()
 
     result = extract_any("page.html", html, "text/html")
 

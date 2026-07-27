@@ -13,6 +13,7 @@ separat gemockt getestet, wie in tests/test_extraction.py."""
 
 import sys
 from pathlib import Path
+from typing import ClassVar
 
 import pytest
 import yaml
@@ -142,7 +143,7 @@ def test_store_merge_und_echte_zod_validierung(monkeypatch, tmp_path, config, ra
     ergebnisse = generic_source.extract(config, raw_sample, PARAMS)
     assert len(ergebnisse) == 2
 
-    for ergebnis, erwartet in zip(ergebnisse, erwartete_subjekte):
+    for ergebnis, erwartet in zip(ergebnisse, erwartete_subjekte, strict=True):
         datei = store.lade_oder_erstelle(
             ergebnis.datei_pfad,
             ergebnis.subjekt["slug"],
@@ -209,13 +210,13 @@ class TestExtractSeason:
     otherwise call the vision LLM) since there's no recorded real-world
     fixture for this yet."""
 
-    CONFIG = {
+    CONFIG: ClassVar[dict] = {
         "kategorie": "saisonkalender",
         "url": "https://example.invalid/saisonkalender.pdf",
         "lizenz": "cc_by",
         "extraction_hint": "Saisonkalender fuer Obst/Gemuese (Testquelle)",
     }
-    ERWARTETE_SUBJEKTE = [
+    ERWARTETE_SUBJEKTE: ClassVar[list] = [
         {
             "subject": {"slug": "apfel", "name": "Apfel"},
             "windows": [

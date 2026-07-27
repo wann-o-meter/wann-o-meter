@@ -27,7 +27,7 @@ import re
 import sys
 from datetime import date
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import yaml
 from bs4 import BeautifulSoup
@@ -73,14 +73,14 @@ def slugify(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", text).strip("-")
 
 
-def level_of(span: Any) -> Optional[str]:
+def level_of(span: Any) -> str | None:
     for cls in span.get("class") or []:
         if cls in LEVELS:
             return cls
     return None
 
 
-def windows(levels: List[Optional[str]]) -> List[Dict[str, Any]]:
+def windows(levels: list[str | None]) -> list[dict[str, Any]]:
     """Ein Fenster pro ZUSAMMENHAENGENDEM Lauf gleicher Stufe, nicht eines pro
     Stufe: die Stufen einer Pflanze sind nicht je ein einziger Block (Beifuss
     ist c1 im Mai UND nochmal im Oktober, dazwischen c3/c2). Ein min/max pro
@@ -111,7 +111,7 @@ def windows(levels: List[Optional[str]]) -> List[Dict[str, Any]]:
     return result
 
 
-def parse(html: str) -> List[Dict[str, Any]]:
+def parse(html: str) -> list[dict[str, Any]]:
     rows = BeautifulSoup(html, "html.parser").select("div.pollenflug-tabellenzeile")
     if not rows:
         raise SystemExit("Keine div.pollenflug-tabellenzeile gefunden - Seitenlayout geaendert?")
@@ -132,7 +132,7 @@ def parse(html: str) -> List[Dict[str, Any]]:
     return plants
 
 
-def write(plants: List[Dict[str, Any]]) -> None:
+def write(plants: list[dict[str, Any]]) -> None:
     for plant in plants:
         slug = slugify(plant["name"])
         directory = DATA_ROOT / slug
@@ -157,7 +157,7 @@ def write(plants: List[Dict[str, Any]]) -> None:
         })
 
 
-def dump(path: Path, data: Dict[str, Any]) -> None:
+def dump(path: Path, data: dict[str, Any]) -> None:
     with path.open("w", encoding="utf-8") as f:
         yaml.safe_dump(data, f, allow_unicode=True, sort_keys=False, default_flow_style=False)
 

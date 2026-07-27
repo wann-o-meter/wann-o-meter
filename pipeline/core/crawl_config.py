@@ -19,7 +19,7 @@ format promise nothing depends on."""
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import yaml
 
@@ -58,10 +58,10 @@ class CrawlSource:
     id: str
     seed_url: str
     category: str
-    allowed_domains: List[str]
-    path_prefix: Optional[str]
+    allowed_domains: list[str]
+    path_prefix: str | None
     max_depth: int
-    formats: List[str]
+    formats: list[str]
     event_type_hint: str
     schedule: str
     # Which page this source's events land in: data/{category}/{subject_slug}/.
@@ -89,7 +89,7 @@ class CrawlSource:
     subject_name: str = ""
     extraction_mode: str = DEFAULT_EXTRACTION_MODE
     auto_approve_ics: bool = False
-    config_path: Path = field(default=None, repr=False)  # type: ignore[assignment]
+    config_path: Path = field(default=None, repr=False)  # type: ignore[assignment]  # ty: ignore[invalid-assignment]
 
     def __post_init__(self) -> None:
         """A blank subject_slug means "its own page". Defaulted here rather
@@ -99,7 +99,7 @@ class CrawlSource:
             self.subject_slug = self.id
 
 
-def _parse(raw: Dict[str, Any], path: Path) -> CrawlSource:
+def _parse(raw: dict[str, Any], path: Path) -> CrawlSource:
     for required in ("id", "seed_url", "category", "scope"):
         if required not in raw:
             raise CrawlConfigError(f"{path}: missing required field '{required}'")
@@ -149,7 +149,7 @@ def load_crawl_source(path: Path) -> CrawlSource:
     return source
 
 
-def load_all_crawl_sources(directory: Optional[Path] = None) -> Dict[str, CrawlSource]:
+def load_all_crawl_sources(directory: Path | None = None) -> dict[str, CrawlSource]:
     # directory=CRAWL_SOURCES_DIR as the default would bind that Path at
     # *function definition* time - a test monkeypatching the module-level
     # CRAWL_SOURCES_DIR afterward (the same pattern staging.STAGING_ROOT/

@@ -21,7 +21,7 @@ SOURCES_DIR = DATA_ROOT / "_sources"
 sys.path.insert(0, str(PIPELINE_ROOT))
 
 try:  # tomllib is stdlib from 3.11; the pipeline pins 3.10
-    import tomllib
+    import tomllib  # ty: ignore[unresolved-import]
 except ModuleNotFoundError:  # pragma: no cover - depends on interpreter
     import tomli as tomllib
 

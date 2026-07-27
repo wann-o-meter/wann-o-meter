@@ -18,9 +18,9 @@ from fastapi.testclient import TestClient
 PIPELINE_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PIPELINE_ROOT))
 
+from core import approval, crawl_config, review_state, staging  # noqa: E402
 from review import service  # noqa: E402
 from review.app import app  # noqa: E402
-from core import approval, crawl_config, review_state, staging  # noqa: E402
 
 
 @pytest.fixture
@@ -34,7 +34,7 @@ def client(tmp_path, monkeypatch):
     return TestClient(app)
 
 
-def _stage_candidate(source_id: str, run_ts: str, subject_slug: str, event: dict, subject_name: str = None, category: str = None, url: str = "https://example.invalid/events") -> dict:
+def _stage_candidate(source_id: str, run_ts: str, subject_slug: str, event: dict, subject_name: str | None = None, category: str | None = None, url: str = "https://example.invalid/events") -> dict:
     doc_hash = staging.write_document(source_id, run_ts, url, "text/calendar", b"BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n")
     candidate = staging.build_candidate(source_id, subject_slug, event, doc_hash, subject_name=subject_name, category=category)
     staging.write_candidate(source_id, run_ts, candidate)
@@ -322,6 +322,26 @@ class TestBulkApprove:
 
         assert (service.DATA_ROOT / "astronomie" / "sonnenfinsternis" / "data.yaml").exists()
         assert not (service.DATA_ROOT / "sonnenfinsternis").exists()
+
+    def test_a_source_that_has_never_run_is_reported_not_a_500(self, client, tmp_path):
+        """_is_known_source_id() accepts a source that only has a config file -
+        data/_sources/stuttgarter-fruehlingsfest-de.yaml is exactly that today.
+        _latest_run_ts() is then None, and _load_candidate() would build
+        STAGING_ROOT / source_id / None and raise TypeError, turning one
+        unrunnable row into a 500 for the whole batch."""
+        (tmp_path / "crawl_sources").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "crawl_sources" / "never-run.yaml").write_text(
+            "id: never-run\nseed_url: https://example.invalid/\ncategory: astronomie\n"
+            "scope:\n  allowed_domains: [example.invalid]\n",
+            encoding="utf-8",
+        )
+
+        response = client.post(
+            "/review/bulk-edit",
+            data={"selected": ["never-run/never-run:deadbeef"], "license": "tos_checked"},
+        )
+
+        assert response.status_code == 200
 
     def test_the_reject_button_records_rejections_and_writes_no_page(self, client):
         """Both bulk buttons submit the same form, so the only thing telling

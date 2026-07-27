@@ -1,24 +1,14 @@
 """Crawl-source CRUD plus run/status polling."""
 
-import asyncio
-import html
-import json
-import re
 import shutil
 import threading
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
 from urllib.parse import urlparse
 
 import yaml
-from fastapi import APIRouter, BackgroundTasks, Form, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi import APIRouter, Form, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
-from core import approval, crawl_config, crawl_runner, review_state, staging, store, validate
-from core.extraction import ExtractionError
-from sources import registry as harvest_registry
-
+from core import crawl_config, review_state, staging
 from review import service
 
 router = APIRouter()
@@ -108,7 +98,7 @@ async def create_crawl_source(
     allowed_domains: str = Form(""),
     path_prefix: str = Form(""),
     max_depth: int = Form(crawl_config.DEFAULT_MAX_DEPTH),
-    formats: List[str] = Form(["html"]),
+    formats: list[str] = Form(["html"]),
     subject_slug: str = Form(""),
     subject_name: str = Form(""),
     event_type_hint: str = Form(""),

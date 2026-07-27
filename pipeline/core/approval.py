@@ -10,7 +10,7 @@ for whatever accumulates here themselves, the same as any other local
 change to this repo."""
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from core import store, validate
 
@@ -30,8 +30,8 @@ def write_event(
     category: str,
     subject_slug: str,
     subject_name: str,
-    event: Dict[str, Any],
-    quelle: Dict[str, Any],
+    event: dict[str, Any],
+    quelle: dict[str, Any],
 ) -> Path:
     """Merges `event` (one RawWindow-shaped dict) into
     data/{category}/{subject_slug}/data.yaml via store.merge_zeitfenster and

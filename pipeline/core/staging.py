@@ -23,7 +23,7 @@ import hashlib
 import re
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import yaml
 
@@ -92,12 +92,12 @@ def write_document(source_id: str, run_ts: str, url: str, content_type: str, raw
 def build_candidate(
     source_id: str,
     subject_slug: str,
-    window: Dict[str, Any],
+    window: dict[str, Any],
     document: str,
-    extracted_at: Optional[str] = None,
-    subject_name: Optional[str] = None,
-    category: Optional[str] = None,
-) -> Dict[str, Any]:
+    extracted_at: str | None = None,
+    subject_name: str | None = None,
+    category: str | None = None,
+) -> dict[str, Any]:
     """Builds one candidate dict (spec shape: candidate_id, source_id,
     document, extracted_at, content_hash, event) for a single window - the
     unit of review is one event, not one subject/ExtractionResult, since a
@@ -139,7 +139,7 @@ def build_candidate(
     }
 
 
-def write_candidate(source_id: str, run_ts: str, candidate: Dict[str, Any]) -> Path:
+def write_candidate(source_id: str, run_ts: str, candidate: dict[str, Any]) -> Path:
     candidates_dir = _run_dir(source_id, run_ts) / "candidates"
     candidates_dir.mkdir(parents=True, exist_ok=True)
     path = candidates_dir / f"{candidate['candidate_id'].replace(':', '_')}.yaml"
@@ -148,12 +148,12 @@ def write_candidate(source_id: str, run_ts: str, candidate: Dict[str, Any]) -> P
     return path
 
 
-def read_document_meta(source_id: str, run_ts: str, doc_hash: str) -> Dict[str, Any]:
+def read_document_meta(source_id: str, run_ts: str, doc_hash: str) -> dict[str, Any]:
     meta_path = _run_dir(source_id, run_ts) / "documents" / f"{doc_hash}.meta.yaml"
     return yaml.safe_load(meta_path.read_text(encoding="utf-8"))
 
 
-def list_documents(source_id: str, run_ts: str) -> List[Dict[str, Any]]:
+def list_documents(source_id: str, run_ts: str) -> list[dict[str, Any]]:
     """Every document's metadata for one run, sorted by url - used by the
     Crawl Sources dashboard's page-tree view (the review app) to show what a crawl
     actually reached, hierarchically under the seed URL."""

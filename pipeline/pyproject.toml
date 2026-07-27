@@ -23,3 +23,37 @@ dependencies = [
 # tomli reads data/*/meta.toml in tests/test_invariants.py. Only needed below
 # Python 3.11, where the same API is stdlib as tomllib; the pipeline pins 3.10.
 dev = ["pytest>=8.0.0", "tomli>=2.0; python_version < '3.11'"]
+
+# Run with uvx - no install, no lockfile entry:
+#     uvx ruff check .        uvx ruff format .        uvx ty check
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+extend-exclude = [".venv", "staging"]
+
+[tool.ruff.lint]
+# Selected explicitly rather than left to ruff's default, which broadened
+# between versions and would silently turn a green CI red on a new release.
+select = [
+    "E", "W",  # pycodestyle - includes E402, which the tests' sys.path-then-import
+               # preamble legitimately suppresses with an inline noqa
+    "F",       # pyflakes: unused imports, undefined names - the reason to have a linter
+    "I",       # import sorting, so an added import lands in a predictable place
+    "UP",      # pyupgrade: keeps annotations on the 3.10 baseline this project pins
+    "B",       # bugbear: mutable defaults, silent-loop-variable bugs
+    "RUF",     # ruff's own, incl. RUF100 (a noqa that no longer suppresses anything)
+]
+ignore = [
+    # Comments here are wrapped at the same 120 columns as the code; a URL or a
+    # long error message in a string is not worth a line break that hurts
+    # grep-ability. E501 is left to the formatter's judgement instead.
+    "E501",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# FastAPI's whole calling convention is `x: str = Form(...)` in the signature -
+# B008 exists to catch `def f(x=[])`, which is a different thing entirely.
+"review/routes/*.py" = ["B008"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["core", "review", "sources"]

@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
@@ -13,14 +14,14 @@ from core.crawler import CrawledDocument  # noqa: E402
 from core.extraction import ExtractionError  # noqa: E402
 
 ICS_BYTES = (
-    "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//test//test//EN\r\n"
-    "BEGIN:VEVENT\r\nUID:1@example.org\r\nSUMMARY:Stadtfest\r\nDTSTART:20260815\r\nDTEND:20260816\r\nEND:VEVENT\r\n"
-    "END:VCALENDAR\r\n"
-).encode("utf-8")
+    b"BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//test//test//EN\r\n"
+    b"BEGIN:VEVENT\r\nUID:1@example.org\r\nSUMMARY:Stadtfest\r\nDTSTART:20260815\r\nDTEND:20260816\r\nEND:VEVENT\r\n"
+    b"END:VCALENDAR\r\n"
+)
 
 
 def _source(**overrides):
-    base = dict(
+    base: dict[str, Any] = dict(
         id="test-source",
         seed_url="https://example.org/events.ics",
         category="veranstaltungen",
@@ -103,7 +104,6 @@ def test_new_event_alongside_an_already_approved_one_only_queues_the_new_one(mon
     )
     crawl_runner.run(_source())
 
-    target_file = str(Path(approval.DATA_ROOT) / "veranstaltungen" / "test-source" / "data.yaml")
     event = {
         "type": "event", "year": 2026, "from": "2026-08-15", "to": "2026-08-15",
         "precision": "exact", "ics": True, "name": "Stadtfest",
@@ -111,11 +111,11 @@ def test_new_event_alongside_an_already_approved_one_only_queues_the_new_one(mon
     _approve_like_the_review_ui_would("test-source", event)
 
     second_event_ics = (
-        "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//test//test//EN\r\n"
-        "BEGIN:VEVENT\r\nUID:1@example.org\r\nSUMMARY:Stadtfest\r\nDTSTART:20260815\r\nDTEND:20260816\r\nEND:VEVENT\r\n"
-        "BEGIN:VEVENT\r\nUID:2@example.org\r\nSUMMARY:Weihnachtsmarkt\r\nDTSTART:20261201\r\nDTEND:20261224\r\nEND:VEVENT\r\n"
-        "END:VCALENDAR\r\n"
-    ).encode("utf-8")
+        b"BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//test//test//EN\r\n"
+        b"BEGIN:VEVENT\r\nUID:1@example.org\r\nSUMMARY:Stadtfest\r\nDTSTART:20260815\r\nDTEND:20260816\r\nEND:VEVENT\r\n"
+        b"BEGIN:VEVENT\r\nUID:2@example.org\r\nSUMMARY:Weihnachtsmarkt\r\nDTSTART:20261201\r\nDTEND:20261224\r\nEND:VEVENT\r\n"
+        b"END:VCALENDAR\r\n"
+    )
     monkeypatch.setattr(
         crawl_runner, "crawl",
         lambda source, on_progress=None, on_page=None: [CrawledDocument("https://example.org/events.ics", "text/calendar", second_event_ics)],
