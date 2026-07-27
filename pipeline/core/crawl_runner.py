@@ -39,7 +39,7 @@ def _default_quelle(url: str) -> Dict[str, Any]:
     (see data/_sources/*.yaml) - "tos_checked" here is only
     the placeholder default for a source config that hasn't set one yet,
     same spirit as this project's license enum never being auto-guessed
-    (see main.py's LICENSE_OPTIONS docstring)."""
+    (see review/service.py's LICENSE_OPTIONS docstring)."""
     return {
         "url": url,
         "license": "tos_checked",
@@ -176,7 +176,7 @@ def _windows_from_document(
 def _existing_categories() -> List[str]:
     """Category paths that already hold pages, so a suggestion can reuse one
     instead of fragmenting the tree. Derived from disk rather than imported
-    from main.py's _category_paths - main imports this module, so the
+    from review/service.py's _category_paths - review/ imports this module, so the
     dependency only goes one way."""
     root = approval.DATA_ROOT
     if not root.exists():
@@ -205,7 +205,7 @@ def _suggested_category(source: CrawlSource, documents: List[CrawledDocument], t
     time and simply had no caller.
 
     Only a suggestion: it lands on the candidate, which prefills the review
-    form (see main.py's _target_category_for), so a human still confirms it
+    form (see review/service.py's _target_category_for), so a human still confirms it
     before anything is written. Falls back to the configured value on any
     failure - a category guess must never be what fails a whole crawl.
 
@@ -260,7 +260,7 @@ def run(
 ) -> Dict[str, Any]:
     """on_progress, if given, is called with {"phase": "crawling"|
     "extracting"|"diffing", "detail": str} at each meaningful step - the
-    phase is what lets main.py's dashboard show "Crawling" vs "Extracting"
+    phase is what lets review/service.py's dashboard show "Crawling" vs "Extracting"
     as a distinct, glanceable label instead of a caller having to parse it
     back out of a free-text message. detail carries the specifics (current
     URL, chunk N/M, chars sent) - a slow run (many in-scope pages, or

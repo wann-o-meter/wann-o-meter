@@ -78,7 +78,7 @@ def speichere(pfad: Path, datei: Dict[str, Any]) -> None:
 
 
 def schreibe_page_yaml_falls_neu(pfad: Path, title: str, tags: List[str] | None = None) -> None:
-    """Same written-once convention as pipeline/main.py's POST /create-page:
+    """Same written-once convention as pipeline/review/service.py's POST /create-page:
     page.yaml carries title/description/tags and is left untouched by a later
     re-run, so a human's edits survive a re-scrape. Every data.yaml folder
     needs one (lib/pages.ts only recognizes a folder as a page when both

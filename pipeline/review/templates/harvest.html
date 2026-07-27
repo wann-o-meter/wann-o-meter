@@ -67,7 +67,7 @@
 {% block scripts %}
     <script>
         // /harvest/registry returns almost instantly (the real fetch runs in
-        // a detached background thread - see main.py) - polls
+        // a detached background thread - see the review app) - polls
         // /harvest/registry-status for actual completion, then re-renders
         // the whole table from the server so count/fetched_at/button state
         // all come from one source of truth instead of being patched in JS.

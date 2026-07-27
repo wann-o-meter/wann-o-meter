@@ -111,7 +111,7 @@
             <nav class="nav">
                 {# Ordered as the pipeline runs backwards from its result: you add a
                    Source, Review what it found, and it lands in Pages. Harvest is a
-                   separate track (see main.py's harvest_view), so it sits last. #}
+                   separate track (see review/service.py's harvest_view), so it sits last. #}
                 <a href="/" class="{{ 'active' if active_nav == 'pages' else '' }}">Pages</a>
                 <a href="/crawl-sources" class="{{ 'active' if active_nav == 'crawl-sources' else '' }}">Sources</a>
                 <a href="/review" class="{{ 'active' if active_nav == 'review' else '' }}">Review</a>
@@ -128,7 +128,7 @@
         {# One place for every suggestion list, so a form can never be added
            without them - which is exactly how the page-title and page-slug
            fields ended up with no suggestions while the category field beside
-           them had some. Populated from main.py's templates.env.globals. #}
+           them had some. Populated from review/service.py's templates.env.globals. #}
         <datalist id="category-suggestions">
             {% for c in all_categories() %}<option value="{{ c }}">{% endfor %}
         </datalist>

@@ -18,19 +18,20 @@ from fastapi.testclient import TestClient
 PIPELINE_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PIPELINE_ROOT))
 
-import main  # noqa: E402
+from review import service  # noqa: E402
+from review.app import app  # noqa: E402
 from core import approval, crawl_config, review_state, staging  # noqa: E402
 
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    monkeypatch.setattr(main, "DATA_ROOT", tmp_path / "data")
+    monkeypatch.setattr(service, "DATA_ROOT", tmp_path / "data")
     monkeypatch.setattr(approval, "DATA_ROOT", tmp_path / "data")
     monkeypatch.setattr(staging, "STAGING_ROOT", tmp_path / "staging")
     monkeypatch.setattr(review_state, "REVIEW_STATE_ROOT", tmp_path / "review-state")
     monkeypatch.setattr(review_state, "DATA_ROOT", tmp_path / "data")
     monkeypatch.setattr(crawl_config, "CRAWL_SOURCES_DIR", tmp_path / "crawl_sources")
-    return TestClient(main.app)
+    return TestClient(app)
 
 
 def _stage_candidate(source_id: str, run_ts: str, subject_slug: str, event: dict, subject_name: str = None, category: str = None, url: str = "https://example.invalid/events") -> dict:
@@ -49,13 +50,13 @@ class TestPageDataAndMetaGuards:
         return folder
 
     def test_serves_data_yaml_for_a_deeply_nested_page(self, client):
-        self._seed_nested_page(main.DATA_ROOT)
+        self._seed_nested_page(service.DATA_ROOT)
         response = client.get("/page-data/sport/fussball/bundesliga/spieltag-1")
         assert response.status_code == 200
         assert "spieltag-1" in response.text
 
     def test_serves_page_yaml_for_a_deeply_nested_page(self, client):
-        self._seed_nested_page(main.DATA_ROOT)
+        self._seed_nested_page(service.DATA_ROOT)
         response = client.get("/page-meta/sport/fussball/bundesliga/spieltag-1")
         assert response.status_code == 200
         assert "Spieltag 1" in response.text
@@ -64,12 +65,12 @@ class TestPageDataAndMetaGuards:
         # "sport/fussball" exists as an intermediate category node (holds
         # spieltag-1), but has no page.yaml/data.yaml of its own - the guard
         # must reject it, not just check that it resolves under DATA_ROOT.
-        self._seed_nested_page(main.DATA_ROOT)
+        self._seed_nested_page(service.DATA_ROOT)
         response = client.get("/page-data/sport/fussball")
         assert response.status_code == 404
 
     def test_404s_on_a_path_traversal_attempt(self, client):
-        self._seed_nested_page(main.DATA_ROOT)
+        self._seed_nested_page(service.DATA_ROOT)
         response = client.get("/page-data/../../../../../../etc/passwd")
         assert response.status_code == 404
 
@@ -95,7 +96,7 @@ class TestReviewApprove:
         )
 
         assert response.status_code == 302
-        data_path = main.DATA_ROOT / "veranstaltungen" / "hechingen" / "data.yaml"
+        data_path = service.DATA_ROOT / "veranstaltungen" / "hechingen" / "data.yaml"
         assert data_path.exists()
         datei = yaml.safe_load(data_path.read_text(encoding="utf-8"))
         assert datei["windows"][0]["name"] == "Stadtfest"
@@ -113,14 +114,14 @@ class TestReviewApprove:
             f"/review/test-source/{candidate['candidate_id']}/approve",
             data={"category": "veranstaltungen", "license": "tos_checked"},
         )
-        assert main._review_queue() == []
+        assert service._review_queue() == []
 
-        data_path = main.DATA_ROOT / "veranstaltungen" / "hechingen" / "data.yaml"
+        data_path = service.DATA_ROOT / "veranstaltungen" / "hechingen" / "data.yaml"
         datei = yaml.safe_load(data_path.read_text(encoding="utf-8"))
         datei["windows"] = []
         data_path.write_text(yaml.dump(datei), encoding="utf-8")
 
-        assert len(main._review_queue()) == 1
+        assert len(service._review_queue()) == 1
 
     def test_approving_into_another_category_does_not_loop(self, client):
         """The source writes to data/veranstaltungen/, but the operator files
@@ -134,8 +135,8 @@ class TestReviewApprove:
             data={"category": "kultur", "license": "tos_checked"},
         )
 
-        assert (main.DATA_ROOT / "kultur" / "hechingen" / "data.yaml").exists()
-        assert main._review_queue() == []
+        assert (service.DATA_ROOT / "kultur" / "hechingen" / "data.yaml").exists()
+        assert service._review_queue() == []
 
     def test_approve_404s_for_an_unknown_source(self, client):
         response = client.post(
@@ -177,14 +178,14 @@ class TestReviewModify:
         )
 
         assert response.status_code == 302
-        datei = yaml.safe_load((main.DATA_ROOT / "veranstaltungen" / "hechingen" / "data.yaml").read_text(encoding="utf-8"))
+        datei = yaml.safe_load((service.DATA_ROOT / "veranstaltungen" / "hechingen" / "data.yaml").read_text(encoding="utf-8"))
         assert datei["windows"][0]["name"] == "Stadtfest Hechingen"
         assert datei["windows"][0]["to"] == "2026-08-16"
 
         # The correction is in data.yaml. The ORIGINAL identity is retired,
         # or the source would re-extract it and re-queue it every run.
         assert review_state.is_rejected(review_state.load("test-source"), "hechingen", VALID_EVENT)
-        assert main._review_queue() == []
+        assert service._review_queue() == []
 
 
 class TestReviewReject:
@@ -194,7 +195,7 @@ class TestReviewReject:
         response = client.post(f"/review/test-source/{candidate['candidate_id']}/reject", follow_redirects=False)
 
         assert response.status_code == 302
-        assert not (main.DATA_ROOT / "veranstaltungen").exists()
+        assert not (service.DATA_ROOT / "veranstaltungen").exists()
         assert review_state.is_rejected(review_state.load("test-source"), "hechingen", VALID_EVENT)
 
     def test_rejected_candidate_no_longer_appears_in_the_review_queue(self, client):
@@ -223,7 +224,7 @@ class TestPageTitleOnApproval:
     the same source's auto-waved-through candidates got a cleaned-up name."""
 
     def _title(self) -> str:
-        return yaml.safe_load((main.DATA_ROOT / "sofi" / "sofi" / "page.yaml").read_text(encoding="utf-8"))["title"]
+        return yaml.safe_load((service.DATA_ROOT / "sofi" / "sofi" / "page.yaml").read_text(encoding="utf-8"))["title"]
 
     def test_approving_uses_the_candidates_suggested_name(self, client):
         candidate = _stage_candidate(
@@ -289,7 +290,7 @@ class TestBulkApprove:
         assert response.status_code == 200
         assert f'name="selected" value="test-source/{candidate["candidate_id"]}"' in response.text
         assert '/review/bulk-edit' in response.text
-        assert any(f'<option value="{value}">' in response.text for value in main.LICENSE_VALUES)
+        assert any(f'<option value="{value}">' in response.text for value in service.LICENSE_VALUES)
 
     def test_the_single_candidate_form_prefills_the_sources_category(self, client):
         candidate = _stage_candidate(
@@ -319,8 +320,8 @@ class TestBulkApprove:
             data={"selected": [f"test-source/{candidate['candidate_id']}"], "license": "tos_checked"},
         )
 
-        assert (main.DATA_ROOT / "astronomie" / "sonnenfinsternis" / "data.yaml").exists()
-        assert not (main.DATA_ROOT / "sonnenfinsternis").exists()
+        assert (service.DATA_ROOT / "astronomie" / "sonnenfinsternis" / "data.yaml").exists()
+        assert not (service.DATA_ROOT / "sonnenfinsternis").exists()
 
     def test_the_reject_button_records_rejections_and_writes_no_page(self, client):
         """Both bulk buttons submit the same form, so the only thing telling
@@ -344,8 +345,8 @@ class TestBulkApprove:
         assert response.status_code == 200
         st = review_state.load("test-source")
         assert all(review_state.is_rejected(st, "sofi", c["event"]) for c in candidates)
-        assert not (main.DATA_ROOT / "sofi").exists()
-        assert main._review_queue() == []
+        assert not (service.DATA_ROOT / "sofi").exists()
+        assert service._review_queue() == []
 
     def test_an_unknown_action_is_refused(self, client):
         """`action` arrives straight from the form, so it's a trust boundary
@@ -404,7 +405,7 @@ class TestBulkApprove:
         )
 
         assert response.status_code == 200
-        datei = yaml.safe_load((main.DATA_ROOT / "sofi" / "sofi" / "data.yaml").read_text(encoding="utf-8"))
+        datei = yaml.safe_load((service.DATA_ROOT / "sofi" / "sofi" / "data.yaml").read_text(encoding="utf-8"))
         assert sorted(w["from"] for w in datei["windows"]) == dates
 
     def test_every_approved_row_is_recorded_and_leaves_the_queue(self, client):
@@ -422,7 +423,7 @@ class TestBulkApprove:
         )
 
         assert all(review_state.already_approved("sofi", "sofi", c["event"]) for c in candidates)
-        assert main._review_queue() == []
+        assert service._review_queue() == []
 
     def test_one_bad_row_is_reported_without_dropping_the_good_ones(self, client):
         good = _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event("2026-08-12"))
@@ -437,7 +438,7 @@ class TestBulkApprove:
 
         assert response.status_code == 200
         assert "1 approved, 2 failed" in response.text
-        assert (main.DATA_ROOT / "sofi" / "sofi" / "data.yaml").exists()
+        assert (service.DATA_ROOT / "sofi" / "sofi" / "data.yaml").exists()
 
     def test_an_invalid_license_writes_nothing(self, client):
         candidate = _stage_candidate("test-source", "20260724-000000", "sofi", _eclipse_event("2026-08-12"))
@@ -448,7 +449,7 @@ class TestBulkApprove:
         )
 
         assert response.status_code == 400
-        assert not (main.DATA_ROOT / "sofi").exists()
+        assert not (service.DATA_ROOT / "sofi").exists()
 
 
 class TestChainToNextReviewCandidate:
@@ -478,28 +479,28 @@ class TestChainToNextReviewCandidate:
 
 class TestPlaintextFromMarkdown:
     def test_strips_link_syntax_but_keeps_the_label(self):
-        result = main._plaintext_from_markdown("[09338](../5MCSEmap/1901-2000/1924-08-30.gif) 1924 Aug 30")
+        result = service._plaintext_from_markdown("[09338](../5MCSEmap/1901-2000/1924-08-30.gif) 1924 Aug 30")
         assert result == "09338 1924 Aug 30"
 
     def test_strips_bold_and_italic_markers(self):
-        assert main._plaintext_from_markdown("**bold** and *italic*") == "bold and italic"
+        assert service._plaintext_from_markdown("**bold** and *italic*") == "bold and italic"
 
     def test_strips_bold_markers_that_wrap_across_a_line_break(self):
         # Regression: "." doesn't match "\n" by default, so a **bold**
         # span whose content wraps onto its own line (real shape from a
         # staged eclipse.gsfc.nasa.gov snapshot) left the bare "**"
         # markers behind as their own lines instead of being stripped.
-        result = main._plaintext_from_markdown("**\n 1901 to 2000 ( 1901 CE to 2000 CE )\n**")
+        result = service._plaintext_from_markdown("**\n 1901 to 2000 ( 1901 CE to 2000 CE )\n**")
         assert "**" not in result
         assert "1901 to 2000 ( 1901 CE to 2000 CE )" in result
 
     def test_strips_heading_markers(self):
-        assert main._plaintext_from_markdown("## Statistics for Solar Eclipses") == "Statistics for Solar Eclipses"
+        assert service._plaintext_from_markdown("## Statistics for Solar Eclipses") == "Statistics for Solar Eclipses"
 
     def test_collapses_runs_of_blank_lines_to_exactly_one_blank_line(self):
         # Not zero: a wall of text with no paragraph breaks at all is just
         # as hard to scan as ten blank lines in a row.
-        result = main._plaintext_from_markdown("first\n\n\n\nsecond\n\n\nthird")
+        result = service._plaintext_from_markdown("first\n\n\n\nsecond\n\n\nthird")
         assert result == "first\n\nsecond\n\nthird"
 
     def test_collapses_a_run_of_lone_space_lines_to_one_blank_line_not_just_every_other_one(self):
@@ -508,7 +509,7 @@ class TestPlaintextFromMarkdown:
         # other blank line - verified against a real staged
         # eclipse.gsfc.nasa.gov snapshot, which has exactly this shape.
         text = "Catalog of Solar Eclipses: 1901 to 2000\n \n \n \n \n \n \n \n \n \nFive Millennium Catalog"
-        result = main._plaintext_from_markdown(text)
+        result = service._plaintext_from_markdown(text)
         assert result == "Catalog of Solar Eclipses: 1901 to 2000\n\nFive Millennium Catalog"
 
     def test_a_dense_realistic_row_reads_cleanly(self):
@@ -518,29 +519,29 @@ class TestPlaintextFromMarkdown:
             "[153](../SEsaros/SEsaros153.html) P t- [ 1.3123](../SEsearch/SEdata.php?Ecl=19240830) "
             "0.4245 71N 173E 0"
         )
-        result = main._plaintext_from_markdown(row)
+        result = service._plaintext_from_markdown(row)
         assert "[" not in result and "](" not in result
         assert "1924 Aug 30" in result
 
 
 class TestHighlightDates:
     def test_highlights_an_exact_iso_date_match(self):
-        result = main._highlight_dates("seen on 2026-08-15 in the table", ["2026-08-15"])
+        result = service._highlight_dates("seen on 2026-08-15 in the table", ["2026-08-15"])
         assert result == "seen on <mark>2026-08-15</mark> in the table"
 
     def test_highlights_the_human_readable_variant_too(self):
         # eclipse.gsfc.nasa.gov's actual catalog format, verified against a
         # real staged snapshot - a source's date formatting varies, so both
         # this and the plain ISO form are tried.
-        result = main._highlight_dates("row: 1901 Jan 07 partial", ["1901-01-07"])
+        result = service._highlight_dates("row: 1901 Jan 07 partial", ["1901-01-07"])
         assert result == "row: <mark>1901 Jan 07</mark> partial"
 
     def test_no_match_returns_escaped_text_unchanged_otherwise(self):
-        result = main._highlight_dates("<script>nothing matches here</script>", ["2026-08-15"])
+        result = service._highlight_dates("<script>nothing matches here</script>", ["2026-08-15"])
         assert result == "&lt;script&gt;nothing matches here&lt;/script&gt;"
 
     def test_output_is_always_html_escaped_even_around_a_match(self):
-        result = main._highlight_dates("<b>2026-08-15</b>", ["2026-08-15"])
+        result = service._highlight_dates("<b>2026-08-15</b>", ["2026-08-15"])
         assert result == "&lt;b&gt;<mark>2026-08-15</mark>&lt;/b&gt;"
 
     def test_human_variant_is_none_for_a_recurring_month_only_window(self):
@@ -549,10 +550,10 @@ class TestHighlightDates:
         # a literal match for whatever string it's given (harmless either
         # way), but the "YYYY Mon DD" human-readable guess only makes sense
         # for a full ISO date and must not be attempted here.
-        assert main._human_date_variant("--08") is None
+        assert service._human_date_variant("--08") is None
 
     def test_none_dates_are_skipped_without_erroring(self):
-        result = main._highlight_dates("plain text", [None, "2026-08-15"])
+        result = service._highlight_dates("plain text", [None, "2026-08-15"])
         assert result == "plain text"
 
 
@@ -584,23 +585,23 @@ class TestPathTraversalGuards:
     traversal-shaped value through."""
 
     def test_is_known_source_id_rejects_traversal_shaped_values(self, client):
-        assert main._is_known_source_id("..") is False
-        assert main._is_known_source_id("../../etc") is False
+        assert service._is_known_source_id("..") is False
+        assert service._is_known_source_id("../../etc") is False
 
     def test_is_known_source_id_accepts_a_real_staged_source(self, client):
         _stage_candidate("test-source", "20260724-000000", "hechingen", VALID_EVENT)
-        assert main._is_known_source_id("test-source") is True
+        assert service._is_known_source_id("test-source") is True
 
     def test_load_candidate_rejects_a_traversal_shaped_run_ts(self, client, tmp_path):
         _stage_candidate("test-source", "20260724-000000", "hechingen", VALID_EVENT)
         (tmp_path / "secret.yaml").write_text("content_hash: leaked", encoding="utf-8")
 
-        assert main._load_candidate("test-source", "..", "x") is None
+        assert service._load_candidate("test-source", "..", "x") is None
 
     def test_doc_hash_regex_rejects_anything_but_hex(self):
-        assert main._DOC_HASH_RE.match("deadbeef0123") is not None
-        assert main._DOC_HASH_RE.match("../../etc/passwd") is None
-        assert main._DOC_HASH_RE.match("doc*.yaml") is None
+        assert service._DOC_HASH_RE.match("deadbeef0123") is not None
+        assert service._DOC_HASH_RE.match("../../etc/passwd") is None
+        assert service._DOC_HASH_RE.match("doc*.yaml") is None
 
 
 class TestStagingDocument:
@@ -736,12 +737,12 @@ class TestDeleteCrawlSource:
 
     def test_409s_while_the_source_is_running(self, client):
         client.post("/crawl-sources/new", data=FULL_NEW_SOURCE_FORM)
-        main.state.running_sources.add("stuttgart-veranstaltungen")
+        service.state.running_sources.add("stuttgart-veranstaltungen")
         try:
             response = client.post("/crawl-sources/stuttgart-veranstaltungen/delete")
             assert response.status_code == 409
         finally:
-            main.state.running_sources.discard("stuttgart-veranstaltungen")
+            service.state.running_sources.discard("stuttgart-veranstaltungen")
 
 
 class TestRunningProgressSurvivesAReload:
@@ -752,12 +753,12 @@ class TestRunningProgressSurvivesAReload:
 
     def _running(self, client, progress):
         client.post("/crawl-sources/new", data=FULL_NEW_SOURCE_FORM)
-        main.state.running_sources.add("stuttgart-veranstaltungen")
-        main.state.progress["stuttgart-veranstaltungen"] = progress
+        service.state.running_sources.add("stuttgart-veranstaltungen")
+        service.state.progress["stuttgart-veranstaltungen"] = progress
 
     def _cleanup(self):
-        main.state.running_sources.discard("stuttgart-veranstaltungen")
-        main.state.progress.pop("stuttgart-veranstaltungen", None)
+        service.state.running_sources.discard("stuttgart-veranstaltungen")
+        service.state.progress.pop("stuttgart-veranstaltungen", None)
 
     def test_the_full_page_renders_the_stored_progress(self, client):
         self._running(client, {"phase": "crawling", "detail": "Fetching page 3: https://example.org/a"})
@@ -787,9 +788,9 @@ class TestSourcePages:
             "stuttgart-veranstaltungen", "20260724-000000",
             "https://example.org/veranstaltungen/2026", "text/html", b"<html>x</html>",
         )
-        main.state.pages.pop("stuttgart-veranstaltungen", None)
+        service.state.pages.pop("stuttgart-veranstaltungen", None)
 
-        rows = main._source_pages("stuttgart-veranstaltungen")
+        rows = service._source_pages("stuttgart-veranstaltungen")
 
         assert rows == [{"url": "https://example.org/veranstaltungen/2026", "status": "crawled"}]
 
@@ -799,14 +800,14 @@ class TestSourcePages:
             "stuttgart-veranstaltungen", "20260724-000000",
             "https://example.org/kept", "text/html", b"<html>x</html>",
         )
-        main.state.pages["stuttgart-veranstaltungen"] = {
+        service.state.pages["stuttgart-veranstaltungen"] = {
             "https://example.org/kept": "2 event(s) found",
             "https://example.org/blocked": "robots-blocked",
         }
         try:
-            rows = main._source_pages("stuttgart-veranstaltungen")
+            rows = service._source_pages("stuttgart-veranstaltungen")
         finally:
-            main.state.pages.pop("stuttgart-veranstaltungen", None)
+            service.state.pages.pop("stuttgart-veranstaltungen", None)
 
         # The staging-only view could never show the blocked URL - it never
         # became a document.
@@ -817,16 +818,16 @@ class TestSourcePages:
 
     def test_is_empty_for_a_source_that_never_ran(self, client):
         client.post("/crawl-sources/new", data=FULL_NEW_SOURCE_FORM)
-        main.state.pages.pop("stuttgart-veranstaltungen", None)
-        assert main._source_pages("stuttgart-veranstaltungen") == []
+        service.state.pages.pop("stuttgart-veranstaltungen", None)
+        assert service._source_pages("stuttgart-veranstaltungen") == []
 
     def test_status_endpoint_carries_the_page_rows(self, client):
         client.post("/crawl-sources/new", data=FULL_NEW_SOURCE_FORM)
-        main.state.pages["stuttgart-veranstaltungen"] = {"https://example.org/a": "crawled"}
+        service.state.pages["stuttgart-veranstaltungen"] = {"https://example.org/a": "crawled"}
         try:
             response = client.get("/crawl-sources/stuttgart-veranstaltungen/status")
         finally:
-            main.state.pages.pop("stuttgart-veranstaltungen", None)
+            service.state.pages.pop("stuttgart-veranstaltungen", None)
 
         assert response.status_code == 200
         assert response.json()["pages"] == [{"url": "https://example.org/a", "status": "crawled"}]
@@ -868,12 +869,12 @@ class TestEditCrawlSource:
 
         assert response.status_code == 303
         assert review_state.already_approved("astronomie", "sonnenfinsternis", candidate["event"])
-        assert main._review_queue() == []
+        assert service._review_queue() == []
 
     def test_moves_the_page_folder_and_carries_its_page_yaml_over(self, client):
         self._source(client, "nasa-a", "astronomie", "nasa-a")
         self._approve(client, "nasa-a", "nasa-a", "astronomie", "2026-08-12")
-        (main.DATA_ROOT / "astronomie" / "nasa-a" / "page.yaml").write_text(
+        (service.DATA_ROOT / "astronomie" / "nasa-a" / "page.yaml").write_text(
             yaml.dump({"title": "Sonnenfinsternis", "description": "Von der NASA", "tags": ["astronomie"]}),
             encoding="utf-8",
         )
@@ -882,8 +883,8 @@ class TestEditCrawlSource:
             "category": "astronomie", "subject_slug": "sonnenfinsternis",
         }, follow_redirects=False)
 
-        assert not (main.DATA_ROOT / "astronomie" / "nasa-a").exists()
-        new_folder = main.DATA_ROOT / "astronomie" / "sonnenfinsternis"
+        assert not (service.DATA_ROOT / "astronomie" / "nasa-a").exists()
+        new_folder = service.DATA_ROOT / "astronomie" / "sonnenfinsternis"
         datei = yaml.safe_load((new_folder / "data.yaml").read_text(encoding="utf-8"))
         assert [w["from"] for w in datei["windows"]] == ["2026-08-12"]
         assert datei["subject"] == {"slug": "sonnenfinsternis", "category": "astronomie"}
@@ -903,8 +904,8 @@ class TestEditCrawlSource:
         }, follow_redirects=False)
 
         assert response.status_code == 303
-        assert not (main.DATA_ROOT / "astronomie" / "nasa-b").exists()
-        datei = yaml.safe_load((main.DATA_ROOT / "astronomie" / "sonnenfinsternis" / "data.yaml").read_text(encoding="utf-8"))
+        assert not (service.DATA_ROOT / "astronomie" / "nasa-b").exists()
+        datei = yaml.safe_load((service.DATA_ROOT / "astronomie" / "sonnenfinsternis" / "data.yaml").read_text(encoding="utf-8"))
         assert sorted(w["from"] for w in datei["windows"]) == ["1999-08-11", "2026-08-12"]
         assert len(datei["source"]) == 2
 
@@ -920,7 +921,7 @@ class TestEditCrawlSource:
             "category": "astronomie", "subject_slug": "sonnenfinsternis",
         }, follow_redirects=False)
 
-        datei = yaml.safe_load((main.DATA_ROOT / "astronomie" / "sonnenfinsternis" / "data.yaml").read_text(encoding="utf-8"))
+        datei = yaml.safe_load((service.DATA_ROOT / "astronomie" / "sonnenfinsternis" / "data.yaml").read_text(encoding="utf-8"))
         assert len(datei["windows"]) == 1
         assert len(datei["windows"][0]["source_urls"]) == 2
 
@@ -932,9 +933,9 @@ class TestEditCrawlSource:
             "category": "astronomie", "subject_slug": "nasa-a",
         }, follow_redirects=False)
 
-        assert (main.DATA_ROOT / "astronomie" / "nasa-a" / "data.yaml").exists()
-        assert not (main.DATA_ROOT / "eclipse" / "nasa-a").exists()
-        assert main._review_queue() == []
+        assert (service.DATA_ROOT / "astronomie" / "nasa-a" / "data.yaml").exists()
+        assert not (service.DATA_ROOT / "eclipse" / "nasa-a").exists()
+        assert service._review_queue() == []
 
     def test_a_target_a_source_never_wrote_to_is_not_an_error(self, client):
         """A config can name a page it never actually wrote - nothing approved
@@ -978,7 +979,7 @@ class TestEditCrawlSource:
         source = crawl_config.load_all_crawl_sources()["nasa-a"]
         assert (source.subject_name, source.event_type_hint) == ("Sonnenfinsternis", "Sonnenfinsternis")
         assert review_state.already_approved("astronomie", "nasa-a", candidate["event"])
-        assert (main.DATA_ROOT / "astronomie" / "nasa-a" / "data.yaml").exists()
+        assert (service.DATA_ROOT / "astronomie" / "nasa-a" / "data.yaml").exists()
 
     def test_preserves_fields_the_form_does_not_edit(self, client):
         client.post("/crawl-sources/new", data={**FULL_NEW_SOURCE_FORM, "subject_slug": "veranstaltungen"})
@@ -1056,14 +1057,14 @@ class TestEditCrawlSource:
 
     def test_409s_while_the_source_is_running(self, client):
         self._source(client, "nasa-a", "astronomie", "nasa-a")
-        main.state.running_sources.add("nasa-a")
+        service.state.running_sources.add("nasa-a")
         try:
             response = client.post("/crawl-sources/nasa-a/edit", data={
                 "category": "astronomie", "subject_slug": "sonnenfinsternis",
             })
             assert response.status_code == 409
         finally:
-            main.state.running_sources.discard("nasa-a")
+            service.state.running_sources.discard("nasa-a")
 
     def test_a_config_pointing_at_a_page_that_is_not_on_disk_still_moves(self, client):
         """A config can drift away from where its approvals actually landed.
@@ -1082,7 +1083,7 @@ class TestEditCrawlSource:
         }, follow_redirects=False)
 
         assert response.status_code == 303
-        assert (main.DATA_ROOT / "astronomie" / "nasa-a" / "data.yaml").exists()
+        assert (service.DATA_ROOT / "astronomie" / "nasa-a" / "data.yaml").exists()
 
     def test_moving_a_source_drops_its_staged_candidates(self, client):
         """They name the page the source USED to write to, so leaving them
@@ -1091,14 +1092,14 @@ class TestEditCrawlSource:
         self._source(client, "nasa-a", "eclipse", "nasa-a")
         self._approve(client, "nasa-a", "nasa-a", "eclipse", "2026-08-12")
         _stage_candidate("nasa-a", "20260724-000000", "nasa-a", _eclipse_event("2027-08-02"), category="eclipse")
-        assert len(main._review_queue()) == 1
+        assert len(service._review_queue()) == 1
 
         client.post("/crawl-sources/nasa-a/edit", data={
             "category": "astronomie", "subject_slug": "nasa-a",
         }, follow_redirects=False)
 
         assert not (staging.STAGING_ROOT / "nasa-a").exists()
-        assert main._review_queue() == []
+        assert service._review_queue() == []
 
 
 class TestDeletePageReturnTo:
@@ -1107,7 +1108,7 @@ class TestDeletePageReturnTo:
     invisibly - the delete still works, it just lands you somewhere else."""
 
     def _page(self, client):
-        folder = main.DATA_ROOT / "astronomie" / "sonnenfinsternis"
+        folder = service.DATA_ROOT / "astronomie" / "sonnenfinsternis"
         folder.mkdir(parents=True)
         (folder / "data.yaml").write_text(yaml.dump({"subject": {"slug": "sonnenfinsternis"}}), encoding="utf-8")
         (folder / "page.yaml").write_text(yaml.dump({"title": "Sonnenfinsternis"}), encoding="utf-8")
@@ -1196,7 +1197,7 @@ class TestReviewDocument:
         assert 'action="/review/bulk-edit"' in response.text
         assert 'name="action" value="approve"' in response.text
         assert 'name="action" value="reject"' in response.text
-        assert any(f'<option value="{v}">' in response.text for v in main.LICENSE_VALUES)
+        assert any(f'<option value="{v}">' in response.text for v in service.LICENSE_VALUES)
 
     def test_each_date_can_be_rejected_on_the_spot(self, client):
         """A per-date reject inside the bulk form - HTML forbids nesting a
@@ -1231,7 +1232,7 @@ class TestReviewDocument:
         st = review_state.load("test-source")
         assert review_state.is_rejected(st, "sofi", target["event"])
         assert not review_state.is_rejected(st, "sofi", other["event"])
-        assert [c["candidate_id"] for c in main._review_queue()] == [other["candidate_id"]]
+        assert [c["candidate_id"] for c in service._review_queue()] == [other["candidate_id"]]
 
     def test_bulk_approving_from_the_document_returns_to_it(self, client):
         doc_hash = self._stage_md()
@@ -1245,7 +1246,7 @@ class TestReviewDocument:
 
         assert response.status_code == 302
         assert response.headers["location"] == f"/review/test-source/document/{doc_hash}"
-        assert main._review_queue() == []
+        assert service._review_queue() == []
 
     def test_a_date_with_no_pending_candidate_is_left_as_plain_text(self, client):
         doc_hash = self._stage_md()
@@ -1334,7 +1335,7 @@ class TestSuggestTags:
     own docstring already claimed to feed it."""
 
     def _page(self, client, tags=None):
-        folder = main.DATA_ROOT / "astronomie" / "sonnenfinsternis"
+        folder = service.DATA_ROOT / "astronomie" / "sonnenfinsternis"
         folder.mkdir(parents=True)
         (folder / "page.yaml").write_text(yaml.dump({"title": "Sonnenfinsternis", "tags": tags or []}), encoding="utf-8")
         (folder / "data.yaml").write_text(
@@ -1346,13 +1347,13 @@ class TestSuggestTags:
         """A suggestion fills the form field so it can be edited first - the
         route must not save anything by itself."""
         self._page(client)
-        monkeypatch.setattr(main, "suggest_tags", lambda text, title, existing, **kw: ["astronomie", "himmel"])
+        monkeypatch.setattr(service, "suggest_tags", lambda text, title, existing, **kw: ["astronomie", "himmel"])
 
         response = client.get("/pages/astronomie/sonnenfinsternis/suggest-tags")
 
         assert response.status_code == 200
         assert response.json() == {"tags": ["astronomie", "himmel"]}
-        page = yaml.safe_load((main.DATA_ROOT / "astronomie" / "sonnenfinsternis" / "page.yaml").read_text())
+        page = yaml.safe_load((service.DATA_ROOT / "astronomie" / "sonnenfinsternis" / "page.yaml").read_text())
         assert page["tags"] == []
 
     def test_the_existing_vocabulary_is_offered_for_reuse(self, client, monkeypatch):
@@ -1360,7 +1361,7 @@ class TestSuggestTags:
         the suggester is actually told what is already in use."""
         self._page(client, tags=["astronomie"])
         seen = {}
-        monkeypatch.setattr(main, "suggest_tags", lambda text, title, existing, **kw: seen.setdefault("existing", existing) or [])
+        monkeypatch.setattr(service, "suggest_tags", lambda text, title, existing, **kw: seen.setdefault("existing", existing) or [])
 
         client.get("/pages/astronomie/sonnenfinsternis/suggest-tags")
 
@@ -1370,8 +1371,8 @@ class TestSuggestTags:
         self._page(client)
 
         def _boom(*a, **k):
-            raise main.ExtractionError("no API key")
-        monkeypatch.setattr(main, "suggest_tags", _boom)
+            raise service.ExtractionError("no API key")
+        monkeypatch.setattr(service, "suggest_tags", _boom)
 
         response = client.get("/pages/astronomie/sonnenfinsternis/suggest-tags")
 
@@ -1389,7 +1390,7 @@ class TestSuggestionLists:
     had some."""
 
     def _page(self, category, slug, title, tags=()):
-        folder = main.DATA_ROOT / category / slug
+        folder = service.DATA_ROOT / category / slug
         folder.mkdir(parents=True, exist_ok=True)
         (folder / "page.yaml").write_text(yaml.dump({"title": title, "tags": list(tags)}), encoding="utf-8")
         (folder / "data.yaml").write_text(
@@ -1437,7 +1438,7 @@ class TestEditPageKeepsEveryCitation:
     the entire site build on."""
 
     def _aggregated_page(self):
-        folder = main.DATA_ROOT / "astronomie" / "sonnenfinsternis"
+        folder = service.DATA_ROOT / "astronomie" / "sonnenfinsternis"
         folder.mkdir(parents=True)
         (folder / "page.yaml").write_text(yaml.dump({"title": "Sonnenfinsternis", "tags": []}), encoding="utf-8")
         (folder / "data.yaml").write_text(yaml.dump({

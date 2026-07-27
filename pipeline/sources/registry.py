@@ -219,7 +219,7 @@ def load_registry_domains(entity_class: str) -> List[str]:
     """Domains from an already-fetched registry (pipeline/data/registries/
     <entity_class>.json) - lets the crawler bulk-seed itself from harvest
     data instead of an operator typing hundreds of domains by hand (see
-    main.py's /start)."""
+    review/service.py's /start)."""
     path = (OUTPUT_DIR / f"{entity_class}.json").resolve()
     if path.parent != OUTPUT_DIR.resolve() or not path.exists():
         return []

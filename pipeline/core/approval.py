@@ -1,7 +1,7 @@
 """Writes one approved/modified/re-verified event into data/ - the ONLY
 place store.merge_zeitfenster + validate.pruefe_subjekt_datei are invoked
 from, now that core/runner.py and the scoped crawler no longer write
-directly (see core/review_state.py's diff() and main.py's /review routes,
+directly (see core/review_state.py's diff() and review/service.py's /review routes,
 the two callers of write_event below).
 
 Direct filesystem write, no git operations (Decision B, superseding

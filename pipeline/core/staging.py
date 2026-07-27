@@ -1,6 +1,6 @@
 """Staging area between fetching and the reviewed data/ folder - shared by
 BOTH the scoped crawler (core/crawler.py) and the automated batch pipeline
-(core/runner.py), so the review UI (main.py) can render "candidate next to
+(core/runner.py), so the review UI (the review app) can render "candidate next to
 its source snapshot" identically regardless of which subsystem produced it.
 
 Layout (matches the spec, lives under pipeline/ alongside the other
@@ -155,7 +155,7 @@ def read_document_meta(source_id: str, run_ts: str, doc_hash: str) -> Dict[str, 
 
 def list_documents(source_id: str, run_ts: str) -> List[Dict[str, Any]]:
     """Every document's metadata for one run, sorted by url - used by the
-    Crawl Sources dashboard's page-tree view (main.py) to show what a crawl
+    Crawl Sources dashboard's page-tree view (the review app) to show what a crawl
     actually reached, hierarchically under the seed URL."""
     documents_dir = _run_dir(source_id, run_ts) / "documents"
     if not documents_dir.exists():

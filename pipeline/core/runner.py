@@ -17,7 +17,7 @@ No PR is opened anymore (core/publish.py is retired) - approved/modified
 candidates are written straight to data/ via core/approval.py, same as any
 other locally-produced change; a human commits/pushes/opens a PR themselves.
 Everything not already reviewed lands in pipeline/staging/ for the review
-UI (main.py's /review routes) instead.
+UI (review/service.py's /review routes) instead.
 """
 
 import importlib

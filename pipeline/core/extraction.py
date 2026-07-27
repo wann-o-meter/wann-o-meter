@@ -177,7 +177,7 @@ def extract_dated_events(text: str, on_progress: Optional[Callable[[str], None]]
 
     on_progress, if given, is called once per chunk before its LLM call -
     a large page can turn into several slow round trips, and a caller
-    (crawl_runner.run() -> main.py's dashboard) wants to show something more
+    (crawl_runner.run() -> review/service.py's dashboard) wants to show something more
     informative than just "Running..." for however long that takes."""
     if not text.strip():
         return []
@@ -285,7 +285,7 @@ TITLE_SYSTEM_PROMPT = (
 
 def suggest_title(text: str, raw_title: str) -> str:
     """Cleans up a page's scraped <title> tag into a short, generic page
-    title - the raw title (see crawl_page() in main.py) is often polluted
+    title - the raw title (see crawl_page()) is often polluted
     with year ranges and a duplicated/appended site name (e.g. "Islamische
     Feiertage 2026 - 2029 - Islamisches Zentrum MuenchenIslamisches Zentrum
     Muenchen"), which then gets used verbatim as page.yaml's title unless an

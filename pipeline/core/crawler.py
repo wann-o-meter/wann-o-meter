@@ -1,5 +1,5 @@
 """Scoped, single-source crawl loop (Ziel 1/6 of the pipeline overhaul) -
-replaces main.py's old cross-run SeedRun/focused_crawler machinery entirely.
+replaces review/service.py's old cross-run SeedRun/focused_crawler machinery entirely.
 One simple BFS per source (no generic frontier/multi-domain prioritization -
 there never really was one to remove; the old crawler was already a
 per-seed loop, just without an explicit scope/depth/robots concept), bounded
@@ -48,7 +48,7 @@ def _host_key(host: str) -> str:
 def in_scope(url: str, source: CrawlSource) -> bool:
     """Compared per path SEGMENT, and tolerant of a trailing slash on either
     side, because the two are written by different code that disagreed:
-    _derive_path_prefix (main.py) keeps the seed URL's trailing slash, while
+    _derive_path_prefix (the review app) keeps the seed URL's trailing slash, while
     normalize_url strips it before the URL ever reaches here. A seed pasted
     from a browser ("https://site.de/faq/wann/") therefore scoped itself out
     of its OWN crawl - silently, since an out-of-scope URL is not reported -
@@ -140,7 +140,7 @@ def crawl(
     """on_progress, if given, is called with a short status string before
     each actual fetch (politeness-delay wait doesn't count - that's dead
     time, not progress) - the BFS loop can run long on a source with many
-    in-scope pages, and a caller (crawl_runner.run() -> main.py's
+    in-scope pages, and a caller (crawl_runner.run() -> review/service.py's
     dashboard) wants to show something better than a static "Crawling..."
     for however long that takes.
 

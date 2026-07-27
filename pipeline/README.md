@@ -4,7 +4,7 @@ FastAPI + Jinja2 SSR admin interface for the scoped crawler + review workflow.
 
 ## Features
 
-- **Scoped Crawler**: each source is a config file (`config/crawl_sources/<id>.yaml` -
+- **Scoped Crawler**: each source is a config file (`data/_sources/<id>.yaml` -
   seed URL, allowed domains, path prefix, max depth, formats, category). Add one from the
   dashboard by pasting just the seed URL - ID/domain/category are derived from it, with an
   Advanced section to override any of them - or hand-write the YAML file directly. Delete
@@ -26,7 +26,7 @@ FastAPI + Jinja2 SSR admin interface for the scoped crawler + review workflow.
 
 ```bash
 cd pipeline
-uv run main.py
+uv run uvicorn review.app:app --reload
 ```
 
 Then open: **http://localhost:8000**
@@ -38,7 +38,7 @@ cd pipeline
 uv run pytest tests/ -v
 ```
 
-Fixture-based per source (`fixtures/{source_id}/raw_sample... + erwartet.yaml`) - see
+Fixture-based per source (`tests/fixtures/{source_id}/raw_sample... + erwartet.yaml`) - see
 `tests/test_schulferien_kmk.py` for the pattern. LLM calls are mocked with the fixture's
 expected output; everything deterministic around them (store merge, real Zod validation) is
 genuinely exercised.
@@ -48,7 +48,7 @@ genuinely exercised.
 1. Go to **Crawl Sources**
 2. Paste a seed URL and click **Add Source** (or open **Advanced options** to override the
    derived ID, category, allowed domains, path prefix, depth, formats, or schedule) - this
-   writes `config/crawl_sources/<id>.yaml`
+   writes `data/_sources/<id>.yaml`
 3. Click **Run** on that source - it crawls within its configured scope, extracts events from
    every fetched document, and stages one candidate per event under `pipeline/staging/`
 4. Go to **Review** - candidates with no prior decision for their content are waiting there,
@@ -67,7 +67,7 @@ Every approved/modified candidate picks its own category on review - `data/{cate
 maps directly to `/{category}/{slug}/`, the same way `data/saisonkalender/apfel/data.yaml` maps to
 `/saisonkalender/apfel/`. There's no generic wrapper route: a page's URL reflects its actual topic
 (e.g. `/veranstaltungen/...`), not a meaningless catch-all like `/pages/...`. `RESERVED_CATEGORIES`
-in both `lib/pages.ts` and `main.py` rejects a category name that would collide with an existing
+in both `lib/pages.ts` and `review/service.py` rejects a category name that would collide with an existing
 site section (`urlaubsfenster`, `saisonkalender`, `feiertage`, etc.).
 
 Title/description/tags live in `page.yaml`, right next to the facts in `data.yaml`
@@ -88,18 +88,26 @@ computed entirely from a library call) and aren't migrated onto this generic sys
 
 ## Pipeline-Struktur
 
+Ein Python-Projekt, drei Ordner, und eine Import-Regel, die sie entkoppelt: `sources/`
+und `review/` duerfen `core/` importieren, `core/` keinen von beiden, und `sources/` und
+`review/` sehen einander nie. Das ist die Entkopplung, die ein Repo-Split gebracht
+haette, ohne dessen Kosten - festgenagelt in `tests/test_invariants.py`.
+
 ```text
 pipeline/
   core/                gemeinsame Maschinerie, einmal geschrieben, nie kopiert
-    fetch.py           HTTP mit Timeout/Retry (auch von scraper.py genutzt)
+    fetch.py           HTTP mit Timeout/Retry - der einzige Ort, der ins Netz greift
+    sniff.py           Content-sniffing Dispatcher (HTML/PDF/Bild/ICS/CSV/ZIP). Nimmt
+                       Bytes, nie eine URL - deshalb teilen crawl_runner, generic_source
+                       und staging ihn gegen bereits geholte Bytes
     types.py           ExtraktionsErgebnis + SourceAdapter - der ganze Adapter-Vertrag
     extraction.py      LLM-Extraktion, u.a. extract_subjects()/extract_season() - eine
                        Quelle kann mehrere Subjekte in einem Abruf enthalten; das Modell
                        entdeckt den Split aus dem echten Seiteninhalt
     generic_source.py  fetch -> extract_subjects/extract_season -> ExtraktionsErgebnis[]
-                       rein aus sources.yaml-Konfiguration - fuer strategie: llm/llm_season
+                       rein aus der data/_sources-Konfiguration - fuer strategie: llm
     ics.py             deterministische ICS-Extraktion (RRULE, all-day, Zeitzonen) - kein LLM
-    crawl_config.py    laedt config/crawl_sources/*.yaml -> CrawlSource
+    crawl_config.py    laedt data/_sources/*.yaml -> CrawlSource
     crawler.py         BFS innerhalb Domain/Pfad-Scope, robots.txt, Rate-Limit
     crawl_runner.py    Pendant zu runner.py fuer Scoped-Crawler-Quellen: crawl -> extract
                        -> stage -> diff -> write/queue
@@ -113,33 +121,36 @@ pipeline/
                        store.merge_zeitfenster/validate.pruefe_subjekt_datei
     store.py           YAML laden/anlegen, Merge nach replace_key, Quelle anhaengen
     validate.py        prueft gegen lib/schema.ts (siehe unten)
-    runner.py          orchestriert eine sources.yaml-Quelle: fetch -> extract -> stage
-                       -> diff -> approval.write_event fuer bereits reviewte Kandidaten
-  sources/             Escape Hatch: nur fuer eine Quelle, die wirklich bespoke Code
-                       braucht (z.B. Strategie 1/Parser). Fuer strategie: llm reicht
-                       ein sources.yaml-Eintrag, siehe unten - aktuell leer.
-  tools/               einmalige Batch-Skripte - nutzen core/, aber laufen
-    dwd_klima.py       ausserhalb des Source-Lebenszyklus (kein sources.yaml-Eintrag)
-    migrate_existing.py  einmalige Migration: bestehende data/*.yaml als "approved" in
-                       review-state uebernehmen (siehe dessen eigenes Docstring)
+    runner.py          orchestriert eine data/_sources-Batch-Quelle: fetch -> extract
+                       -> stage -> diff -> approval.write_event fuer reviewte Kandidaten
+  sources/             ein Modul pro Quelle, gleiches Interface. WIE eine Quelle ihre
+    dwd_klima.py       Daten beschafft (crawlen, harvesten, parsen), ist Implementierungs-
+    pollenflug.py      detail INNERHALB des Moduls und kein eigener Ordner - genau die
+    registry.py        Achse, an der die alten tools/ und harvest/ auseinanderfielen
+  review/              die Review-App - die Freigabe, nicht bloss eine Ansicht
+    app.py             FastAPI-Zusammenbau, sonst nichts
+    service.py         die ganze Logik ohne HTTP - direkt testbar, ohne TestClient
+    routes/            eine Datei pro Ressource: pages, crawl_sources, review, harvest, status
+    templates/ static/ Jinja2-SSR + HTMX
   config/
-    crawl_sources/*.yaml  ein Scoped-Crawler-Quelle pro Datei (siehe "How to use" oben)
-    migration_source_map.yaml  Kategorie -> source_id-Zuordnung fuer migrate_existing.py
+    registries.yaml    Wikidata-SPARQL pro entity_class (siehe Harvest unten)
   staging/             (gitignored) Rohdokumente + extrahierte, noch nicht
                        entschiedene Kandidaten - Arbeitszustand, kein Quelltext
   review-state/        (NICHT gitignored) Entscheidungshistorie pro Quelle - bewusst
                        committet, damit ein spaeterer Lauf approved/rejected kennt
-  sources.yaml         Registry: URL, Kategorie, Lizenz, Rhythmus, Strategie, und fuer
-                       strategie: llm/llm_season ein extraction_hint pro Quelle
-  fixtures/            ein echtes Roh-Sample + erwartetes Ergebnis pro Quelle
-  main.py              Dashboard: Crawl Sources + Review + Pages + Harvest
-  scraper.py           Content-sniffing Dispatcher (HTML/PDF/Bild/ICS), den main.py,
-                       core/crawl_runner.py und tools/ teilen
+  tests/fixtures/      ein echtes Roh-Sample + erwartetes Ergebnis pro Quelle
 ```
+
+Die Quellkonfiguration liegt NICHT hier, sondern in `data/_sources/*.yaml` - eine Datei
+pro Upstream, neben den Fakten, die sie erklaert. Sie kann nicht in den Subjektordner:
+Quelle und Subjekt sind in beide Richtungen n:m (eine KMK-Seite -> 16 Bundeslaender,
+zwei NASA-Kataloge -> eine Sonnenfinsternis-Seite), und eine Quelle existiert, bevor ihr
+Subjekt existiert. Beide Sorten teilen sich das Verzeichnis und unterscheiden sich am
+Feld `kind`: `kind: batch` gehoert `core/runner.py`, ohne `kind` dem Crawler.
 
 Eine Quelle hinzufuegen: entweder ueber das Dashboard (**Crawl Sources** -> Seed-URL
 einfuegen, siehe "How to use" oben) - oder fuer eine wiederkehrende, bereits bekannte
-Quelle einen `sources.yaml`-Eintrag (`kategorie`, `url`, `lizenz`, `rhythmus`,
+Quelle einen `data/_sources/<id>.yaml` mit `kind: batch` (`kategorie`, `url`, `lizenz`, `rhythmus`,
 `strategie: llm`, `extraction_hint`), dann:
 
 ```bash
@@ -170,21 +181,21 @@ Zod-Instanz, die der Astro-Build nutzt. Null Drift-Risiko, ein Subprocess-Call.
 Entschieden pro Quelle, nicht per Pipeline-weiter Philosophie (siehe PLAN.md
 Abschnitt 7 fuer die volle Entscheidungsregel Homogenitaet × Volumen):
 
-- **`sources.yaml` + `core/runner.py`** (dieser Ordner): wiederkehrende Quellen mit
-  bekannter URL und einem einzigen Abruf pro Lauf. Aktuell: Schulferien (LLM-Extraktion
-  aus der KMK-Ferienuebersicht, ueber `core/generic_source.py` - kein
-  `sources/schulferien_kmk.py` mehr). `sources/` bleibt als Escape Hatch fuer eine
-  Quelle, die wirklich bespoke Code braucht.
-- **`config/crawl_sources/*.yaml` + `core/crawl_runner.py`** (Dashboard "Crawl
+- **`data/_sources/*.yaml` mit `kind: batch` + `core/runner.py`**: wiederkehrende Quellen
+  mit bekannter URL und einem einzigen Abruf pro Lauf, die dabei aber MEHRERE Subjekte
+  liefern koennen. Aktuell: Schulferien (ein KMK-Abruf -> 16 Bundeslaender, LLM-Extraktion
+  ueber `core/generic_source.py` - kein `sources/schulferien_kmk.py` mehr). Ein Modul in
+  `sources/` bleibt der Escape Hatch fuer eine Quelle, die wirklich bespoke Code braucht.
+- **`data/_sources/*.yaml` (ohne kind) + `core/crawl_runner.py`** (Dashboard "Crawl
   Sources"): Quellen, deren Inhalt ueber mehrere Seiten/Dokumente verteilt ist und die
   innerhalb eines Domain-/Pfad-Scopes abgelaufen werden muessen (Veranstaltungsportale,
   Saisonkalender-PDFs, ICS-Feeds). Crawl -> Extract (LLM oder deterministisch fuer ICS)
   -> Review.
-- **`tools/`**: einmalige, deterministische Batch-Skripte fuer bekannte, hoch
-  strukturierte Quellen (DWD-Klimadaten). Kein LLM, kein `sources.yaml`-Eintrag - das
+- **`sources/` (Batch-Skripte)**: einmalige, deterministische Batch-Skripte fuer bekannte, hoch
+  strukturierte Quellen (DWD-Klimadaten). Kein LLM, kein data/_sources-Eintrag - das
   Skript fetcht die bekannte URL-Struktur korrekt oder es tut es nicht.
   `extraktion: parser` in der resultierenden YAML.
-- **`harvest/` + `config/registries.yaml`**: entity-first for a large, known
+- **`sources/registry.py` + `config/registries.yaml`**: entity-first for a large, known
   set of entities (e.g. all German universities) instead of one curated
   source - see below.
 
@@ -196,7 +207,7 @@ implemented so far:
 
 ```bash
 cd pipeline
-uv run python -m harvest.cli registry university_de
+uv run python -m sources.registry university_de
 ```
 
 Writes `pipeline/data/registries/university_de.json` (one row per university:
@@ -212,4 +223,4 @@ Later stages (discover/probe/extract/validate/publish/maintain, see
 
 - `schedule` on a crawl source is metadata only for now - nothing runs it automatically yet
   (a cron job calling `POST /crawl-sources/{id}/run` would be the natural next step)
-- Later `harvest/` stages (discover/probe/extract/validate/publish/maintain) don't exist yet
+- Later registry stages (discover/probe/extract/validate/publish/maintain) don't exist yet

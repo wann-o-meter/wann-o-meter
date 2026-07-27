@@ -212,7 +212,7 @@
         }
 
         // A run outlives the page that started it (it's a background thread,
-        // see main.py's _run_crawl_source_and_record). Without this, a reload
+        // see review/service.py's _run_crawl_source_and_record). Without this, a reload
         // mid-crawl left a frozen "Running…" with no progress and no poll -
         // the poll only ever started from the click handler below.
         document.addEventListener('DOMContentLoaded', function () {

@@ -44,7 +44,7 @@ def _isolate_everything(tmp_path, monkeypatch):
 
 
 def _approve_like_the_review_ui_would(source_id: str, event: dict) -> None:
-    """Mimics what main.py's POST /review/.../approve does - which is now
+    """Mimics what review/service.py's POST /review/.../approve does - which is now
     exactly one thing: write the event to data/. The file IS the record of
     what is approved, so there is no second bookkeeping step. A fresh
     candidate is never waved through on its own (review_state.diff: not in
@@ -210,7 +210,7 @@ class TestStaticDates:
         """The regexes are year-FIRST (ISO, "2001 Jun 21"), so a German page
         yields nothing under mode=static - which is why the Extraction
         dropdown says so. Teach them German and this fails: update the
-        dropdown text in main.py's _EXTRACTION_MODE_HINTS with it."""
+        dropdown text in review/service.py's _EXTRACTION_MODE_HINTS with it."""
         dates, negative = crawl_runner._static_dates("19. September bis 4. Oktober 2026")
         assert (dates, negative) == ([], 0)
 
@@ -377,7 +377,7 @@ class TestSeveralSourcesAggregateIntoOnePage:
         )
         source = self._source_for(source_id, url)
         crawl_runner.run(source)
-        # What main.py's approve route does with each queued candidate.
+        # What review/service.py's approve route does with each queued candidate.
         for candidate in _staged_candidates(source_id):
             approval.write_event(
                 candidate["category"], candidate["subject_slug"], candidate["subject_name"],

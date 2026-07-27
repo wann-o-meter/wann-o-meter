@@ -1,6 +1,6 @@
 """Per-event content hash for the staging/review-state dedup (core/staging.py,
 core/review_state.py) - "is this candidate the same as one a human already
-decided on?" Distinct from main.py's _content_hash, which hashes an entire
+decided on?" Distinct from review/service.py's _content_hash, which hashes an entire
 scrape result; this hashes one event/window's own identity.
 
 Only fields that describe WHAT the event is go into the hash. Excluded on

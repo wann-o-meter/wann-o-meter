@@ -48,7 +48,7 @@ class CrawlConfigError(Exception):
 
 # A subject_slug becomes a real directory name under data/{category}/, so
 # it is validated here rather than trusted: config files are hand-edited,
-# and "../../.." would write outside data/ entirely. Same shape main.py's
+# and "../../.." would write outside data/ entirely. Same shape review/service.py's
 # _slugify produces for a single segment.
 _SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
