@@ -32,7 +32,7 @@ from dotenv import load_dotenv
 
 from core import approval, crawl_config, crawl_runner, review_state, staging, store, validate
 from core.extraction import ExtractionError, suggest_tags
-from harvest import registry as harvest_registry
+from sources import registry as harvest_registry
 
 # Must stay in sync with lib/schema.ts's lizenzSchema (the "value" fields
 # only - "label" is admin-UI-only help text, not part of the data model). The
@@ -695,7 +695,7 @@ async def dashboard(request: Request):
 
 @app.get("/harvest", response_class=HTMLResponse)
 async def harvest_view(request: Request):
-    """Stage 1 of the entity-first harvest pipeline (see harvest/cli.py) -
+    """Stage 1 of the entity-first harvest pipeline (see sources/registry.py) -
     fetches a known entity class's registry into pipeline/data/registries/.
     Stages 2-7 don't exist yet, so nothing downstream consumes it: its one
     designed bridge into the crawler (registry.load_registry_domains) has no
@@ -1474,7 +1474,7 @@ async def harvest_wikidata_search(q: str):
     """Backs the Add Registry form's class search box - proxied through the
     backend (rather than called from the browser directly) so it goes
     through the same identifying User-Agent as every other Wikidata call
-    (see harvest/registry.py's USER_AGENT)."""
+    (see sources/registry.py's USER_AGENT)."""
     term = q.strip()
     if not term:
         return JSONResponse([])
@@ -1493,7 +1493,7 @@ async def add_harvest_registry(
 ):
     """Adds a new entity_class to config/registries.yaml from the dashboard's
     Add Registry form - always method: wikidata_sparql, the only method
-    fetch_registry() implements so far (see harvest/registry.py)."""
+    fetch_registry() implements so far (see sources/registry.py)."""
     entity_class = entity_class.strip()
     if not re.fullmatch(r"[a-z][a-z0-9_]*", entity_class):
         return HTMLResponse(

@@ -7,8 +7,8 @@ sys.path.insert(0, str(PIPELINE_ROOT))
 import pytest  # noqa: E402
 import yaml  # noqa: E402
 
-from harvest import registry  # noqa: E402
-from harvest.registry import _entities_from_bindings, _normalized_domain, _slugify  # noqa: E402
+from sources import registry  # noqa: E402
+from sources.registry import _entities_from_bindings, _normalized_domain, _slugify  # noqa: E402
 
 FETCHED_AT = "2026-07-14T00:00:00+00:00"
 

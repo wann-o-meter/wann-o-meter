@@ -11,15 +11,36 @@ fetch_registry() - a Protocol/plugin system is unwarranted for two methods.
 import json
 import re
 import sys
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from urllib.parse import quote, urlencode, urlparse
 
 import yaml
 
 from core.fetch import Config, fetch_bytes
-from harvest.types import Entity
+
+
+@dataclass
+class Entity:
+    """One row of a fetched registry. Lived in harvest/types.py as the first
+    of a planned Entity/Seed/Event trio; the other two never arrived, and a
+    types module for one dataclass used by one module is a file to open for
+    no reason."""
+
+    entity_id: str
+    entity_class: str
+    name: str
+    domain: str
+    wikidata_id: Optional[str]
+    region: Optional[str]
+    registry_source: str
+    fetched_at: str
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
 
 PIPELINE_ROOT = Path(__file__).resolve().parent.parent
 REPO_ROOT = PIPELINE_ROOT.parent
@@ -216,11 +237,20 @@ def write_registry(entity_class: str, entities: List[Entity]) -> Path:
 
 
 def run(entity_class: str) -> int:
-    print(f"[harvest.registry] Fetching registry for '{entity_class}' ...", file=sys.stderr)
+    print(f"[sources.registry] Fetching registry for '{entity_class}' ...", file=sys.stderr)
     entities = fetch_registry(entity_class)
     out_path = write_registry(entity_class, entities)
     print(
-        f"[harvest.registry] Wrote {len(entities)} entities -> {out_path.relative_to(REPO_ROOT)}",
+        f"[sources.registry] Wrote {len(entities)} entities -> {out_path.relative_to(REPO_ROOT)}",
         file=sys.stderr,
     )
     return 0
+
+
+if __name__ == "__main__":
+    # Replaces harvest/cli.py, which was a stage dispatcher with exactly one
+    # stage in it. A second entry point can grow its own __main__ the same way.
+    if len(sys.argv) != 2:
+        print("Usage: python -m sources.registry <entity_class>", file=sys.stderr)
+        raise SystemExit(2)
+    raise SystemExit(run(sys.argv[1]))

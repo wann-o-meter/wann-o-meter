@@ -23,7 +23,7 @@ sys.path.insert(0, str(PIPELINE_ROOT))
 from core import extraction, generic_source, store, validate  # noqa: E402
 from core.runner import lade_quellen_config  # noqa: E402
 
-FIXTURES = PIPELINE_ROOT / "fixtures" / "schulferien_kmk"
+FIXTURES = PIPELINE_ROOT / "tests" / "fixtures" / "schulferien_kmk"
 PARAMS = {"jahr": "2028"}
 
 
