@@ -1,0 +1,4 @@
+subject  = "by"
+category = "schulferien"
+mode     = "scraper"
+sources  = ["schulferien_kmk"]

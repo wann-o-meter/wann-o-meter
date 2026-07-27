@@ -1,0 +1,4 @@
+subject  = "sonnenfinsternis"
+category = "astronomie"
+mode     = "scraper"
+sources  = ["eclipse-gsfc-nasa-gov-secat5", "eclipse-gsfc-nasa-gov"]

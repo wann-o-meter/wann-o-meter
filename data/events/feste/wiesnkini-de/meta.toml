@@ -1,0 +1,4 @@
+subject  = "wiesnkini-de"
+category = "events/feste"
+mode     = "scraper"
+sources  = ["wiesnkini-de"]

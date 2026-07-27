@@ -1,0 +1,4 @@
+subject  = "mv"
+category = "schulferien"
+mode     = "scraper"
+sources  = ["schulferien_kmk"]

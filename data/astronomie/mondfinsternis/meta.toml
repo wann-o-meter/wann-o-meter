@@ -1,0 +1,4 @@
+subject  = "mondfinsternis"
+category = "astronomie"
+mode     = "scraper"
+sources  = ["eclipse-gsfc-nasa-gov-lecat5"]
