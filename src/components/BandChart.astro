@@ -179,11 +179,22 @@ function longDate(iso: string): string {
     width: 100%;
     height: 100%;
   }
+  .band-chart tbody tr:hover th[scope="row"] {
+    background: var(--paper-raised);
+  }
+  .band-chart tbody tr:hover td.plain,
+  .band-chart tbody tr:hover td.weekend {
+    background: var(--line);
+  }
+  .band-chart tbody tr:hover td.primary,
+  .band-chart tbody tr:hover td.accent {
+    filter: brightness(1.15);
+  }
   .legend {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    margin: 0.6rem 0 0;
+    margin: 0.6rem 0 2rem;
     font-size: 0.8rem;
     color: var(--muted);
   }
