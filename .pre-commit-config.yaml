@@ -1,0 +1,20 @@
+repos:
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
+    rev: 3.2.1
+    hooks:
+      - id: editorconfig-checker
+        exclude: ^(dist/|node_modules/|\.astro/|data/|bun\.lock$)
+  - repo: local
+    hooks:
+      - id: comment-lines
+        name: limit comment lines per file
+        entry: python3 scripts/check_comment_lines.py
+        language: system
+        files: \.(py|ts|tsx|js|jsx|vue|astro)$
+        exclude: ^(dist/|node_modules/|\.astro/)
+      - id: comment-style
+        name: no em-dashes or semicolons in comments/docs
+        entry: python3 scripts/check_style.py
+        language: system
+        files: \.(py|ts|tsx|js|jsx|vue|astro|md)$
+        exclude: ^(dist/|node_modules/|\.astro/)
