@@ -63,15 +63,11 @@ function shiftIso(iso: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-// STRUCTURAL, not a per-category allowlist (same rule lib/year-pages.ts
-// documents for its own state-code detection): a category's data is
-// "range-shaped" when most of its events span more than a single day
-// (PageEvent.to set) - Schulferien and Urlaubsfenster windows, not
-// Feiertage's single dates. Majority vote, not "any", so one stray
-// multi-day entry in an otherwise point-shaped category doesn't flip it.
-export function isRangeShaped(events: { to?: string }[]): boolean {
-  if (events.length === 0) return false;
-  return events.filter((e) => e.to !== undefined).length / events.length > 0.5;
+// A chart with no colored cell anywhere carries no information - same
+// escape-hatch principle as lib/year-grid.ts's own density guard, just
+// measured across the whole rolling window instead of a single year.
+export function hasCoverage(chart: BandChart): boolean {
+  return chart.rows.some((row) => row.cells.some((c) => c.state === "primary" || c.state === "accent"));
 }
 
 // Rolling ~70 days centred on today (spec's own default): the question this

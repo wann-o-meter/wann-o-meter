@@ -87,9 +87,8 @@ function longDate(iso: string): string {
     white-space: nowrap;
   }
   .band-chart table {
-    font-size: 0.72rem;
     border-collapse: separate;
-    border-spacing: 1px;
+    border-spacing: 2px;
   }
   .band-chart th,
   .band-chart td {
@@ -129,20 +128,21 @@ function longDate(iso: string): string {
     padding: 0 0 0.2rem 0.1rem;
   }
   .day-header {
-    width: 1.4rem;
-    min-width: 1.4rem;
+    width: 1.1rem;
+    min-width: 1.1rem;
     text-align: center;
     color: var(--muted);
     font-weight: 400;
+    font-size: 0.6rem;
+    font-variant-numeric: tabular-nums;
     line-height: 1.1;
   }
   .day-header .dow {
     display: block;
-    font-size: 0.62rem;
+    font-size: 0.55rem;
   }
   .day-header .dom {
     display: block;
-    font-variant-numeric: tabular-nums;
   }
   .day-header.weekend {
     color: var(--ink);
@@ -153,8 +153,8 @@ function longDate(iso: string): string {
     border-radius: 2px;
   }
   .cell {
-    width: 1.4rem;
-    height: 1.1rem;
+    width: 1.1rem;
+    aspect-ratio: 1;
     border-radius: 2px;
     background: var(--paper-raised);
   }

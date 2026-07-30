@@ -4,6 +4,10 @@
 // which stays the accessible/keyboard fallback - this grid is aria-hidden
 // and its per-day links carry tabindex="-1" so a screen reader or keyboard
 // user meets each date exactly once, in the list below.
+//
+// Shares its cell size, sticky first column, header typography and frame
+// (.table-wrap, global.css) with BandChart.astro - the two are the site's
+// heatmap-style views and should read as one visual language, not two.
 import type { YearGridMonth } from "../../lib/year-grid";
 
 interface Props {
@@ -18,7 +22,7 @@ const layerId = `${category.replace(/\//g, "-")}--${slug}`;
 const eventCount = grid.reduce((n, m) => n + m.cells.filter((c) => c.state === "event").length, 0);
 ---
 
-<div class="year-grid">
+<div class="table-wrap year-grid">
   <p class="sr-only">
     {eventLabel} {year}: {eventCount} {eventCount === 1 ? "markierter Tag" : "markierte Tage"}, siehe Liste unten für Details.
   </p>
@@ -54,9 +58,6 @@ const eventCount = grid.reduce((n, m) => n + m.cells.filter((c) => c.state === "
 </div>
 
 <style>
-  .year-grid {
-    margin: 1rem 0 1.5rem;
-  }
   .sr-only {
     position: absolute;
     width: 1px;
@@ -69,16 +70,17 @@ const eventCount = grid.reduce((n, m) => n + m.cells.filter((c) => c.state === "
     display: flex;
     flex-direction: column;
     gap: 2px;
-    overflow-x: auto;
   }
   .row {
     display: grid;
-    grid-template-columns: 2.5rem repeat(31, minmax(0.9rem, 1fr));
+    grid-template-columns: 2.5rem repeat(31, 1.1rem);
     align-items: center;
     gap: 2px;
-    min-width: 32rem;
   }
   .month-label {
+    position: sticky;
+    left: 0;
+    background: var(--paper);
     font-size: 0.78rem;
     color: var(--muted);
     text-transform: uppercase;
@@ -94,6 +96,7 @@ const eventCount = grid.reduce((n, m) => n + m.cells.filter((c) => c.state === "
     white-space: nowrap;
   }
   .cell {
+    width: 1.1rem;
     aspect-ratio: 1;
     border-radius: 2px;
     background: var(--paper-raised);
@@ -111,6 +114,16 @@ const eventCount = grid.reduce((n, m) => n + m.cells.filter((c) => c.state === "
   }
   .cell.empty {
     background: none;
+  }
+  .row:hover .month-label {
+    color: var(--accent);
+  }
+  .row:hover .cell.plain,
+  .row:hover .cell.weekend {
+    background: var(--line);
+  }
+  .row:hover .cell.event {
+    filter: brightness(1.15);
   }
   .legend {
     display: flex;

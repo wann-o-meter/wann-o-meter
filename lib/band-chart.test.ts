@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildBandChart, defaultWindow, isRangeShaped } from "./band-chart";
+import { buildBandChart, defaultWindow, hasCoverage } from "./band-chart";
 
 describe("defaultWindow", () => {
   it("spans 10 days before today to 60 days after", () => {
@@ -7,17 +7,20 @@ describe("defaultWindow", () => {
   });
 });
 
-describe("isRangeShaped", () => {
-  it("is false for an empty event list", () => {
-    expect(isRangeShaped([])).toBe(false);
+describe("hasCoverage", () => {
+  it("is false when every cell is plain or weekend", () => {
+    const chart = buildBandChart([{ scopeId: "hb", label: "HB", href: "/x/hb/", layerId: "x--hb", ranges: [] }], "2026-07-30", "2026-08-02", "2026-07-30");
+    expect(hasCoverage(chart)).toBe(false);
   });
 
-  it("is false when most events are single days (Feiertage shape)", () => {
-    expect(isRangeShaped([{ to: undefined }, { to: undefined }, { to: "2026-08-01" }])).toBe(false);
-  });
-
-  it("is true when most events span multiple days (Schulferien shape)", () => {
-    expect(isRangeShaped([{ to: "2026-08-01" }, { to: "2026-08-05" }, { to: undefined }])).toBe(true);
+  it("is true once at least one cell is primary or accent", () => {
+    const chart = buildBandChart(
+      [{ scopeId: "nw", label: "NW", href: "/x/nw/", layerId: "x--nw", ranges: [{ start: "2026-07-30", end: "2026-07-30", title: "x", kind: "primary" }] }],
+      "2026-07-30",
+      "2026-08-02",
+      "2026-07-30",
+    );
+    expect(hasCoverage(chart)).toBe(true);
   });
 });
 

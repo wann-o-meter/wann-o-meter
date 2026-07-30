@@ -23,7 +23,6 @@ import Breadcrumbs from "../components/Breadcrumbs.astro";
 import DateListControls from "../components/DateListControls.astro";
 import SourceList from "../components/SourceList.astro";
 import YearGrid from "../components/YearGrid.astro";
-import ScopeMatrix from "../components/ScopeMatrix.astro";
 import BandChart from "../components/BandChart.astro";
 import {
   getAllCategoryNodes,
@@ -48,9 +47,7 @@ import {
 } from "../../lib/year-pages";
 import { buildYearGrid, shouldRenderYearGrid } from "../../lib/year-grid";
 import type { YearGridMonth } from "../../lib/year-grid";
-import { buildScopeMatrix } from "../../lib/scope-matrix";
-import type { ScopeMatrix as ScopeMatrixData } from "../../lib/scope-matrix";
-import { buildBandChart, defaultWindow, isRangeShaped } from "../../lib/band-chart";
+import { buildBandChart, defaultWindow, hasCoverage } from "../../lib/band-chart";
 import type { BandChart as BandChartData, BandChartRowInput } from "../../lib/band-chart";
 import { STATES } from "../../lib/states";
 
@@ -116,18 +113,25 @@ function absoluteCrumbs(crumbs: Crumb[]) {
 // The schulferien.org-shaped overview: one row per scope page in a leaf
 // category, day columns filled where that scope's events cover the day.
 // STRUCTURAL, not a per-category allowlist (same rule lib/year-pages.ts
-// documents for its own state-code detection) - any category with multiple
-// scope pages whose events are range-shaped (lib/band-chart.ts's
-// isRangeShaped) qualifies, whatever the topic. Today that is Schulferien
-// and Urlaubsfenster (both state-coded) and Saisonkalender (fruit/vegetable-
-// coded, no state at all) - a future range-type, multi-scope category needs
-// no change here to get the same view.
+// documents for its own state-code detection) - any leaf category with
+// multiple scope pages qualifies, point-shaped or range-shaped alike (a
+// single-day Feiertag and a multi-week Ferien window are just a narrow vs.
+// wide band on the same chart). Today that is Feiertage, Schulferien,
+// Urlaubsfenster (all state-coded) and Saisonkalender (fruit/vegetable-
+// coded, no state at all) - a future multi-scope category needs no change
+// here to get the same view.
 //
-// State-coded pages (yearSubjectCode() resolves a Bundesland) additionally
-// get a Feiertage overlay, correlated by state code via stateSlug() - the
-// two categories don't otherwise know about each other. Saisonkalender's
-// pages have no state code, so they simply never qualify for the overlay -
-// nothing here branches on "is this schulferien specifically".
+// A category whose pages mix state-coded and non-state-coded scopes (like
+// Feiertage's 16 German states alongside ~200 countries) narrows to the
+// state-coded subset when there are enough of them - the two aren't the
+// same comparison axis, and 200 rows would be as unusable as 200 columns
+// once was in the matrix this view replaced.
+//
+// State-coded pages additionally get a Feiertage overlay, correlated by
+// state code via stateSlug() - the two categories don't otherwise know
+// about each other. A page IS its own would-be overlay when the category
+// under view already is Feiertage, so that case is skipped rather than
+// doubling every cell onto itself.
 interface CategoryBandChart {
   chart: BandChartData;
   primaryLabel: string;
@@ -135,15 +139,15 @@ interface CategoryBandChart {
 }
 
 function buildCategoryBandChart(node: CategoryNode, allPages: Page[]): CategoryBandChart | null {
-  if (node.pages.length < 2) return null;
-  const allEvents = node.pages.flatMap((p) => getPageEvents(p));
-  if (!isRangeShaped(allEvents)) return null;
+  const stateCoded = node.pages.filter((p) => yearSubjectCode(p.category, p.slug) !== undefined);
+  const scopePages = stateCoded.length >= 2 ? stateCoded : node.pages;
+  if (scopePages.length < 2) return null;
 
   const todayIso = new Date().toISOString().slice(0, 10);
   const window = defaultWindow(todayIso);
   let accentUsed = false;
 
-  const rows: BandChartRowInput[] = node.pages.map((page) => {
+  const rows: BandChartRowInput[] = scopePages.map((page) => {
     const code = yearSubjectCode(page.category, page.slug);
     const ranges: BandChartRowInput["ranges"] = getPageEvents(page).map((e) => ({
       start: e.date,
@@ -152,7 +156,8 @@ function buildCategoryBandChart(node: CategoryNode, allPages: Page[]): CategoryB
       kind: "primary" as const,
     }));
     const feiertagePage = code && allPages.find((p) => p.category === "feiertage" && p.slug === stateSlug("feiertage", code));
-    if (feiertagePage) {
+    const isSelf = feiertagePage && feiertagePage.category === page.category && feiertagePage.slug === page.slug;
+    if (feiertagePage && !isSelf) {
       accentUsed = true;
       ranges.push(
         ...getPageEvents(feiertagePage).map((e) => ({ start: e.date, end: e.to ?? e.date, title: e.label, kind: "accent" as const })),
@@ -168,8 +173,14 @@ function buildCategoryBandChart(node: CategoryNode, allPages: Page[]): CategoryB
   });
   rows.sort((a, b) => a.label.localeCompare(b.label, "de"));
 
+  const chart = buildBandChart(rows, window.start, window.end, todayIso);
+  // Escape hatch: a chart with nothing to show in the rendered window (a
+  // long-range or seasonal-elsewhere category, right now) is worse than no
+  // chart at all - same principle as lib/year-grid.ts's own density guard.
+  if (!hasCoverage(chart)) return null;
+
   return {
-    chart: buildBandChart(rows, window.start, window.end, todayIso),
+    chart,
     primaryLabel: getCategoryMeta(node.path).name,
     accentLabel: accentUsed ? getCategoryMeta("feiertage").name : undefined,
   };
@@ -200,18 +211,8 @@ function buildCategoryView(node: CategoryNode) {
           : [],
     }),
   ]);
-  // Feiertage-only: the same 16 German-state pages the year pages already
-  // single out via yearSubjectCode() (a "de-" slug prefix), out of ~200
-  // country pages that share this category - the matrix would be nonsense
-  // rendered 200 columns wide. No other category has this shape yet, so this
-  // stays a one-off check rather than a generic per-category view config.
-  const matrixYear = new Date().getFullYear();
-  const matrix: ScopeMatrixData | null =
-    node.path === "feiertage"
-      ? buildScopeMatrix(node.pages.filter((p) => p.slug.startsWith("de-")), matrixYear)
-      : null;
   const bandChart = buildCategoryBandChart(node, getAllPages());
-  return { node, categoryMeta, sortedPages, childCategories, crumbs, description, structuredData, matrixYear, matrix, bandChart };
+  return { node, categoryMeta, sortedPages, childCategories, crumbs, description, structuredData, bandChart };
 }
 
 function buildPageView(page: Page) {
@@ -384,15 +385,6 @@ const yearView = props.kind === "year" ? buildYearView(props.page, props.year) :
           <ul class="cards">
             {categoryView.childCategories.map((c) => <li><a href={`/${c.path}/`}>{c.meta.name}</a></li>)}
           </ul>
-        )
-      }
-
-      {
-        categoryView.matrix && categoryView.matrix.rows.length > 0 && (
-          <>
-            <h2>Feiertage {categoryView.matrixYear} im Vergleich</h2>
-            <ScopeMatrix year={categoryView.matrixYear} matrix={categoryView.matrix} />
-          </>
         )
       }
 
