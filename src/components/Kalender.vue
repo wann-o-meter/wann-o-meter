@@ -489,13 +489,10 @@ onMounted(async () => {
   const res = await fetch("/api/v1/calendar.json");
   catalog.value = await res.json();
   await loadFromUrlOrDefault();
-  // Canonicalizes the address bar to the state just derived above - without
-  // this, a forged/malformed URL (mismatched month=, a non-Monday
-  // weekstart, an out-of-range year=) renders correctly but keeps showing
-  // its wrong values until the next click, so copying the link would just
-  // hand the bad URL to someone else. replaceState (pushNextUrlWrite is
-  // false here), so this doesn't add a spurious history entry.
-  writeUrl();
+  // ponytail: deliberately no writeUrl() here. Rewriting the address bar
+  // during load makes Googlebot report the entered URL as a redirect, which
+  // deindexes every shared ?day=/?layers= link. A forged URL now keeps its
+  // wrong params until the first interaction; the watch below fixes it then.
   loading.value = false;
   watch([year, layers, view, activeMonth, weekStart], writeUrl, { deep: true });
   // Re-syncs state from the URL the browser just navigated to - without
