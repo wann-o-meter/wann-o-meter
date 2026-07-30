@@ -489,10 +489,6 @@ onMounted(async () => {
   const res = await fetch("/api/v1/calendar.json");
   catalog.value = await res.json();
   await loadFromUrlOrDefault();
-  // ponytail: deliberately no writeUrl() here. Rewriting the address bar
-  // during load makes Googlebot report the entered URL as a redirect, which
-  // deindexes every shared ?day=/?layers= link. A forged URL now keeps its
-  // wrong params until the first interaction; the watch below fixes it then.
   loading.value = false;
   watch([year, layers, view, activeMonth, weekStart], writeUrl, { deep: true });
   // Re-syncs state from the URL the browser just navigated to - without
