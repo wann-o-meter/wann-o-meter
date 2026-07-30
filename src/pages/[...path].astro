@@ -23,6 +23,7 @@ import Breadcrumbs from "../components/Breadcrumbs.astro";
 import DateListControls from "../components/DateListControls.astro";
 import SourceList from "../components/SourceList.astro";
 import YearGrid from "../components/YearGrid.astro";
+import ScopeMatrix from "../components/ScopeMatrix.astro";
 import {
   getAllCategoryNodes,
   getAllPages,
@@ -44,6 +45,8 @@ import {
 } from "../../lib/year-pages";
 import { buildYearGrid, shouldRenderYearGrid } from "../../lib/year-grid";
 import type { YearGridMonth } from "../../lib/year-grid";
+import { buildScopeMatrix } from "../../lib/scope-matrix";
+import type { ScopeMatrix as ScopeMatrixData } from "../../lib/scope-matrix";
 
 type CategoryProps = { kind: "category"; node: CategoryNode };
 type PageProps = { kind: "page"; page: Page };
@@ -129,7 +132,17 @@ function buildCategoryView(node: CategoryNode) {
           : [],
     }),
   ]);
-  return { node, categoryMeta, sortedPages, childCategories, crumbs, description, structuredData };
+  // Feiertage-only: the same 16 German-state pages the year pages already
+  // single out via yearSubjectCode() (a "de-" slug prefix), out of ~200
+  // country pages that share this category - the matrix would be nonsense
+  // rendered 200 columns wide. No other category has this shape yet, so this
+  // stays a one-off check rather than a generic per-category view config.
+  const matrixYear = new Date().getFullYear();
+  const matrix: ScopeMatrixData | null =
+    node.path === "feiertage"
+      ? buildScopeMatrix(node.pages.filter((p) => p.slug.startsWith("de-")), matrixYear)
+      : null;
+  return { node, categoryMeta, sortedPages, childCategories, crumbs, description, structuredData, matrixYear, matrix };
 }
 
 function buildPageView(page: Page) {
@@ -302,6 +315,15 @@ const yearView = props.kind === "year" ? buildYearView(props.page, props.year) :
           <ul class="cards">
             {categoryView.childCategories.map((c) => <li><a href={`/${c.path}/`}>{c.meta.name}</a></li>)}
           </ul>
+        )
+      }
+
+      {
+        categoryView.matrix && categoryView.matrix.rows.length > 0 && (
+          <>
+            <h2>Feiertage {categoryView.matrixYear} im Vergleich</h2>
+            <ScopeMatrix year={categoryView.matrixYear} matrix={categoryView.matrix} />
+          </>
         )
       }
 
