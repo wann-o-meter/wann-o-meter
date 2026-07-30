@@ -1,0 +1,134 @@
+---
+// Static, zero-JS 12x31 grid: one cell per day of the year, months as rows.
+// Sits above the existing "## Termine" list (src/pages/[...path].astro),
+// which stays the accessible/keyboard fallback - this grid is aria-hidden
+// and its per-day links carry tabindex="-1" so a screen reader or keyboard
+// user meets each date exactly once, in the list below.
+import type { YearGridMonth } from "../../lib/year-grid";
+
+interface Props {
+  year: number;
+  grid: YearGridMonth[];
+  eventLabel: string; // legend label for the "event" state, e.g. the page title
+  category: string;
+  slug: string;
+}
+const { year, grid, eventLabel, category, slug } = Astro.props;
+const layerId = `${category.replace(/\//g, "-")}--${slug}`;
+const eventCount = grid.reduce((n, m) => n + m.cells.filter((c) => c.state === "event").length, 0);
+---
+
+<div class="year-grid">
+  <p class="sr-only">
+    {eventLabel} {year}: {eventCount} {eventCount === 1 ? "markierter Tag" : "markierte Tage"}, siehe Liste unten für Details.
+  </p>
+  <div class="grid" aria-hidden="true">
+    <div class="row ticks">
+      <span class="month-label" />
+      {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => <span class="tick">{day}</span>)}
+    </div>
+    {
+      grid.map((month) => (
+        <div class="row">
+          <span class="month-label">{month.name.slice(0, 3)}</span>
+          {month.cells.map((cell) =>
+            cell.state === "event" ? (
+              <a
+                class="cell event"
+                href={`/kalender/?day=${cell.iso}&layers=${layerId}`}
+                title={`${cell.titles.join(", ")} (${cell.iso})`}
+                tabindex="-1"
+              />
+            ) : (
+              <span class={`cell ${cell.state}`} />
+            ),
+          )}
+        </div>
+      ))
+    }
+  </div>
+  <p class="legend" aria-hidden="true">
+    <span class="swatch event" /> {eventLabel}
+    <span class="swatch weekend" /> Wochenende
+  </p>
+</div>
+
+<style>
+  .year-grid {
+    margin: 1rem 0 1.5rem;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-x: auto;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 2.5rem repeat(31, minmax(0.9rem, 1fr));
+    align-items: center;
+    gap: 2px;
+    min-width: 32rem;
+  }
+  .month-label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .row.ticks {
+    font-size: 0.6rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .tick {
+    text-align: center;
+    white-space: nowrap;
+  }
+  .cell {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--paper-raised);
+  }
+  .cell.weekend {
+    background: var(--line);
+  }
+  .cell.event {
+    background: var(--accent);
+    display: block;
+  }
+  a.cell.event:hover {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .cell.empty {
+    background: none;
+  }
+  .legend {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0.6rem 0 0;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .swatch {
+    display: inline-block;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+  .swatch.weekend {
+    background: var(--line);
+    margin-left: 0.8rem;
+  }
+</style>

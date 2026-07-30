@@ -22,6 +22,7 @@ import Layout from "../layouts/Layout.astro";
 import Breadcrumbs from "../components/Breadcrumbs.astro";
 import DateListControls from "../components/DateListControls.astro";
 import SourceList from "../components/SourceList.astro";
+import YearGrid from "../components/YearGrid.astro";
 import {
   getAllCategoryNodes,
   getAllPages,
@@ -41,6 +42,8 @@ import {
   yearIndex,
   yearLabel,
 } from "../../lib/year-pages";
+import { buildYearGrid, shouldRenderYearGrid } from "../../lib/year-grid";
+import type { YearGridMonth } from "../../lib/year-grid";
 
 type CategoryProps = { kind: "category"; node: CategoryNode };
 type PageProps = { kind: "page"; page: Page };
@@ -208,7 +211,13 @@ function buildPageView(page: Page) {
   // them uncapped), so the pills are always links - one control, one behaviour,
   // on every page of the site.
   const yearLinks = yearsFor(page).map((year) => ({ year, href: yearHref(category, page.slug, year) }));
-  return { page, category, meta, data, events, years, nextEvent, preview, columns, rowsPreview, crumbs, description, structuredData, pageUrl, feedUrl, yearLinks };
+  // The evergreen page has no single "year" of its own - the current year is
+  // the one a grid can usefully show; below the density threshold (spec's own
+  // escape hatch, see lib/year-grid.ts) the list below stays the only view.
+  const gridYear = new Date().getFullYear();
+  const yearGrid = buildYearGrid(gridYear, eventsInYear(events, gridYear));
+  const grid: YearGridMonth[] | null = shouldRenderYearGrid(yearGrid) ? yearGrid : null;
+  return { page, category, meta, data, events, years, nextEvent, preview, columns, rowsPreview, crumbs, description, structuredData, pageUrl, feedUrl, yearLinks, gridYear, grid };
 }
 
 function buildYearView(page: Page, year: number) {
@@ -257,6 +266,8 @@ function buildYearView(page: Page, year: number) {
     // on-page counterpart, see lib/structured-data.ts's faqNode).
     ...(copy.faq.length > 0 ? [faqNode(copy.faq)] : []),
   ]);
+  const yearGrid = buildYearGrid(year, events);
+  const grid: YearGridMonth[] | null = shouldRenderYearGrid(yearGrid) ? yearGrid : null;
   return {
     page,
     year,
@@ -271,6 +282,7 @@ function buildYearView(page: Page, year: number) {
     pageUrl,
     structuredData,
     noindex: !shouldIndexYear(page.category, year, sorted.length),
+    grid,
   };
 }
 
@@ -348,8 +360,8 @@ const yearView = props.kind === "year" ? buildYearView(props.page, props.year) :
         </a>
         {pageView.events.length > 0 && (
           /* ponytail: <details>/<summary> IS the reveal - native disclosure,
-             focusable, keyboard-operable, zero JS and zero state. Only the
-             copy button needs a script. */
+          focusable, keyboard-operable, zero JS and zero state. Only the
+          copy button needs a script. */
           <details class="feed">
             <summary><span class="link-button"><CalendarPlus size={16} aria-hidden="true" /> ICS abonnieren</span></summary>
             <div class="feed-panel">
@@ -372,6 +384,15 @@ const yearView = props.kind === "year" ? buildYearView(props.page, props.year) :
         pageView.events.length > 0 && (
           <>
             <h2>Termine</h2>
+            {pageView.grid && (
+              <YearGrid
+                year={pageView.gridYear}
+                grid={pageView.grid}
+                eventLabel={pageView.meta.title}
+                category={pageView.category}
+                slug={pageView.page.slug}
+              />
+            )}
             {/* On the per-state topics the pills navigate to the year pages
                 (crawlable entry points, and this evergreen page is their hub);
                 everywhere else they stay the in-page filter. */}
@@ -486,6 +507,15 @@ const yearView = props.kind === "year" ? buildYearView(props.page, props.year) :
         yearView.events.length > 0 && (
           <>
             <h2>Termine {yearView.year}</h2>
+            {yearView.grid && (
+              <YearGrid
+                year={yearView.year}
+                grid={yearView.grid}
+                eventLabel={yearView.page.meta.title}
+                category={yearView.page.category}
+                slug={yearView.page.slug}
+              />
+            )}
             {/* The same pill row as the evergreen page, so "switch to 2027"
                 looks and feels the same everywhere - here the current year is
                 the active pill and "Alle" leads back to the evergreen page. */}
@@ -525,7 +555,7 @@ const yearView = props.kind === "year" ? buildYearView(props.page, props.year) :
 
       {
         /* Rendered because it is real page content, and REQUIRED because the
-           FAQPage JSON-LD above describes exactly this list. */
+        FAQPage JSON-LD above describes exactly this list. */
         yearView.copy.faq.length > 0 && (
           <>
             <h2>Häufige Fragen</h2>
@@ -589,17 +619,17 @@ const yearView = props.kind === "year" ? buildYearView(props.page, props.year) :
     margin: 1rem 0 1.5rem;
   }
   /* .link-button lives on a span INSIDE the summary, not on the summary
-     itself. Overriding a <summary>'s `display` has a history of upsetting the
-     disclosure marker and, reportedly, toggling; keeping the default sidesteps
-     the question entirely and costs nothing, since <details> is a flex item of
-     .actions and already shrink-to-fits around the pill. This rule only drops
-     the triangle and restores the pointer. */
+  itself. Overriding a <summary>'s `display` has a history of upsetting the
+  disclosure marker and, reportedly, toggling; keeping the default sidesteps
+  the question entirely and costs nothing, since <details> is a flex item of
+  .actions and already shrink-to-fits around the pill. This rule only drops
+  the triangle and restores the pointer. */
   .feed summary {
     cursor: pointer;
     list-style: none;
   }
   /* Pins the pill to the top of the summary's line box, so it lines up with
-     the JSON pill next to it instead of sitting a few px lower. */
+  the JSON pill next to it instead of sitting a few px lower. */
   .feed summary .link-button {
     vertical-align: top;
   }
@@ -632,10 +662,10 @@ const yearView = props.kind === "year" ? buildYearView(props.page, props.year) :
     color: var(--accent);
   }
   /* .link-button is already inline-flex with a gap, so the icons above need
-     no rule of their own. This link is different: it sits mid-sentence, so it
-     has to stay a normal inline box (an inline-flex one is atomic and would
-     refuse to wrap, stranding "Oder" on its own line) - the icon is nudged
-     onto the text baseline instead. */
+  no rule of their own. This link is different: it sits mid-sentence, so it
+  has to stay a normal inline box (an inline-flex one is atomic and would
+  refuse to wrap, stranding "Oder" on its own line) - the icon is nudged
+  onto the text baseline instead. */
   .feed-download svg {
     vertical-align: -0.15em;
     margin-right: 0.25rem;
