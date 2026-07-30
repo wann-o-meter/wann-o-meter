@@ -1,4 +1,4 @@
-// GitHub is the site's only contribution queue (see CONTRIBUTING.md) - every
+// GitHub is the site's only contribution queue (see docs/contributing.md) - every
 // "suggest a source" / "report a wrong source" / "give feedback" UI
 // affordance builds a prefilled issues/new link instead of its own form or
 // backend.
