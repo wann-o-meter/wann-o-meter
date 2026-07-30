@@ -65,21 +65,20 @@ def search_wikidata_classes(term: str, limit: int = 8) -> list[dict[str, str]]:
     Registry form's class search, so an operator doesn't have to leave the
     dashboard to find the right wd:Q... for a new entity_class's SPARQL
     query."""
-    query = urlencode({
-        "action": "wbsearchentities",
-        "search": term,
-        "language": "de",
-        "format": "json",
-        "limit": limit,
-    })
+    query = urlencode(
+        {
+            "action": "wbsearchentities",
+            "search": term,
+            "language": "de",
+            "format": "json",
+            "limit": limit,
+        }
+    )
     config = Config()
     config.user_agent = USER_AGENT
     raw, _ = fetch_bytes(f"{WIKIDATA_SEARCH_ENDPOINT}?{query}", config)
     results = json.loads(raw).get("search", [])
-    return [
-        {"id": r["id"], "label": r.get("label", r["id"]), "description": r.get("description", "")}
-        for r in results
-    ]
+    return [{"id": r["id"], "label": r.get("label", r["id"]), "description": r.get("description", "")} for r in results]
 
 
 def load_registries_config() -> dict[str, Any]:
@@ -117,8 +116,11 @@ def add_registry_config(entity_class: str, sparql: str, target_kinds: list[str])
     }
     with REGISTRIES_CONFIG.open("w", encoding="utf-8") as f:
         yaml.dump(
-            config, f,
-            allow_unicode=True, sort_keys=False, default_flow_style=False,
+            config,
+            f,
+            allow_unicode=True,
+            sort_keys=False,
+            default_flow_style=False,
             Dumper=_BlockStringDumper,
         )
 
@@ -133,8 +135,11 @@ def delete_registry_config(entity_class: str) -> None:
     del config[entity_class]
     with REGISTRIES_CONFIG.open("w", encoding="utf-8") as f:
         yaml.dump(
-            config, f,
-            allow_unicode=True, sort_keys=False, default_flow_style=False,
+            config,
+            f,
+            allow_unicode=True,
+            sort_keys=False,
+            default_flow_style=False,
             Dumper=_BlockStringDumper,
         )
     (OUTPUT_DIR / f"{entity_class}.json").unlink(missing_ok=True)
@@ -160,9 +165,7 @@ def _query_wikidata(sparql: str) -> list[dict[str, Any]]:
     return json.loads(raw)["results"]["bindings"]
 
 
-def _entities_from_bindings(
-    entity_class: str, bindings: list[dict[str, Any]], fetched_at: str
-) -> list[Entity]:
+def _entities_from_bindings(entity_class: str, bindings: list[dict[str, Any]], fetched_at: str) -> list[Entity]:
     """Pure transform, split out from _entities_from_wikidata so tests can
     feed it a fixed bindings list instead of hitting the network."""
     by_domain: dict[str, Entity] = {}

@@ -21,11 +21,16 @@ async def harvest_view(request: Request):
     designed bridge into the crawler (registry.load_registry_domains) has no
     caller. Kept and given its own page rather than mixed into the pages
     dashboard, so the pipeline nav reads as the pipeline."""
-    return service.templates.TemplateResponse(request, "harvest.html", {
-        "active_nav": "harvest",
-        "state": service.state.to_dict(),
-        "harvest_registries": service._harvest_registry_status(),
-    })
+    return service.templates.TemplateResponse(
+        request,
+        "harvest.html",
+        {
+            "active_nav": "harvest",
+            "state": service.state.to_dict(),
+            "harvest_registries": service._harvest_registry_status(),
+        },
+    )
+
 
 @router.get("/harvest/wikidata-search")
 async def harvest_wikidata_search(q: str):
@@ -41,6 +46,7 @@ async def harvest_wikidata_search(q: str):
     except Exception as e:
         return JSONResponse({"error": str(e)[:300]}, status_code=502)
     return JSONResponse(results)
+
 
 @router.post("/harvest/registries/config")
 async def add_harvest_registry(
@@ -70,6 +76,7 @@ async def add_harvest_registry(
 
     return RedirectResponse("/", status_code=302)
 
+
 @router.post("/harvest/registry")
 async def start_harvest_registry(entity_class: str = Form(...)):
     if entity_class not in harvest_registry.load_registries_config():
@@ -81,21 +88,30 @@ async def start_harvest_registry(entity_class: str = Form(...)):
     threading.Thread(target=service._fetch_harvest_registry_and_record, args=(entity_class,), daemon=True).start()
     return JSONResponse({"status": "started", "entity_class": entity_class})
 
+
 @router.get("/harvest/registry-status")
 async def harvest_registry_status_route(entity_class: str):
     """Polled by the dashboard's Fetch Registry button - same reasoning as
     /scrape-status: the POST above returns almost instantly, the real fetch
     happens in the background thread."""
-    return JSONResponse({
-        "running": entity_class in service.harvest_registry_state.running,
-        "error": service.harvest_registry_state.errors.get(entity_class),
-    })
+    return JSONResponse(
+        {
+            "running": entity_class in service.harvest_registry_state.running,
+            "error": service.harvest_registry_state.errors.get(entity_class),
+        }
+    )
+
 
 @router.get("/harvest/registry-table", response_class=HTMLResponse)
 async def harvest_registry_table(request: Request):
-    return service.templates.TemplateResponse(request, "_harvest_registry_table.html", {
-        "harvest_registries": service._harvest_registry_status(),
-    })
+    return service.templates.TemplateResponse(
+        request,
+        "_harvest_registry_table.html",
+        {
+            "harvest_registries": service._harvest_registry_status(),
+        },
+    )
+
 
 @router.post("/harvest/registries/{entity_class}/delete", response_class=HTMLResponse)
 async def delete_harvest_registry(request: Request, entity_class: str):
@@ -109,9 +125,14 @@ async def delete_harvest_registry(request: Request, entity_class: str):
     except ValueError as e:
         return HTMLResponse(str(e), status_code=400)
     service.harvest_registry_state.errors.pop(entity_class, None)
-    return service.templates.TemplateResponse(request, "_harvest_registry_table.html", {
-        "harvest_registries": service._harvest_registry_status(),
-    })
+    return service.templates.TemplateResponse(
+        request,
+        "_harvest_registry_table.html",
+        {
+            "harvest_registries": service._harvest_registry_status(),
+        },
+    )
+
 
 @router.get("/harvest/registries/{entity_class}", response_class=HTMLResponse)
 async def get_harvest_registry_json(entity_class: str):

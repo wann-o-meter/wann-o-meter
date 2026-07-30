@@ -16,17 +16,22 @@ router = APIRouter()
 
 @router.get("/crawl-sources", response_class=HTMLResponse)
 async def crawl_sources_list(request: Request):
-    return service.templates.TemplateResponse(request, "crawl_sources.html", {
-        "active_nav": "crawl-sources",
-        "state": service.state.to_dict(),
-        "sources": crawl_config.load_all_crawl_sources(),
-        "running_sources": service.state.running_sources,
-        "errors": service.state.errors,
-        "last_result": service.state.last_result,
-        "progress": service.state.progress,
-        "category_suggestions": service._category_suggestions(),
-        "format_options": service.CRAWL_FORMAT_OPTIONS,
-    })
+    return service.templates.TemplateResponse(
+        request,
+        "crawl_sources.html",
+        {
+            "active_nav": "crawl-sources",
+            "state": service.state.to_dict(),
+            "sources": crawl_config.load_all_crawl_sources(),
+            "running_sources": service.state.running_sources,
+            "errors": service.state.errors,
+            "last_result": service.state.last_result,
+            "progress": service.state.progress,
+            "category_suggestions": service._category_suggestions(),
+            "format_options": service.CRAWL_FORMAT_OPTIONS,
+        },
+    )
+
 
 @router.get("/crawl-sources-table", response_class=HTMLResponse)
 async def crawl_sources_table(request: Request):
@@ -34,13 +39,18 @@ async def crawl_sources_table(request: Request):
     poll) - same "re-render the whole table from the server" approach as
     the old harvest registry table, so count/error/button state all come
     from one source of truth."""
-    return service.templates.TemplateResponse(request, "_crawl_sources_table.html", {
-        "sources": crawl_config.load_all_crawl_sources(),
-        "running_sources": service.state.running_sources,
-        "errors": service.state.errors,
-        "last_result": service.state.last_result,
-        "progress": service.state.progress,
-    })
+    return service.templates.TemplateResponse(
+        request,
+        "_crawl_sources_table.html",
+        {
+            "sources": crawl_config.load_all_crawl_sources(),
+            "running_sources": service.state.running_sources,
+            "errors": service.state.errors,
+            "last_result": service.state.last_result,
+            "progress": service.state.progress,
+        },
+    )
+
 
 @router.post("/crawl-sources/{source_id}/run")
 async def run_crawl_source(source_id: str):
@@ -53,22 +63,26 @@ async def run_crawl_source(source_id: str):
     threading.Thread(target=service._run_crawl_source_and_record, args=(source_id,), daemon=True).start()
     return JSONResponse({"status": "started", "source_id": source_id})
 
+
 @router.get("/crawl-sources/{source_id}/status")
 async def crawl_source_status(source_id: str):
     """Polled by crawl_sources.html's Run button while a crawl is in
     flight - same reasoning as the harvest registry status poll: the POST
     above returns almost instantly, the real crawl runs in the background
     thread."""
-    return JSONResponse({
-        "running": source_id in service.state.running_sources,
-        "error": service.state.errors.get(source_id),
-        "result": service.state.last_result.get(source_id),
-        "progress": service.state.progress.get(source_id),
-        # Carried on this same poll rather than a second endpoint/timer -
-        # two polls against one source would just double the request rate
-        # to show two halves of the same run.
-        "pages": service._source_pages(source_id),
-    })
+    return JSONResponse(
+        {
+            "running": source_id in service.state.running_sources,
+            "error": service.state.errors.get(source_id),
+            "result": service.state.last_result.get(source_id),
+            "progress": service.state.progress.get(source_id),
+            # Carried on this same poll rather than a second endpoint/timer -
+            # two polls against one source would just double the request rate
+            # to show two halves of the same run.
+            "pages": service._source_pages(source_id),
+        }
+    )
+
 
 @router.post("/crawl-sources/{source_id}/delete")
 async def delete_crawl_source(source_id: str):
@@ -89,6 +103,7 @@ async def delete_crawl_source(source_id: str):
     service.state.errors.pop(source_id, None)
     service.state.last_result.pop(source_id, None)
     return RedirectResponse("/crawl-sources", status_code=303)
+
 
 @router.post("/crawl-sources/new")
 async def create_crawl_source(
@@ -180,6 +195,7 @@ async def create_crawl_source(
     path.write_text(yaml.dump(raw, allow_unicode=True, sort_keys=False), encoding="utf-8")
     return RedirectResponse("/crawl-sources", status_code=303)
 
+
 @router.post("/crawl-sources/{source_id}/edit")
 async def edit_crawl_source(
     source_id: str,
@@ -197,12 +213,6 @@ async def edit_crawl_source(
     several sources aggregate (see CrawlSource.subject_slug), but it could
     only ever be set at create time, and getting it wrong meant living with
     a split page or re-approving every candidate by hand.
-
-    Three things move together:
-      - the config file, rewritten in place so untouched fields survive;
-      - the data folder, moved or merged into the target page - this is the
-        migration, because data.yaml IS the record of what is approved;
-      - the rejected set, re-pointed at the new slug (review_state.repoint).
 
     Moving the folder used to be the easy half: the approved set also lived
     in review-state under a hash that included the slug, so a slug change
@@ -226,17 +236,19 @@ async def edit_crawl_source(
         return HTMLResponse(validation_error, status_code=400)
 
     raw = yaml.safe_load(source.config_path.read_text(encoding="utf-8")) or {}
-    raw.update({
-        "category": category_path,
-        # Deliberately NOT _slugify'd, unlike the create route: on an edit
-        # the operator is matching another source's slug character for
-        # character, and silently rewriting a typo into a valid-but-different
-        # slug would quietly create a third page instead of saying so.
-        # _parse's _SLUG_RE is the validator.
-        "subject_slug": subject_slug.strip(),
-        "subject_name": subject_name.strip(),
-        "event_type_hint": event_type_hint.strip(),
-    })
+    raw.update(
+        {
+            "category": category_path,
+            # Deliberately NOT _slugify'd, unlike the create route: on an edit
+            # the operator is matching another source's slug character for
+            # character, and silently rewriting a typo into a valid-but-different
+            # slug would quietly create a third page instead of saying so.
+            # _parse's _SLUG_RE is the validator.
+            "subject_slug": subject_slug.strip(),
+            "subject_name": subject_name.strip(),
+            "event_type_hint": event_type_hint.strip(),
+        }
+    )
     # Whether this source reads dates with the regex or the model was settable
     # only at create time, so switching meant hand-editing the YAML. Omitted
     # rather than defaulted, so a form POST without the field (the other fields

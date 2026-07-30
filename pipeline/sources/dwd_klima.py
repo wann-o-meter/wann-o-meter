@@ -43,7 +43,7 @@ BASE_URL = "https://opendata.dwd.de/climate_environment/CDC/observations_germany
 # Vollstaendige Spaltenbeschreibung: BESCHREIBUNG_obsgermany-climate-daily-kl_de.pdf
 # im selben Verzeichnis wie die Stations-ZIPs.
 FELD_TEMPERATUR_MITTEL = "TMK"  # Tagesmittel der Lufttemperatur 2m (°C)
-FELD_NIEDERSCHLAG = "RSK"       # Tagesniederschlagshoehe (mm)
+FELD_NIEDERSCHLAG = "RSK"  # Tagesniederschlagshoehe (mm)
 FEHLWERT = "-999"
 
 
@@ -58,7 +58,7 @@ def find_station_zip_url(station_id: str) -> str | None:
     return None
 
 
-def parse_produkt_datei(text: str) -> list[dict[str, str]]:
+def parse_produkt_file(text: str) -> list[dict[str, str]]:
     """DWD-Spalten sind leerzeichen-gepolstert (z.B. '  TMK'), Werte auch -
     csv.DictReader trennt korrekt an ';', wir stripen selbst nach."""
     reader = csv.DictReader(text.splitlines(), delimiter=";")
@@ -68,7 +68,7 @@ def parse_produkt_datei(text: str) -> list[dict[str, str]]:
 
 def parse_station_zip(content: bytes) -> list[dict[str, str]]:
     """Extrahiert die produkt_klima_tag_*.txt (die eigentlichen Tageswerte,
-    nicht die 30 Metadaten-Begleitdateien) aus der ZIP und parst sie."""
+    nicht die 30 Metadaten-Begleitfileen) aus der ZIP und parst sie."""
     with zipfile.ZipFile(io.BytesIO(content)) as zf:
         produkt_name = next((n for n in zf.namelist() if n.startswith("produkt_klima_tag")), None)
         if not produkt_name:
@@ -76,7 +76,7 @@ def parse_station_zip(content: bytes) -> list[dict[str, str]]:
         text = decode_text(zf.read(produkt_name))
         if text is None:
             raise ValueError(f"{produkt_name} nicht dekodierbar")
-    return parse_produkt_datei(text)
+    return parse_produkt_file(text)
 
 
 def zu_float(wert: str) -> float | None:
@@ -131,8 +131,13 @@ def wochen_bins(rows: list[dict[str, str]], jahre_zurueck: int | None = None) ->
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("station_id", help="DWD Stations-ID, z.B. 00044")
-    parser.add_argument("--jahre-zurueck", type=int, default=30, help="Nur die letzten N Jahre beruecksichtigen (default: 30, WMO-Normalperiode)")
-    parser.add_argument("--out", help="Ausgabedatei (JSON). Ohne Angabe: stdout")
+    parser.add_argument(
+        "--jahre-zurueck",
+        type=int,
+        default=30,
+        help="Nur die letzten N Jahre beruecksichtigen (default: 30, WMO-Normalperiode)",
+    )
+    parser.add_argument("--out", help="Ausgabefile (JSON). Ohne Angabe: stdout")
     args = parser.parse_args()
 
     station_id = args.station_id.zfill(5)
@@ -150,7 +155,7 @@ def main() -> int:
     bins = wochen_bins(rows, jahre_zurueck=args.jahre_zurueck)
     result = {
         "station_id": station_id,
-        "quelle_url": zip_url,
+        "source_url": zip_url,
         "jahre_zurueck": args.jahre_zurueck,
         "wochen_bins": bins,
     }

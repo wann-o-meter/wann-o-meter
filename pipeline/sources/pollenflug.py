@@ -98,15 +98,17 @@ def windows(levels: list[str | None]) -> list[dict[str, Any]]:
             continue
         if current:
             type_, name = LEVELS[current]
-            result.append({
-                "type": type_,
-                "name": name,
-                "year": None,
-                "from": f"--{start + 1:02d}",
-                "to": f"--{month:02d}",
-                "precision": "approximate",
-                "ics": False,
-            })
+            result.append(
+                {
+                    "type": type_,
+                    "name": name,
+                    "year": None,
+                    "from": f"--{start + 1:02d}",
+                    "to": f"--{month:02d}",
+                    "precision": "approximate",
+                    "ics": False,
+                }
+            )
         start = month
     return result
 
@@ -137,24 +139,33 @@ def write(plants: list[dict[str, Any]]) -> None:
         slug = slugify(plant["name"])
         directory = DATA_ROOT / slug
         directory.mkdir(parents=True, exist_ok=True)
-        dump(directory / "data.yaml", {
-            "subject": {"slug": slug, "name": f"{plant['name']}pollen", "category": KATEGORIE},
-            "windows": plant["windows"],
-            "source": SOURCE,
-        })
-        dump(directory / "page.yaml", {
-            "title": f"{plant['name']}pollen",
-            "description": f"Pollenflugkalender für {plant['name']} - wann die Hauptblütezeit ist "
-                           "und ab wann mit Pollen zu rechnen ist.",
-        })
+        dump(
+            directory / "data.yaml",
+            {
+                "subject": {"slug": slug, "name": f"{plant['name']}pollen", "category": KATEGORIE},
+                "windows": plant["windows"],
+                "source": SOURCE,
+            },
+        )
+        dump(
+            directory / "page.yaml",
+            {
+                "title": f"{plant['name']}pollen",
+                "description": f"Pollenflugkalender für {plant['name']} - wann die Hauptblütezeit ist "
+                "und ab wann mit Pollen zu rechnen ist.",
+            },
+        )
     # Nur beim ersten Lauf - sonst wuerde ein Re-Run einen von Hand
     # ueberarbeiteten Kategorietext ueberschreiben.
     category = DATA_ROOT / "_category.yaml"
     if not category.exists():
-        dump(category, {
-            "name": "Pollenflugkalender",
-            "description": "Wann welche Pollen fliegen - Vor-, Haupt- und Nachblütezeit je Pflanze.",
-        })
+        dump(
+            category,
+            {
+                "name": "Pollenflugkalender",
+                "description": "Wann welche Pollen fliegen - Vor-, Haupt- und Nachblütezeit je Pflanze.",
+            },
+        )
 
 
 def dump(path: Path, data: dict[str, Any]) -> None:
@@ -193,8 +204,7 @@ def main() -> int:
         raise SystemExit("Antwort liess sich nicht als Text dekodieren")
 
     plants = parse(html)
-    print(f"[pollenflug] {len(plants)} Pflanzen, "
-          f"{sum(len(p['windows']) for p in plants)} Fenster", file=sys.stderr)
+    print(f"[pollenflug] {len(plants)} Pflanzen, {sum(len(p['windows']) for p in plants)} Fenster", file=sys.stderr)
     if args.dry_run:
         for plant in plants:
             spans = ", ".join(f"{w['from']}..{w['to']} {w['type']}" for w in plant["windows"])

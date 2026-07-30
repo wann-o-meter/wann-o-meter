@@ -621,9 +621,7 @@ def _date_range_variants(start: str | None, end: str | None) -> list[str]:
         return []
     starts, ends = _date_renderings(start), _date_renderings(end)
     return [
-        f"{starts[fmt]}{separator}{ends[fmt]}"
-        for fmt in starts.keys() & ends.keys()
-        for separator in _RANGE_SEPARATORS
+        f"{starts[fmt]}{separator}{ends[fmt]}" for fmt in starts.keys() & ends.keys() for separator in _RANGE_SEPARATORS
     ]
 
 

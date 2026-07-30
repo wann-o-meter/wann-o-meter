@@ -1,6 +1,5 @@
 """Pipeline status polling for the dashboard."""
 
-
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 
@@ -13,6 +12,7 @@ router = APIRouter()
 async def get_status():
     """JSON endpoint for external polling/tooling."""
     return JSONResponse(service.state.to_dict())
+
 
 @router.get("/status-fragment", response_class=HTMLResponse)
 async def get_status_fragment(request: Request):

@@ -18,25 +18,32 @@ async def dashboard(request: Request):
     pipeline, and the thing an operator actually comes back to look at. The
     harvest registry used to share this page, which made the landing screen
     a mix of two unrelated concerns; it has /harvest to itself now."""
-    return service.templates.TemplateResponse(request, "dashboard.html", {
-        "active_nav": "pages",
-        "state": service.state.to_dict(),
-        "pages": service._list_created_pages(),
-        "license_options": service.LICENSE_OPTIONS,
-        "category_suggestions": service._category_suggestions(),
-        "tag_suggestions": service._all_tags(),
-        "review_queue_count": len(service._review_queue()),
-    })
+    return service.templates.TemplateResponse(
+        request,
+        "dashboard.html",
+        {
+            "active_nav": "pages",
+            "state": service.state.to_dict(),
+            "pages": service._list_created_pages(),
+            "license_options": service.LICENSE_OPTIONS,
+            "category_suggestions": service._category_suggestions(),
+            "tag_suggestions": service._all_tags(),
+            "review_queue_count": len(service._review_queue()),
+        },
+    )
+
 
 @router.get("/page-data/{full_path:path}", response_class=HTMLResponse)
 async def get_page_data_yaml(full_path: str):
     """Raw data.yaml for a created page, same guard pattern as /scraped/{filename}."""
     return service._serve_page_file(full_path, "data.yaml")
 
+
 @router.get("/page-meta/{full_path:path}", response_class=HTMLResponse)
 async def get_page_meta_yaml(full_path: str):
     """Raw page.yaml for a created page, same guard pattern as /scraped/{filename}."""
     return service._serve_page_file(full_path, "page.yaml")
+
 
 @router.post("/pages/{full_path:path}/delete")
 async def delete_page(full_path: str, return_to: str = Form("/crawl-sources")):
@@ -53,6 +60,7 @@ async def delete_page(full_path: str, return_to: str = Form("/crawl-sources")):
     if not service._SAFE_RETURN_TO.match(return_to):
         return_to = "/crawl-sources"
     return RedirectResponse(return_to, status_code=302)
+
 
 @router.post("/pages/{full_path:path}/edit")
 async def edit_page(
@@ -101,7 +109,7 @@ async def edit_page(
     # so changing the license on data/astronomie/sonnenfinsternis/ dropped a
     # citation that its own windows still referenced, which pageDataSchema's
     # superRefine then failed the whole site build on.
-    data["source"] = [{**q, "license": license} for q in service._as_quelle_list(data)]
+    data["source"] = [{**q, "license": license} for q in service._as_source_list(data)]
     subject = data.get("subject") or {}
     subject["category"] = new_category_path
     subject["slug"] = slug
@@ -117,6 +125,7 @@ async def edit_page(
     if not service._SAFE_RETURN_TO.match(return_to):
         return_to = "/crawl-sources"
     return RedirectResponse(return_to, status_code=302)
+
 
 @router.get("/pages/{full_path:path}/suggest-tags")
 async def suggest_page_tags(full_path: str):
@@ -137,15 +146,16 @@ async def suggest_page_tags(full_path: str):
         return JSONResponse({"error": "Not found"}, status_code=404)
 
     page = yaml.safe_load((folder / "page.yaml").read_text(encoding="utf-8")) or {}
-    datei = yaml.safe_load((folder / "data.yaml").read_text(encoding="utf-8")) or {}
+    file = yaml.safe_load((folder / "data.yaml").read_text(encoding="utf-8")) or {}
     # The windows ARE the page's text - there is no prose to summarise, so
     # the tag prompt gets what the page actually says.
-    text = "\n".join(str(w.get("name") or "") for w in (datei.get("windows") or [])[:50])
+    text = "\n".join(str(w.get("name") or "") for w in (file.get("windows") or [])[:50])
     try:
         tags = service.suggest_tags(text or page.get("title", ""), page.get("title", ""), service._all_tags())
     except ExtractionError as e:
         return JSONResponse({"error": str(e)}, status_code=502)
     return JSONResponse({"tags": tags})
+
 
 @router.post("/pages/{full_path:path}/add-tag")
 async def add_tag_to_page(full_path: str, tag: str = Form(...)):
