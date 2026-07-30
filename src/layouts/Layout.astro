@@ -150,11 +150,7 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
 
         // Light/dark/system toggle. "system" is the implicit default (no
         // localStorage entry, no data-theme attribute) - global.css's
-        // prefers-color-scheme media query decides. Explicit "light"/"dark"
-        // pin the theme via [data-theme] regardless of the OS setting; the
-        // <script is:inline> above in <head> already applied any saved
-        // override before first paint, this just keeps the button in sync
-        // and lets it cycle through the three states.
+        // prefers-color-scheme media query decides otherwise.
         const THEME_LABELS = { system: "System", light: "Hell", dark: "Dunkel" };
         const themeToggle = document.getElementById("theme-toggle");
         function currentTheme() {
@@ -162,8 +158,12 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
           return t === "light" || t === "dark" ? t : "system";
         }
         function renderThemeToggle() {
-          if (!themeToggle) return;
           const t = currentTheme();
+          // Re-applied every navigation: a view transition's raw <html> never
+          // carries data-theme, only client JS ever sets it.
+          if (t === "system") delete document.documentElement.dataset.theme;
+          else document.documentElement.dataset.theme = t;
+          if (!themeToggle) return;
           // Icon-only now (see the 3 <Monitor|Sun|Moon> in the template above) -
           // toggle which one is visible instead of swapping text, and carry the
           // same state in aria-label since there's no visible text left for it.
@@ -179,13 +179,10 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
         themeToggle?.addEventListener("click", () => {
           const order = ["system", "light", "dark"];
           const next = order[(order.indexOf(currentTheme()) + 1) % order.length];
-          if (next === "system") {
-            localStorage.removeItem("theme");
-            delete document.documentElement.dataset.theme;
-          } else {
-            localStorage.setItem("theme", next);
-            document.documentElement.dataset.theme = next;
-          }
+          // renderThemeToggle() below applies data-theme itself now - only the
+          // persisted preference is this handler's own job.
+          if (next === "system") localStorage.removeItem("theme");
+          else localStorage.setItem("theme", next);
           renderThemeToggle();
         });
       });
@@ -254,18 +251,8 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
     color: var(--accent);
   }
   /* Everything else (size, weight, colour, padding, hover) comes from the
-     `nav a` rule below - it sits in the nav now and should read like the two
-     links beside it, in the same sans as they are.
-
-     min-width holds the label's space before the client script fills it in:
-     it ships empty, and on a phone the date appearing was enough to wrap the
-     nav from one row to three, pushing the whole page down 86px - the single
-     shift behind the homepage's 0.37 CLS. formatTodayLabel() is always the
-     same shape ("Mo., 27.07." - zero-padded, 2-letter weekday), so the only
-     width variation left is the weekday; tabular-nums takes the digits out of
-     it, and the min-width is the widest of the seven, measured, rounded up.
-     Measured at this nav's 0.9rem - change that font-size and this has to be
-     re-measured (scripts/cls.mjs) or the shift comes back. */
+  `nav a` rule below - it sits in the nav now and should read like the two
+  links beside it. Mono only because it's a date. */
   .today-indicator {
     font-variant-numeric: tabular-nums;
     min-width: 4.6rem;
