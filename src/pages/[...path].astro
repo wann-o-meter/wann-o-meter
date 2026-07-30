@@ -24,6 +24,7 @@ import DateListControls from "../components/DateListControls.astro";
 import SourceList from "../components/SourceList.astro";
 import YearGrid from "../components/YearGrid.astro";
 import ScopeMatrix from "../components/ScopeMatrix.astro";
+import BandChart from "../components/BandChart.astro";
 import {
   getAllCategoryNodes,
   getAllPages,
@@ -38,15 +39,20 @@ import {
   eventsInYear,
   shouldIndexYear,
   siblingPages,
+  stateSlug,
   yearCopy,
   yearHref,
   yearIndex,
   yearLabel,
+  yearSubjectCode,
 } from "../../lib/year-pages";
 import { buildYearGrid, shouldRenderYearGrid } from "../../lib/year-grid";
 import type { YearGridMonth } from "../../lib/year-grid";
 import { buildScopeMatrix } from "../../lib/scope-matrix";
 import type { ScopeMatrix as ScopeMatrixData } from "../../lib/scope-matrix";
+import { buildBandChart, defaultWindow, isRangeShaped } from "../../lib/band-chart";
+import type { BandChart as BandChartData, BandChartRowInput } from "../../lib/band-chart";
+import { STATES } from "../../lib/states";
 
 type CategoryProps = { kind: "category"; node: CategoryNode };
 type PageProps = { kind: "page"; page: Page };
@@ -107,6 +113,68 @@ function absoluteCrumbs(crumbs: Crumb[]) {
   return crumbs.map((c) => ({ name: c.name, url: new URL(c.href, Astro.site).href }));
 }
 
+// The schulferien.org-shaped overview: one row per scope page in a leaf
+// category, day columns filled where that scope's events cover the day.
+// STRUCTURAL, not a per-category allowlist (same rule lib/year-pages.ts
+// documents for its own state-code detection) - any category with multiple
+// scope pages whose events are range-shaped (lib/band-chart.ts's
+// isRangeShaped) qualifies, whatever the topic. Today that is Schulferien
+// and Urlaubsfenster (both state-coded) and Saisonkalender (fruit/vegetable-
+// coded, no state at all) - a future range-type, multi-scope category needs
+// no change here to get the same view.
+//
+// State-coded pages (yearSubjectCode() resolves a Bundesland) additionally
+// get a Feiertage overlay, correlated by state code via stateSlug() - the
+// two categories don't otherwise know about each other. Saisonkalender's
+// pages have no state code, so they simply never qualify for the overlay -
+// nothing here branches on "is this schulferien specifically".
+interface CategoryBandChart {
+  chart: BandChartData;
+  primaryLabel: string;
+  accentLabel?: string;
+}
+
+function buildCategoryBandChart(node: CategoryNode, allPages: Page[]): CategoryBandChart | null {
+  if (node.pages.length < 2) return null;
+  const allEvents = node.pages.flatMap((p) => getPageEvents(p));
+  if (!isRangeShaped(allEvents)) return null;
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const window = defaultWindow(todayIso);
+  let accentUsed = false;
+
+  const rows: BandChartRowInput[] = node.pages.map((page) => {
+    const code = yearSubjectCode(page.category, page.slug);
+    const ranges: BandChartRowInput["ranges"] = getPageEvents(page).map((e) => ({
+      start: e.date,
+      end: e.to ?? e.date,
+      title: e.label,
+      kind: "primary" as const,
+    }));
+    const feiertagePage = code && allPages.find((p) => p.category === "feiertage" && p.slug === stateSlug("feiertage", code));
+    if (feiertagePage) {
+      accentUsed = true;
+      ranges.push(
+        ...getPageEvents(feiertagePage).map((e) => ({ start: e.date, end: e.to ?? e.date, title: e.label, kind: "accent" as const })),
+      );
+    }
+    return {
+      scopeId: page.slug,
+      label: code ? STATES[code] : page.meta.title,
+      href: `/${page.category}/${page.slug}/`,
+      layerId: `${page.category.replace(/\//g, "-")}--${page.slug}`,
+      ranges,
+    };
+  });
+  rows.sort((a, b) => a.label.localeCompare(b.label, "de"));
+
+  return {
+    chart: buildBandChart(rows, window.start, window.end, todayIso),
+    primaryLabel: getCategoryMeta(node.path).name,
+    accentLabel: accentUsed ? getCategoryMeta("feiertage").name : undefined,
+  };
+}
+
 function buildCategoryView(node: CategoryNode) {
   const categoryMeta = getCategoryMeta(node.path);
   const sortedPages = [...node.pages].sort((a, b) => a.meta.title.localeCompare(b.meta.title, "de"));
@@ -142,7 +210,8 @@ function buildCategoryView(node: CategoryNode) {
     node.path === "feiertage"
       ? buildScopeMatrix(node.pages.filter((p) => p.slug.startsWith("de-")), matrixYear)
       : null;
-  return { node, categoryMeta, sortedPages, childCategories, crumbs, description, structuredData, matrixYear, matrix };
+  const bandChart = buildCategoryBandChart(node, getAllPages());
+  return { node, categoryMeta, sortedPages, childCategories, crumbs, description, structuredData, matrixYear, matrix, bandChart };
 }
 
 function buildPageView(page: Page) {
@@ -323,6 +392,19 @@ const yearView = props.kind === "year" ? buildYearView(props.page, props.year) :
           <>
             <h2>Feiertage {categoryView.matrixYear} im Vergleich</h2>
             <ScopeMatrix year={categoryView.matrixYear} matrix={categoryView.matrix} />
+          </>
+        )
+      }
+
+      {
+        categoryView.bandChart && (
+          <>
+            <h2>Übersicht</h2>
+            <BandChart
+              chart={categoryView.bandChart.chart}
+              primaryLabel={categoryView.bandChart.primaryLabel}
+              accentLabel={categoryView.bandChart.accentLabel}
+            />
           </>
         )
       }
