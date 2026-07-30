@@ -48,7 +48,7 @@ def count_comments(path: str) -> int:
             count += 1
         elif block_start and line.startswith(block_start):
             count += 1
-            if block_end not in line:
+            if block_end is not None and block_end not in line:
                 in_block = True
     return count
 
