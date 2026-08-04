@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { computeUmzugSchedule, listUmzugKommunen, loadAllUmzugKommunen, loadUmzugKommune } from "./umzug";
+import { computeUmzugSchedule } from "./umzug";
 import type { UmzugDeadline } from "./umzug";
+import { listUmzugKommunen, loadAllUmzugKommunen, loadUmzugKommune } from "./umzug-data";
 
 const deadline = (over: Partial<UmzugDeadline>): UmzugDeadline => ({
   id: "x",
