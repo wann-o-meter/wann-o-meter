@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeUmzugSchedule, listUmzugKommunen, loadUmzugKommune } from "./umzug";
+import { computeUmzugSchedule, listUmzugKommunen, loadAllUmzugKommunen, loadUmzugKommune } from "./umzug";
 import type { UmzugDeadline } from "./umzug";
 
 const deadline = (over: Partial<UmzugDeadline>): UmzugDeadline => ({
@@ -67,5 +67,11 @@ describe("umzug data", () => {
 
   it("returns null for an unknown Kommune", () => {
     expect(loadUmzugKommune("nicht-existent")).toBeNull();
+  });
+
+  it("loads every Kommune with its slug attached", () => {
+    const all = loadAllUmzugKommunen();
+    expect(all.length).toBe(listUmzugKommunen().length);
+    expect(all.find((k) => k.slug === "rottenburg")?.name).toBe("Rottenburg am Neckar");
   });
 });

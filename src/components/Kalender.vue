@@ -118,8 +118,8 @@ const availableOptions = computed<CatalogEntry[]>(() => {
   return catalog.value.filter((entry) => !activeIds.has(entry.id));
 });
 
-// Grouped the same way the homepage clusters its cards (lib/all-content.ts):
-// one heading per group with a count, only the first N shown by default,
+// Grouped the same way search results cluster elsewhere on the site: one
+// heading per group with a count, only the first N shown by default,
 // the rest behind "show more" - a search always reaches every match
 // regardless of collapse state.
 interface OptionGroup {

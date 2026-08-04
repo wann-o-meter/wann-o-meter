@@ -1,478 +1,112 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { ArrowUpRight, Calendar, Search } from "@lucide/astro";
-import HeroCalendarPreview from "../components/HeroCalendarPreview.vue";
-import { getAllContent } from "../../lib/all-content";
-import type { ContentCard } from "../../lib/all-content";
+import { ArrowUpRight } from "@lucide/astro";
 import { graph, websiteNode } from "../../lib/structured-data";
-import { homepageQuestions } from "../../lib/homepage-questions";
 
-const cards = [...getAllContent()].sort((a, b) => a.title.localeCompare(b.title, "de"));
-
-// H1 rotator (client-side, see script below): real example questions the
-// site can answer, built from data/homepage-questions.yaml's per-category
-// templates - see lib/homepage-questions.ts.
-const rotatingQuestions = homepageQuestions();
-// Only the three most-used tags as one-click filters - all 20 unique tags
-// made a wall of badges where 17 of them matched a handful of pages each.
-// Nothing is lost: every tag is still reachable by typing it into the
-// search box, which matches against each card's full data-tags list.
-// Alphabetical as the tiebreak so equal counts don't reorder per build.
-const tagCounts = new Map<string, number>();
-for (const card of cards) {
-  for (const tag of card.tags) {
-    const key = tag.toLowerCase();
-    tagCounts.set(key, (tagCounts.get(key) ?? 0) + 1);
-  }
-}
-const tags = [...tagCounts]
-  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "de"))
-  .slice(0, 3)
-  .map(([tag]) => tag);
-
-// Google-SERP-like clustering: one result group per type, most relevant
-// items (ContentCard.featured) shown directly, the rest collapsed behind a
-// "show more" toggle so e.g. Feiertage's 200+ countries don't drown out
-// everything else.
-const groupsByType = new Map<string, ContentCard[]>();
-for (const card of cards) {
-  const group = groupsByType.get(card.type);
-  if (group) group.push(card);
-  else groupsByType.set(card.type, [card]);
-}
-const groups = [...groupsByType.entries()].map(([type, items]) => ({
-  type,
-  items: [...items].sort((a, b) => Number(b.featured) - Number(a.featured)),
-  moreCount: items.filter((i) => !i.featured).length,
-}));
-
-// Two strings on purpose: `lead` is the visible one-liner under the H1,
-// `homeDescription` stays the longer keyword-carrying <meta name="description">
-// and JSON-LD text below. Shortening the visible copy shouldn't cost the
-// homepage its meta description.
-const lead = "Feiertage, Ferien, Urlaubsfenster und Saisonzeiten - als Kalender abonnierbar.";
 const homeDescription =
-  "Strukturierte Antworten auf Wann-Fragen als Kalender-Abo - Feiertage, Urlaubsfenster, Saisonkalender und mehr, frei kombinierbar und einzeln abonnierbar.";
+  "Wann muss ich anfangen? Fristen rückwärts vom Termin geplant, mit Quelle - Umzug zuerst, weitere Lebensereignisse folgen.";
 const structuredData = graph([
   websiteNode({ name: "Wann-O-Meter", url: new URL("/", Astro.site).href, description: homeDescription }),
 ]);
 
-// Preview under the hero (Bayern, since it's the one worked example the
-// homepage copy below also names) - HeroCalendarPreview resolves the actual
-// window data itself client-side (same /api/v1/calendar/{id}.json route the
-// real calendar uses), and swaps to whichever layers the H1 rotator (script
-// below) is currently naming.
-//
-// client:only, not client:visible: with SSR on, the build baked the build
-// day's month into the HTML and it never fully recovered. Vue's hydration
-// only patches text and props listed in dynamicProps - the compiled render
-// function marks the day cells' :class/:style as patchFlag 7 (TEXT|CLASS|
-// STYLE) with no dynamicProps, so the day *numbers* were corrected on
-// hydrate but the "today" outline and the other-month greying kept the
-// build day's positions until some later reactive update happened to
-// repaint them. Rendering client-only removes the stale markup entirely:
-// there is nothing to mismatch, and `now` is always real browser time.
-// The grid is a decorative teaser - the H1, lead and today-teaser text
-// carry the SEO/no-JS content, so it loses nothing by not being in the HTML.
-const previewLayerIds = ["feiertage--de-by", "schulferien--by", "saisonkalender--spargel"];
+// Real today, mockups for everything on the pivot doc's "später prüfen" list
+// (section 6) - shown so the roadmap is visible, not clickable since there is
+// nothing behind them yet. No fabricated deadline content in the copy below,
+// same rule as data/umzug/ - a domain name and a one-line description aren't
+// a researched fact, a day count or a law citation would be.
+const cards = [
+  { title: "Umzug planen", note: "Fristen rückwärts vom Umzugstag, mit Quelle.", href: "/umzug/", soon: false },
+  { title: "Geburt", note: "Elternzeit, Kindergeld, Anmeldefristen.", href: null, soon: true },
+  { title: "Hochzeit", note: "Standesamt, Namensänderung, Fristen rund um die Trauung.", href: null, soon: true },
+  { title: "Jobwechsel", note: "Kündigungsfrist, Übergabe, neue Versicherung.", href: null, soon: true },
+  { title: "Todesfall", note: "Erbschaft, Kündigungen, Behördengänge.", href: null, soon: true },
+];
 ---
 
-<Layout
-  title="Wann ist was?"
-  description={homeDescription}
-  structuredData={structuredData}
->
+<Layout title="Wann muss ich anfangen?" description={homeDescription} structuredData={structuredData}>
   <div class="hero">
-    <div class="hero-text">
-      <h1 id="h1-rotator">Wann ist was?</h1>
-      <p class="lead">{lead}</p>
-      <p><a class="cta" href="/kalender/"><Calendar size={16} /> Kalender öffnen <ArrowUpRight size={16} /></a></p>
-    </div>
-
-    <div class="hero-preview">
-      <HeroCalendarPreview initialLayerIds={previewLayerIds} client:only="vue" />
-    </div>
+    <h1>Wann muss ich anfangen?</h1>
+    <p class="lede">Nicht wann etwas ist, sondern wann du loslegen musst. Ereignis wählen, Termin eingeben, Rückwärts-Zeitplan mit Quelle sehen.</p>
   </div>
 
-  <h2>Themen</h2>
-  <div class="search-wrap">
-    <Search size={16} class="search-icon" aria-hidden="true" />
-    <input
-      type="search"
-      id="search-input"
-      placeholder="Suchen…"
-      aria-label="Seiten durchsuchen"
-    />
-  </div>
-
-  {
-    tags.length > 0 && (
-      <p class="tags">
-        {tags.map((tag) => (
-          <button type="button" class="badge tag-filter" data-tag={tag}>{tag}</button>
-        ))}
-      </p>
-    )
-  }
-
-  <div id="results">
+  <ul class="cards">
     {
-      groups.map((group) => (
-        <section class="group" data-type={group.type}>
-          <h2>
-            {group.type} <span class="count">{group.items.length}</span>
-          </h2>
-          <ul class="cards narrow">
-            {group.items.map((c) => (
-              <li
-                data-title={c.title.toLowerCase()}
-                data-tags={c.tags.join(",").toLowerCase()}
-                data-featured={String(c.featured)}
-                hidden={!c.featured}
-              >
-                <a href={c.url}>{c.title}</a>
-              </li>
-            ))}
-          </ul>
-          {group.moreCount > 0 && (
-            <button type="button" class="more" data-group={group.type}>
-              +{group.moreCount} mehr
-            </button>
-          )}
-        </section>
-      ))
+      cards.map((c) =>
+        c.href ? (
+          <li>
+            <a class="card" href={c.href}>
+              <h2>{c.title} <ArrowUpRight size={16} /></h2>
+              <p>{c.note}</p>
+            </a>
+          </li>
+        ) : (
+          <li>
+            <div class="card soon">
+              <h2>{c.title} <span class="badge">Bald</span></h2>
+              <p>{c.note}</p>
+            </div>
+          </li>
+        ),
+      )
     }
-  </div>
-  <p id="no-results" hidden>Keine Treffer.</p>
+  </ul>
+
+  <p class="more">Feiertage, Schulferien und mehr: <a href="/themen/">alle Themen durchsuchen</a> oder <a href="/kalender/">Kalender öffnen</a>.</p>
 </Layout>
 
 <style>
-  /* Rough 2-line fallback for the no-JS/pre-hydration paint - the rotator
-     script below measures and overrides this with the exact height the
-     tallest question needs once it runs, since some questions wrap to 3
-     lines at this column's width and a fixed guess would still shift. */
-  #h1-rotator {
-    min-height: 2.5em;
-  }
   .hero {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 2rem;
+    max-width: 40rem;
+    margin-bottom: 2rem;
   }
-  .hero-text {
-    flex: 1;
-    min-width: 0;
+  h1 {
+    max-width: 16ch;
+    letter-spacing: -0.01em;
   }
-  @media (max-width: 45rem) {
-    .hero {
-      flex-direction: column;
-    }
-  }
-  /* Holds the calendar's space before its client:only island mounts, so the
-     copy below doesn't jump up by a grid's height on every load. aspect-ratio
-     rather than a min-height in rem: it scales with the column, which the
-     square day cells do too, and as a flex item the box still grows past the
-     ratio once the real grid is in it (flex min-height defaults to content). */
-  .hero-preview {
-    width: 34rem;
-    max-width: 100%;
-    flex-shrink: 0;
-    aspect-ratio: 34 / 27;
-  }
-  .lead {
+  .lede {
     font-size: 1.05rem;
-    max-width: 34rem;
-  }
-  .cta {
-    margin: 0.5rem 0 1rem;
-  }
-  .search-wrap {
-    position: relative;
-    width: 100%;
-    max-width: 24rem;
-    margin: 1rem 0;
-  }
-  .search-icon {
-    position: absolute;
-    left: 0.65rem;
-    top: 50%;
-    transform: translateY(-50%);
     color: var(--muted);
-    pointer-events: none;
   }
-  #search-input {
-    width: 100%;
-    padding-left: 2.1rem;
+  .cards {
+    list-style: none;
+    margin: 0 0 2rem;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .card {
     display: block;
+    height: 100%;
+    background: var(--paper-raised);
+    padding: 1rem 1.1rem;
+    text-decoration: none;
+    color: inherit;
   }
-  .tags {
-    margin-bottom: 1.5rem;
+  a.card:hover {
+    background: var(--paper);
+  }
+  .card.soon {
+    color: var(--muted);
+  }
+  .card h2 {
+    margin: 0 0 0.3rem;
+    padding: 0;
+    border: 0;
+    font-size: 1.05rem;
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
     gap: 0.4rem;
   }
-  .tag-filter {
-    cursor: pointer;
-    font: inherit;
-  }
-  .tag-filter.active {
-    background: var(--accent);
-    color: var(--accent-ink);
-  }
-  .group h2 {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-  }
-  .count {
-    color: var(--muted);
-    font-size: 0.8rem;
-    font-family: var(--font-mono);
-    font-weight: 400;
-  }
-  .narrow {
-    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  }
-  .narrow a {
-    padding: 0.5rem 0.7rem;
+  .card p {
+    margin: 0;
     font-size: 0.88rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    color: var(--muted);
   }
   .more {
-    margin: 0.7rem 0 2rem;
+    font-size: 0.9rem;
+    color: var(--muted);
   }
 </style>
-
-<!-- Not in the scoped <style> above: Astro's scoping works by stamping a
-     data-astro-cid-* attribute onto elements in the server-rendered markup,
-     but the rotator script (further down) builds this <em> at runtime via
-     document.createElement - it never gets that attribute, so a scoped
-     selector silently never matches it. is:global sidesteps that; #h1-rotator
-     is unique to this page so there's no leak risk in scoping it by hand. -->
-<style is:global>
-  /* The topic clause of each rotating question (see lib/homepage-questions.ts's
-     before/emphasis/after split) - a light italic serif contrast against the
-     page's sans everywhere else. System serif stack, no webfont to load for
-     one decorative accent. */
-  #h1-rotator em {
-    font-style: italic;
-    font-weight: 300;
-    font-family: Georgia, "Times New Roman", serif;
-  }
-  /* Same runtime-built-node reason as the <em> above. The link should read as
-     the heading it is, not as a blue underlined link inside one - the accent
-     on hover is the only hint that it goes somewhere. */
-  #h1-rotator a {
-    color: inherit;
-    text-decoration: none;
-  }
-  #h1-rotator a:hover {
-    color: var(--accent);
-  }
-</style>
-
-<script>
-  // Re-run per navigation - see the note in Layout.astro's ClientRouter.
-  document.addEventListener("astro:page-load", () => {
-    // Plain-vanilla substring filter, no framework/search-index dependency -
-    // dataset is a few hundred items at most, well below the threshold where
-    // that would pay off. Non-featured items start hidden (collapsed into
-    // their type's cluster); a group's "show more" button reveals them
-    // permanently, and an active search/tag filter always overrides the
-    // collapse so nothing is unreachable.
-    const search = document.getElementById("search-input") as HTMLInputElement;
-    const noResults = document.getElementById("no-results")!;
-    const groups = Array.from(document.querySelectorAll<HTMLElement>(".group"));
-    const tagButtons = document.querySelectorAll<HTMLButtonElement>(".tag-filter");
-    const moreButtons = document.querySelectorAll<HTMLButtonElement>(".more");
-
-    let activeTag: string | null = null;
-    const expandedGroups = new Set<string>();
-
-    function apply() {
-      const query = search.value.trim().toLowerCase();
-      const searchActive = query !== "" || activeTag !== null;
-      let totalVisible = 0;
-
-      for (const group of groups) {
-        const groupName = group.dataset.type ?? "";
-        let visibleInGroup = 0;
-        for (const entry of group.querySelectorAll<HTMLLIElement>("li")) {
-          const title = entry.dataset.title ?? "";
-          const tags = entry.dataset.tags ?? "";
-          const isFeatured = entry.dataset.featured === "true";
-          const matchesQuery = query === "" || title.includes(query) || tags.includes(query);
-          const matchesTag = activeTag === null || tags.split(",").includes(activeTag);
-          const collapsed = !searchActive && !isFeatured && !expandedGroups.has(groupName);
-          const show = matchesQuery && matchesTag && !collapsed;
-          entry.hidden = !show;
-          if (show) visibleInGroup++;
-        }
-        group.hidden = visibleInGroup === 0;
-        totalVisible += visibleInGroup;
-
-        const moreButton = group.querySelector<HTMLButtonElement>(".more");
-        if (moreButton) moreButton.hidden = searchActive || expandedGroups.has(groupName);
-      }
-
-      noResults.hidden = totalVisible > 0;
-    }
-
-    search.addEventListener("input", apply);
-    for (const button of tagButtons) {
-      button.addEventListener("click", () => {
-        // Lowercased to match `tags` above (itself lowercased from data-tags) -
-        // without this, clicking a tag whose displayed casing isn't already
-        // all-lowercase (e.g. "Feiertage") silently matches nothing.
-        const tagValue = (button.dataset.tag ?? "").toLowerCase();
-        activeTag = activeTag === tagValue ? null : tagValue;
-        for (const b of tagButtons) {
-          b.classList.toggle("active", (b.dataset.tag ?? "").toLowerCase() === activeTag && activeTag !== null);
-        }
-        apply();
-      });
-    }
-    for (const button of moreButtons) {
-      button.addEventListener("click", () => {
-        expandedGroups.add(button.dataset.group ?? "");
-        apply();
-      });
-    }
-
-    // Nav's "Durchsuchen" link points at "/#search-input" - focus it on
-    // arrival. Covers both a fresh page load and clicking the link while
-    // already on "/" (same-document hash change, no reload/DOMContentLoaded).
-    function focusSearchIfTargeted() {
-      if (location.hash !== "#search-input") return;
-      // preventScroll + an explicit centered scrollIntoView, instead of the
-      // browser's default jump-to-top-of-viewport anchor behavior - otherwise
-      // the input lands right at the top edge, easy to miss.
-      search.focus({ preventScroll: true });
-      search.scrollIntoView({ block: "center", behavior: "smooth" });
-    }
-    focusSearchIfTargeted();
-    window.addEventListener("hashchange", focusSearchIfTargeted);
-  });
-</script>
-
-<script define:vars={{ questions: rotatingQuestions }}>
-  // Cycles the H1 through real questions the site can answer - the static
-  // generic H1 (set in the template) is the no-JS/SEO fallback. Skipped
-  // entirely for prefers-reduced-motion (WCAG 2.2.2: no unpausable
-  // auto-updating text).
-  const rotates = questions.length > 0 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  // Renders {before, emphasis, after} (lib/homepage-questions.ts) as text +
-  // <em> + text instead of one flat string - the topic clause (e.g.
-  // "Schulferien und Feiertage in Mecklenburg-Vorpommern") reads distinctly
-  // from the generic "Wann ist/sind..." opener. Used by both the real H1
-  // update below and the height probe, so the probe measures the exact
-  // markup that'll render (italic glyphs aren't the same width as regular
-  // ones - a flat-text measurement could under/over-reserve height).
-  // Wrapped in an <a> to the subject's own page: the sentence names a
-  // concrete thing ("Wann sind Schulferien in Bayern?") and the page that
-  // answers it exists, so the H1 may as well go there. Also gives the
-  // homepage a rotating set of real internal links to its topic pages.
-  function renderQuestion(el, question) {
-    const em = document.createElement("em");
-    em.textContent = question.emphasis;
-    const link = document.createElement("a");
-    link.href = question.url;
-    link.replaceChildren(document.createTextNode(question.before), em, document.createTextNode(question.after));
-    el.replaceChildren(link);
-  }
-
-  // Reserves exactly the height the tallest question needs to wrap to at
-  // the H1's *actual* current width - the CSS min-height below is only a
-  // rough fallback (2 lines), which the longer combined Schulferien+
-  // Feiertage questions can exceed, especially now that the H1 shares the
-  // row with the calendar preview and has less width than it used to.
-  // Measured with a detached clone instead of a fixed lookup table so it
-  // stays correct across font-loading, zoom, and viewport width, none of
-  // which a precomputed table could account for.
-  function reserveH1Height() {
-    const h1 = document.getElementById("h1-rotator");
-    if (!h1 || !rotates) return;
-    const probe = document.createElement("h1");
-    probe.className = h1.className;
-    Object.assign(probe.style, {
-      position: "absolute",
-      visibility: "hidden",
-      pointerEvents: "none",
-      minHeight: "0",
-      margin: "0",
-      width: `${h1.getBoundingClientRect().width}px`,
-    });
-    document.body.appendChild(probe);
-    let max = 0;
-    for (const question of questions) {
-      renderQuestion(probe, question);
-      max = Math.max(max, probe.offsetHeight);
-    }
-    document.body.removeChild(probe);
-    h1.style.minHeight = `${max}px`;
-  }
-
-  // Called here at top level, NOT inside the astro:page-load handler below:
-  // define:vars makes this script inline and parser-blocking, so this runs
-  // while the document is still being parsed, before first paint. Deferring
-  // it to page-load meant the H1 painted at the CSS fallback height and then
-  // grew ~90px a second later, shoving the whole page down - most of what was
-  // left of the homepage's CLS after the nav date fix in Layout.astro.
-  reserveH1Height();
-  // Bound once, outside page-load: window survives a view-transition swap, so
-  // re-binding per navigation would just stack duplicate handlers. The
-  // function looks the H1 up each time, so it always finds the current one.
-  let resizeTimer;
-  window.addEventListener("resize", () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(reserveH1Height, 200);
-  });
-
-  // Re-run per navigation - see the note in Layout.astro's ClientRouter.
-  document.addEventListener("astro:page-load", () => {
-    const h1 = document.getElementById("h1-rotator");
-    if (h1 && rotates) {
-      // The H1 is a fresh node after a view-transition swap, back at the CSS
-      // fallback height - measure it again before the rotation starts.
-      reserveH1Height();
-
-      // Now that the H1 is a link, a rotation mid-aim would swap the
-      // destination out from under the cursor - so hovering or tabbing into
-      // it holds the current question until you leave again.
-      let paused = false;
-      for (const [event, value] of [["mouseenter", true], ["mouseleave", false], ["focusin", true], ["focusout", false]]) {
-        h1.addEventListener(event, () => (paused = value));
-      }
-
-      let q = questions
-      setInterval(() => {
-        if (paused) return;
-        const i = Math.floor(Math.random() * q.length);
-        const question = questions[i];
-        renderQuestion(h1, question);
-        // Tells HeroCalendarPreview.vue which layers this sentence is about -
-        // a CustomEvent instead of a shared Vue parent, so this script can
-        // keep owning the static-H1/reduced-motion fallback untouched.
-        window.dispatchEvent(new CustomEvent("homepage-rotate", { detail: { layerIds: question.layerIds } }));
-        // Web Animations API, not a CSS class toggle - a class-based
-        // @keyframes animation doesn't replay on repeated triggers without a
-        // reflow hack; .animate() just restarts. Slides up into place from
-        // below with a slight overshoot ("small bounce") via the easing curve.
-        h1.animate(
-          [
-            { transform: "translateY(0.6em)", opacity: 0 },
-            { transform: "translateY(-0.06em)", opacity: 1, offset: 0.7 },
-            { transform: "translateY(0)", opacity: 1 },
-          ],
-          { duration: 450, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" },
-        );
-        q = questions.filter((_, j) => j !== i);
-        if (q.length === 0) q = questions;
-      }, 3000);
-    }
-  });
-</script>

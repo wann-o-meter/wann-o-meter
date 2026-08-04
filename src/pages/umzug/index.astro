@@ -1,22 +1,31 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import { listUmzugKommunen } from "../../../lib/umzug";
+import UmzugPlaner from "../../components/UmzugPlaner.vue";
+import { loadAllUmzugKommunen } from "../../../lib/umzug";
 
-const kommunen = listUmzugKommunen();
+const kommunen = loadAllUmzugKommunen();
 ---
 
-<Layout title="Umzug: Fristen-Zeitplan" description="Umzugsdatum eingeben, kompletten Rückwärts-Zeitplan mit Fristen sehen - pro Kommune.">
+<Layout
+  title="Umzug: wann muss ich anfangen?"
+  description="Ort und Umzugstag eingeben, kompletten Rückwärts-Zeitplan mit Fristen sehen - mit Wochenend- und Feiertagswarnung."
+>
   <p class="back"><a href="/">&larr; wann</a></p>
-  <h1>Umzug: Fristen-Zeitplan</h1>
-  <p>Kommune wählen, Umzugsdatum eingeben, Zeitplan sehen.</p>
-
-  <ul class="rows">
-    {kommunen.map((k) => <li><a href={`/umzug/${k.slug}/`}>{k.name}</a></li>)}
-  </ul>
+  <h1>Umzug: wann muss ich anfangen?</h1>
+  <p class="lede">Ort und Umzugstag eingeben, Rückwärts-Zeitplan sehen.</p>
+  <UmzugPlaner client:load kommunen={kommunen} defaultSlug="rottenburg" />
 </Layout>
 
 <style>
   .back {
     font-size: 0.9rem;
+  }
+  h1 {
+    max-width: 18ch;
+    letter-spacing: -0.01em;
+  }
+  .lede {
+    color: var(--muted);
+    max-width: 34rem;
   }
 </style>

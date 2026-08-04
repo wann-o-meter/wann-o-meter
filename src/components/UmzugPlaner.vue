@@ -2,24 +2,29 @@
 import { computed, ref } from "vue";
 import { formatDate, formatDateWithWeekday, toDate } from "../../lib/format-date";
 import { computeUmzugSchedule } from "../../lib/umzug";
-import type { UmzugDeadline, UmzugScheduleEntry } from "../../lib/umzug";
+import type { UmzugDeadline, UmzugKommuneData, UmzugScheduleEntry } from "../../lib/umzug";
 
 const props = defineProps<{
-  kommuneName: string;
-  state: string;
-  deadlines: UmzugDeadline[];
+  kommunen: UmzugKommuneData[];
+  defaultSlug?: string;
 }>();
 
 const MOVEDAY_ID = "__moveday";
 const moveDate = ref("");
+const selectedSlug = ref(props.defaultSlug && props.kommunen.some((k) => k.slug === props.defaultSlug) ? props.defaultSlug : props.kommunen[0]?.slug);
+
+const selected = computed(() => props.kommunen.find((k) => k.slug === selectedSlug.value) ?? props.kommunen[0]);
 
 // The move day itself is UI chrome, not a researched fact - it needs no
 // source and is definitionally correct, so it's injected here rather than
 // stored in data/umzug/ next to entries that do need provenance.
 const schedule = computed<UmzugScheduleEntry[]>(() => {
-  if (!moveDate.value) return [];
-  const withAnchor: UmzugDeadline[] = [{ id: MOVEDAY_ID, label: "Umzugstag", offset_days: 0, source_url: null }, ...props.deadlines];
-  return computeUmzugSchedule(moveDate.value, withAnchor, "DE", props.state);
+  if (!moveDate.value || !selected.value) return [];
+  const withAnchor: UmzugDeadline[] = [
+    { id: MOVEDAY_ID, label: "Umzugstag", offset_days: 0, source_url: null },
+    ...selected.value.deadlines,
+  ];
+  return computeUmzugSchedule(moveDate.value, withAnchor, "DE", selected.value.state);
 });
 
 const timeline = computed(() => schedule.value.filter((e) => e.date !== null));
@@ -30,7 +35,7 @@ const stats = computed(() => {
   const warnings = timeline.value.filter((e) => e.weekend || e.collision).length;
   const first = knownDeadlines.value[0];
   return {
-    count: props.deadlines.length,
+    count: selected.value?.deadlines.length ?? 0,
     first: first ? formatDate(first.date!).replace(/\.\d{4}$/, "") : "—",
     lead: first ? `${Math.abs(first.offset_days!)} Tage` : "—",
     warnings: warnings > 0 ? warnings : timeline.value.length > 0 ? 0 : "—",
@@ -66,7 +71,9 @@ function print() {
     <div class="form">
       <label class="field">
         <span>Ort</span>
-        <input type="text" :value="kommuneName" readonly />
+        <select v-model="selectedSlug">
+          <option v-for="k in kommunen" :key="k.slug" :value="k.slug">{{ k.name }}</option>
+        </select>
       </label>
       <label class="field">
         <span>Umzugstag</span>
@@ -122,7 +129,7 @@ function print() {
         <button type="button" @click="print">Checkliste drucken</button>
       </div>
     </template>
-    <p v-else class="hint">Umzugstag eingeben, um den Zeitplan für {{ kommuneName }} zu sehen.</p>
+    <p v-else class="hint">Umzugstag eingeben, um den Zeitplan zu sehen.</p>
   </div>
 </template>
 
@@ -151,7 +158,8 @@ function print() {
   color: var(--muted);
   margin-bottom: 0.25rem;
 }
-.field input {
+.field input,
+.field select {
   display: block;
   width: 100%;
   border: 0;

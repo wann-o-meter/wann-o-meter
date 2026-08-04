@@ -1,4 +1,3 @@
-src/components/HeroCalendarPreview.vue
 pipeline/core/sniff.py
 pipeline/review/routes/review.py
 pipeline/review/service.py
@@ -15,7 +14,6 @@ pipeline/tests/test_review_routes.py
 src/components/calendar/PlannerView.vue
 pipeline/core/crawl_runner.py
 lib/pages.test.ts
-lib/homepage-questions.ts
 lib/pages-schema.ts
 lib/calendar-url.ts
 lib/year-pages.ts

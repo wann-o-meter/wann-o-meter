@@ -43,6 +43,10 @@ export interface UmzugKommune {
   state: string;
 }
 
+export interface UmzugKommuneData extends UmzugKommune {
+  deadlines: UmzugDeadline[];
+}
+
 export interface UmzugScheduleEntry extends UmzugDeadline {
   date: string | null; // ISO YYYY-MM-DD, null when offset_days is unknown
   weekend: boolean;
@@ -68,7 +72,7 @@ export function listUmzugKommunen(): UmzugKommune[] {
 // concat, no override-by-id merge.
 // ponytail: concat only, override-by-id when a Kommune actually contradicts a
 // federal step.
-export function loadUmzugKommune(slug: string): { name: string; state: string; deadlines: UmzugDeadline[] } | null {
+export function loadUmzugKommune(slug: string): UmzugKommuneData | null {
   let kommuneDoc: z.infer<typeof kommuneFileSchema>;
   try {
     kommuneDoc = kommuneFileSchema.parse(readYaml(join(DATA_ROOT, `${slug}.yaml`)));
@@ -77,10 +81,19 @@ export function loadUmzugKommune(slug: string): { name: string; state: string; d
   }
   const bundesweit = deadlineListSchema.parse(readYaml(join(DATA_ROOT, BUNDESWEIT_FILE)));
   return {
+    slug,
     name: kommuneDoc.name,
     state: kommuneDoc.state,
     deadlines: [...bundesweit.deadlines, ...kommuneDoc.deadlines],
   };
+}
+
+// The /umzug page picks a Kommune client-side rather than routing per
+// Kommune, so it needs every Kommune's full deadline list up front.
+export function loadAllUmzugKommunen(): UmzugKommuneData[] {
+  return listUmzugKommunen()
+    .map((k) => loadUmzugKommune(k.slug))
+    .filter((k) => k !== null);
 }
 
 function addDays(iso: string, days: number): string {
