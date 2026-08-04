@@ -16,12 +16,21 @@ const data = loadUmzugKommune(kommune!)!;
   description={`Umzugsdatum eingeben, Rückwärts-Zeitplan mit allen Fristen für einen Umzug nach ${data.name} sehen.`}
 >
   <p class="back"><a href="/umzug/">&larr; Umzug</a></p>
-  <h1>Umzug {data.name}: Fristen-Zeitplan</h1>
+  <h1>Umzug {data.name}: wann muss ich anfangen?</h1>
+  <p class="lede">Umzugstag eintragen, Rückwärts-Zeitplan sehen - mit Wochenend- und Feiertagswarnung.</p>
   <UmzugPlaner client:load kommuneName={data.name} state={data.state} deadlines={data.deadlines} />
 </Layout>
 
 <style>
   .back {
     font-size: 0.9rem;
+  }
+  h1 {
+    max-width: 18ch;
+    letter-spacing: -0.01em;
+  }
+  .lede {
+    color: var(--muted);
+    max-width: 34rem;
   }
 </style>
