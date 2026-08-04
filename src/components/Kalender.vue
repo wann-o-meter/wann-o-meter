@@ -554,11 +554,6 @@ onUnmounted(() => {
           </div>
         </nav>
 
-        <p v-if="layers.length === 0 && view !== 'graph'" class="onboarding-hint">
-          Der Kalender ist noch leer. Rechts im Suchfeld eine Ebene hinzufügen (z. B. "Bayern"
-          oder "Sommerferien"), um sie hier farbig zu sehen.
-        </p>
-
         <YearView
           v-if="view === 'year'"
           :year="year"
@@ -672,11 +667,10 @@ onUnmounted(() => {
               <button type="button" title="Ebene entfernen" @click="removeLayer(layer.id)"><X :size="14" /></button>
             </span>
             <div v-if="revealedFeed === layer.id" class="feed-panel">
-              <p>Diese Adresse im Kalender abonnieren - dann kommen neue Termine automatisch dazu:</p>
               <input type="text" readonly :value="absoluteFeedUrl(layer.feedUrl)" aria-label="Adresse des ICS-Kalenders" @click="selectAllOnClick" />
               <button type="button" @click="copyFeedUrl(layer)">Kopieren</button>
               <span class="copy-status" role="status" aria-live="polite">{{ copiedFeed === layer.id ? "Kopiert!" : "" }}</span>
-              <p><a :href="layer.feedUrl">.ics-Datei einmalig herunterladen</a></p>
+              <p><a :href="layer.feedUrl">.ics-Datei herunterladen</a></p>
             </div>
           </li>
         </template>
@@ -748,6 +742,7 @@ onUnmounted(() => {
 .breadcrumbs {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.35rem;
   margin-bottom: 1rem;
   color: var(--muted);
@@ -766,12 +761,13 @@ onUnmounted(() => {
   color: var(--accent);
 }
 /* Heute and the view switcher are actions, not breadcrumb trail - kept as
-   plain bordered buttons (the global `button` default look, not reset to
-   text-only like .crumb above) so they read as clickable controls instead
-   of blending into the trail's plain-text year/month/week links. */
+  plain bordered buttons (the global `button` default look, not reset to
+  text-only like .crumb above) so they read as clickable controls instead
+  of blending into the trail's plain-text year/month/week links. */
 .breadcrumb-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-left: auto;
 }
@@ -790,6 +786,7 @@ onUnmounted(() => {
 
 .view-switch {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.3rem;
 }
 .view-switch button {
@@ -804,12 +801,6 @@ onUnmounted(() => {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-ink);
-}
-
-.onboarding-hint {
-  color: var(--muted);
-  font-size: 0.85rem;
-  margin: 0 0 1rem;
 }
 
 .year-nav {
@@ -837,8 +828,8 @@ onUnmounted(() => {
   border: 1px solid var(--line);
   color: var(--ink);
   /* Native spin buttons eat into the width, clipping the digits - the
-     input is still type="number" for the numeric keypad/validation, just
-     without the visible steppers. */
+    input is still type="number" for the numeric keypad/validation, just
+    without the visible steppers. */
   -moz-appearance: textfield;
 }
 .year-input::-webkit-outer-spin-button,
@@ -847,8 +838,8 @@ onUnmounted(() => {
   margin: 0;
 }
 /* 24px floor is WCAG 2.5.8 / Lighthouse's touch-target minimum - a 16px icon
-   with 0.15rem of padding came to 21x21. Centred rather than padded up so the
-   chevrons stay optically where they were. */
+  with 0.15rem of padding came to 21x21. Centred rather than padded up so the
+  chevrons stay optically where they were. */
 .year-nav button {
   cursor: pointer;
   background: none;
@@ -966,7 +957,7 @@ onUnmounted(() => {
   gap: 0.25rem;
 }
 /* Revealed feed URL, laid out like .embed-panel below (same idiom, same
-   look) but as a full-width row wrapped under its layer entry. */
+  look) but as a full-width row wrapped under its layer entry. */
 .feed-panel {
   width: 100%;
   display: flex;
@@ -1100,9 +1091,9 @@ onUnmounted(() => {
 }
 
 /* Mimics the year template's own layout (YearView.vue's .months/.month)
-   instead of a generic spinner, so there's no layout jump once real data
-   replaces it - deliberately a private copy of that geometry rather than a
-   shared class, since the two are allowed to drift. */
+  instead of a generic spinner, so there's no layout jump once real data
+  replaces it - deliberately a private copy of that geometry rather than a
+  shared class, since the two are allowed to drift. */
 .skeleton-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
@@ -1183,15 +1174,14 @@ onUnmounted(() => {
 }
 
 /* Printing any template means printing the calendar, not the app around it
-   - the layer picker, the trail, the switcher and the embed box are all
-   controls, and none of them survives leaving the screen. Kept here rather
-   than in PlannerView.vue (the one template built to be printed) because
-   this chrome belongs to this component and scoped styles cannot reach up. */
+  - the layer picker, the trail, the switcher and the embed box are all
+  controls, and none of them survives leaving the screen. Kept here rather
+  than in PlannerView.vue (the one template built to be printed) because
+  this chrome belongs to this component and scoped styles cannot reach up. */
 @media print {
   .breadcrumbs,
   .sidebar,
-  .embed-bar,
-  .onboarding-hint {
+  .embed-bar {
     display: none;
   }
   .calendar-layout {
