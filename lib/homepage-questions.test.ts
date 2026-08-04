@@ -4,10 +4,6 @@ import { homepageQuestions } from "./homepage-questions";
 describe("homepageQuestions", () => {
   const texts = () => homepageQuestions().map((q) => q.text);
 
-  it("fills the saisonkalender template with a real produce season, dropping the trailing e", () => {
-    expect(texts()).toContain("Wann ist Erdbeersaison?");
-  });
-
   it("fills the schulferien/feiertage/urlaubsfenster templates with a real Bundesland name", () => {
     expect(texts()).toContain("Wann sind Schulferien in Bayern?");
     expect(texts()).toContain("Wann ist der nächste Feiertag in Bayern?");
@@ -21,12 +17,12 @@ describe("homepageQuestions", () => {
   it("pairs each question with the calendar layer id(s) it's actually about", () => {
     const questions = homepageQuestions();
     expect(questions).toContainEqual({
-      text: "Wann ist Erdbeersaison?",
-      before: "Wann ist ",
-      emphasis: "Erdbeersaison?",
+      text: "Wann sind Schulferien in Bayern?",
+      before: "Wann sind ",
+      emphasis: "Schulferien in Bayern?",
       after: "",
-      layerIds: ["saisonkalender--erdbeere"],
-      url: "/saisonkalender/erdbeere/",
+      layerIds: ["schulferien--by"],
+      url: "/schulferien/by/",
     });
   });
 

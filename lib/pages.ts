@@ -47,6 +47,10 @@ export const RESERVED_CATEGORIES = [
   "impressum",
   "datenschutz",
   "schema",
+  // Umzug reads data/umzug/ itself (see src/pages/umzug/), not the generic
+  // walk below - its deadlines aren't a Page (lib/pages-schema.ts requires
+  // a source[], which unresearched deadlines don't have yet).
+  "umzug",
 ];
 
 // Categories with no facts to walk on disk (or only partial facts, read by

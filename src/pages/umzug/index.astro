@@ -1,0 +1,22 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { listUmzugKommunen } from "../../../lib/umzug";
+
+const kommunen = listUmzugKommunen();
+---
+
+<Layout title="Umzug: Fristen-Zeitplan" description="Umzugsdatum eingeben, kompletten Rückwärts-Zeitplan mit Fristen sehen - pro Kommune.">
+  <p class="back"><a href="/">&larr; wann</a></p>
+  <h1>Umzug: Fristen-Zeitplan</h1>
+  <p>Kommune wählen, Umzugsdatum eingeben, Zeitplan sehen.</p>
+
+  <ul class="rows">
+    {kommunen.map((k) => <li><a href={`/umzug/${k.slug}/`}>{k.name}</a></li>)}
+  </ul>
+</Layout>
+
+<style>
+  .back {
+    font-size: 0.9rem;
+  }
+</style>
