@@ -10,18 +10,17 @@ const structuredData = graph([
   websiteNode({ name: "Wann-O-Meter", url: new URL("/", Astro.site).href, description: homeDescription }),
 ]);
 
-// Same default Kommune as /umzug/'s DeadlinePlanner - the homepage timeline
-// is a teaser for that page, not a second data source.
-const kommune = loadAllUmzugKommunen().find((k) => k.slug === "rottenburg");
-if (!kommune) throw new Error("data/umzug/rottenburg.yaml missing");
+// Same variant list and default Kommune as /umzug/'s DeadlinePlanner - the
+// homepage mounts that same component in place once a date is picked, not a
+// second data source or a second planner UI.
+const variants = loadAllUmzugKommunen().map((k) => ({
+  slug: k.slug,
+  label: k.name,
+  regionCode: k.state,
+  deadlines: k.deadlines,
+}));
 ---
 
 <Layout title="Wann muss ich anfangen?" description={homeDescription} structuredData={structuredData}>
-  <IndexTimeline
-    client:load
-    ort={kommune.name}
-    slug={kommune.slug}
-    regionCode={kommune.state}
-    deadlines={kommune.deadlines}
-  />
+  <IndexTimeline client:load variants={variants} defaultSlug="rottenburg" />
 </Layout>

@@ -63,9 +63,10 @@ function offsetLabel(offsetDays: number | null): string {
     @dragstart="!isAnchor && $emit('dragstart', $event)"
     @dragend="$emit('dragend')"
   >
-    <!-- Same name as the homepage teaser's rail dot for this id (Index.vue) -
-      the browser morphs one into the other on navigation, no JS needed. -->
-    <span class="dot" :style="{ viewTransitionName: `umzug-item-${entry.id}` }"></span>
+    <!-- Same key as the homepage teaser's rail dot for this id (Index.vue) -
+      its in-page FLIP animation measures both by this attribute to fly the
+      homepage dot into this one when opening the real planner. -->
+    <span class="dot" :data-dot-key="entry.id"></span>
     <div class="when">
       <b>{{ whenDate(entry.date!) }}</b>
       <span>{{ weekdayName(entry.date!) }} · {{ offsetLabel(entry.offset_days) }}</span>
