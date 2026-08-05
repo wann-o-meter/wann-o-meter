@@ -1,8 +1,12 @@
 ---
 import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
-import { ArrowUpRight, Calendar, Monitor, Moon, Search, Sun } from "@lucide/astro";
-import { feedbackIssueUrl, feedbackMailtoUrl, newSourceIssueUrl } from "../../lib/github-issue";
+import { Monitor, Moon, Search, Sun } from "@lucide/astro";
+import {
+  feedbackIssueUrl,
+  feedbackMailtoUrl,
+  newSourceIssueUrl,
+} from "../../lib/github-issue";
 
 interface Props {
   title: string;
@@ -16,13 +20,17 @@ interface Props {
   // pass through to the year pages that ARE indexable (lib/year-pages.ts).
   noindex?: boolean;
 }
-const { title, description, wide = false, structuredData, noindex = false } = Astro.props;
+const {
+  title,
+  description,
+  wide = false,
+  structuredData,
+  noindex = false,
+} = Astro.props;
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
-// The arrow reads as "go here" - pointless (and a little odd) to show it
-// while already on /kalender/ or one of its sub-pages (e.g. /kalender/embed/).
-const onKalenderPage = Astro.url.pathname.startsWith("/kalender");
 const pageTitle = `${title} · Wann-O-Meter`;
-const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, als Kalender-Abo.";
+const ogDescription =
+  description ?? "Strukturierte Antworten auf Wann-Fragen, als Kalender-Abo.";
 ---
 
 <!doctype html>
@@ -37,7 +45,8 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
       // prefers-color-scheme media query in global.css decides, same as
       // before this toggle existed.
       const t = localStorage.getItem("theme");
-      if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+      if (t === "light" || t === "dark")
+        document.documentElement.dataset.theme = t;
     </script>
     <title>{pageTitle}</title>
     {description && <meta name="description" content={description} />}
@@ -55,33 +64,49 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={ogDescription} />
     <meta property="og:url" content={canonicalUrl} />
-    <meta property="og:image" content={new URL("/og-image.png", Astro.site).href} />
+    <meta
+      property="og:image"
+      content={new URL("/og-image.png", Astro.site).href}
+    />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={ogDescription} />
-    <meta name="twitter:image" content={new URL("/og-image.png", Astro.site).href} />
+    <meta
+      name="twitter:image"
+      content={new URL("/og-image.png", Astro.site).href}
+    />
 
-    {structuredData && (
-      <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
-    )}
+    {
+      structuredData && (
+        <script
+          type="application/ld+json"
+          set:html={JSON.stringify(structuredData)}
+        />
+      )
+    }
 
-    {/* Swaps the document instead of reloading it, so the year pills in
+    {
+      /* Swaps the document instead of reloading it, so the year pills in
         DateListControls navigate without a full-page flash - they change the
         URL (each year is its own static page) but feel like an in-place
         filter. Consequence for every script below: a module script runs ONCE,
         so anything that binds to per-page DOM has to re-run on
-        astro:page-load or it silently stops working after the first swap. */}
+        astro:page-load or it silently stops working after the first swap. */
+    }
     <ClientRouter />
   </head>
   <body>
     <header>
       <div class:list={["wrap", "header-bar", { wide }]}>
-        <a href="/" class="brand">Wann-<span class="brand-accent">O</span>-Meter</a>
+        <a href="/" class="brand"
+          >Wann-<span class="brand-accent">O</span>-Meter</a
+        >
         <nav aria-label="Hauptnavigation">
-          {/* transition:persist keeps THIS node across a view-transition swap
+          {
+            /* transition:persist keeps THIS node across a view-transition swap
               instead of replacing it with the next page's empty one. The label is
               filled in by client JS (the date must be the visitor's "today", not
               the build's), and every page ships it empty - so without this the
@@ -89,7 +114,8 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
               re-runs. Persisting is the fix that can't silently regress: the
               element that already has the date simply stays. Named explicitly:
               an unnamed persist key is derived from the element's position, so
-              moving this node into <nav> would silently mint a new one. */}
+              moving this node into <nav> would silently mint a new one. */
+          }
           <a
             id="today-indicator"
             class="today-indicator"
@@ -97,11 +123,14 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
             title="Heute im Kalender"
             transition:persist="today-indicator"></a>
           <span class="nav-divider" aria-hidden="true"></span>
-          <a href="/kalender/"><Calendar size={16} /> Kalender {!onKalenderPage && <ArrowUpRight size={14} />}</a>
-          <span class="nav-divider" aria-hidden="true"></span>
           <a href="/#search-input"><Search size={16} /> Suche</a>
         </nav>
-        <button type="button" id="theme-toggle" class="theme-toggle" title="Farbschema wechseln (System/Hell/Dunkel)">
+        <button
+          type="button"
+          id="theme-toggle"
+          class="theme-toggle"
+          title="Farbschema wechseln (System/Hell/Dunkel)"
+        >
           <Monitor size={16} data-theme-icon="system" class="active" />
           <Sun size={16} data-theme-icon="light" />
           <Moon size={16} data-theme-icon="dark" />
@@ -113,15 +142,18 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
     </main>
     <footer>
       <div class:list={["wrap", "footer-bar", { wide }]}>
+        <p>Ohne Quelle steht „Quelle fehlt" da, nicht eine geratene Zahl.</p>
+        <p>Angaben ohne Gewähr, keine Rechtsberatung.</p>
         <p>
-          Alle Seiten, Einzel-Kalender-Feeds (ICS) und JSON-Daten sind kostenlos und bleiben es -
-          für private Nutzung. Kommerzielle Volumen-Nutzung nur nach Vereinbarung.
-        </p>
-        <p>Angaben ohne Gewähr.</p>
-        <p>
-          <a href="/impressum">Impressum</a> &middot; <a href="/datenschutz">Datenschutz</a> &middot;{" "}
-          <a href={newSourceIssueUrl()}>Quelle vorschlagen</a> &middot; Feedback:{" "}
-          <a href={feedbackMailtoUrl()}>Mail</a> &middot; <a href={feedbackIssueUrl()}>GitHub</a>
+          <a href="/impressum">Impressum</a> &middot; <a href="/datenschutz"
+            >Datenschutz</a
+          > &middot;{" "}
+          <a href={newSourceIssueUrl()}>Quelle vorschlagen</a> &middot; Feedback:{
+            " "
+          }
+          <a href={feedbackMailtoUrl()}>Mail</a> &middot; <a
+            href={feedbackIssueUrl()}>GitHub</a
+          >
         </p>
       </div>
     </footer>
@@ -151,7 +183,11 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
         // Light/dark/system toggle. "system" is the implicit default (no
         // localStorage entry, no data-theme attribute) - global.css's
         // prefers-color-scheme media query decides otherwise.
-        const THEME_LABELS = { system: "System", light: "Hell", dark: "Dunkel" };
+        const THEME_LABELS = {
+          system: "System",
+          light: "Hell",
+          dark: "Dunkel",
+        };
         const themeToggle = document.getElementById("theme-toggle");
         function currentTheme() {
           const t = localStorage.getItem("theme");
@@ -170,15 +206,24 @@ const ogDescription = description ?? "Strukturierte Antworten auf Wann-Fragen, a
           // A CSS class instead of the `hidden` attribute/IDL property - that
           // property's reflection onto SVG elements is inconsistent enough
           // across browsers that it silently left all three icons visible.
-          themeToggle.setAttribute("aria-label", `Farbschema: ${THEME_LABELS[t]}`);
-          for (const icon of themeToggle.querySelectorAll("[data-theme-icon]")) {
-            icon.classList.toggle("active", icon.getAttribute("data-theme-icon") === t);
+          themeToggle.setAttribute(
+            "aria-label",
+            `Farbschema: ${THEME_LABELS[t]}`,
+          );
+          for (const icon of themeToggle.querySelectorAll(
+            "[data-theme-icon]",
+          )) {
+            icon.classList.toggle(
+              "active",
+              icon.getAttribute("data-theme-icon") === t,
+            );
           }
         }
         renderThemeToggle();
         themeToggle?.addEventListener("click", () => {
           const order = ["system", "light", "dark"];
-          const next = order[(order.indexOf(currentTheme()) + 1) % order.length];
+          const next =
+            order[(order.indexOf(currentTheme()) + 1) % order.length];
           // renderThemeToggle() below applies data-theme itself now - only the
           // persisted preference is this handler's own job.
           if (next === "system") localStorage.removeItem("theme");

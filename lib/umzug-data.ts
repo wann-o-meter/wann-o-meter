@@ -1,24 +1,34 @@
-// Server-only: node:fs reads for data/umzug/. Kept out of lib/umzug.ts
-// because that module is imported by UmzugPlaner.vue (client:load) - only
+// Server-only: node:fs reads for data/umzug/. Kept out of lib/deadline-plan.ts
+// because that module is imported by DeadlinePlanner.vue (client:load) - only
 // Astro frontmatter may import this file.
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { load } from "js-yaml";
 import { z } from "zod";
-import { umzugDeadlineSchema } from "./umzug";
-import type { UmzugKommune, UmzugKommuneData } from "./umzug";
+import { deadlineSchema } from "./deadline-plan";
+import type { Deadline } from "./deadline-plan";
 
 const DATA_ROOT = join(process.cwd(), "data", "umzug");
 const BUNDESWEIT_FILE = "_bundesweit.yaml";
 
 const deadlineListSchema = z.object({
-  deadlines: z.array(umzugDeadlineSchema).default([]),
+  deadlines: z.array(deadlineSchema).default([]),
 });
 
 const kommuneFileSchema = deadlineListSchema.extend({
   name: z.string(),
   state: z.string(),
 });
+
+export interface UmzugKommune {
+  slug: string;
+  name: string;
+  state: string;
+}
+
+export interface UmzugKommuneData extends UmzugKommune {
+  deadlines: Deadline[];
+}
 
 function readYaml(path: string): unknown {
   return load(readFileSync(path, "utf-8"));

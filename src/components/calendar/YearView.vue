@@ -6,7 +6,7 @@ import { MONTH_NAMES } from "../../../lib/date-display";
 import type { DayLayer } from "../../../lib/date-grid";
 import MonthGrid from "./MonthGrid.vue";
 
-defineProps<{ year: number; layers: DayLayer[]; todayIso: string }>();
+defineProps<{ year: number; layers: DayLayer[]; todayIso: string; highlightIso?: string | null }>();
 const emit = defineEmits<{
   (e: "month-click", monthIndex0: number): void;
   (e: "day-click", dayIso: string): void;
@@ -31,6 +31,7 @@ const emit = defineEmits<{
         :month-index0="monthIndex0"
         :layers="layers"
         :today-iso="todayIso"
+        :highlight-iso="highlightIso"
         variant="mini"
         @day-click="emit('day-click', $event)"
         @week-click="emit('week-click', $event)"

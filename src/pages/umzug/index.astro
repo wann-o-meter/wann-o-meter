@@ -1,9 +1,15 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import UmzugPlaner from "../../components/UmzugPlaner.vue";
+import DeadlinePlanner from "../../components/DeadlinePlanner.vue";
+import type { PlanVariant } from "../../components/DeadlinePlanner.vue";
 import { loadAllUmzugKommunen } from "../../../lib/umzug-data";
 
-const kommunen = loadAllUmzugKommunen();
+const variants: PlanVariant[] = loadAllUmzugKommunen().map((k) => ({
+  slug: k.slug,
+  label: k.name,
+  regionCode: k.state,
+  deadlines: k.deadlines,
+}));
 ---
 
 <Layout
@@ -12,8 +18,14 @@ const kommunen = loadAllUmzugKommunen();
 >
   <p class="back"><a href="/">&larr; wann</a></p>
   <h1>Umzug: wann muss ich anfangen?</h1>
-  <p class="lede">Ort und Umzugstag eingeben, Rückwärts-Zeitplan sehen.</p>
-  <UmzugPlaner client:load kommunen={kommunen} defaultSlug="rottenburg" />
+  <DeadlinePlanner
+    client:load
+    vorhaben="Umzug innerhalb Deutschlands"
+    anchorLabel="Umzugstag"
+    variantLabel="Ort"
+    variants={variants}
+    defaultSlug="rottenburg"
+  />
 </Layout>
 
 <style>
@@ -21,11 +33,8 @@ const kommunen = loadAllUmzugKommunen();
     font-size: 0.9rem;
   }
   h1 {
-    max-width: 18ch;
+    margin-top: 0.5rem;
+    margin-bottom: 1.25rem;
     letter-spacing: -0.01em;
-  }
-  .lede {
-    color: var(--muted);
-    max-width: 34rem;
   }
 </style>

@@ -22,3 +22,4 @@ lib/schema.ts
 src/layouts/Layout.astro
 pipeline/core/llm.py
 pipeline/tests/test_extraction.py
+src/components/DeadlinePlanner.vue
