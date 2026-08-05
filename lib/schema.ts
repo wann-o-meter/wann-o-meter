@@ -27,9 +27,6 @@ export const sourceSchema = z.object({
   retrieved_at: z.iso.date(),
   extraction: extractionSchema,
   confidence: z.number().min(0).max(1).optional(),
-  // GitHub handle of whoever suggested this URL (see data/community-sources.txt's
-  // "@handle url" format and pipeline/main.py's create-page contributed_by
-  // field) - optional, most sources have none. Rendered by SourceList.astro.
   contributed_by: z.string().optional(),
 });
 
@@ -144,4 +141,3 @@ export type Preset = z.infer<typeof presetSchema>;
 export function parsePreset(doc: unknown): Preset {
   return presetSchema.parse(doc);
 }
-

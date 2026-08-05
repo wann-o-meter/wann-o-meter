@@ -46,7 +46,7 @@ This shows up on the page, linked to `github.com/your-github-handle`.
 ## Code contributions
 
 - Standard PR flow: fork, branch, run `bun run test` and `bun run build` locally.
-- Code (`/lib`, `/src`, `/pipeline`, everything outside `/data`) is MIT-licensed. See [`LICENSE`](../LICENSE).
+- Code (`/lib`, `/src`, everything outside `/data`) is MIT-licensed. See [`LICENSE`](../LICENSE).
 
 ## Getting stuck
 

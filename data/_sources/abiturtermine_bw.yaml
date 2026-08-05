@@ -1,8 +1,3 @@
-# One fetch of this page produces SIXTEEN subjects (data/schulferien/{code}/),
-# which is why it lives here in data/_sources/ and not in any one subject
-# folder - see pipeline/core/crawl_config.py for the full source<->subject
-# shape.
-#
 # kind: batch marks this as a core/runner.py source (single fetch, many
 # subjects, extraction driven from this config) rather than a
 # core/crawl_runner.py scoped-crawler source. Files with no `kind` are crawler

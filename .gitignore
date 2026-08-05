@@ -28,17 +28,6 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# pipeline working state (fetched documents + extracted-but-not-yet-reviewed
-# candidates) - not source data, and can hold large PDFs/images.
-# pipeline/review-state/ is deliberately NOT ignored: it's the review
-# decision history (approved/rejected/modified), meant to be committed.
-pipeline/staging/
-
-# Harvest registry dumps (harvest/registry.py's output). Regenerable from
-# config/registries.yaml in one command, and museum_de.json alone was 1.6 MB
-# of Wikidata rows nothing downstream reads - a cache, not source data.
-pipeline/data/registries/
-
 # Claude Code agent worktrees - ephemeral, and their presence under the repo
 # root was making vitest double-count every test file it happened to contain
 .claude/

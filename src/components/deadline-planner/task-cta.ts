@@ -1,0 +1,51 @@
+// Per-task CTAs, presentation-layer only (not a Deadline field, stays out of
+// data/umzug/*.yaml). "letter" = editable generic template, never presented
+// as legally reviewed. "link" = a real official self-service portal.
+export interface TaskCta {
+  kind: "letter" | "link";
+  label: string;
+  url?: string; // link kind only
+}
+
+const LINK_CTAS: Record<string, TaskCta> = {
+  nachsendeauftrag: {
+    kind: "link",
+    label: "Nachsendeauftrag bei der Post",
+    url: "https://shop.deutschepost.de/nachsendeservice-beauftragen",
+  },
+  "kfz-ummeldung": {
+    kind: "link",
+    label: "i-Kfz beim Kraftfahrt-Bundesamt",
+    url: "https://www.kba.de/DE/Themen/ZentraleRegister/Digitale_Fahrzeugzulassung/iKfz/ikfz_node.html",
+  },
+};
+
+export function taskCtaFor(id: string): TaskCta | null {
+  if (id in LINK_CTAS) return LINK_CTAS[id];
+  if (id.includes("kuendig"))
+    return { kind: "letter", label: "Kündigungsschreiben aufsetzen" };
+  return null;
+}
+
+// Generic boilerplate only, placeholders stay bracketed and vague - same
+// "never fabricate a specific fact" rule the deadline data itself follows.
+export const LETTER_TEMPLATE = `[Ihr Name]
+[Ihre Straße, Hausnummer]
+[PLZ, Ort]
+
+[Name des Anbieters]
+[Straße, Hausnummer]
+[PLZ, Ort]
+
+[Ort], [Datum]
+
+Betreff: Kündigung des Vertrags [Vertragsbezeichnung], Kundennummer [Kundennummer]
+
+Sehr geehrte Damen und Herren,
+
+hiermit kündige ich den oben genannten Vertrag zum nächstmöglichen Termin, hilfsweise fristgerecht zum [Kündigungsfrist gemäß Vertrag].
+
+Bitte bestätigen Sie mir den Erhalt dieser Kündigung sowie das Vertragsende schriftlich.
+
+Mit freundlichen Grüßen
+[Ihr Name]`;

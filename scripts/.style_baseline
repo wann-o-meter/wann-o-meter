@@ -2,12 +2,6 @@ lib/github-issue.ts
 lib/pages-schema.ts
 lib/pages.ts
 lib/year-pages.ts
-pipeline/core/crawl_config.py
-pipeline/core/sniff.py
-pipeline/core/staging.py
-pipeline/review/routes/crawl_sources.py
-pipeline/review/service.py
-pipeline/tests/test_invariants.py
 src/components/calendar/GraphView.vue
 src/components/Kalender.vue
 src/layouts/Layout.astro

@@ -29,5 +29,5 @@ deadlines:
     source_url: null
   - id: rundfunkbeitrag
     label: Rundfunkbeitrag ummelden
-    offset_days: 14
+    offset_days: 1400
     source_url: null
