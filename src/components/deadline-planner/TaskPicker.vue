@@ -71,8 +71,8 @@ defineEmits<{
 }
 .task-picker-option:hover,
 .task-picker-option:focus-visible {
-  background: var(--tint-stamp);
-  color: var(--stamp);
+  background: var(--tint-accent);
+  color: var(--accent);
 }
 .task-picker-blank {
   margin-top: 0.2rem;
@@ -86,7 +86,7 @@ defineEmits<{
 }
 .task-picker-blank:hover,
 .task-picker-blank:focus-visible {
-  color: var(--stamp);
+  color: var(--accent);
 }
 
 @media print {

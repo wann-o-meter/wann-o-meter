@@ -228,14 +228,14 @@ const calendarLayers = computed<DayLayer[]>(() => {
     .map((h) => ({ start: h.date, end: h.date, description: h.name }));
   return [
     {
-      color: "var(--stamp)",
+      color: "var(--accent)",
       label: props.vorhaben,
       url: "#",
       visible: true,
       windows: deadlineWindows,
     },
     {
-      color: "var(--accent)",
+      color: "var(--warn)",
       label: "Feiertage",
       url: "#",
       visible: true,
@@ -373,17 +373,15 @@ function print() {
         <span class="k">Erste Frist</span
         ><span class="v">{{ stats.first }}</span>
       </div>
-      <div class="stat">
+      <div v-if="stats.warnings > 0" class="stat">
         <span class="k">Warnungen</span
         ><span class="v">{{ stats.warnings }}</span>
       </div>
     </div>
 
     <template v-if="anchorDate">
-      <p class="scalenote">
-        Abstände maßstäblich - enge Stellen sind arbeitsreiche Wochen. Ziehen
-        verschiebt eine Aufgabe auf einen neuen Tag. Scrollen hebt den Tag im
-        Kalender hervor.
+      <p class="scalenote" title="Ziehen verschiebt eine Aufgabe, Scrollen hebt den Tag im Kalender hervor">
+        Abstände sind maßstäblich.
       </p>
       <div class="planner-body">
         <div class="rail-column">
@@ -492,8 +490,8 @@ function print() {
               {{ calendarMonth.year }}
             </h2>
             <ul class="legend">
-              <li><span class="swatch stamp"></span>{{ vorhaben }}</li>
-              <li><span class="swatch accent"></span>Feiertage</li>
+              <li><span class="swatch accent"></span>{{ vorhaben }}</li>
+              <li><span class="swatch warn"></span>Feiertage</li>
             </ul>
           </div>
           <MonthGrid
@@ -510,10 +508,6 @@ function print() {
 
       <div v-if="unscheduled.length > 0" class="unscheduled">
         <h2>Noch nicht terminiert</h2>
-        <p class="hint">
-          Diese Fristen sind noch nicht recherchiert, deshalb fehlt ihr
-          Zeitpunkt.
-        </p>
         <ul>
           <li v-for="entry in unscheduled" :key="entry.id">
             <span class="label">{{ entry.label }}</span>
@@ -523,14 +517,13 @@ function print() {
       </div>
 
       <div class="actions">
-        <p>
-          Änderungen gelten nur in diesem Tab und werden beim Neuladen
-          zurückgesetzt. Fristen ohne Quelle bleiben vorläufig.
-        </p>
         <div class="actions-buttons">
           <button type="button" @click="exportIcs">Als ICS exportieren</button>
           <button type="button" @click="print">Checkliste drucken</button>
         </div>
+        <p title="Änderungen gelten nur in diesem Tab und werden beim Neuladen zurückgesetzt">
+          Nur in diesem Tab gespeichert.
+        </p>
       </div>
     </template>
     <p v-else class="hint">
@@ -542,40 +535,26 @@ function print() {
 <style scoped>
 .deadline-planner {
   max-width: 75rem;
-  /* --stamp: secondary "official stamp" color for provenance/edit affordances,
-    additive to the site's single red accent. --paper/--paper-raised are
-    lightened and pulled apart locally so a card reads as raised, not just
-    outlined - the shadow tokens below are this component's own deliberate
-    departure from the sitewide flat/no-shadow look (see global.css), kept
-    local rather than global for that reason. */
-  --stamp: #3b3b8f;
+  /* --paper/--paper-raised are lightened and pulled apart locally so a card
+    reads as raised, not just outlined - the shadow tokens below are this
+    component's own deliberate departure from the sitewide flat/no-shadow
+    look (see global.css), kept local rather than global for that reason. */
   --done-color: #3f7d4a;
-  --paper: #fdfcfa;
+  --paper: #fbfcfe;
   --paper-raised: #ffffff;
   --shadow-sm: 0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent);
   --shadow-md: 0 2px 6px color-mix(in srgb, var(--ink) 8%, transparent);
   --shadow-lg: 0 4px 14px color-mix(in srgb, var(--ink) 16%, transparent);
-  --tint-stamp: color-mix(in srgb, var(--stamp) 10%, transparent);
+  --tint-accent: color-mix(in srgb, var(--accent) 10%, transparent);
 }
-@media (prefers-color-scheme: dark) {
-  .deadline-planner {
-    --stamp: #9a9aec;
-    --done-color: #7cc98a;
-    --paper: #1c1d1f;
-    --paper-raised: #28292c;
-  }
-}
-:global(:root[data-theme="dark"]) .deadline-planner {
-  --stamp: #9a9aec;
+/* :global() has to wrap the WHOLE selector, not just the :root part - Vue's
+  scoped-CSS compiler otherwise silently drops everything outside it, so this
+  rule never matched .deadline-planner at all and dark mode never reached the
+  component's own colors (the actual "light mode is broken" bug). */
+:global(:root[data-theme="dark"] .deadline-planner) {
   --done-color: #7cc98a;
-  --paper: #1c1d1f;
-  --paper-raised: #28292c;
-}
-:global(:root[data-theme="light"]) .deadline-planner {
-  --stamp: #3b3b8f;
-  --done-color: #3f7d4a;
-  --paper: #fdfcfa;
-  --paper-raised: #ffffff;
+  --paper: #191c22;
+  --paper-raised: #232733;
 }
 .form {
   display: grid;
@@ -616,7 +595,7 @@ function print() {
 }
 .field input:focus-visible,
 .field select:focus-visible {
-  outline: 2px solid var(--stamp);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 @media (max-width: 40rem) {
@@ -652,9 +631,7 @@ function print() {
 
 .scalenote {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: 0.75rem;
   color: var(--muted);
   margin: 1.25rem 0 0.9rem 12.5rem;
 }
@@ -745,26 +722,26 @@ function print() {
 }
 .gap-add:hover {
   border-style: solid;
-  border-color: var(--stamp);
-  color: var(--stamp);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 /* Native drag events don't reliably trigger :hover, so drop-target state is
   JS-driven (dragOverGapId): .drag-target marks every valid gap, .active is
   the one currently under the pointer. */
 .gap.drag-target {
-  background: color-mix(in srgb, var(--stamp) 5%, transparent);
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
 }
 .gap.drag-target .gap-add {
   opacity: 0.6;
 }
 .gap.active {
-  background: color-mix(in srgb, var(--stamp) 14%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 .gap.active .gap-add {
   opacity: 1;
   border-style: solid;
-  border-color: var(--stamp);
-  background: var(--stamp);
+  border-color: var(--accent);
+  background: var(--accent);
   color: #fff;
 }
 .add-end {
@@ -780,8 +757,8 @@ function print() {
 }
 .add-end:hover {
   border-style: solid;
-  border-color: var(--stamp);
-  color: var(--stamp);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .add-end-wrap {
   position: relative;
@@ -836,11 +813,11 @@ function print() {
   border-radius: 50%;
   display: inline-block;
 }
-.swatch.stamp {
-  background: var(--stamp);
-}
 .swatch.accent {
   background: var(--accent);
+}
+.swatch.warn {
+  background: var(--warn);
 }
 
 .undo {
@@ -851,7 +828,7 @@ function print() {
 .undo button {
   background: none;
   border: 0;
-  color: var(--stamp);
+  color: var(--accent);
   cursor: pointer;
   text-decoration: underline;
   padding: 0;
@@ -886,17 +863,11 @@ function print() {
   padding: 1rem 1.2rem;
   background: var(--paper-raised);
   border: 1px solid var(--line);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
 }
 .actions p {
-  margin: 0;
+  margin: 0.5rem 0 0;
   color: var(--muted);
-  font-size: 0.88rem;
-  max-width: 26rem;
+  font-size: 0.75rem;
 }
 .actions-buttons {
   display: flex;

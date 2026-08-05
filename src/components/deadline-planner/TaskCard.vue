@@ -191,8 +191,8 @@ function offsetLabel(offsetDays: number | null): string {
   width: 0.8rem;
   height: 0.8rem;
   left: -1.95rem;
-  background: var(--stamp);
-  border-color: var(--stamp);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 .item.past .dot {
   border-color: var(--muted);
@@ -238,9 +238,9 @@ function offsetLabel(offsetDays: number | null): string {
 }
 .item.anchor .card {
   cursor: default;
-  border-color: var(--stamp);
+  border-color: var(--accent);
   border-width: 1.5px;
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--stamp) 20%, transparent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 .item.past .card {
   opacity: 0.6;
@@ -272,7 +272,7 @@ function offsetLabel(offsetDays: number | null): string {
   font-weight: 600;
   font-size: 1rem;
   color: inherit;
-  border: 1px solid var(--stamp);
+  border: 1px solid var(--accent);
   border-radius: 2px;
   padding: 0.15rem 0.4rem;
   background: var(--paper);
@@ -290,7 +290,7 @@ function offsetLabel(offsetDays: number | null): string {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--paper);
 }
 .check[aria-pressed="true"] {
   background: var(--done-color);
@@ -340,24 +340,29 @@ function offsetLabel(offsetDays: number | null): string {
   margin-left: 0;
 }
 .badge.stamp {
-  border-color: var(--stamp);
-  color: var(--stamp);
-  background: var(--tint-stamp);
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--tint-accent);
 }
 .badge.custom {
   border-color: var(--line);
   color: var(--muted);
 }
-/* A clickable badge, unlike .badge.stamp - resets button chrome, adds hover tint. */
+/* Tertiary on purpose: the checkbox is the card's main action, this shouldn't
+  compete with it - plain small text instead of another bordered badge box. */
 .badge.cta {
-  margin-left: 0.4rem;
-  border-color: var(--stamp);
-  color: var(--stamp);
+  margin-left: 0.6rem;
+  padding: 0;
+  border: 0;
+  color: var(--muted);
   background: transparent;
+  font-size: 0.78rem;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
   cursor: pointer;
 }
 .badge.cta:hover {
-  background: var(--tint-stamp);
+  color: var(--accent);
 }
 .note-input {
   display: block;
@@ -375,7 +380,7 @@ function offsetLabel(offsetDays: number | null): string {
 .note {
   margin: 0.5rem 0 0;
   padding: 0.4rem 0.6rem;
-  background: color-mix(in srgb, var(--stamp) 6%, var(--paper-raised));
+  background: color-mix(in srgb, var(--accent) 6%, var(--paper-raised));
   border-left: 2px solid var(--line);
   font-size: 0.85rem;
   color: var(--ink);
@@ -385,8 +390,8 @@ function offsetLabel(offsetDays: number | null): string {
 .flag {
   margin-top: 0.5rem !important;
   padding: 0.4rem 0.6rem;
-  border-left: 2px solid var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-left: 2px solid var(--warn);
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
   color: var(--ink) !important;
   font-size: 0.85rem !important;
 }
