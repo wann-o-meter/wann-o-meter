@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Search, Trash2, X } from "lucide-vue-next";
-import { MONTH_NAMES, isoWeekNumber } from "../../lib/date-display";
+import { MONTH_NAMES } from "../../lib/date-display";
 import { isoFromDate, mondayOf } from "../../lib/date-grid";
 import {
   type CalendarState,
@@ -483,8 +483,6 @@ function commitYear() {
   editingYear.value = false;
 }
 
-const currentWeekNumber = computed(() => isoWeekNumber(new Date(`${weekStart.value}T00:00:00`)));
-
 onMounted(async () => {
   const res = await fetch("/api/v1/calendar.json");
   catalog.value = await res.json();
@@ -530,10 +528,6 @@ onUnmounted(() => {
           <template v-if="view === 'week' || MONTH_NAV_VIEWS.includes(view)">
             <ChevronRight :size="14" />
             <button type="button" class="crumb" @click="setView('month')">{{ MONTH_NAMES[activeMonth] }}</button>
-          </template>
-          <template v-if="view === 'week'">
-            <ChevronRight :size="14" />
-            <span>KW {{ currentWeekNumber }}</span>
           </template>
           <div class="breadcrumb-actions">
             <button v-if="!isAtToday" type="button" class="action-button" title="Zu heute springen" @click="goToToday">
@@ -635,7 +629,7 @@ onUnmounted(() => {
       <div v-if="layers.length > 0" class="layer-list-actions">
         <button type="button" class="reset-layers" @click="resetLayers"><Trash2 :size="14" /> Alle entfernen</button>
       </div>
-      <ul class="layer-list">
+      <ul v-if="layers.length > 0" class="layer-list">
         <template v-for="grp in groupedLayers" :key="grp.group">
           <li class="layer-group-header">
             <label>
@@ -674,7 +668,6 @@ onUnmounted(() => {
             </div>
           </li>
         </template>
-        <li v-if="layers.length === 0" class="no-layers">Noch keine Ebenen hinzugefügt.</li>
       </ul>
 
       <div class="add-layer">
@@ -734,6 +727,13 @@ onUnmounted(() => {
   flex-shrink: 0;
   position: sticky;
   top: 1rem;
+  /* Without a cap, a long layer list pins the sidebar's top at 1rem and
+    pushes its bottom (the search box) below the viewport with no way to
+    scroll to it - sticky then looks broken for anyone with several layers
+    added, while it looks fine with just a few. */
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -920,11 +920,6 @@ onUnmounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
-}
-.no-layers {
-  color: var(--muted);
-  font-size: 0.85rem;
-  padding: 0.5rem 0.1rem;
 }
 .layer-actions {
   display: flex;
@@ -1170,6 +1165,8 @@ onUnmounted(() => {
     width: 100%;
     position: static;
     order: -1;
+    max-height: none;
+    overflow-y: visible;
   }
 }
 
