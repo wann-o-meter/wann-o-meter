@@ -17,5 +17,11 @@ if (!kommune) throw new Error("data/umzug/rottenburg.yaml missing");
 ---
 
 <Layout title="Wann muss ich anfangen?" description={homeDescription} structuredData={structuredData}>
-  <IndexTimeline client:load ort={kommune.name} regionCode={kommune.state} deadlines={kommune.deadlines} />
+  <IndexTimeline
+    client:load
+    ort={kommune.name}
+    slug={kommune.slug}
+    regionCode={kommune.state}
+    deadlines={kommune.deadlines}
+  />
 </Layout>
