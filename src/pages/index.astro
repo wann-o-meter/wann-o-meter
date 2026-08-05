@@ -1,7 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { ArrowUpRight, Search } from "@lucide/astro";
-import { getAllPages } from "../../lib/pages";
+import { ArrowUpRight } from "@lucide/astro";
 import { graph, websiteNode } from "../../lib/structured-data";
 
 const homeDescription =
@@ -10,29 +9,10 @@ const structuredData = graph([
   websiteNode({ name: "Wann-O-Meter", url: new URL("/", Astro.site).href, description: homeDescription }),
 ]);
 
-// Compact index for the hero search box's live suggestions, same data
-// source /themen/ uses (getAllPages()). Only the fields the client filter
-// and result links need - title/tags for matching, category/slug for the
-// href - not the full Page shape.
-const searchIndex = getAllPages().map((p) => ({
-  title: p.meta.title,
-  category: p.category,
-  slug: p.slug,
-  tags: p.meta.tags,
-}));
-
 // Real today, mockups for everything on the pivot doc's "später prüfen" list
-// (section 6) - shown so the roadmap is visible, not clickable since there is
-// nothing behind them yet. No fabricated deadline content in the copy below,
-// same rule as data/umzug/ - a domain name and a one-line description aren't
-// a researched fact, a day count or a law citation would be.
-const cards = [
-  { title: "Umzug planen", note: "Fristen rückwärts vom Umzugstag, mit Quelle.", href: "/umzug/", soon: false },
-  { title: "Geburt", note: "Elternzeit, Kindergeld, Anmeldefristen.", href: null, soon: true },
-  { title: "Hochzeit", note: "Standesamt, Namensänderung, Fristen rund um die Trauung.", href: null, soon: true },
-  { title: "Jobwechsel", note: "Kündigungsfrist, Übergabe, neue Versicherung.", href: null, soon: true },
-  { title: "Todesfall", note: "Erbschaft, Kündigungen, Behördengänge.", href: null, soon: true },
-];
+// (section 6) - shown as one muted line, not clickable since there is
+// nothing behind them yet.
+const soonTopics = ["Geburt", "Hochzeit", "Jobwechsel", "Todesfall"];
 ---
 
 <Layout title="Wann muss ich anfangen?" description={homeDescription} structuredData={structuredData}>
@@ -40,179 +20,19 @@ const cards = [
     <h1>Wann muss ich anfangen?</h1>
     <p class="lede">Nicht wann etwas ist, sondern wann du loslegen musst.</p>
 
-    <div class="search-wrap">
-      <Search size={16} class="search-icon" aria-hidden="true" />
-      <input
-        type="search"
-        id="home-search-input"
-        placeholder="Seite suchen…"
-        aria-label="Seite suchen"
-        role="combobox"
-        aria-expanded="false"
-        aria-controls="home-search-results"
-        aria-autocomplete="list"
-        autocomplete="off"
-      />
-      <ul id="home-search-results" class="suggestions" role="listbox" hidden></ul>
-    </div>
+    <form class="anchor-form" action="/umzug/" method="get">
+      <input type="date" name="date" aria-label="Umzugstag" required />
+      <button type="submit">Umzug planen <ArrowUpRight size={16} /></button>
+    </form>
   </div>
 
-  <script
-    is:inline
-    type="application/json"
-    id="home-search-data"
-    set:html={JSON.stringify(searchIndex).replace(/</g, "\\u003c")}
-  ></script>
+  <a class="card" href="/umzug/">
+    <h2>Umzug planen <ArrowUpRight size={16} /></h2>
+    <p>Fristen rückwärts vom Umzugstag, mit Quelle.</p>
+  </a>
 
-  <ul class="cards">
-    {
-      cards.map((c) =>
-        c.href ? (
-          <li>
-            <a class="card" href={c.href}>
-              <h2>{c.title} <ArrowUpRight size={16} /></h2>
-              <p>{c.note}</p>
-            </a>
-          </li>
-        ) : (
-          <li>
-            <div class="card soon">
-              <h2>{c.title} <span class="badge">Bald</span></h2>
-              <p>{c.note}</p>
-            </div>
-          </li>
-        ),
-      )
-    }
-  </ul>
+  <p class="soon">Bald: {soonTopics.join(" · ")}</p>
 </Layout>
-
-<script>
-  interface SearchEntry {
-    title: string;
-    category: string;
-    slug: string;
-    tags: string[];
-  }
-
-  // Re-run per navigation - see the note in Layout.astro's ClientRouter
-  // and the identical pattern in src/pages/themen/index.astro.
-  document.addEventListener("astro:page-load", () => {
-    const input = document.getElementById("home-search-input") as HTMLInputElement | null;
-    const list = document.getElementById("home-search-results") as HTMLUListElement | null;
-    const dataEl = document.getElementById("home-search-data");
-    if (!input || !list || !dataEl) return;
-
-    const entries: SearchEntry[] = JSON.parse(dataEl.textContent ?? "[]");
-    const MAX_SUGGESTIONS = 8;
-
-    let matches: SearchEntry[] = [];
-    let activeIndex = -1;
-
-    function hrefFor(entry: SearchEntry): string {
-      return `/${entry.category}/${entry.slug}/`;
-    }
-
-    function close() {
-      list!.hidden = true;
-      list!.replaceChildren();
-      input!.setAttribute("aria-expanded", "false");
-      input!.removeAttribute("aria-activedescendant");
-      matches = [];
-      activeIndex = -1;
-    }
-
-    function setActive(index: number) {
-      const options = list!.querySelectorAll("li");
-      for (const option of options) option.classList.remove("active");
-      activeIndex = index;
-      if (index >= 0 && options[index]) {
-        options[index].classList.add("active");
-        options[index].scrollIntoView({ block: "nearest" });
-        input!.setAttribute("aria-activedescendant", options[index].id);
-      } else {
-        input!.removeAttribute("aria-activedescendant");
-      }
-    }
-
-    function render(query: string) {
-      const q = query.trim().toLowerCase();
-      if (q === "") {
-        close();
-        return;
-      }
-
-      matches = entries
-        .filter((e) => e.title.toLowerCase().includes(q) || e.tags.join(" ").toLowerCase().includes(q))
-        .slice(0, MAX_SUGGESTIONS);
-
-      list!.replaceChildren();
-      if (matches.length === 0) {
-        close();
-        return;
-      }
-
-      matches.forEach((entry, index) => {
-        const li = document.createElement("li");
-        li.id = `home-search-option-${index}`;
-        li.role = "option";
-        li.dataset.href = hrefFor(entry);
-
-        const title = document.createElement("span");
-        title.className = "title";
-        title.textContent = entry.title;
-
-        const meta = document.createElement("span");
-        meta.className = "meta";
-        meta.textContent = entry.category;
-
-        li.append(title, meta);
-        li.addEventListener("click", () => {
-          window.location.href = hrefFor(entry);
-        });
-        list!.append(li);
-      });
-
-      list!.hidden = false;
-      input!.setAttribute("aria-expanded", "true");
-      activeIndex = -1;
-      input!.removeAttribute("aria-activedescendant");
-    }
-
-    function go(index: number) {
-      const entry = matches[index];
-      if (entry) window.location.href = hrefFor(entry);
-    }
-
-    input.addEventListener("input", () => render(input.value));
-
-    input.addEventListener("keydown", (event) => {
-      if (list.hidden || matches.length === 0) return;
-      switch (event.key) {
-        case "ArrowDown":
-          event.preventDefault();
-          setActive((activeIndex + 1) % matches.length);
-          break;
-        case "ArrowUp":
-          event.preventDefault();
-          setActive((activeIndex - 1 + matches.length) % matches.length);
-          break;
-        case "Enter":
-          event.preventDefault();
-          go(activeIndex >= 0 ? activeIndex : 0);
-          break;
-        case "Escape":
-          close();
-          break;
-      }
-    });
-
-    document.addEventListener("click", (event) => {
-      if (!(event.target instanceof Node)) return;
-      if (!input.contains(event.target) && !list.contains(event.target)) close();
-    });
-  });
-</script>
 
 <style>
   .hero {
@@ -227,100 +47,62 @@ const cards = [
     font-size: 1.05rem;
     color: var(--muted);
   }
-  .search-wrap {
-    position: relative;
-    width: 100%;
-    max-width: 22rem;
-    margin-top: 1.25rem;
-  }
-  .search-icon {
-    position: absolute;
-    left: 0.65rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted);
-    pointer-events: none;
-  }
-  #home-search-input {
-    width: 100%;
-    padding-left: 2.1rem;
-    display: block;
-  }
-  .suggestions {
-    position: absolute;
-    z-index: 10;
-    top: calc(100% + 0.3rem);
-    left: 0;
-    right: 0;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    background: var(--paper);
-    border: 1px solid var(--line);
-    max-height: 20rem;
-    overflow-y: auto;
-  }
-  .suggestions li {
+  .anchor-form {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
+    flex-wrap: wrap;
     gap: 0.6rem;
-    padding: 0.5rem 0.7rem;
+    margin-top: 1.5rem;
+  }
+  .anchor-form input[type="date"] {
+    flex: 1 1 12rem;
+    padding: 0.6rem 0.75rem;
+  }
+  .anchor-form button {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1.1rem;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 600;
     cursor: pointer;
-    border-bottom: 1px solid var(--line);
   }
-  .suggestions li:last-child {
-    border-bottom: 0;
-  }
-  .suggestions li:hover,
-  .suggestions li.active {
-    background: var(--paper-raised);
-  }
-  .suggestions .title {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .suggestions .meta {
-    flex-shrink: 0;
-    color: var(--muted);
-    font-size: 0.85rem;
-  }
-  .cards {
-    list-style: none;
-    margin: 0 0 2rem;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-    gap: 1.25rem;
+  .anchor-form button:hover {
+    opacity: 0.9;
   }
   .card {
     display: block;
-    height: 100%;
-    background: var(--paper-raised);
-    border: 1px solid var(--line);
-    padding: 1rem 1.1rem;
+    max-width: 28rem;
+    margin: 0 0 0.75rem;
+    background: color-mix(in srgb, var(--accent) 6%, var(--paper-raised));
+    border: 1px solid var(--accent);
+    padding: 1.1rem 1.25rem;
     text-decoration: none;
     color: inherit;
   }
-  a.card:hover {
-    border-color: var(--accent);
-  }
-  .card.soon {
-    color: var(--muted);
+  .card:hover {
+    background: color-mix(in srgb, var(--accent) 12%, var(--paper-raised));
   }
   .card h2 {
     margin: 0 0 0.3rem;
     padding: 0;
     border: 0;
-    font-size: 1.05rem;
+    font-size: 1.1rem;
     display: flex;
     align-items: center;
     gap: 0.4rem;
+    color: var(--accent);
   }
   .card p {
     margin: 0;
     font-size: 0.88rem;
+    color: var(--muted);
+  }
+  .soon {
+    max-width: 28rem;
+    margin: 0 0 2rem;
+    font-size: 0.85rem;
     color: var(--muted);
   }
 </style>
