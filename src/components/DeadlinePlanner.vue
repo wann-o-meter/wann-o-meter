@@ -405,6 +405,9 @@ function print() {
                   onGapDrop($event, node.afterOffset, node.beforeOffset)
                 "
               >
+                <span v-if="node.beforeOffset - node.afterOffset >= 14" class="gap-label">
+                  {{ Math.round((node.beforeOffset - node.afterOffset) / 7) }} Wochen Pause
+                </span>
                 <button
                   type="button"
                   class="gap-add"
@@ -725,6 +728,18 @@ function print() {
   border-color: var(--accent);
   color: var(--accent);
 }
+.gap-label {
+  position: absolute;
+  left: 12.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  pointer-events: none;
+}
 /* Native drag events don't reliably trigger :hover, so drop-target state is
   JS-driven (dragOverGapId): .drag-target marks every valid gap, .active is
   the one currently under the pointer. */
@@ -888,6 +903,9 @@ function print() {
   }
   .gap-add {
     left: 0.05rem;
+  }
+  .gap-label {
+    left: 1.4rem;
   }
   .scalenote {
     margin-left: 0;
