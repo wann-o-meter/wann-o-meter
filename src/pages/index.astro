@@ -1,7 +1,8 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { ArrowUpRight } from "@lucide/astro";
+import IndexTimeline from "../components/Index.vue";
 import { graph, websiteNode } from "../../lib/structured-data";
+import { loadAllUmzugKommunen } from "../../lib/umzug-data";
 
 const homeDescription =
   "Wann muss ich anfangen? Fristen rückwärts vom Termin geplant, mit Quelle - Umzug zuerst, weitere Lebensereignisse folgen.";
@@ -9,100 +10,12 @@ const structuredData = graph([
   websiteNode({ name: "Wann-O-Meter", url: new URL("/", Astro.site).href, description: homeDescription }),
 ]);
 
-// Real today, mockups for everything on the pivot doc's "später prüfen" list
-// (section 6) - shown as one muted line, not clickable since there is
-// nothing behind them yet.
-const soonTopics = ["Geburt", "Hochzeit", "Jobwechsel", "Todesfall"];
+// Same default Kommune as /umzug/'s DeadlinePlanner - the homepage timeline
+// is a teaser for that page, not a second data source.
+const kommune = loadAllUmzugKommunen().find((k) => k.slug === "rottenburg");
+if (!kommune) throw new Error("data/umzug/rottenburg.yaml missing");
 ---
 
 <Layout title="Wann muss ich anfangen?" description={homeDescription} structuredData={structuredData}>
-  <div class="hero">
-    <h1>Wann muss ich anfangen?</h1>
-    <p class="lede">Nicht wann etwas ist, sondern wann du loslegen musst.</p>
-
-    <form class="anchor-form" action="/umzug/" method="get">
-      <input type="date" name="date" aria-label="Umzugstag" required />
-      <button type="submit">Umzug planen <ArrowUpRight size={16} /></button>
-    </form>
-  </div>
-
-  <a class="card" href="/umzug/">
-    <h2>Umzug planen <ArrowUpRight size={16} /></h2>
-    <p>Fristen rückwärts vom Umzugstag, mit Quelle.</p>
-  </a>
-
-  <p class="soon">Bald: {soonTopics.join(" · ")}</p>
+  <IndexTimeline client:load ort={kommune.name} regionCode={kommune.state} deadlines={kommune.deadlines} />
 </Layout>
-
-<style>
-  .hero {
-    max-width: 40rem;
-    margin-bottom: 2rem;
-  }
-  h1 {
-    max-width: 16ch;
-    letter-spacing: -0.01em;
-  }
-  .lede {
-    font-size: 1.05rem;
-    color: var(--muted);
-  }
-  .anchor-form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-    margin-top: 1.5rem;
-  }
-  .anchor-form input[type="date"] {
-    flex: 1 1 12rem;
-    padding: 0.6rem 0.75rem;
-  }
-  .anchor-form button {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.6rem 1.1rem;
-    border: 1px solid var(--accent);
-    background: var(--accent);
-    color: var(--accent-ink);
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .anchor-form button:hover {
-    opacity: 0.9;
-  }
-  .card {
-    display: block;
-    max-width: 28rem;
-    margin: 0 0 0.75rem;
-    background: color-mix(in srgb, var(--accent) 6%, var(--paper-raised));
-    border: 1px solid var(--accent);
-    padding: 1.1rem 1.25rem;
-    text-decoration: none;
-    color: inherit;
-  }
-  .card:hover {
-    background: color-mix(in srgb, var(--accent) 12%, var(--paper-raised));
-  }
-  .card h2 {
-    margin: 0 0 0.3rem;
-    padding: 0;
-    border: 0;
-    font-size: 1.1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--accent);
-  }
-  .card p {
-    margin: 0;
-    font-size: 0.88rem;
-    color: var(--muted);
-  }
-  .soon {
-    max-width: 28rem;
-    margin: 0 0 2rem;
-    font-size: 0.85rem;
-    color: var(--muted);
-  }
-</style>
