@@ -17,5 +17,5 @@ government or Kultusministerkonferenz source), that origin's own license
 also applies - see the "Quelle & Stand" section on the corresponding page,
 or the `source` block in the YAML file itself.
 
-Code (/lib, /src, /pipeline, everything outside /data) is licensed
+Code (/lib, /src, everything outside /data) is licensed
 separately under MIT - see ../LICENSE.

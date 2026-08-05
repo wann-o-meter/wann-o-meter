@@ -1,0 +1,33 @@
+# Steps that apply to any move within Germany, independent of Kommune.
+# offset_days below are generic ballpark figures (common moving-checklist
+# knowledge, e.g. the 2-week Ummeldung window is real BMG law), not a
+# verified-per-source fact - source_url stays null on purpose so the UI
+# keeps showing "Quelle fehlt" until someone checks each one against its
+# actual Gesetz/Satzung and fills in a real link.
+deadlines:
+  - id: internetanbieter-kuendigen-ummelden
+    label: Internetanbieter kündigen oder umziehen lassen
+    offset_days: -42
+    source_url: null
+    note: Längster Vorlauf im ganzen Plan, oft mit Techniktermin.
+  - id: strom-gas-ummeldung
+    label: Strom- und Gasanbieter über den Umzug informieren
+    offset_days: -14
+    source_url: null
+  - id: nachsendeauftrag
+    label: Nachsendeauftrag bei der Post einrichten
+    offset_days: -14
+    source_url: null
+  - id: ummeldung-einwohnermeldeamt
+    label: Ummeldung beim Einwohnermeldeamt
+    offset_days: 14
+    source_url: null
+    note: Bundesmeldegesetz - Frist noch nicht verifiziert.
+  - id: kfz-ummeldung
+    label: Kfz beim neuen Wohnort ummelden
+    offset_days: 14
+    source_url: null
+  - id: rundfunkbeitrag
+    label: Rundfunkbeitrag ummelden
+    offset_days: 1400
+    source_url: null

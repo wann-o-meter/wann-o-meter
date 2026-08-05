@@ -22,7 +22,7 @@ SOFTWARE.
 
 ---
 
-This license covers the code in this repository (/lib, /src, /pipeline and
+This license covers the code in this repository (/lib, /src, and
 everything else outside /data). The curated dataset under /data is licensed
 separately - see data/LICENSE - since data and code have different reuse
 norms (attribution-on-reuse for facts vs. permissive reuse for code).

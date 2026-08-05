@@ -1,11 +1,4 @@
 #!/usr/bin/env bun
-// Validates a page data file (JSON) against the same Zod schema the Astro
-// build uses (pageDataSchema in ./pages-schema.ts). Exists so the Python
-// pipeline (pipeline/core/validate.py) does NOT have to define "valid" a
-// second time - a JSON schema export (zod-to-json-schema) was the more
-// obvious route, but is empty/broken under Zod v4 (verified empirically:
-// even a trivial schema exports {}). Calling the same Zod object directly
-// has zero drift risk.
 import { readFileSync } from "node:fs";
 import { pageDataSchema } from "./pages-schema";
 

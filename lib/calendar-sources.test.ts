@@ -31,12 +31,12 @@ describe("getAllCalendarEntries", () => {
     for (const e of entries) expect(e.windows.length).toBeGreaterThan(0);
   });
 
-  it("builds a resolvable saisonkalender entry with url/feedUrl matching the real routes", () => {
-    const apfel = getCalendarEntry("saisonkalender--apfel");
-    expect(apfel).toBeDefined();
-    expect(apfel!.url).toBe("/saisonkalender/apfel/");
-    expect(apfel!.feedUrl).toBe("/feeds/saisonkalender/apfel.ics");
-    expect(apfel!.windows.length).toBeGreaterThan(0);
+  it("builds a resolvable schulferien entry with url/feedUrl matching the real routes", () => {
+    const bw = getCalendarEntry("schulferien--bw");
+    expect(bw).toBeDefined();
+    expect(bw!.url).toBe("/schulferien/bw/");
+    expect(bw!.feedUrl).toBe("/feeds/schulferien/bw.ics");
+    expect(bw!.windows.length).toBeGreaterThan(0);
   });
 
   it("builds a resolvable feiertage entry for a purely computed subject", () => {

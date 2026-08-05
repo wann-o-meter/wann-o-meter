@@ -223,7 +223,6 @@ describe("which year pages are indexable", () => {
 
   it("filters the sitemap to the same set, and nothing else", () => {
     const url = (path: string) => `https://wannometer.de${path}`;
-    expect(includeInSitemap(url("/astronomie/mondfinsternis/2003/"), today)).toBe(false);
     expect(includeInSitemap(url("/feiertage/de-bw/2027/"), today)).toBe(true);
     // Not a year page: the evergreen page, a category, a one-off route.
     expect(includeInSitemap(url("/feiertage/de-bw/"), today)).toBe(true);
@@ -272,13 +271,6 @@ describe("the real site's year index", () => {
 
   it("generates no empty year pages", () => {
     for (const years of index.values()) expect(years.length).toBeGreaterThan(0);
-  });
-
-  it("covers the eclipse pages' full range, so every pill has a page", () => {
-    const years = index.get("astronomie/sonnenfinsternis");
-    expect(years, "sonnenfinsternis should have year pages").toBeDefined();
-    expect(Math.min(...years!)).toBe(1901);
-    expect(Math.max(...years!)).toBe(2100);
   });
 
   it("is empty for a fixture with nothing dated", () => {

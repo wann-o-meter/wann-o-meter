@@ -8,7 +8,11 @@
 // components, since the geometry that actually varies (which element you
 // click) is a real difference, not incidental duplication.
 import { computed } from "vue";
-import { type DayLayer, matchesForDay, weeksOfMonth } from "../../../lib/date-grid";
+import {
+  type DayLayer,
+  matchesForDay,
+  weeksOfMonth,
+} from "../../../lib/date-grid";
 
 const WEEKDAY_NAMES = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
@@ -18,6 +22,7 @@ const props = defineProps<{
   layers: DayLayer[];
   todayIso: string;
   variant: "mini" | "full";
+  highlightIso?: string | null; // distinct ring, not .today's fill - the two can differ
 }>();
 
 const emit = defineEmits<{
@@ -34,6 +39,12 @@ function isOtherMonth(dayIso: string): boolean {
 function matches(dayIso: string) {
   return matchesForDay(dayIso, props.layers);
 }
+
+// Derivable from the ISO string alone, no new prop needed.
+function isWeekend(dayIso: string): boolean {
+  const day = new Date(`${dayIso}T00:00:00Z`).getUTCDay();
+  return day === 0 || day === 6;
+}
 </script>
 
 <template>
@@ -43,17 +54,29 @@ function matches(dayIso: string) {
       <span v-for="wd in WEEKDAY_NAMES" :key="wd">{{ wd }}</span>
     </div>
     <div v-for="week in weeks" :key="week.mondayIso" class="day-week">
-      <button type="button" class="week-number mini" title="Woche öffnen" @click="emit('week-click', week.mondayIso)">
+      <button
+        type="button"
+        class="week-number mini"
+        title="Woche öffnen"
+        @click="emit('week-click', week.mondayIso)"
+      >
         {{ week.number }}
       </button>
       <span
         v-for="dayIso in week.days"
         :key="dayIso"
         class="day"
-        :class="{ today: dayIso === todayIso, 'other-month': isOtherMonth(dayIso) }"
+        :class="{
+          today: dayIso === todayIso,
+          'other-month': isOtherMonth(dayIso),
+          weekend: isWeekend(dayIso),
+          highlight: dayIso === highlightIso,
+        }"
         role="button"
         tabindex="0"
-        :title="[...matches(dayIso).map((m) => m.title), 'Woche öffnen'].join(', ')"
+        :title="
+          [...matches(dayIso).map((m) => m.title), 'Woche öffnen'].join(', ')
+        "
         @click="emit('day-click', dayIso)"
         @keydown.enter="emit('day-click', dayIso)"
       >
@@ -85,20 +108,34 @@ function matches(dayIso: string) {
       @click="emit('week-click', week.mondayIso)"
     >
       <!-- This button is the row's keyboard/screen-reader path to the same
-           action, which is why the row itself is no longer role="button"
-           tabindex="0": that made a control containing a control (this button,
-           plus every .mark link below) - axe's nested-interactive - and put a
-           second tab stop on every week for an action already reachable here.
-           The row keeps its plain @click as a mouse convenience. -->
-      <button type="button" class="week-number" title="Diese Woche öffnen" @click.stop="emit('week-click', week.mondayIso)">
+        action, which is why the row itself is no longer role="button"
+        tabindex="0": that made a control containing a control (this button,
+        plus every .mark link below) - axe's nested-interactive - and put a
+        second tab stop on every week for an action already reachable here.
+        The row keeps its plain @click as a mouse convenience. -->
+      <button
+        type="button"
+        class="week-number"
+        title="Diese Woche öffnen"
+        @click.stop="emit('week-click', week.mondayIso)"
+      >
         {{ week.number }}
       </button>
       <span
         v-for="dayIso in week.days"
         :key="dayIso"
         class="day-cell"
-        :class="{ 'other-month': isOtherMonth(dayIso), today: dayIso === todayIso }"
-        :title="matches(dayIso).map((m) => m.title).join(', ')"
+        :class="{
+          'other-month': isOtherMonth(dayIso),
+          today: dayIso === todayIso,
+          weekend: isWeekend(dayIso),
+          highlight: dayIso === highlightIso,
+        }"
+        :title="
+          matches(dayIso)
+            .map((m) => m.title)
+            .join(', ')
+        "
       >
         <span class="day-number">{{ Number(dayIso.slice(8)) }}</span>
         <span class="marks">
@@ -149,11 +186,18 @@ function matches(dayIso: string) {
   color: var(--accent-ink);
 }
 /* :not(.today) because today can itself be an adjacent-month day - looking at
-   August's grid on 27 July, the 27th is in the leading row. This rule comes
-   after .day.today and has the same specificity, so without the guard it won
-   the cascade and painted muted grey onto the accent background: 1.22:1. */
+  August's grid on 27 July, the 27th is in the leading row. This rule comes
+  after .day.today and has the same specificity, so without the guard it won
+  the cascade and painted muted grey onto the accent background: 1.22:1. */
 .day.other-month:not(.today) {
   color: var(--muted);
+}
+.day.weekend:not(.today) {
+  background: color-mix(in srgb, var(--line) 45%, transparent);
+}
+.day.highlight {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
 }
 .marks {
   display: flex;
@@ -177,9 +221,9 @@ function matches(dayIso: string) {
 .week-row {
   display: grid;
   grid-template-columns: 2.5rem repeat(7, 1fr);
-  gap: 2px;
 }
 .month-grid-header {
+  gap: 2px;
   margin-bottom: 2px;
 }
 .month-grid-header span {
@@ -191,7 +235,6 @@ function matches(dayIso: string) {
   font-family: var(--font-mono);
 }
 .week-row {
-  background: var(--line);
   margin-bottom: 2px;
   cursor: pointer;
 }
@@ -200,7 +243,7 @@ function matches(dayIso: string) {
 }
 .week-number {
   background: var(--paper);
-  border: none;
+  border: 1px solid var(--line);
   cursor: pointer;
   color: var(--muted);
   font-family: var(--font-mono);
@@ -212,6 +255,7 @@ function matches(dayIso: string) {
 }
 .week-number.mini {
   background: none;
+  border: none;
   font-size: 0.62rem;
   padding: 0;
 }
@@ -222,11 +266,25 @@ function matches(dayIso: string) {
   display: flex;
   flex-direction: column;
   font-family: var(--font-mono);
+  /* Real borders instead of the grid's `gap` showing a background color
+    through it - that relied on every row resolving to the exact same
+    fractional pixel height, which some engines round inconsistently and
+    rendered as visibly banded rows. Collapsed like a table's so adjacent
+    cells share one line instead of a double-thick one. */
+  border: 1px solid var(--line);
+  margin-left: -1px;
 }
 .day-cell.other-month {
   color: var(--muted);
 }
 .day-cell.today {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.day-cell.weekend:not(.today) {
+  background: color-mix(in srgb, var(--line) 35%, var(--paper));
+}
+.day-cell.highlight {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }

@@ -152,11 +152,6 @@ describe("nested categories (lib/fixtures/category-tree/fixture/nested/deep-cate
     expect(categories).not.toContain("fixture/nested");
   });
 
-  // data/_sources/ holds one source-config file per upstream (see
-  // pipeline/core/crawl_config.py). It sits under data/ because it describes
-  // the dataset's provenance, but it is not a subject and must never become a
-  // route - an empty "/_sources/" category page would otherwise build and get
-  // sitemapped.
   it("does not treat a _-prefixed directory as a category", () => {
     expect([...fixtureNodes.keys()]).not.toContain("_sources");
     expect(fixturePages.map((p) => p.category)).not.toContain("_sources");

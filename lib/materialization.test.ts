@@ -122,7 +122,7 @@ describe("materializeRawWindow", () => {
     expect(windows[0].source).toEqual([source, secondSource]);
   });
 
-  it("does not carry last_verified or rrule through to the materialized window (pipeline-side only, not surfaced yet)", () => {
+  it("does not carry last_verified or rrule through to the materialized window (not surfaced yet)", () => {
     const raw: RawWindow = {
       type: "main_season",
       year: 2026,

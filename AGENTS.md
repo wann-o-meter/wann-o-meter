@@ -8,7 +8,5 @@ project's structure, see [docs/architecture.md](./docs/architecture.md).
   behaviour that no longer exists.
 - Write code, comments, and identifiers in English.
 - Use plain language: no em-dashes, no semicolons.
-- Write tests for core components (`/lib`, `pipeline/`). Skip tests for the frontend or for
-  code that changes rapidly.
 - Commit with conventional commits, under 100 characters.
 - Prefer short bulletpoints instead of texts.

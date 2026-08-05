@@ -27,9 +27,6 @@ export const sourceSchema = z.object({
   retrieved_at: z.iso.date(),
   extraction: extractionSchema,
   confidence: z.number().min(0).max(1).optional(),
-  // GitHub handle of whoever suggested this URL (see data/community-sources.txt's
-  // "@handle url" format and pipeline/main.py's create-page contributed_by
-  // field) - optional, most sources have none. Rendered by SourceList.astro.
   contributed_by: z.string().optional(),
 });
 
@@ -143,19 +140,4 @@ export type Preset = z.infer<typeof presetSchema>;
 
 export function parsePreset(doc: unknown): Preset {
   return presetSchema.parse(doc);
-}
-
-// Homepage H1 rotator (src/pages/index.astro): one sentence template per
-// category, containing a literal "{subject}" placeholder that
-// lib/homepage-questions.ts fills in with a real subject from that
-// category's data (a produce name, a Bundesland, ...) - decreed wording,
-// same "curated as YAML" treatment as presets above.
-export const homepageQuestionTemplatesSchema = z.object({
-  templates: z.record(z.string(), z.string().min(1).refine((s) => s.includes("{subject}"), "template must contain a {subject} placeholder")),
-});
-
-export type HomepageQuestionTemplates = z.infer<typeof homepageQuestionTemplatesSchema>["templates"];
-
-export function parseHomepageQuestionTemplates(doc: unknown): HomepageQuestionTemplates {
-  return homepageQuestionTemplatesSchema.parse(doc).templates;
 }

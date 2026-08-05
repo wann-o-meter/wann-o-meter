@@ -1,0 +1,36 @@
+kind: batch
+id: schulferien_kmk
+
+category: schulferien
+url: https://www.kmk.org/service/ferienregelung/ferienkalender.html
+# official_par5 = "Amtliche Werke (§5 UrhG)" - muss dem licenseSchema-Enum in
+# lib/schema.ts woertlich entsprechen, da core/generic_source.py diesen Wert
+# direkt in jede data.yaml uebernimmt.
+license: official_par5
+rhythm: jaehrlich
+# strategy: parser|llm|llm_season. llm_season ist wie llm, aber fuer Quellen,
+# deren Information als Farbe/Hervorhebung auf einem Bild oder PDF kodiert ist
+# (z.B. ein Saisonkalender) statt als Text - siehe
+# core/generic_source.py:extract_season.
+strategy: llm
+# Verankert die subject.slug-Vokabeln, damit ein LLM-Lauf immer dieselben
+# 16 vorhandenen data/schulferien/{code}/-Ordner trifft statt Geschwister-
+# Ordner mit abweichender Schreibweise (z.B. "baden-wuerttemberg") anzulegen.
+extraction_hint: >
+  This page lists German public school holiday date ranges (e.g.
+  Osterferien, Pfingstferien, Sommerferien, Herbstferien, Weihnachtsferien)
+  for the school year around {jahr}. It covers all 16 German Bundeslaender.
+  Treat each Bundesland as one separate subject. subject.slug MUST be
+  exactly one of: bw, by, be, bb, hb, hh, he, mv, ni, nw, rp, sh, sl, sn,
+  st, th (lowercase ISO 3166-2:DE Bundesland code - never invent a
+  different spelling). subject.name = "Schulferien <voller
+  Bundesland-Name>" (e.g. "Schulferien Baden-Württemberg").
+  Extract ONLY school holidays. Never emit a public holiday (Christi
+  Himmelfahrt, Karfreitag, Tag der Deutschen Einheit, ...) as an entry -
+  those are computed elsewhere and must not appear here. A single free day
+  next to a public holiday IS a school holiday, but label it after the
+  column it stands in (e.g. "Pfingstferien"), never after the neighbouring
+  public holiday.
+license_note: >
+  Ferientermine der Kultusministerkonferenz (KMK), zusammengestellt aus den
+  Meldungen der Kultusministerien der Laender fuer das Schuljahr {jahr}.

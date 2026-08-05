@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Search, Trash2, X } from "lucide-vue-next";
-import { MONTH_NAMES, isoWeekNumber } from "../../lib/date-display";
+import { MONTH_NAMES } from "../../lib/date-display";
 import { isoFromDate, mondayOf } from "../../lib/date-grid";
 import {
   type CalendarState,
@@ -118,8 +118,8 @@ const availableOptions = computed<CatalogEntry[]>(() => {
   return catalog.value.filter((entry) => !activeIds.has(entry.id));
 });
 
-// Grouped the same way the homepage clusters its cards (lib/all-content.ts):
-// one heading per group with a count, only the first N shown by default,
+// Grouped the same way search results cluster elsewhere on the site: one
+// heading per group with a count, only the first N shown by default,
 // the rest behind "show more" - a search always reaches every match
 // regardless of collapse state.
 interface OptionGroup {
@@ -483,8 +483,6 @@ function commitYear() {
   editingYear.value = false;
 }
 
-const currentWeekNumber = computed(() => isoWeekNumber(new Date(`${weekStart.value}T00:00:00`)));
-
 onMounted(async () => {
   const res = await fetch("/api/v1/calendar.json");
   catalog.value = await res.json();
@@ -531,10 +529,6 @@ onUnmounted(() => {
             <ChevronRight :size="14" />
             <button type="button" class="crumb" @click="setView('month')">{{ MONTH_NAMES[activeMonth] }}</button>
           </template>
-          <template v-if="view === 'week'">
-            <ChevronRight :size="14" />
-            <span>KW {{ currentWeekNumber }}</span>
-          </template>
           <div class="breadcrumb-actions">
             <button v-if="!isAtToday" type="button" class="action-button" title="Zu heute springen" @click="goToToday">
               <CalendarDays :size="14" /> Heute
@@ -553,11 +547,6 @@ onUnmounted(() => {
             </div>
           </div>
         </nav>
-
-        <p v-if="layers.length === 0 && view !== 'graph'" class="onboarding-hint">
-          Der Kalender ist noch leer. Rechts im Suchfeld eine Ebene hinzufügen (z. B. "Bayern"
-          oder "Sommerferien"), um sie hier farbig zu sehen.
-        </p>
 
         <YearView
           v-if="view === 'year'"
@@ -640,7 +629,7 @@ onUnmounted(() => {
       <div v-if="layers.length > 0" class="layer-list-actions">
         <button type="button" class="reset-layers" @click="resetLayers"><Trash2 :size="14" /> Alle entfernen</button>
       </div>
-      <ul class="layer-list">
+      <ul v-if="layers.length > 0" class="layer-list">
         <template v-for="grp in groupedLayers" :key="grp.group">
           <li class="layer-group-header">
             <label>
@@ -672,15 +661,13 @@ onUnmounted(() => {
               <button type="button" title="Ebene entfernen" @click="removeLayer(layer.id)"><X :size="14" /></button>
             </span>
             <div v-if="revealedFeed === layer.id" class="feed-panel">
-              <p>Diese Adresse im Kalender abonnieren - dann kommen neue Termine automatisch dazu:</p>
               <input type="text" readonly :value="absoluteFeedUrl(layer.feedUrl)" aria-label="Adresse des ICS-Kalenders" @click="selectAllOnClick" />
               <button type="button" @click="copyFeedUrl(layer)">Kopieren</button>
               <span class="copy-status" role="status" aria-live="polite">{{ copiedFeed === layer.id ? "Kopiert!" : "" }}</span>
-              <p><a :href="layer.feedUrl">.ics-Datei einmalig herunterladen</a></p>
+              <p><a :href="layer.feedUrl">.ics-Datei herunterladen</a></p>
             </div>
           </li>
         </template>
-        <li v-if="layers.length === 0" class="no-layers">Noch keine Ebenen hinzugefügt.</li>
       </ul>
 
       <div class="add-layer">
@@ -740,6 +727,13 @@ onUnmounted(() => {
   flex-shrink: 0;
   position: sticky;
   top: 1rem;
+  /* Without a cap, a long layer list pins the sidebar's top at 1rem and
+    pushes its bottom (the search box) below the viewport with no way to
+    scroll to it - sticky then looks broken for anyone with several layers
+    added, while it looks fine with just a few. */
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -748,6 +742,7 @@ onUnmounted(() => {
 .breadcrumbs {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.35rem;
   margin-bottom: 1rem;
   color: var(--muted);
@@ -766,12 +761,13 @@ onUnmounted(() => {
   color: var(--accent);
 }
 /* Heute and the view switcher are actions, not breadcrumb trail - kept as
-   plain bordered buttons (the global `button` default look, not reset to
-   text-only like .crumb above) so they read as clickable controls instead
-   of blending into the trail's plain-text year/month/week links. */
+  plain bordered buttons (the global `button` default look, not reset to
+  text-only like .crumb above) so they read as clickable controls instead
+  of blending into the trail's plain-text year/month/week links. */
 .breadcrumb-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-left: auto;
 }
@@ -790,6 +786,7 @@ onUnmounted(() => {
 
 .view-switch {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.3rem;
 }
 .view-switch button {
@@ -804,12 +801,6 @@ onUnmounted(() => {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-ink);
-}
-
-.onboarding-hint {
-  color: var(--muted);
-  font-size: 0.85rem;
-  margin: 0 0 1rem;
 }
 
 .year-nav {
@@ -837,8 +828,8 @@ onUnmounted(() => {
   border: 1px solid var(--line);
   color: var(--ink);
   /* Native spin buttons eat into the width, clipping the digits - the
-     input is still type="number" for the numeric keypad/validation, just
-     without the visible steppers. */
+    input is still type="number" for the numeric keypad/validation, just
+    without the visible steppers. */
   -moz-appearance: textfield;
 }
 .year-input::-webkit-outer-spin-button,
@@ -847,8 +838,8 @@ onUnmounted(() => {
   margin: 0;
 }
 /* 24px floor is WCAG 2.5.8 / Lighthouse's touch-target minimum - a 16px icon
-   with 0.15rem of padding came to 21x21. Centred rather than padded up so the
-   chevrons stay optically where they were. */
+  with 0.15rem of padding came to 21x21. Centred rather than padded up so the
+  chevrons stay optically where they were. */
 .year-nav button {
   cursor: pointer;
   background: none;
@@ -930,11 +921,6 @@ onUnmounted(() => {
   white-space: nowrap;
   min-width: 0;
 }
-.no-layers {
-  color: var(--muted);
-  font-size: 0.85rem;
-  padding: 0.5rem 0.1rem;
-}
 .layer-actions {
   display: flex;
   align-items: center;
@@ -966,7 +952,7 @@ onUnmounted(() => {
   gap: 0.25rem;
 }
 /* Revealed feed URL, laid out like .embed-panel below (same idiom, same
-   look) but as a full-width row wrapped under its layer entry. */
+  look) but as a full-width row wrapped under its layer entry. */
 .feed-panel {
   width: 100%;
   display: flex;
@@ -1100,9 +1086,9 @@ onUnmounted(() => {
 }
 
 /* Mimics the year template's own layout (YearView.vue's .months/.month)
-   instead of a generic spinner, so there's no layout jump once real data
-   replaces it - deliberately a private copy of that geometry rather than a
-   shared class, since the two are allowed to drift. */
+  instead of a generic spinner, so there's no layout jump once real data
+  replaces it - deliberately a private copy of that geometry rather than a
+  shared class, since the two are allowed to drift. */
 .skeleton-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
@@ -1179,19 +1165,20 @@ onUnmounted(() => {
     width: 100%;
     position: static;
     order: -1;
+    max-height: none;
+    overflow-y: visible;
   }
 }
 
 /* Printing any template means printing the calendar, not the app around it
-   - the layer picker, the trail, the switcher and the embed box are all
-   controls, and none of them survives leaving the screen. Kept here rather
-   than in PlannerView.vue (the one template built to be printed) because
-   this chrome belongs to this component and scoped styles cannot reach up. */
+  - the layer picker, the trail, the switcher and the embed box are all
+  controls, and none of them survives leaving the screen. Kept here rather
+  than in PlannerView.vue (the one template built to be printed) because
+  this chrome belongs to this component and scoped styles cannot reach up. */
 @media print {
   .breadcrumbs,
   .sidebar,
-  .embed-bar,
-  .onboarding-hint {
+  .embed-bar {
     display: none;
   }
   .calendar-layout {

@@ -1,0 +1,15 @@
+name: Ochsenhausen
+state: BW
+deadlines:
+  - id: ochsenhausen-halteverbotszone
+    label: Halteverbotszone für den Umzugswagen beim Ordnungsamt beantragen
+    offset_days: -14
+    source_url: null
+  - id: ochsenhausen-anwohnerparkausweis
+    label: Anwohnerparkausweis ummelden
+    offset_days: 14
+    source_url: null
+  - id: ochsenhausen-sperrmuell
+    label: Sperrmüllabholung für alte Möbel anmelden
+    offset_days: -7
+    source_url: null
