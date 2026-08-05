@@ -186,20 +186,17 @@ function isWeekend(dayIso: string): boolean {
   color: var(--accent-ink);
 }
 /* :not(.today) because today can itself be an adjacent-month day - looking at
-   August's grid on 27 July, the 27th is in the leading row. This rule comes
-   after .day.today and has the same specificity, so without the guard it won
-   the cascade and painted muted grey onto the accent background: 1.22:1. */
+  August's grid on 27 July, the 27th is in the leading row. This rule comes
+  after .day.today and has the same specificity, so without the guard it won
+  the cascade and painted muted grey onto the accent background: 1.22:1. */
 .day.other-month:not(.today) {
   color: var(--muted);
 }
 .day.weekend:not(.today) {
   background: color-mix(in srgb, var(--line) 45%, transparent);
 }
-/* Falls back to --accent for callers other than DeadlinePlanner.vue, the
-   only one that defines --stamp (custom properties inherit past Vue's
-   scoped-style boundary since that's just a DOM attribute selector). */
 .day.highlight {
-  outline: 2px solid var(--stamp, var(--accent));
+  outline: 2px solid var(--accent);
   outline-offset: -1px;
 }
 .marks {
@@ -224,9 +221,9 @@ function isWeekend(dayIso: string): boolean {
 .week-row {
   display: grid;
   grid-template-columns: 2.5rem repeat(7, 1fr);
-  gap: 2px;
 }
 .month-grid-header {
+  gap: 2px;
   margin-bottom: 2px;
 }
 .month-grid-header span {
@@ -238,7 +235,6 @@ function isWeekend(dayIso: string): boolean {
   font-family: var(--font-mono);
 }
 .week-row {
-  background: var(--line);
   margin-bottom: 2px;
   cursor: pointer;
 }
@@ -247,7 +243,7 @@ function isWeekend(dayIso: string): boolean {
 }
 .week-number {
   background: var(--paper);
-  border: none;
+  border: 1px solid var(--line);
   cursor: pointer;
   color: var(--muted);
   font-family: var(--font-mono);
@@ -259,6 +255,7 @@ function isWeekend(dayIso: string): boolean {
 }
 .week-number.mini {
   background: none;
+  border: none;
   font-size: 0.62rem;
   padding: 0;
 }
@@ -269,6 +266,13 @@ function isWeekend(dayIso: string): boolean {
   display: flex;
   flex-direction: column;
   font-family: var(--font-mono);
+  /* Real borders instead of the grid's `gap` showing a background color
+    through it - that relied on every row resolving to the exact same
+    fractional pixel height, which some engines round inconsistently and
+    rendered as visibly banded rows. Collapsed like a table's so adjacent
+    cells share one line instead of a double-thick one. */
+  border: 1px solid var(--line);
+  margin-left: -1px;
 }
 .day-cell.other-month {
   color: var(--muted);
@@ -281,7 +285,7 @@ function isWeekend(dayIso: string): boolean {
   background: color-mix(in srgb, var(--line) 35%, var(--paper));
 }
 .day-cell.highlight {
-  outline: 2px solid var(--stamp, var(--accent));
+  outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
 .day-cell.today .day-number {
