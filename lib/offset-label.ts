@@ -19,7 +19,9 @@ function amount(days: number): string {
 export function offsetLabel(d: Deadline, anchorLabel: string): string {
   if (d.offset_rule) return RULE_LABELS[d.offset_rule] ?? "Frist nach Regel berechnet";
   if (d.offset_days === null) return "Frist noch nicht recherchiert";
-  if (d.offset_days === 0) return `am ${anchorLabel}`;
+  // Bare label, no "am" - anchorLabel is a nominative noun ("Letzter
+  // Arbeitstag"), and a preposition would need it declined.
+  if (d.offset_days === 0) return anchorLabel;
   return d.offset_days < 0
     ? `${amount(-d.offset_days)} vorher`
     : `${amount(d.offset_days)} danach`;

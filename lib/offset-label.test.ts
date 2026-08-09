@@ -11,7 +11,8 @@ describe("offsetLabel", () => {
     expect(offsetLabel(d({ offset_days: -42 }), "Umzugstag")).toBe("6 Wochen vorher");
     expect(offsetLabel(d({ offset_days: 7 }), "Umzugstag")).toBe("7 Tage danach");
     expect(offsetLabel(d({ offset_days: 1 }), "Umzugstag")).toBe("1 Tag danach");
-    expect(offsetLabel(d({ offset_days: 0 }), "Umzugstag")).toBe("am Umzugstag");
+    expect(offsetLabel(d({ offset_days: 0 }), "Umzugstag")).toBe("Umzugstag");
+    expect(offsetLabel(d({ offset_days: 0 }), "Letzter Arbeitstag")).toBe("Letzter Arbeitstag");
   });
 
   it("names the rule instead of its sorting approximation", () => {
