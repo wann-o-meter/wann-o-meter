@@ -16,10 +16,10 @@ const variants: PlanVariant[] = loadAllUmzugKommunen().map((k) => ({
   title="Umzug: wann muss ich anfangen?"
   description="Ort und Umzugstag eingeben, kompletten Rückwärts-Zeitplan mit Fristen sehen - mit Wochenend- und Feiertagswarnung."
 >
-  <p class="back"><a href="/">&larr; wann</a></p>
+  <p class="back"><a href="/">&larr; Alle Vorhaben</a></p>
   <h1>Umzug: wann muss ich anfangen?</h1>
   <DeadlinePlanner
-    client:load
+    client:only="vue"
     vorhaben="Umzug innerhalb Deutschlands"
     anchorLabel="Umzugstag"
     variantLabel="Ort"

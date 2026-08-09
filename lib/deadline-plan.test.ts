@@ -51,4 +51,64 @@ describe("computeSchedule", () => {
     const [entry] = computeSchedule("2027-06-13", [deadline({ id: "sonntag", offset_days: 0 })], "DE", "BW");
     expect(entry.weekend).toBe(true);
   });
+
+  it("defaults earliestDate/startByDate to the deadline itself when unresearched", () => {
+    const [entry] = computeSchedule("2027-06-15", [deadline({ id: "plain", offset_days: 14 })], "DE", "BW");
+    expect(entry.earliestDate).toBe(entry.date);
+    expect(entry.startByDate).toBe(entry.date);
+    expect(entry.impossible).toBe(false);
+  });
+
+  it("resolves an earlier earliestDate when earliest_offset_days is set", () => {
+    const [entry] = computeSchedule(
+      "2027-06-15",
+      [deadline({ id: "ummeldung", offset_days: 14, earliest_offset_days: 0 })],
+      "DE",
+      "BW",
+    );
+    expect(entry.earliestDate).toBe("2027-06-15");
+    expect(entry.date).toBe("2027-06-29");
+    expect(entry.startByDate).toBe(entry.date);
+  });
+
+  it("flags impossible when the lead time pushes startByDate before earliestDate", () => {
+    const [entry] = computeSchedule(
+      "2027-06-15",
+      [
+        deadline({
+          id: "kfz",
+          offset_days: 7, // deadline 2027-06-22
+          earliest_offset_days: 0, // earliest 2027-06-15
+          lead_time_days: 21, // startBy 2027-06-01, before earliest
+        }),
+      ],
+      "DE",
+      "BW",
+    );
+    expect(entry.startByDate).toBe("2027-06-01");
+    expect(entry.earliestDate).toBe("2027-06-15");
+    expect(entry.impossible).toBe(true);
+  });
+
+  it("uses offset_rule's computed date instead of offset_days when set", () => {
+    // Move date in March 2024 -> § 573c notice deadline is 2024-01-04 (see notice-period.test.ts).
+    // Explicit `today` keeps this deterministic - the real current date is
+    // long past 2024-01-04, which would otherwise trigger the rescue path.
+    const [entry] = computeSchedule(
+      "2024-03-15",
+      [deadline({ id: "wohnung-kuendigen", offset_days: -90, offset_rule: "bgb-573c-notice" })],
+      "DE",
+      undefined,
+      "2023-12-01",
+    );
+    expect(entry.date).toBe("2024-01-04");
+    expect(entry.derivation?.length).toBeGreaterThan(0);
+    expect(entry.pastDeadline).toBe(false);
+  });
+
+  it("leaves derivation/pastDeadline undefined for plain offset-based entries", () => {
+    const [entry] = computeSchedule("2027-06-15", [deadline({ id: "plain", offset_days: 14 })], "DE", "BW");
+    expect(entry.derivation).toBeUndefined();
+    expect(entry.pastDeadline).toBeUndefined();
+  });
 });

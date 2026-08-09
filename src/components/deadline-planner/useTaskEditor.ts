@@ -27,8 +27,8 @@ export function useTaskEditor(
   const doneIds = reactive<Record<string, boolean>>({});
   const deletedIds = reactive<Record<string, boolean>>({});
   const userNotes = reactive<Record<string, string>>({});
-  // Drag-and-drop rescheduling for real (read-only) deadlines - a dragged
-  // custom task mutates its own offsetDays instead, see moveEntry().
+  // Rescheduling a real (read-only) deadline via moveEntry() - a custom
+  // task mutates its own offsetDays instead, see moveEntry() below.
   const offsetOverrides = reactive<Record<string, number>>({});
   const editingId = ref<string | null>(null);
   const openNoteId = ref<string | null>(null);
@@ -37,8 +37,6 @@ export function useTaskEditor(
   const attachments = reactive<Record<string, string>>({});
   const openAttachmentId = ref<string | null>(null);
   const lastDeleted = ref<{ id: string; label: string } | null>(null);
-  const draggingId = ref<string | null>(null);
-  const dragOverGapId = ref<string | null>(null);
 
   function moveEntry(id: string, newOffsetDays: number) {
     const custom = customTasks.value.find((t) => t.id === id);
@@ -150,29 +148,6 @@ export function useTaskEditor(
     if (!label) startEditingLabel(id);
   }
 
-  // Same midpoint math as insertCustomTask - dropping between two items IS
-  // rescheduling, since position means date here.
-  function onDragStart(event: DragEvent, id: string) {
-    draggingId.value = id;
-    if (event.dataTransfer) {
-      event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData("text/plain", id);
-    }
-  }
-
-  function onDragEnd() {
-    draggingId.value = null;
-    dragOverGapId.value = null;
-  }
-
-  function onGapDrop(event: DragEvent, afterOffset: number, beforeOffset: number) {
-    const id = draggingId.value ?? event.dataTransfer?.getData("text/plain");
-    draggingId.value = null;
-    dragOverGapId.value = null;
-    if (!id) return;
-    moveEntry(id, Math.round((afterOffset + beforeOffset) / 2));
-  }
-
   return {
     doneIds,
     userNotes,
@@ -181,8 +156,6 @@ export function useTaskEditor(
     attachments,
     openAttachmentId,
     lastDeleted,
-    draggingId,
-    dragOverGapId,
     workingDeadlines,
     isCustom: isCustomTask,
     toggleDone,
@@ -195,8 +168,6 @@ export function useTaskEditor(
     undoDelete,
     insertCustomTask,
     addTaskAtEnd,
-    onDragStart,
-    onDragEnd,
-    onGapDrop,
+    moveEntry,
   };
 }

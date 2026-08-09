@@ -1,10 +1,17 @@
 # Steps that apply to any move within Germany, independent of Kommune.
 # offset_days below are generic ballpark figures (common moving-checklist
-# knowledge, e.g. the 2-week Ummeldung window is real BMG law), not a
-# verified-per-source fact - source_url stays null on purpose so the UI
-# keeps showing "Quelle fehlt" until someone checks each one against its
-# actual Gesetz/Satzung and fills in a real link.
+# knowledge), not all verified-per-source facts yet - source_url stays null
+# until someone checks a given deadline against its actual Gesetz/Satzung and
+# fills in a real link. Where it's filled in, the URL and its content were
+# checked directly against gesetze-im-internet.de, not assumed.
 deadlines:
+  - id: wohnung-kuendigen
+    label: Wohnung kündigen
+    offset_days: -90 # nur Näherung für die Sortierung - das echte Datum kommt aus offset_rule
+    offset_rule: bgb-573c-notice
+    source_url: https://www.gesetze-im-internet.de/bgb/__573c.html
+    source_label: § 573c BGB
+    note: Spätester Termin für die Kündigung, exakt nach § 573c Abs. 1 BGB berechnet (3. Werktag eines Kalendermonats zum Ablauf des übernächsten Monats, Samstag zählt beim Zählen mit, siehe "Wie berechnet?" an der Frist). Feiertage werden nach dem Zielort des Umzugs angenommen, obwohl rechtlich der Sitz des Vermieters (Erklärungsort) maßgeblich ist - dieser ist hier nicht bekannt. Angenommenes Mietende ist das Ende des Umzugsmonats ohne Überlappung; wer bewusst eine Überlappung will, braucht eine frühere Kündigung als hier angezeigt.
   - id: internetanbieter-kuendigen-ummelden
     label: Internetanbieter kündigen oder umziehen lassen
     offset_days: -42
@@ -21,13 +28,17 @@ deadlines:
   - id: ummeldung-einwohnermeldeamt
     label: Ummeldung beim Einwohnermeldeamt
     offset_days: 14
-    source_url: null
-    note: Bundesmeldegesetz - Frist noch nicht verifiziert.
+    earliest_offset_days: 0 # geht erst ab Einzug - kein Rechercheergebnis, sondern per Definition unmöglich davor
+    source_url: https://www.gesetze-im-internet.de/bmg/__17.html
+    source_label: § 17 BMG
   - id: kfz-ummeldung
     label: Kfz beim neuen Wohnort ummelden
     offset_days: 14
-    source_url: null
+    earliest_offset_days: 0 # Ummeldung am neuen Wohnort geht erst ab Einzug
+    source_url: https://www.gesetze-im-internet.de/fzv_2023/__15.html
+    source_label: § 15 Abs. 4 FZV
+    note: Das Gesetz nennt keine Tagesfrist, nur "unverzüglich" - 14 Tage ist die übliche Praxisempfehlung.
   - id: rundfunkbeitrag
     label: Rundfunkbeitrag ummelden
-    offset_days: 1400
+    offset_days: 14
     source_url: null

@@ -23,7 +23,7 @@ const LINK_CTAS: Record<string, TaskCta> = {
 export function taskCtaFor(id: string): TaskCta | null {
   if (id in LINK_CTAS) return LINK_CTAS[id];
   if (id.includes("kuendig"))
-    return { kind: "letter", label: "Kündigungsschreiben aufsetzen" };
+    return { kind: "letter", label: "Kündigungsschreiben" };
   return null;
 }
 
