@@ -1,0 +1,9 @@
+name = "wannometer-ics"
+main = "index.ts"
+compatibility_date = "2025-09-01"
+
+# Runs on the existing zone in front of GitHub Pages: every other path falls
+# through to the static origin untouched.
+[[routes]]
+pattern = "wannometer.de/ics/*"
+zone_name = "wannometer.de"
