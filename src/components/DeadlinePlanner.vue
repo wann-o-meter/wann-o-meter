@@ -715,9 +715,11 @@ function print() {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+/* Two columns left a dead cell showing the container's line color, and both
+  selects truncated their text. */
 @media (max-width: 40rem) {
   .form {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 }
 
@@ -728,7 +730,8 @@ function print() {
   gap: 0.4rem;
   border: 0;
   padding: 0;
-  margin: 1rem;
+  /* No side indent - it has to line up with the form above and the rail below. */
+  margin: 1rem 0;
 }
 .facets legend {
   float: left; /* a legend is not a flex item, so it would sit on its own line */

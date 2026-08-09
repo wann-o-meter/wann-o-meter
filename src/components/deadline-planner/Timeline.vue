@@ -899,10 +899,11 @@ function onNodeClick(id: string, e: MouseEvent) {
     --pin-sub: 0.62rem;
     --today-top: 2rem;
   }
-  /* --lane-h has to stay above --node, or stacked lanes touch. */
+  /* --lane-h has to clear --node (24px) by enough to read as separate lanes,
+    and --today-top sits below the pin's two label lines so HEUTE gets a row. */
   .compact {
-    --lane-h: 1.5rem;
-    --head-pad: 3.6rem;
+    --lane-h: 1.85rem;
+    --head-pad: 4.3rem;
     --tick-day: 0.35rem;
     --tick-week: 0.75rem;
     --tick-month: 1.05rem;
@@ -912,7 +913,7 @@ function onNodeClick(id: string, e: MouseEvent) {
     --mlabel-size: 0.72rem;
     --pin-title: 1rem;
     --pin-sub: 0.75rem;
-    --today-top: 2.3rem;
+    --today-top: 4.2rem;
   }
   .compact .node::after {
     font-size: 0.75rem;

@@ -693,6 +693,8 @@ const hasRange = computed(
     width: auto;
     display: flex;
     flex-direction: row;
+    /* Every child is nowrap, so a rescue card would otherwise run off screen. */
+    flex-wrap: wrap;
     gap: 0.5rem;
     align-items: baseline;
     margin: 0 0 0.3rem 1.1rem;
