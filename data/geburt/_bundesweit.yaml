@@ -1,0 +1,37 @@
+# Steps that apply to any birth in Germany, independent of Kommune.
+# Anchor date is the birth date. offset_days below are generic ballpark
+# figures (common-knowledge checklist items), not all verified-per-source
+# facts yet - source_url stays null until someone checks a given deadline
+# against its actual Gesetz and fills in a real link. Where it's filled in,
+# the URL and its content were checked directly against
+# gesetze-im-internet.de, not assumed.
+deadlines:
+  - id: geburtsanzeige-standesamt
+    label: Geburt beim Standesamt anzeigen
+    offset_days: 7
+    source_url: https://www.gesetze-im-internet.de/pstg/__18.html
+    source_label: § 18 Abs. 1 PStG
+    note: Binnen einer Woche. Meist übernimmt das Krankenhaus/die Hebamme die Anzeige, dann läuft diese Frist automatisch.
+  - id: elterngeld-beantragen
+    label: Elterngeld beantragen
+    offset_days: 90
+    source_url: https://www.gesetze-im-internet.de/beeg/__7.html
+    source_label: § 7 Abs. 1 BEEG
+    note: Rückwirkend wird nur für die letzten drei Lebensmonate vor Antragseingang gezahlt - später beantragt heißt Geld verloren, nicht nur später bekommen.
+  - id: kindergeld-beantragen
+    label: Kindergeld beantragen
+    offset_days: 180
+    source_url: https://www.gesetze-im-internet.de/estg/__70.html
+    source_label: § 70 Abs. 1 Satz 2 EStG
+    note: Auszahlung rückwirkend nur für die letzten sechs Monate vor Antragseingang.
+  - id: krankenversicherung-kind-anmelden
+    label: Kind bei der Krankenversicherung anmelden
+    offset_days: 60
+    source_url: null
+    note: Bei gesetzlicher Familienversicherung meist beitragsfrei möglich, bei privater Versicherung der Eltern gilt oft eine Frist ohne Gesundheitsprüfung - Frist nicht verifiziert, bei der eigenen Kasse nachfragen.
+  - id: geburtsurkunde-beantragen
+    label: Geburtsurkunden beim Standesamt beantragen
+    offset_days: 14
+    source_url: null
+    no_source_needed: true
+    note: Keine gesetzliche Frist, aber mehrere Ausfertigungen (Elterngeld, Kindergeld, Versicherung) werden schnell gebraucht.

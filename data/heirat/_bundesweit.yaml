@@ -1,0 +1,32 @@
+# Steps that apply to any civil wedding in Germany, independent of Kommune.
+# Anchor date is the wedding date (Termin beim Standesamt). offset_days below
+# are generic ballpark figures (common-knowledge checklist items), not all
+# verified-per-source facts yet - source_url stays null until someone checks
+# a given deadline against its actual Gesetz and fills in a real link.
+deadlines:
+  - id: eheschliessung-anmelden
+    label: Eheschließung beim Standesamt anmelden
+    offset_days: -180
+    source_url: null
+    note: Kein gesetzlich fixierter Vorlauf, aber Standesämter sind oft Monate im Voraus ausgebucht und benötigte Dokumente (z.B. Ledigkeitsbescheinigung) haben eine begrenzte Gültigkeit - Frist nicht verifiziert.
+  - id: dokumente-beschaffen
+    label: Personenstandsurkunden und Ausweisdokumente beschaffen
+    offset_days: -120
+    source_url: null
+    no_source_needed: true
+    note: Welche Dokumente nötig sind, hängt vom Standesamt und Familienstand ab - dort direkt erfragen.
+  - id: namensaenderung-ausweis
+    label: Personalausweis/Reisepass mit neuem Namen beantragen
+    offset_days: 30
+    source_url: null
+    note: Keine feste gesetzliche Frist danach, aber Ausweisdaten sollten zeitnah aktuell gehalten werden - Frist nicht verifiziert.
+  - id: namensaenderung-mitteilen
+    label: Arbeitgeber, Bank und Versicherungen über Namensänderung informieren
+    offset_days: 30
+    source_url: null
+    no_source_needed: true
+  - id: steuerklasse-wechseln
+    label: Steuerklasse wechseln (Ehegattensplitting prüfen)
+    offset_days: 30
+    source_url: null
+    note: Kein Zwang und keine Frist - lohnt sich aber, je früher desto eher wirkt sich ein günstigerer Steuerabzug aus.
