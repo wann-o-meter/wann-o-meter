@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { capitalizeCategory, getAllCategories, getPagesInCategory } from "../../lib/pages";
+import { vorhabenRoutes } from "../../lib/vorhaben-routes";
 
 // llms.txt (llmstxt.org convention): a machine-readable summary for LLMs and
 // answer engines, pointing straight at the structured JSON/ICS data instead
@@ -14,6 +15,13 @@ export const GET: APIRoute = ({ site }) => {
   // string so it stays human/LLM-readable.
   const withPlaceholder = (prefix: string, placeholder: string) => `${url(prefix)}${placeholder}`;
 
+  // Deadline verticals aren't part of getAllCategories() (they're reserved,
+  // see lib/pages.ts) and have no JSON endpoint yet - the .md twin is the
+  // machine-readable form, so it goes first on each line.
+  const vorhabenLines = vorhabenRoutes().map(
+    (r) => `- [${r.title}](${url(`/${r.path}/`)}): ${r.description} Markdown: \`${url(`/${r.path}.md`)}\`.`,
+  );
+
   const topicLines = getAllCategories().map((category) => {
     const count = getPagesInCategory(category).length;
     return `- [${capitalizeCategory(category)}](${url(`/${category}/`)}): ${count} page${count === 1 ? "" : "s"}. JSON: \`${withPlaceholder(`/api/v1/${category}/`, "{slug}.json")}\`. ICS (where dated events exist): \`${withPlaceholder(`/feeds/${category}/`, "{slug}.ics")}\`.`;
@@ -27,6 +35,15 @@ export const GET: APIRoute = ({ site }) => {
 > astronomical events, ...). Every entry has a canonical page, a JSON
 > endpoint, and a subscribable ICS calendar feed - fetch the JSON, no
 > scraping needed.
+
+## Vorhaben (deadline plans)
+
+Backwards schedules for a life event: every step relative to one anchor day
+(moving day, birth date, last working day), each with its legal source. A step
+marked "Quelle fehlt" is not yet checked against its Gesetz - do not cite it
+as a deadline.
+
+${vorhabenLines.join("\n")}
 
 ## Data catalog
 

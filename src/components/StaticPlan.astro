@@ -1,0 +1,94 @@
+---
+// The whole plan as plain HTML, with relative deadlines instead of dates.
+// This is what a crawler that runs no JS sees, and it is deliberately the
+// complete list, not a teaser - DeadlinePlanner.vue removes #static-plan on
+// mount and renders the same deadlines with real dates over it. A relative
+// deadline also never goes stale, a concrete date does.
+import { appliesTo } from "../../lib/facets";
+import { byOffset, offsetLabel, sourceLabel } from "../../lib/offset-label";
+import type { Deadline } from "../../lib/deadline-plan";
+
+interface Props {
+  deadlines: Deadline[];
+  anchorLabel: string;
+}
+const { deadlines, anchorLabel } = Astro.props;
+
+// Same filter the planner applies on mount (no facet ticked), so hydration
+// swaps the rendering, not the content.
+const entries = deadlines.filter((d) => appliesTo(d, [])).sort(byOffset);
+---
+
+<section id="static-plan">
+  <h2>Alle Fristen im Überblick</h2>
+  <p class="lede">
+    Jede Frist relativ zum {anchorLabel}. Mit einem Datum wird daraus ein
+    Zeitplan mit konkreten Tagen.
+  </p>
+  <ol>
+    {
+      entries.map((d) => (
+        <li>
+          <p class="when">{offsetLabel(d, anchorLabel)}</p>
+          <h3>{d.label}</h3>
+          {d.note && <p class="note">{d.note}</p>}
+          <p class="src">
+            {d.source_url ? (
+              <a href={d.source_url} rel="nofollow noopener">
+                {sourceLabel(d)}
+              </a>
+            ) : (
+              <span class:list={["flag", { missing: !d.no_source_needed }]}>{sourceLabel(d)}</span>
+            )}
+          </p>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<style>
+  #static-plan {
+    margin-top: 2rem;
+  }
+  .lede {
+    color: var(--muted);
+    max-width: 52ch;
+  }
+  ol {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0 0;
+    display: grid;
+    gap: 1rem;
+  }
+  li {
+    border: 1px solid var(--line);
+    border-radius: 0.6rem;
+    padding: 0.9rem 1rem;
+    background: var(--paper-raised);
+  }
+  .when {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0;
+  }
+  h3 {
+    font-size: 1rem;
+    margin: 0.35rem 0;
+  }
+  .note,
+  .src {
+    font-size: 0.85rem;
+    margin: 0.35rem 0 0;
+  }
+  .note {
+    color: var(--muted);
+  }
+  .flag.missing {
+    color: var(--warn);
+  }
+</style>

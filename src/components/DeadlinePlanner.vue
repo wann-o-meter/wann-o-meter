@@ -420,6 +420,10 @@ function onDocumentKeydownForTaskPicker(event: KeyboardEvent) {
 onMounted(() => {
   document.addEventListener("click", onDocumentClickForTaskPicker);
   document.addEventListener("keydown", onDocumentKeydownForTaskPicker);
+  // The statically rendered plan (StaticPlan.astro) shows the same deadlines
+  // relative to the anchor day, for crawlers and for a failed hydration. Once
+  // this island is up it shows them with real dates, so the static copy goes.
+  document.getElementById("static-plan")?.remove();
 });
 onBeforeUnmount(() => {
   document.removeEventListener("click", onDocumentClickForTaskPicker);
