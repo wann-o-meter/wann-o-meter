@@ -1,0 +1,46 @@
+# Every vertical the site plans. Order here is the order shown on the site.
+# slug matches the data/<slug>/ folder and the URL segment.
+- slug: umzug
+  label: Umzug
+  title: "Umzug: wann muss ich anfangen?"
+  description: >-
+    Ort und Umzugstag eingeben, kompletten Rückwärts-Zeitplan mit Fristen sehen -
+    mit Wochenend- und Feiertagswarnung.
+  vorhaben: Umzug innerhalb Deutschlands
+  anchorLabel: Umzugstag
+  anchorName: Umzug
+  variantLabel: Ort
+  defaultVariant: rottenburg
+
+- slug: geburt
+  label: Geburt
+  title: "Geburt: wann muss ich anfangen?"
+  description: >-
+    Geburtstermin eingeben, Fristen für Geburtsanzeige, Elterngeld und Kindergeld
+    rückwärts geplant - mit Quelle.
+  vorhaben: Geburt eines Kindes
+  anchorLabel: Geburtstermin
+  anchorName: Geburt
+  variantLabel: Ort
+
+- slug: heirat
+  label: Hochzeit
+  title: "Hochzeit: wann muss ich anfangen?"
+  description: >-
+    Hochzeitstermin eingeben, Anmeldung beim Standesamt, Dokumente und
+    Namensänderung rückwärts geplant.
+  vorhaben: Standesamtliche Hochzeit
+  anchorLabel: Hochzeitstermin
+  anchorName: Hochzeit
+  variantLabel: Ort
+
+- slug: jobwechsel
+  label: Jobwechsel
+  title: "Jobwechsel: wann muss ich anfangen?"
+  description: >-
+    Letzten Arbeitstag eingeben, Kündigungsfrist und Arbeitsuchendmeldung
+    rückwärts geplant - mit Quelle.
+  vorhaben: Jobwechsel
+  anchorLabel: Letzter Arbeitstag
+  anchorName: Jobwechsel
+  variantLabel: Ort

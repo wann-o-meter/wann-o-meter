@@ -10,6 +10,7 @@ import type { Deadline } from "./deadline-plan";
 
 const DATA_ROOT = join(process.cwd(), "data");
 const BUNDESWEIT_FILE = "_bundesweit.yaml";
+const VORHABEN_FILE = "vorhaben.yaml";
 
 const deadlineListSchema = z.object({
   deadlines: z.array(deadlineSchema).default([]),
@@ -20,69 +21,19 @@ const variantFileSchema = deadlineListSchema.extend({
   state: z.string(),
 });
 
-export interface Vorhaben {
-  slug: string; // data/<slug>/ and the URL segment
-  label: string; // chip and nav text
-  title: string; // h1 and <title>
-  description: string;
-  vorhaben: string; // planner's "Vorhaben" field text
-  anchorLabel: string; // date field label, also the offset-0 label
-  anchorName: string; // bold timeline pin label
-  variantLabel: string;
-  defaultVariant?: string;
-}
+const vorhabenSchema = z.object({
+  slug: z.string(), // data/<slug>/ and the URL segment
+  label: z.string(), // chip and nav text
+  title: z.string(), // h1 and <title>
+  description: z.string(),
+  vorhaben: z.string(), // planner's "Vorhaben" field text
+  anchorLabel: z.string(), // date field label, also the offset-0 label
+  anchorName: z.string(), // bold timeline pin label
+  variantLabel: z.string(),
+  defaultVariant: z.string().optional(),
+});
 
-// Every vertical the site plans. The wording per Vorhaben lives here rather
-// than in each page, so a new one is a data folder plus one entry.
-// ponytail: a _category.yaml per folder if these ever need to be authored
-// outside the repo.
-export const VORHABEN: Vorhaben[] = [
-  {
-    slug: "umzug",
-    label: "Umzug",
-    title: "Umzug: wann muss ich anfangen?",
-    description:
-      "Ort und Umzugstag eingeben, kompletten Rückwärts-Zeitplan mit Fristen sehen - mit Wochenend- und Feiertagswarnung.",
-    vorhaben: "Umzug innerhalb Deutschlands",
-    anchorLabel: "Umzugstag",
-    anchorName: "Umzug",
-    variantLabel: "Ort",
-    defaultVariant: "rottenburg",
-  },
-  {
-    slug: "geburt",
-    label: "Geburt",
-    title: "Geburt: wann muss ich anfangen?",
-    description:
-      "Geburtstermin eingeben, Fristen für Geburtsanzeige, Elterngeld und Kindergeld rückwärts geplant - mit Quelle.",
-    vorhaben: "Geburt eines Kindes",
-    anchorLabel: "Geburtstermin",
-    anchorName: "Geburt",
-    variantLabel: "Ort",
-  },
-  {
-    slug: "heirat",
-    label: "Hochzeit",
-    title: "Hochzeit: wann muss ich anfangen?",
-    description:
-      "Hochzeitstermin eingeben, Anmeldung beim Standesamt, Dokumente und Namensänderung rückwärts geplant.",
-    vorhaben: "Standesamtliche Hochzeit",
-    anchorLabel: "Hochzeitstermin",
-    anchorName: "Hochzeit",
-    variantLabel: "Ort",
-  },
-  {
-    slug: "jobwechsel",
-    label: "Jobwechsel",
-    title: "Jobwechsel: wann muss ich anfangen?",
-    description:
-      "Letzten Arbeitstag eingeben, Kündigungsfrist und Arbeitsuchendmeldung rückwärts geplant - mit Quelle.",
-    vorhaben: "Jobwechsel",
-    anchorLabel: "Letzter Arbeitstag",
-    anchorName: "Jobwechsel",
-    variantLabel: "Ort",
-  },
-];
+export type Vorhaben = z.infer<typeof vorhabenSchema>;
 
 // Matches PlanVariant in src/components/deadline-planner/types.ts, kept
 // separate so lib/ never imports from src/.
@@ -100,6 +51,12 @@ export interface VorhabenData extends Vorhaben {
 function readYaml(path: string): unknown {
   return load(readFileSync(path, "utf-8"));
 }
+
+// Every vertical the site plans, in display order. A new one is a data folder
+// plus one entry in data/vorhaben.yaml.
+export const VORHABEN: Vorhaben[] = z
+  .array(vorhabenSchema)
+  .parse(readYaml(join(DATA_ROOT, VORHABEN_FILE)));
 
 // Bundesweit deadlines apply everywhere, local ones add to them - plain
 // concat, no override-by-id merge.
