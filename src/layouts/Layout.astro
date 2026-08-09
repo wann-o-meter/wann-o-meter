@@ -104,27 +104,6 @@ const ogDescription =
         <a href="/" class="brand"
           >Wann-<span class="brand-accent">O</span>-Meter</a
         >
-        <nav aria-label="Hauptnavigation">
-          {
-            /* transition:persist keeps THIS node across a view-transition swap
-              instead of replacing it with the next page's empty one. The label is
-              filled in by client JS (the date must be the visitor's "today", not
-              the build's), and every page ships it empty - so without this the
-              nav date blanks out on navigation and only comes back if the script
-              re-runs. Persisting is the fix that can't silently regress: the
-              element that already has the date simply stays. Named explicitly:
-              an unnamed persist key is derived from the element's position, so
-              moving this node into <nav> would silently mint a new one. */
-          }
-          <a
-            id="today-indicator"
-            class="today-indicator"
-            href="/kalender/"
-            title="Heute im Kalender"
-            transition:persist="today-indicator"></a>
-          <span class="nav-divider" aria-hidden="true"></span>
-          <a href="/#search-input"><Search size={16} /> Suche</a>
-        </nav>
         <button
           type="button"
           id="theme-toggle"
