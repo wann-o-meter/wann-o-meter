@@ -1,0 +1,35 @@
+---
+import Layout from "../layouts/Layout.astro";
+import DeadlinePlanner from "../components/DeadlinePlanner.vue";
+import { loadAllVorhaben } from "../../lib/vorhaben-data";
+
+export function getStaticPaths() {
+  return loadAllVorhaben().map((v) => ({ params: { slug: v.slug }, props: { v } }));
+}
+
+const { v } = Astro.props;
+---
+
+<Layout title={v.title} description={v.description}>
+  <p class="back"><a href="/">&larr; Alle Vorhaben</a></p>
+  <h1>{v.title}</h1>
+  <DeadlinePlanner
+    client:only="vue"
+    vorhaben={v.vorhaben}
+    anchorLabel={v.anchorLabel}
+    variantLabel={v.variantLabel}
+    variants={v.variants}
+    defaultSlug={v.defaultVariant}
+  />
+</Layout>
+
+<style>
+  .back {
+    font-size: 0.9rem;
+  }
+  h1 {
+    margin-top: 0.5rem;
+    margin-bottom: 1.25rem;
+    letter-spacing: -0.01em;
+  }
+</style>

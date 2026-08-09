@@ -9,21 +9,14 @@
         </p>
         <div class="shelf">
           <button
+            v-for="v in vorhaben"
+            :key="v.slug"
             type="button"
             class="chip"
-            :aria-pressed="armed"
-            @click="armed = !armed"
+            :aria-pressed="v.slug === selectedSlug"
+            @click="pick(v.slug)"
           >
-            Umzug
-          </button>
-          <button
-            v-for="s in SOON"
-            :key="s"
-            type="button"
-            class="chip"
-            disabled
-          >
-            {{ s }} &middot; bald
+            {{ v.label }}
           </button>
         </div>
       </header>
@@ -33,7 +26,7 @@
         <Timeline
           :tasks="tasks"
           :anchor-date="anchorDate"
-          anchor-name="Umzug"
+          :anchor-name="selected.anchorName"
           :region-code="previewVariant?.regionCode"
           :clickable="armed"
           keyed
@@ -53,11 +46,12 @@
         &larr; zurück zum Zeitstrahl
       </button>
       <DeadlinePlanner
-        vorhaben="Umzug innerhalb Deutschlands"
-        anchor-label="Umzugstag"
-        variant-label="Ort"
-        :variants="variants"
-        :default-slug="defaultSlug"
+        :key="selected.slug"
+        :vorhaben="selected.vorhaben"
+        :anchor-label="selected.anchorLabel"
+        :variant-label="selected.variantLabel"
+        :variants="selected.variants"
+        :default-slug="selected.defaultVariant"
       />
     </section>
   </div>
@@ -76,22 +70,36 @@ import {
 import { appliesTo } from "../../lib/facets";
 import DeadlinePlanner from "./DeadlinePlanner.vue";
 import Timeline from "./deadline-planner/Timeline.vue";
-import type { PlanVariant } from "./deadline-planner/types";
 import { usePlannerSchedule } from "./deadline-planner/usePlannerSchedule";
 import { ArrowRight } from "lucide-vue-next";
+// Type-only, and it has to stay that way: lib/vorhaben-data.ts reads node:fs.
+import type { VorhabenData } from "../../lib/vorhaben-data";
 
 const props = defineProps<{
-  variants: PlanVariant[];
-  defaultSlug: string;
+  vorhaben: VorhabenData[];
 }>();
-
-// Mockups for everything else on the pivot doc's "später prüfen" list
-// (section 6) - disabled chips, nothing behind them yet.
-const SOON = ["Geburt", "Hochzeit", "Jobwechsel", "Todesfall"];
 
 const rootEl = useTemplateRef<HTMLElement>("rootEl");
 
 const armed = ref(false);
+const selectedSlug = ref(props.vorhaben[0]?.slug);
+const selected = computed(
+  () =>
+    props.vorhaben.find((v) => v.slug === selectedSlug.value) ??
+    props.vorhaben[0],
+);
+
+// Clicking the active chip toggles placement mode, clicking another one
+// switches Vorhaben and asks for a date right away.
+function pick(slug: string) {
+  if (slug === selectedSlug.value) {
+    armed.value = !armed.value;
+    return;
+  }
+  selectedSlug.value = slug;
+  armed.value = true;
+}
+
 const anchorDate = ref(""); // ISO day, "" until placed
 // usePlannerSchedule's stats need a doneIds map, but this teaser has no
 // checkboxes - nothing ever writes to it, so stats.done stays 0.
@@ -103,8 +111,9 @@ const placed = computed(() => anchorDate.value !== "");
 
 const previewVariant = computed(
   () =>
-    props.variants.find((v) => v.slug === props.defaultSlug) ??
-    props.variants[0],
+    selected.value.variants.find(
+      (v) => v.slug === selected.value.defaultVariant,
+    ) ?? selected.value.variants[0],
 );
 // No facet chips in the teaser, so it shows what the planner shows with none
 // ticked - otherwise nodes would vanish the moment the planner mounts.
@@ -116,7 +125,7 @@ const { tasks } = usePlannerSchedule(
   anchorDate,
   previewVariant,
   workingDeadlines,
-  () => "Umzugstag",
+  () => selected.value.anchorLabel,
   doneIds,
 );
 
@@ -131,7 +140,7 @@ const planHref = computed(() => {
   const params = new URLSearchParams();
   if (anchorDate.value) params.set("date", anchorDate.value);
   if (previewVariant.value) params.set("variant", previewVariant.value.slug);
-  return `/umzug/?${params.toString()}`;
+  return `/${selected.value.slug}/?${params.toString()}`;
 });
 
 const hintText = computed(() => {

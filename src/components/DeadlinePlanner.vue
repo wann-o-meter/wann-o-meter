@@ -298,7 +298,7 @@ function updateWiden() {
   const top = el.getBoundingClientRect().top;
   const raw = clamp01((WIDEN_DISTANCE - top) / WIDEN_DISTANCE);
   const widen = easeInOutCubic(raw);
-  // Unter einem halben Prozent sieht niemand etwas; 0 und 1 aber immer
+  // Unter einem halben Prozent sieht niemand etwas, 0 und 1 aber immer
   // schreiben, damit die Endzustände exakt erreicht werden.
   if (Math.abs(widen - lastWiden) < 0.004 && raw > 0 && raw < 1) return;
   lastWiden = widen;
@@ -342,7 +342,7 @@ onBeforeUnmount(() => {
 watch(railNodes, () => nextTick(updateHighlight));
 
 // Hover state is shared both ways: hovering a Timeline node sets it (via
-// @hover below), which highlights the matching card; hovering a card sets it
+// @hover below), which highlights the matching card. Hovering a card sets it
 // too (via @mouseenter/@mouseleave on TaskCard), which highlights the
 // matching node - same ref, two sources.
 const hoveredId = ref<string | null>(null);
@@ -724,7 +724,7 @@ function print() {
   gap: 0.4rem;
   border: 0;
   padding: 0;
-  margin: 0 0 1rem;
+  margin: 1rem;
 }
 .facets legend {
   float: left; /* a legend is not a flex item, so it would sit on its own line */
