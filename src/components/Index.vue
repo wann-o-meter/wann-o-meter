@@ -73,6 +73,7 @@ import {
   ref,
   useTemplateRef,
 } from "vue";
+import { appliesTo } from "../../lib/facets";
 import DeadlinePlanner from "./DeadlinePlanner.vue";
 import Timeline from "./deadline-planner/Timeline.vue";
 import type { PlanVariant } from "./deadline-planner/types";
@@ -105,7 +106,11 @@ const previewVariant = computed(
     props.variants.find((v) => v.slug === props.defaultSlug) ??
     props.variants[0],
 );
-const workingDeadlines = computed(() => previewVariant.value?.deadlines ?? []);
+// No facet chips in the teaser, so it shows what the planner shows with none
+// ticked - otherwise nodes would vanish the moment the planner mounts.
+const workingDeadlines = computed(() =>
+  (previewVariant.value?.deadlines ?? []).filter((d) => appliesTo(d, [])),
+);
 
 const { tasks } = usePlannerSchedule(
   anchorDate,

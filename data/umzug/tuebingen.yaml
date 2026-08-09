@@ -7,6 +7,7 @@ deadlines:
     source_url: null
   - id: tuebingen-anwohnerparkausweis
     label: Anwohnerparkausweis ummelden
+    applies_if: [auto]
     offset_days: 14
     source_url: null
   - id: tuebingen-sperrmuell

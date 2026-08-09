@@ -33,6 +33,7 @@ deadlines:
     source_label: § 17 BMG
   - id: kfz-ummeldung
     label: Kfz beim neuen Wohnort ummelden
+    applies_if: [auto]
     offset_days: 14
     earliest_offset_days: 0 # Ummeldung am neuen Wohnort geht erst ab Einzug
     source_url: https://www.gesetze-im-internet.de/fzv_2023/__15.html
