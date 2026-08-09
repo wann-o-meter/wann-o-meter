@@ -9,20 +9,16 @@ import {
   watch,
 } from "vue";
 import { Plus } from "lucide-vue-next";
-import MonthGrid from "./calendar/MonthGrid.vue";
 import TaskCard from "./deadline-planner/TaskCard.vue";
 import TaskPicker from "./deadline-planner/TaskPicker.vue";
-import { MONTH_NAMES } from "../../lib/date-display";
-import type { DayLayer } from "../../lib/date-grid";
+import Timeline from "./deadline-planner/Timeline.vue";
 import { toDate } from "../../lib/format-date";
-import { holidaysFor } from "../../lib/holidays";
 import { generateIcs } from "../../lib/ics";
 import type { IcsEvent } from "../../lib/ics";
 import { taskCtaFor } from "./deadline-planner/task-cta";
 import { useTaskEditor } from "./deadline-planner/useTaskEditor";
 import {
   ANCHOR_ID,
-  COUNTRY_CODE,
   usePlannerSchedule,
 } from "./deadline-planner/usePlannerSchedule";
 import type { PlanVariant } from "./deadline-planner/types";
@@ -41,6 +37,7 @@ const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 const rootEl = useTemplateRef<HTMLElement>("rootEl");
 const railEl = useTemplateRef<HTMLElement>("railEl");
+const overviewEl = useTemplateRef<HTMLElement>("overviewEl");
 
 function isoToday(): string {
   return new Date().toISOString().slice(0, 10);
@@ -114,8 +111,6 @@ const {
   attachments,
   openAttachmentId,
   lastDeleted,
-  draggingId,
-  dragOverGapId,
   workingDeadlines,
   isCustom,
   toggleDone,
@@ -128,12 +123,29 @@ const {
   undoDelete,
   insertCustomTask,
   addTaskAtEnd,
-  onDragStart,
-  onDragEnd,
-  onGapDrop,
+  moveEntry,
 } = useTaskEditor(selected, rootEl);
 
-const { timeline, unscheduled, railNodes, stats } = usePlannerSchedule(
+// Editing a date directly, instead of dragging a card to a different gap -
+// same underlying moveEntry(id, offsetDays), just fed from a native date
+// input rather than a drop target. The anchor is a special case: it's not
+// in workingDeadlines at all (usePlannerSchedule injects it separately with
+// a fixed offset_days: 0), so moveEntry has nothing to move - editing its
+// date means moving the anchor itself, the same as the form's date field.
+const editingDateId = ref<string | null>(null);
+function onCommitDate(id: string, iso: string) {
+  editingDateId.value = null;
+  if (id === ANCHOR_ID) {
+    anchorDate.value = iso;
+    return;
+  }
+  const days = Math.round(
+    (toDate(iso).getTime() - toDate(anchorDate.value).getTime()) / 86400000,
+  );
+  moveEntry(id, days);
+}
+
+const { timeline, tasks, unscheduled, railNodes } = usePlannerSchedule(
   anchorDate,
   selected,
   workingDeadlines,
@@ -145,8 +157,35 @@ function isPast(date: string): boolean {
   return date < isoToday();
 }
 
+// One line ("6 von 10 Fristen noch nicht verifiziert") instead of a
+// "Quelle fehlt" badge repeated on every unsourced card - the per-card badge
+// read as ten separate apologies for the same gap. Tasks marked
+// no_source_needed (e.g. Sperrmüllabholung - no Satzung governs a deadline
+// for it at all) don't count toward either side of the fraction.
+const verifiableTasks = computed(() =>
+  tasks.value.filter((t) => !t.no_source_needed),
+);
+const unverifiedCount = computed(
+  () => verifiableTasks.value.filter((t) => t.source_url === null).length,
+);
+
+// Only the FIRST card in a run of same-date entries shows its date - three
+// identical "15. Oktober 2026" blocks stacked on top of each other read like
+// a rendering bug, not "these three tasks happen to share a day".
+const suppressDate = computed(() => {
+  const ids = new Set<string>();
+  let lastDate: string | null = null;
+  for (const node of railNodes.value) {
+    if (node.kind !== "item") continue;
+    if (node.entry.date !== null && node.entry.date === lastDate) {
+      ids.add(node.entry.id);
+    }
+    lastDate = node.entry.date;
+  }
+  return ids;
+});
+
 // Scroll-linked highlight: tracks the page's own scroll (the rail has no inner scrollbox), picks the item closest to a fixed viewport line.
-const HIGHLIGHT_LINE_PX = 140; // roughly "just under the sitewide header"
 const highlightedDate = ref<string | null>(null);
 let scrollRaf = false;
 function updateHighlight() {
@@ -160,13 +199,81 @@ function updateHighlight() {
     const date = el.dataset.entryDate;
     if (!date) continue;
     lastDate = date;
-    const delta = Math.abs(el.getBoundingClientRect().top - HIGHLIGHT_LINE_PX);
+    const delta = Math.abs(
+      el.getBoundingClientRect().top - window.innerHeight / 2,
+    );
     if (delta < closestDelta) {
       closestDelta = delta;
       closestDate = date;
     }
   }
-  highlightedDate.value = closestDate ?? lastDate;
+  // At the very bottom of the page the last item's top can never reach the
+  // highlight line (there's nothing left to scroll it down to) - the
+  // line-proximity search alone would then highlight whatever's closest,
+  // never the last item, however far the user scrolls.
+  const atBottom =
+    window.innerHeight + window.scrollY >=
+    document.documentElement.scrollHeight - 2;
+  highlightedDate.value = atBottom ? lastDate : (closestDate ?? lastDate);
+}
+// The sticky overview widens toward the full viewport width as it approaches
+// its sticky point. The gaps to the viewport edge are measured rather than
+// derived from vw units, so a scrollbar cannot make the strip overshoot the
+// screen and force the page into horizontal scrolling.
+function measureGap() {
+  const el = overviewEl.value;
+  const host = el?.parentElement;
+  if (!el || !host) return;
+  const r = host.getBoundingClientRect();
+  const cs = getComputedStyle(host);
+  const viewport = document.documentElement.clientWidth; // without the scrollbar
+  el.style.setProperty(
+    "--gap-left",
+    `${Math.max(0, r.left + parseFloat(cs.paddingLeft))}px`,
+  );
+  el.style.setProperty(
+    "--gap-right",
+    `${Math.max(0, viewport - r.right + parseFloat(cs.paddingRight))}px`,
+  );
+}
+
+const lockEffects =
+  typeof window === "undefined"
+    ? null
+    : window.matchMedia("(max-width: 48rem), (prefers-reduced-motion: reduce)");
+
+let lastWiden = -1;
+
+function clamp01(v: number): number {
+  return v < 0 ? 0 : v > 1 ? 1 : v;
+}
+function easeInOutCubic(t: number): number {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+// The ramp is only the container width. The strip inside re-fits its own
+// scale to whatever width it ends up with (see Timeline.vue), so widening
+// spreads the plan out instead of revealing more empty rail to the right.
+const WIDEN_DISTANCE = 220; // px of scroll over which the widen ramps up
+const PARALLAX_LIFT = 16;
+function updateWiden() {
+  const el = overviewEl.value;
+  if (!el || lockEffects?.matches) return;
+  const top = el.getBoundingClientRect().top;
+  const raw = clamp01((WIDEN_DISTANCE - top) / WIDEN_DISTANCE);
+  const widen = easeInOutCubic(raw);
+  // Unter einem halben Prozent sieht niemand etwas; 0 und 1 aber immer
+  // schreiben, damit die Endzustände exakt erreicht werden.
+  if (Math.abs(widen - lastWiden) < 0.004 && raw > 0 && raw < 1) return;
+  lastWiden = widen;
+  el.style.setProperty("--widen", widen.toFixed(4));
+  el.style.setProperty(
+    "--parallax",
+    `${((1 - easeOutCubic(raw)) * PARALLAX_LIFT).toFixed(2)}px`,
+  );
 }
 function onPageScroll() {
   if (scrollRaf) return;
@@ -174,75 +281,53 @@ function onPageScroll() {
   requestAnimationFrame(() => {
     scrollRaf = false;
     updateHighlight();
+    updateWiden();
   });
 }
+let gapObserver: ResizeObserver | undefined;
 onMounted(() => {
   window.addEventListener("scroll", onPageScroll, { passive: true });
-  nextTick(updateHighlight);
+  nextTick(() => {
+    measureGap();
+    updateHighlight();
+    updateWiden();
+  });
+  const host = overviewEl.value?.parentElement;
+  if (!host) return;
+  // Re-measures itself after a resize instead of needing its own listener.
+  gapObserver = new ResizeObserver(() => {
+    measureGap();
+    lastWiden = -1;
+    updateWiden();
+  });
+  gapObserver.observe(host);
 });
 onBeforeUnmount(() => {
   window.removeEventListener("scroll", onPageScroll);
+  gapObserver?.disconnect();
 });
 watch(railNodes, () => nextTick(updateHighlight));
 
-// MonthGrid's week-open button would be a dead click otherwise - scrolls the rail to that week's first item instead.
-function onWeekClick(mondayIso: string) {
-  const sundayIso = (() => {
-    const d = toDate(mondayIso);
-    d.setUTCDate(d.getUTCDate() + 6);
-    return d.toISOString().slice(0, 10);
-  })();
-  const target = timeline.value.find(
-    (e) => e.date !== null && e.date >= mondayIso && e.date <= sundayIso,
-  );
-  if (!target) return;
-  railEl.value
-    ?.querySelector(`[data-entry-id="${target.id}"]`)
-    ?.scrollIntoView({ block: "center", behavior: "smooth" });
-}
+// Hover state is shared both ways: hovering a Timeline node sets it (via
+// @hover below), which highlights the matching card; hovering a card sets it
+// too (via @mouseenter/@mouseleave on TaskCard), which highlights the
+// matching node - same ref, two sources.
+const hoveredId = ref<string | null>(null);
+let flashTimer: ReturnType<typeof setTimeout> | undefined;
 
-// Calendar sidebar reuses MonthGrid.vue as-is (generic DayLayer[] prop, no sitewide coupling) - deadlines and holidays are two separate layers.
-const calendarYear = computed(() =>
-  Number((anchorDate.value || isoToday()).slice(0, 4)),
-);
-// Which month the sidebar shows - the highlighted day if any, else the anchor day. calendarLayers' holiday fetch stays on the wider calendarYear.
-const calendarMonth = computed(() => {
-  const iso = highlightedDate.value || anchorDate.value || isoToday();
-  return {
-    year: Number(iso.slice(0, 4)),
-    monthIndex0: Number(iso.slice(5, 7)) - 1,
-  };
-});
-const calendarLayers = computed<DayLayer[]>(() => {
-  if (!anchorDate.value) return [];
-  const deadlineWindows = timeline.value
-    .filter((e) => e.date !== null)
-    .map((e) => ({ start: e.date!, end: e.date!, description: e.label }));
-  const years = [
-    calendarYear.value - 1,
-    calendarYear.value,
-    calendarYear.value + 1,
-  ];
-  const holidayWindows = years
-    .flatMap((y) => holidaysFor(y, COUNTRY_CODE, selected.value?.regionCode))
-    .map((h) => ({ start: h.date, end: h.date, description: h.name }));
-  return [
-    {
-      color: "var(--accent)",
-      label: props.vorhaben,
-      url: "#",
-      visible: true,
-      windows: deadlineWindows,
-    },
-    {
-      color: "var(--warn)",
-      label: "Feiertage",
-      url: "#",
-      visible: true,
-      windows: holidayWindows,
-    },
-  ];
-});
+// Reverse direction of the highlight sync above: clicking a node/pin on the
+// compact Timeline scrolls the rail to that task and briefly flashes it via
+// the same hover styling, so the jump is easy to follow.
+function onTimelineSelect(id: string) {
+  railEl.value
+    ?.querySelector(`[data-entry-id="${id}"]`)
+    ?.scrollIntoView({ block: "center", behavior: "smooth" });
+  hoveredId.value = id;
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => {
+    if (hoveredId.value === id) hoveredId.value = null;
+  }, 900);
+}
 
 // Popover at both "+" triggers - which gap (or the end-of-list button) is currently open.
 type TaskPickerTarget =
@@ -362,151 +447,130 @@ function print() {
       </label>
     </div>
 
-    <div v-if="anchorDate" class="summary">
-      <div class="stat">
-        <span class="k">Offen</span><span class="v">{{ stats.open }}</span>
-      </div>
-      <div class="stat">
-        <span class="k">Erledigt</span><span class="v">{{ stats.done }}</span>
-      </div>
-      <div class="stat">
-        <span class="k">Erste Frist</span
-        ><span class="v">{{ stats.first }}</span>
-      </div>
-      <div v-if="stats.warnings > 0" class="stat">
-        <span class="k">Warnungen</span
-        ><span class="v">{{ stats.warnings }}</span>
-      </div>
-    </div>
-
     <template v-if="anchorDate">
-      <p class="scalenote" title="Ziehen verschiebt eine Aufgabe, Scrollen hebt den Tag im Kalender hervor">
-        Abstände sind maßstäblich.
-      </p>
-      <div class="planner-body">
-        <div class="rail-column">
-          <div ref="railEl" class="rail">
-            <template
-              v-for="node in railNodes"
-              :key="node.kind === 'gap' ? node.id : node.entry.id"
-            >
-              <div
-                v-if="node.kind === 'gap'"
-                class="gap"
-                :class="{
-                  'drag-target': draggingId,
-                  active: dragOverGapId === node.id,
-                }"
-                :style="{ height: `${node.heightPx}px` }"
-                @dragover.prevent
-                @dragenter="dragOverGapId = node.id"
-                @dragleave="dragOverGapId === node.id && (dragOverGapId = null)"
-                @drop.prevent="
-                  onGapDrop($event, node.afterOffset, node.beforeOffset)
-                "
-              >
-                <span v-if="node.beforeOffset - node.afterOffset >= 14" class="gap-label">
-                  {{ Math.round((node.beforeOffset - node.afterOffset) / 7) }} Wochen Pause
-                </span>
-                <button
-                  type="button"
-                  class="gap-add"
-                  title="Aufgabe hier einfügen"
-                  aria-label="Aufgabe hier einfügen"
-                  @click="
-                    toggleTaskPicker({
-                      kind: 'gap',
-                      id: node.id,
-                      afterOffset: node.afterOffset,
-                      beforeOffset: node.beforeOffset,
-                    })
-                  "
-                >
-                  <Plus :size="12" />
-                </button>
-                <TaskPicker
-                  v-if="
-                    isTaskPickerOpen({
-                      kind: 'gap',
-                      id: node.id,
-                      afterOffset: node.afterOffset,
-                      beforeOffset: node.beforeOffset,
-                    })
-                  "
-                  @pick-preset="pickPresetTask"
-                  @pick-blank="pickBlankTask"
-                />
-              </div>
-              <TaskCard
-                v-else
-                :entry="node.entry"
-                :anchor-label="anchorLabel"
-                :is-anchor="node.entry.id === ANCHOR_ID"
-                :is-past="isPast(node.entry.date!)"
-                :done="!!doneIds[node.entry.id]"
-                :is-custom="isCustom(node.entry.id)"
-                :dragging="draggingId === node.entry.id"
-                :editing="editingId === node.entry.id"
-                :note-open="openNoteId === node.entry.id"
-                :note-text="userNotes[node.entry.id]"
-                :attachment-open="openAttachmentId === node.entry.id"
-                :attachment-text="attachments[node.entry.id]"
-                :has-attachment="node.entry.id in attachments"
-                :cta="taskCtaFor(node.entry.id)"
-                @toggle-done="toggleDone(node.entry.id)"
-                @commit-label="commitLabel(node.entry.id, $event)"
-                @open-note="openNote(node.entry.id)"
-                @commit-note="commitNote(node.entry.id, $event)"
-                @open-attachment="openAttachment(node.entry.id)"
-                @commit-attachment="commitAttachment(node.entry.id, $event)"
-                @delete="deleteEntry(node.entry)"
-                @dragstart="onDragStart($event, node.entry.id)"
-                @dragend="onDragEnd"
-              />
-            </template>
-          </div>
-
-          <div class="add-end-wrap">
-            <button
-              type="button"
-              class="add-end"
-              @click="toggleTaskPicker({ kind: 'end' })"
-            >
-              + Eigene Aufgabe hinzufügen
-            </button>
-            <TaskPicker
-              v-if="isTaskPickerOpen({ kind: 'end' })"
-              @pick-preset="pickPresetTask"
-              @pick-blank="pickBlankTask"
-            />
-          </div>
-          <p v-if="lastDeleted" class="undo">
-            „{{ lastDeleted.label }}" entfernt.
-            <button type="button" @click="undoDelete">Rückgängig</button>
-          </p>
-        </div>
-
-        <div class="calendar-panel">
-          <div class="calendar-head">
-            <h2>
-              Kalender · {{ MONTH_NAMES[calendarMonth.monthIndex0] }}
-              {{ calendarMonth.year }}
-            </h2>
-            <ul class="legend">
-              <li><span class="swatch accent"></span>{{ vorhaben }}</li>
-              <li><span class="swatch warn"></span>Feiertage</li>
-            </ul>
-          </div>
-          <MonthGrid
-            :year="calendarMonth.year"
-            :month-index0="calendarMonth.monthIndex0"
-            :layers="calendarLayers"
-            :today-iso="isoToday()"
-            :highlight-iso="highlightedDate"
-            variant="full"
-            @week-click="onWeekClick"
+      <div ref="overviewEl" class="overview">
+        <div class="overview-inner">
+          <Timeline
+            :tasks="tasks"
+            :anchor-date="anchorDate"
+            :anchor-name="anchorLabel"
+            :region-code="selected?.regionCode"
+            :highlight-date="highlightedDate"
+            :hover-id="hoveredId"
+            :done-ids="doneIds"
+            compact
+            @select="onTimelineSelect"
+            @hover="hoveredId = $event"
           />
         </div>
+      </div>
+      <p
+        class="scalenote"
+        title="Ziehen verschiebt eine Aufgabe, Scrollen hebt den Tag im Zeitstrahl hervor"
+      >
+        Abstände sind maßstäblich.
+      </p>
+      <p v-if="unverifiedCount > 0" class="verify-note">
+        {{ unverifiedCount }} von {{ verifiableTasks.length }} Fristen sind noch
+        nicht verifiziert.
+      </p>
+      <div class="rail-column">
+        <div ref="railEl" class="rail">
+          <template
+            v-for="node in railNodes"
+            :key="node.kind === 'gap' ? node.id : node.entry.id"
+          >
+            <div
+              v-if="node.kind === 'gap'"
+              class="gap"
+              :style="{ height: `${node.heightPx}px` }"
+            >
+              <span v-if="node.bufferDays > 0" class="gap-label">
+                {{ node.bufferDays }} Tage Puffer
+              </span>
+              <button
+                type="button"
+                class="gap-add"
+                title="Aufgabe hier einfügen"
+                aria-label="Aufgabe hier einfügen"
+                @click="
+                  toggleTaskPicker({
+                    kind: 'gap',
+                    id: node.id,
+                    afterOffset: node.afterOffset,
+                    beforeOffset: node.beforeOffset,
+                  })
+                "
+              >
+                <Plus :size="12" />
+              </button>
+              <TaskPicker
+                v-if="
+                  isTaskPickerOpen({
+                    kind: 'gap',
+                    id: node.id,
+                    afterOffset: node.afterOffset,
+                    beforeOffset: node.beforeOffset,
+                  })
+                "
+                @pick-preset="pickPresetTask"
+                @pick-blank="pickBlankTask"
+              />
+            </div>
+            <TaskCard
+              v-else
+              :class="{
+                current: node.entry.date === highlightedDate,
+                focused: hoveredId === node.entry.id,
+              }"
+              :entry="node.entry"
+              :anchor-label="anchorLabel"
+              :is-anchor="node.entry.id === ANCHOR_ID"
+              :is-past="!node.entry.rescue && isPast(node.entry.date!)"
+              :done="!!doneIds[node.entry.id]"
+              :is-custom="isCustom(node.entry.id)"
+              :editing="editingId === node.entry.id"
+              :note-open="openNoteId === node.entry.id"
+              :note-text="userNotes[node.entry.id]"
+              :attachment-open="openAttachmentId === node.entry.id"
+              :attachment-text="attachments[node.entry.id]"
+              :has-attachment="node.entry.id in attachments"
+              :cta="taskCtaFor(node.entry.id)"
+              :show-date="!suppressDate.has(node.entry.id)"
+              :date-edit-open="editingDateId === node.entry.id"
+              @toggle-done="toggleDone(node.entry.id)"
+              @commit-label="commitLabel(node.entry.id, $event)"
+              @open-note="openNote(node.entry.id)"
+              @commit-note="commitNote(node.entry.id, $event)"
+              @open-attachment="openAttachment(node.entry.id)"
+              @commit-attachment="commitAttachment(node.entry.id, $event)"
+              @delete="deleteEntry(node.entry)"
+              @open-date-edit="editingDateId = node.entry.id"
+              @commit-date-edit="onCommitDate(node.entry.id, $event)"
+              @mouseenter="hoveredId = node.entry.id"
+              @mouseleave="hoveredId = null"
+            />
+          </template>
+        </div>
+
+        <div class="add-end-wrap">
+          <button
+            type="button"
+            class="add-end"
+            @click="toggleTaskPicker({ kind: 'end' })"
+          >
+            + Eigene Aufgabe hinzufügen
+          </button>
+          <TaskPicker
+            v-if="isTaskPickerOpen({ kind: 'end' })"
+            @pick-preset="pickPresetTask"
+            @pick-blank="pickBlankTask"
+          />
+        </div>
+        <p v-if="lastDeleted" class="undo">
+          „{{ lastDeleted.label }}" entfernt.
+          <button type="button" @click="undoDelete">Rückgängig</button>
+        </p>
       </div>
 
       <div v-if="unscheduled.length > 0" class="unscheduled">
@@ -524,7 +588,9 @@ function print() {
           <button type="button" @click="exportIcs">Als ICS exportieren</button>
           <button type="button" @click="print">Checkliste drucken</button>
         </div>
-        <p title="Änderungen gelten nur in diesem Tab und werden beim Neuladen zurückgesetzt">
+        <p
+          title="Änderungen gelten nur in diesem Tab und werden beim Neuladen zurückgesetzt"
+        >
           Nur in diesem Tab gespeichert.
         </p>
       </div>
@@ -537,7 +603,10 @@ function print() {
 
 <style scoped>
 .deadline-planner {
-  max-width: 75rem;
+  /* No calendar sidebar anymore - a single content column doesn't need the
+    old two-column width, the sitewide .wrap (62rem) was already clamping
+    this down anyway, just leaving dead space on wide screens. */
+  max-width: 58rem;
   /* --paper/--paper-raised are lightened and pulled apart locally so a card
     reads as raised, not just outlined - the shadow tokens below are this
     component's own deliberate departure from the sitewide flat/no-shadow
@@ -607,72 +676,44 @@ function print() {
   }
 }
 
-.summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
-  margin: 1.5rem 0 0.5rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--line);
-}
-.stat {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-.stat .k {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.stat .v {
-  font-weight: 700;
-  font-size: 1.5rem;
-}
+.overview {
+  --widen: 0;
+  --parallax: 0px;
+  --gap-left: 0px;
+  --gap-right: 0px;
 
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: 0 calc(var(--gap-right) * -1 * var(--widen)) 1rem
+    calc(var(--gap-left) * -1 * var(--widen));
+  padding-inline: calc(0.9rem * var(--widen));
+  background: var(--paper);
+  box-shadow:
+    0 1px 0 var(--line),
+    0 calc(6px * var(--widen)) calc(20px * var(--widen))
+      color-mix(in srgb, var(--ink) calc(12% * var(--widen)), transparent);
+}
+.overview-inner {
+  transform: translate3d(0, var(--parallax), 0);
+  will-change: transform;
+}
 .scalenote {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--muted);
-  margin: 1.25rem 0 0.9rem 12.5rem;
+  margin: 0.9rem 0 0.9rem 12.5rem;
 }
-/* Side by side, not stacked: the rail flows at its own full height (no inner
-  scrollbox), the calendar sidebar top-sticks - unlike bottom-sticky, this
-  stays pinned the whole time its column is taller than the sidebar. */
-.planner-body {
-  display: grid;
-  grid-template-columns: 1fr 19rem;
-  gap: 2.5rem;
-  align-items: start;
+.verify-note {
+  margin: 0 0 0.9rem 12.5rem;
+  padding: 0.5rem 0.8rem;
+  border-left: 2px solid var(--line);
+  background: color-mix(in srgb, var(--muted) 8%, transparent);
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 .rail-column {
   min-width: 0;
-}
-.calendar-panel {
-  position: sticky;
-  top: 1.25rem;
-  min-width: 0;
-  max-height: calc(100vh - 2.5rem);
-  overflow-y: auto;
-  background: var(--paper-raised);
-  border: 1px solid var(--line);
-  padding: 1rem;
-  box-shadow: var(--shadow-md);
-  /* MonthGrid's cells paint with --paper - re-separated from --paper-raised
-    here, else cells blend into this near-white panel and erase the grid. */
-  --paper: color-mix(in srgb, var(--paper-raised) 92%, var(--ink));
-}
-@media (max-width: 58rem) {
-  .planner-body {
-    grid-template-columns: 1fr;
-  }
-  .calendar-panel {
-    position: static;
-    max-height: none;
-    overflow: visible;
-  }
 }
 .rail {
   position: relative;
@@ -740,25 +781,6 @@ function print() {
   color: var(--muted);
   pointer-events: none;
 }
-/* Native drag events don't reliably trigger :hover, so drop-target state is
-  JS-driven (dragOverGapId): .drag-target marks every valid gap, .active is
-  the one currently under the pointer. */
-.gap.drag-target {
-  background: color-mix(in srgb, var(--accent) 5%, transparent);
-}
-.gap.drag-target .gap-add {
-  opacity: 0.6;
-}
-.gap.active {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-}
-.gap.active .gap-add {
-  opacity: 1;
-  border-style: solid;
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #fff;
-}
 .add-end {
   display: block;
   width: 100%;
@@ -789,52 +811,6 @@ function print() {
   left: 0;
   top: calc(100% + 0.4rem);
 }
-/* Shorter than MonthGrid's default (4rem, sized for /kalender/) - this
-  sidebar is only ~19rem wide, no room for anything but mark dots anyway. */
-.calendar-panel :deep(.day-cell) {
-  min-height: 2.5rem;
-}
-.calendar-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.5rem 1.5rem;
-  margin-bottom: 0.75rem;
-}
-.calendar-head h2 {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  font-size: 1rem;
-}
-.legend {
-  display: flex;
-  gap: 1rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-.legend li {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-.swatch {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 50%;
-  display: inline-block;
-}
-.swatch.accent {
-  background: var(--accent);
-}
-.swatch.warn {
-  background: var(--warn);
-}
-
 .undo {
   margin-top: 0.9rem;
   font-size: 0.85rem;
@@ -890,6 +866,18 @@ function print() {
   flex-wrap: wrap;
 }
 
+@media (max-width: 48rem) {
+  .overview {
+    --widen: 1 !important;
+    --parallax: 0px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .overview {
+    --widen: 1 !important;
+    --parallax: 0px !important;
+  }
+}
 @media (max-width: 32rem) {
   .rail {
     padding-left: 1.4rem;
@@ -907,7 +895,8 @@ function print() {
   .gap-label {
     left: 1.4rem;
   }
-  .scalenote {
+  .scalenote,
+  .verify-note {
     margin-left: 0;
   }
   .gap :deep(.task-picker) {
@@ -919,11 +908,11 @@ function print() {
 
 @media print {
   .form,
+  .overview,
   .gap-add,
   .add-end,
   .undo,
-  .actions,
-  .calendar-panel {
+  .actions {
     display: none;
   }
 }

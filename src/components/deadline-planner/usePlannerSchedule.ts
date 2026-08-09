@@ -17,6 +17,7 @@ export type RailNode =
       afterOffset: number;
       beforeOffset: number;
       heightPx: number;
+      bufferDays: number; // days of real dead time between the previous deadline and the next task's earliest-possible day, clamped to >= 0 - a bar that already starts earlier isn't a negative gap, it's none at all
     };
 
 // Resolves the working deadline list to real dates, plus everything the rail
@@ -58,15 +59,19 @@ export function usePlannerSchedule(
     timeline.value.forEach((entry, i) => {
       if (i > 0) {
         const prev = timeline.value[i - 1];
-        const days = Math.round(
-          (toDate(entry.date!).getTime() - toDate(prev.date!).getTime()) / 86400000,
+        const bufferDays = Math.max(
+          0,
+          Math.round(
+            (toDate(entry.earliestDate!).getTime() - toDate(prev.date!).getTime()) / 86400000,
+          ),
         );
         nodes.push({
           kind: "gap",
           id: `gap-${prev.id}-${entry.id}`,
           afterOffset: prev.offset_days!,
           beforeOffset: entry.offset_days!,
-          heightPx: Math.min(96, Math.max(28, days * 2.6)),
+          heightPx: Math.min(96, Math.max(28, bufferDays * 2.6)),
+          bufferDays,
         });
       }
       nodes.push({ kind: "item", entry });
@@ -78,7 +83,7 @@ export function usePlannerSchedule(
     const open = tasks.value.filter((e) => !doneIds[e.id]);
     const firstOpen = timeline.value.find((e) => e.id !== ANCHOR_ID && !doneIds[e.id]);
     const warnings = timeline.value.filter(
-      (e) => e.id !== ANCHOR_ID && !doneIds[e.id] && (e.weekend || e.collision),
+      (e) => e.id !== ANCHOR_ID && !doneIds[e.id] && (e.weekend || e.collision || e.impossible),
     ).length;
     return {
       open: open.length,

@@ -3,13 +3,14 @@ state: BW
 deadlines:
   - id: tuebingen-halteverbotszone
     label: Halteverbotszone für den Umzugswagen beim Ordnungsamt beantragen
-    offset_days: -1400
+    offset_days: -14
     source_url: null
   - id: tuebingen-anwohnerparkausweis
     label: Anwohnerparkausweis ummelden
-    offset_days: 140
+    offset_days: 14
     source_url: null
   - id: tuebingen-sperrmuell
     label: Sperrmüllabholung für alte Möbel anmelden
     offset_days: -7
     source_url: null
+    no_source_needed: true # keine Satzung regelt eine feste Frist, das ist reine Terminvergabe der Stadt

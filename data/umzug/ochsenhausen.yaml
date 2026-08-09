@@ -13,3 +13,4 @@ deadlines:
     label: Sperrmüllabholung für alte Möbel anmelden
     offset_days: -7
     source_url: null
+    no_source_needed: true # keine Satzung regelt eine feste Frist, das ist reine Terminvergabe der Stadt
