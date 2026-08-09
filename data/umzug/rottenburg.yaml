@@ -9,6 +9,7 @@ deadlines:
     source_url: null
   - id: rottenburg-anwohnerparkausweis
     label: Anwohnerparkausweis ummelden
+    applies_if: [auto] # die Halteverbotszone braucht dagegen jeder Umzugswagen
     offset_days: 14
     source_url: null
   - id: rottenburg-sperrmuell

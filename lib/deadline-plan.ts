@@ -8,6 +8,7 @@
 // module's whole import graph loads with it, so even one fs import here
 // would break client hydration.
 import { z } from "zod";
+import { FACET_IDS } from "./facets";
 import { toDate } from "./format-date";
 import { holidaysFor } from "./holidays";
 import type { Holiday } from "./holidays";
@@ -31,6 +32,9 @@ export const deadlineSchema = z.object({
   // deadline at all - there's nothing to cite, ever. Distinct from
   // source_url: null, which means "real source exists, not yet researched".
   no_source_needed: z.boolean().optional(),
+  // Only relevant under one of these circumstances (see lib/facets.ts).
+  // Absent means "applies to everyone" - the default.
+  applies_if: z.array(z.enum(FACET_IDS)).optional(),
   note: z.string().optional(),
 });
 

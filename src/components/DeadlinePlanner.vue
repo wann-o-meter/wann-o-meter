@@ -12,6 +12,12 @@ import { Plus } from "lucide-vue-next";
 import TaskCard from "./deadline-planner/TaskCard.vue";
 import TaskPicker from "./deadline-planner/TaskPicker.vue";
 import Timeline from "./deadline-planner/Timeline.vue";
+import {
+  FACET_LABELS,
+  appliesTo,
+  facetLabel,
+  facetsUsedBy,
+} from "../../lib/facets";
 import { toDate } from "../../lib/format-date";
 import { generateIcs } from "../../lib/ics";
 import type { IcsEvent } from "../../lib/ics";
@@ -75,6 +81,15 @@ const selected = computed(
     props.variants[0],
 );
 
+// Which optional circumstances the user ticked. Off by default: a plan should
+// open with what applies to everyone, not with every special case at once.
+const activeFacets = ref<string[]>(
+  (urlParams?.get("facets") ?? "").split(",").filter((f) => f in FACET_LABELS),
+);
+const facetOptions = computed(() =>
+  facetsUsedBy(selected.value?.deadlines ?? []),
+);
+
 const urlDate = urlParams?.get("date");
 const anchorDate = ref(
   urlDate && ISO_DAY.test(urlDate)
@@ -87,12 +102,15 @@ const anchorDate = ref(
 
 // Keeps the plan shareable as a link - replaceState, not pushState, so picking a date doesn't spam browser history.
 watch(
-  [anchorDate, selectedSlug],
+  [anchorDate, selectedSlug, activeFacets],
   () => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     if (anchorDate.value) params.set("date", anchorDate.value);
     if (selected.value) params.set("variant", selected.value.slug);
+    if (activeFacets.value.length > 0)
+      params.set("facets", activeFacets.value.join(","));
+    else params.delete("facets");
     const query = params.toString();
     history.replaceState(
       null,
@@ -101,6 +119,21 @@ watch(
     );
   },
   { immediate: true },
+);
+
+// Filtering here, upstream of the editing layer, is what makes every consumer
+// agree: rail, compact timeline, ICS export and the unverified count all read
+// from workingDeadlines. Per-task state stays keyed by id, so unticking a chip
+// and ticking it again brings a task back exactly as it was.
+const selectedForPlan = computed(() =>
+  selected.value
+    ? {
+        ...selected.value,
+        deadlines: selected.value.deadlines.filter((d) =>
+          appliesTo(d, activeFacets.value),
+        ),
+      }
+    : undefined,
 );
 
 const {
@@ -124,7 +157,7 @@ const {
   insertCustomTask,
   addTaskAtEnd,
   moveEntry,
-} = useTaskEditor(selected, rootEl);
+} = useTaskEditor(selectedForPlan, rootEl);
 
 // Editing a date directly, instead of dragging a card to a different gap -
 // same underlying moveEntry(id, offsetDays), just fed from a native date
@@ -447,6 +480,14 @@ function print() {
       </label>
     </div>
 
+    <fieldset v-if="facetOptions.length > 0" class="facets">
+      <legend>Trifft auf mich zu</legend>
+      <label v-for="id in facetOptions" :key="id" class="facet">
+        <input v-model="activeFacets" type="checkbox" :value="id" />
+        <span>{{ facetLabel(id) }}</span>
+      </label>
+    </fieldset>
+
     <template v-if="anchorDate">
       <div ref="overviewEl" class="overview">
         <div class="overview-inner">
@@ -674,6 +715,48 @@ function print() {
   .form {
     grid-template-columns: 1fr 1fr;
   }
+}
+
+.facets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  border: 0;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+.facets legend {
+  float: left; /* a legend is not a flex item, so it would sit on its own line */
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 0.5rem 0 0;
+  line-height: 1.9rem;
+}
+.facet {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--line);
+  padding: 0.25rem 0.6rem;
+  background: var(--paper-raised);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.facet:has(input:checked) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.facet:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.facet input {
+  accent-color: var(--accent);
+  margin: 0;
 }
 
 .overview {
@@ -907,6 +990,7 @@ function print() {
 }
 
 @media print {
+  .facets,
   .form,
   .overview,
   .gap-add,
