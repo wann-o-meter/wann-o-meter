@@ -122,13 +122,13 @@
 - [x] Turn "Fällt auf ein Wochenende" from a red alert into a neutral hint with an action: "Sa/So — Ordnungsamt hat zu. Auf Fr, 29. Jan verschieben →"
 - [x] Suppress the weekend warning on the Umzugstag itself — moving on a Saturday is the normal case
 - [x] Collapse completed tasks into a "3 erledigt ▾" group at the bottom (replaces the earlier slim-done-card rules, which are deleted)
-- [ ] Add "Termin verschieben" per task so users can override a computed date
-- [ ] Make the header fields look editable — input styling, hover state, chevron on all three
-- [ ] Add a sticky mini-header on scroll: Umzugstag + "3 von 10 erledigt"
-- [ ] Give every card the same action row — only "Wohnung kündigen" has a CTA
+- [x] Add "Termin verschieben" per task so users can override a computed date
+- [x] Make the header fields look editable — input styling, hover state, chevron on all three
+- [x] Add a sticky mini-header on scroll: Umzugstag + "3 von 10 erledigt"
+- [x] Give every card the same action row — only "Wohnung kündigen" has a CTA
 - [ ] Apply "Wie berechnet? (4 Schritte)" to all computed dates or none
-- [ ] Add "Plan-Link kopieren" with state encoded in the URL — "Auf diesem Gerät gespeichert" is an unmitigated data-loss risk
-- [ ] Give the ICS/print block a heading ("Plan mitnehmen")
+- [x] Add "Plan-Link kopieren" with state encoded in the URL — "Auf diesem Gerät gespeichert" is an unmitigated data-loss risk (the link carries date, Ort, facets and Mietende. Ticks, notes and custom tasks stay in localStorage, and the copy now says so)
+- [x] Give the ICS/print block a heading ("Plan mitnehmen")
 
 ## Planner — layout
 
@@ -136,7 +136,7 @@
 - [x] Close the horizontal gap between the date rail and the cards
 - [x] Move the progress bar above the timeline and label it — it's currently clipped (the sticky scroll-widening strip that clipped it is gone, 97 lines lighter)
 - [x] Align card left edges (the first card sits ~5px left of the rest)
-- [ ] Reduce box-in-box nesting: card → description → warning box → source chip is four nested borders
+- [x] Reduce box-in-box nesting: card → description → warning box → source chip is four nested borders (the warning box became a coloured line, the source chip and actions are one row)
 
 ## Visual system
 

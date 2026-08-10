@@ -8,7 +8,7 @@ import {
   useTemplateRef,
   watch,
 } from "vue";
-import { Check, Download, Info, Plus, Printer } from "lucide-vue-next";
+import { Check, Download, Info, Link2, Plus, Printer } from "lucide-vue-next";
 import TaskCard from "./deadline-planner/TaskCard.vue";
 import TaskPicker from "./deadline-planner/TaskPicker.vue";
 import Timeline from "./deadline-planner/Timeline.vue";
@@ -259,6 +259,19 @@ function shiftToWorkday(entry: { id: string; date: string | null }) {
   onCommitDate(entry.id, d.toISOString().slice(0, 10));
 }
 
+// The URL already carries date, Ort, facets and the Mietende choice. It does
+// NOT carry ticks, notes or custom tasks, so the label must not promise them.
+const linkCopied = ref(false);
+async function copyPlanLink() {
+  try {
+    await navigator.clipboard.writeText(window.location.href);
+    linkCopied.value = true;
+    setTimeout(() => (linkCopied.value = false), 2000);
+  } catch {
+    // no clipboard permission - the address bar still has the same link
+  }
+}
+
 const sourceIssueUrl = newSourceIssueUrl();
 const editingDateId = ref<string | null>(null);
 function onCommitDate(id: string, iso: string) {
@@ -479,7 +492,7 @@ function print() {
 <template>
   <div ref="rootEl" class="deadline-planner">
     <div class="form">
-      <div class="field">
+      <div class="field static">
         <span>Vorhaben</span>
         <strong>{{ vorhaben }}</strong>
       </div>
@@ -507,6 +520,13 @@ function print() {
     </fieldset>
 
     <template v-if="anchorDate">
+      <div class="mini-header">
+        <b>{{ anchorLabel }}: {{ formatDateWithWeekday(anchorDate) }}</b>
+        <span v-if="tasks.length > 0"
+          >{{ stats.done }} von {{ tasks.length }} erledigt</span
+        >
+      </div>
+
       <p class="summary">{{ summary }}</p>
       <p v-if="quietUntil" class="quiet">
         Bis {{ quietUntil }} ist nichts zu tun.
@@ -684,7 +704,12 @@ function print() {
       </div>
 
       <div class="actions">
+        <h2>Plan mitnehmen</h2>
         <div class="actions-buttons">
+          <button type="button" @click="copyPlanLink">
+            <Link2 :size="14" />
+            {{ linkCopied ? "Kopiert" : "Plan-Link kopieren" }}
+          </button>
           <button type="button" @click="exportIcs">
             <Download :size="14" /> Als ICS exportieren
           </button>
@@ -693,8 +718,9 @@ function print() {
           </button>
         </div>
         <p>
-          Auf diesem Gerät gespeichert, im Browser und nicht auf einem Server.
-          Auf einem anderen Gerät ist der Plan leer, Konten gibt es noch keine.
+          Der Link enthält Datum, Ort und Einstellungen. Häkchen, Notizen und
+          eigene Aufgaben bleiben nur in diesem Browser, auf einem anderen Gerät
+          ist der Plan wieder leer.
         </p>
       </div>
     </template>
@@ -754,11 +780,21 @@ function print() {
   padding: 0;
   font-size: var(--fs-md);
   font-weight: 600;
+  cursor: pointer;
 }
 .field strong {
   display: block;
   font-size: var(--fs-md);
   font-weight: 600;
+}
+/* Not editable, so it does not pretend to react to a cursor. */
+.field.static {
+  box-shadow: none;
+  background: transparent;
+}
+.field.static:hover {
+  border-color: var(--line);
+  box-shadow: none;
 }
 .field input:focus-visible,
 .field select:focus-visible {
@@ -782,6 +818,26 @@ function print() {
   padding: 0;
   /* No side indent - it has to line up with the form above and the rail below. */
   margin: 1rem 0;
+}
+.mini-header {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: var(--radius);
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--fs-sm);
+}
+.mini-header span {
+  color: var(--muted);
 }
 .summary {
   margin: 0 0 0.6rem;
@@ -1040,6 +1096,14 @@ function print() {
   padding: 1rem 1.2rem;
   background: var(--paper-raised);
   border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+.actions h2 {
+  margin: 0 0 0.7rem;
+  font-size: var(--fs-md);
+  border: 0;
+  padding: 0;
 }
 .actions p {
   margin: 0.5rem 0 0;
@@ -1086,7 +1150,8 @@ function print() {
 @media print {
   .facets,
   .form,
-  .overview,
+  .overview-wrap,
+  .mini-header,
   .gap-add,
   .add-end,
   .undo,

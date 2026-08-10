@@ -197,14 +197,6 @@ const hasRange = computed(
         <div class="tools">
           <button
             type="button"
-            title="Datum ändern"
-            aria-label="Datum ändern"
-            @click="$emit('open-date-edit')"
-          >
-            <CalendarClock :size="12" />
-          </button>
-          <button
-            type="button"
             title="Titel ändern"
             aria-label="Titel ändern"
             @click="$emit('open-label-edit')"
@@ -295,9 +287,16 @@ const hasRange = computed(
       >
       <span v-else-if="isCustom" class="badge custom">Eigene Aufgabe</span>
 
-      <div v-if="cta" class="cta-row">
+      <div class="cta-row">
+        <button
+          type="button"
+          class="cta-button"
+          @click="$emit('open-date-edit')"
+        >
+          <CalendarClock :size="13" /> Termin verschieben
+        </button>
         <a
-          v-if="cta.kind === 'link'"
+          v-if="cta?.kind === 'link'"
           class="cta-link"
           :href="cta.url"
           target="_blank"
@@ -305,13 +304,15 @@ const hasRange = computed(
           >{{ cta.label }} <ArrowUpRight :size="14"
         /></a>
         <button
-          v-else
+          v-else-if="cta"
           type="button"
           class="cta-button"
           @click="$emit('open-attachment')"
         >
           {{
-            hasAttachment ? `${cta.label} bearbeiten` : `${cta.label} aufsetzen`
+            hasAttachment
+              ? `${cta!.label} bearbeiten`
+              : `${cta!.label} aufsetzen`
           }}
         </button>
       </div>
@@ -681,8 +682,12 @@ const hasRange = computed(
   color: var(--accent-ink);
 }
 .cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
   margin-top: 0.6rem;
-  padding-top: 0.5rem;
+  padding-top: 0.6rem;
   border-top: 1px solid var(--line);
 }
 .derivation ol {
@@ -715,7 +720,6 @@ const hasRange = computed(
 /* A link leaves the page, a button acts in place. Same colour, own shape. */
 .cta-link {
   display: inline-block;
-  margin-top: 0.5rem;
   color: var(--accent);
   font-size: var(--fs-sm);
   text-decoration: underline;
@@ -725,9 +729,10 @@ const hasRange = computed(
   opacity: 0.8;
 }
 .cta-button {
-  display: inline-block;
-  margin-top: 0.5rem;
-  font-size: var(--fs-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: var(--fs-xs);
   color: var(--accent);
   border-color: var(--accent);
 }
