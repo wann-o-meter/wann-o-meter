@@ -464,12 +464,10 @@ function print() {
 <template>
   <div ref="rootEl" class="deadline-planner">
     <div class="form">
-      <label class="field">
+      <div class="field">
         <span>Vorhaben</span>
-        <select disabled>
-          <option>{{ vorhaben }}</option>
-        </select>
-      </label>
+        <strong>{{ vorhaben }}</strong>
+      </div>
       <label class="field">
         <span>{{ anchorLabel }}</span>
         <input v-model="anchorDate" type="date" :aria-label="anchorLabel" />
@@ -709,10 +707,10 @@ function print() {
   font-size: 1.05rem;
   font-weight: 500;
 }
-.field select:disabled {
-  opacity: 1;
-  color: inherit;
-  cursor: default;
+.field strong {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 500;
 }
 .field input:focus-visible,
 .field select:focus-visible {
