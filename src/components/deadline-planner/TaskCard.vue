@@ -30,7 +30,6 @@ const props = defineProps<{
   attachmentText?: string;
   hasAttachment: boolean;
   cta: TaskCta | null;
-  showDate: boolean; // false when the previous card already shows this same date
   dateEditOpen: boolean;
   isNext: boolean; // the one task to act on now
   deferred: boolean; // the rule's target month was pushed back by a month
@@ -120,7 +119,7 @@ const hasRange = computed(
     :class="{ anchor: isAnchor, past: isPast, done, next: isNext }"
   >
     <span class="dot" :data-dot-key="entry.id"></span>
-    <div v-if="showDate" class="when">
+    <div class="when">
       <b :class="{ 'past-deadline': entry.pastDeadline }">{{
         whenDate(entry.date!)
       }}</b>
@@ -168,7 +167,6 @@ const hasRange = computed(
     </div>
 
     <div v-else class="card">
-      <p v-if="!showDate" class="card-date">{{ whenDate(entry.date!) }}</p>
       <div class="card-head">
         <button
           type="button"
@@ -411,7 +409,7 @@ const hasRange = computed(
 .when {
   position: absolute;
   /* Right edge sits just shy of the rail's dot/line (dot at -1.8rem). */
-  left: -12.2rem;
+  left: -11.6rem;
   top: 0.55rem;
   width: 10.5rem;
   /* align-items:flex-end right-aligns each line by its OWN box: lines wider
@@ -488,7 +486,7 @@ const hasRange = computed(
   align-items: baseline;
   gap: 0.6rem;
   margin: 0.4rem 0 0.8rem;
-  padding: 0.5rem 0;
+  padding: 0.5rem 1rem;
   border-top: 2px solid var(--anchor);
   border-bottom: 2px solid var(--anchor);
 }
@@ -538,13 +536,6 @@ const hasRange = computed(
   border-left: 3px solid var(--done-color);
   opacity: 0.75;
 }
-.item.done .card p,
-.item.done .card .range-line,
-.item.done .card .derivation,
-.item.done .card .cta-row,
-.item.done .card .badge {
-  display: none;
-}
 .item.done .card-head h3 {
   text-decoration: line-through;
   color: var(--muted);
@@ -564,12 +555,6 @@ const hasRange = computed(
 }
 .item.focused .card {
   border-color: var(--accent);
-}
-.card-date {
-  margin: 0 0 0.35rem;
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--muted);
 }
 .card-head {
   display: flex;

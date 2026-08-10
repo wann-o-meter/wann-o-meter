@@ -121,7 +121,7 @@
 
 - [x] Turn "Fällt auf ein Wochenende" from a red alert into a neutral hint with an action: "Sa/So — Ordnungsamt hat zu. Auf Fr, 29. Jan verschieben →"
 - [x] Suppress the weekend warning on the Umzugstag itself — moving on a Saturday is the normal case
-- [ ] Collapse completed tasks into a "3 erledigt ▾" group at the bottom
+- [x] Collapse completed tasks into a "3 erledigt ▾" group at the bottom (replaces the earlier slim-done-card rules, which are deleted)
 - [ ] Add "Termin verschieben" per task so users can override a computed date
 - [ ] Make the header fields look editable — input styling, hover state, chevron on all three
 - [ ] Add a sticky mini-header on scroll: Umzugstag + "3 von 10 erledigt"
@@ -132,10 +132,10 @@
 
 ## Planner — layout
 
-- [ ] Remove duplicated dates inside cards when the left rail already shows them (currently inconsistent)
-- [ ] Close the horizontal gap between the date rail and the cards
+- [x] Remove duplicated dates inside cards when the left rail already shows them (currently inconsistent) (the gutter date is never suppressed now, so the in-card fallback is gone)
+- [x] Close the horizontal gap between the date rail and the cards
 - [x] Move the progress bar above the timeline and label it — it's currently clipped (the sticky scroll-widening strip that clipped it is gone, 97 lines lighter)
-- [ ] Align card left edges (the first card sits ~5px left of the rest)
+- [x] Align card left edges (the first card sits ~5px left of the rest)
 - [ ] Reduce box-in-box nesting: card → description → warning box → source chip is four nested borders
 
 ## Visual system

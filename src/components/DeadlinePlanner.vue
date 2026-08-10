@@ -8,7 +8,7 @@ import {
   useTemplateRef,
   watch,
 } from "vue";
-import { Download, Info, Plus, Printer } from "lucide-vue-next";
+import { Check, Download, Info, Plus, Printer } from "lucide-vue-next";
 import TaskCard from "./deadline-planner/TaskCard.vue";
 import TaskPicker from "./deadline-planner/TaskPicker.vue";
 import Timeline from "./deadline-planner/Timeline.vue";
@@ -221,6 +221,16 @@ const summary = computed(() => {
   return `Aus deinem ${props.anchorLabel} am ${formatDateWithWeekday(anchorDate.value)} ergeben sich ${dated.length} Fristen. Die erste ist am ${formatDateWithWeekday(first.date!)}.`;
 });
 
+// Ticked-off tasks leave the running plan and collect in a fold at the end.
+const openNodes = computed(() =>
+  railNodes.value.filter(
+    (n) => n.kind === "gap" || !doneIds[n.entry.id] || n.entry.id === ANCHOR_ID,
+  ),
+);
+const doneEntries = computed(() =>
+  timeline.value.filter((e) => e.id !== ANCHOR_ID && doneIds[e.id]),
+);
+
 // The first task still open and not in the past: the one to act on.
 const nextUpId = computed(
   () =>
@@ -297,18 +307,6 @@ const noSourceCount = computed(
 // Only the FIRST card in a run of same-date entries shows its date - three
 // identical "15. Oktober 2026" blocks stacked on top of each other read like
 // a rendering bug, not "these three tasks happen to share a day".
-const suppressDate = computed(() => {
-  const ids = new Set<string>();
-  let lastDate: string | null = null;
-  for (const node of railNodes.value) {
-    if (node.kind !== "item") continue;
-    if (node.entry.date !== null && node.entry.date === lastDate) {
-      ids.add(node.entry.id);
-    }
-    lastDate = node.entry.date;
-  }
-  return ids;
-});
 
 // Scroll-linked highlight: tracks the page's own scroll (the rail has no inner scrollbox), picks the item closest to a fixed viewport line.
 const highlightedDate = ref<string | null>(null);
@@ -558,7 +556,7 @@ function print() {
       <div class="rail-column">
         <div ref="railEl" class="rail">
           <template
-            v-for="node in railNodes"
+            v-for="node in openNodes"
             :key="node.kind === 'gap' ? node.id : node.entry.id"
           >
             <div
@@ -616,7 +614,6 @@ function print() {
               :attachment-text="attachments[node.entry.id]"
               :has-attachment="node.entry.id in attachments"
               :cta="taskCtaFor(node.entry.id)"
-              :show-date="!suppressDate.has(node.entry.id)"
               :date-edit-open="editingDateId === node.entry.id"
               :deferred="overlapMonths > 0"
               @toggle-done="onToggleDone(node.entry.id)"
@@ -652,6 +649,24 @@ function print() {
             @pick-blank="pickBlankTask"
           />
         </div>
+        <details v-if="doneEntries.length > 0" class="done-group">
+          <summary>{{ doneEntries.length }} erledigt</summary>
+          <ul>
+            <li v-for="entry in doneEntries" :key="entry.id">
+              <button
+                type="button"
+                class="check"
+                aria-pressed="true"
+                aria-label="Wieder öffnen"
+                @click="toggleDone(entry.id)"
+              >
+                <Check :size="11" />
+              </button>
+              <span>{{ entry.label }}</span>
+            </li>
+          </ul>
+        </details>
+
         <p v-if="lastDeleted" class="undo">
           „{{ lastDeleted.label }}" entfernt.
           <button type="button" @click="undoDelete">Rückgängig</button>
@@ -843,10 +858,10 @@ function print() {
 .scalenote {
   font-size: var(--fs-xs);
   color: var(--muted);
-  margin: 0.9rem 0 0.9rem 12.2rem;
+  margin: 0.9rem 0 0.9rem 11.6rem;
 }
 .verify-note {
-  margin: 0 0 0.9rem 12.2rem;
+  margin: 0 0 0.9rem 11.6rem;
   padding: 0.5rem 0.8rem;
   border-left: 2px solid var(--line);
   background: color-mix(in srgb, var(--muted) 8%, transparent);
@@ -862,10 +877,10 @@ function print() {
 .rail {
   /* Distance from a card's left edge to the rail line. TaskCard's dots read
     it so they stay centred on the line at every breakpoint. */
-  --rail-gap: 1.5rem;
+  --rail-gap: 0.9rem;
   position: relative;
   margin: 0;
-  padding: 0.5rem 0 0.5rem 12.2rem;
+  padding: 0.5rem 0 0.5rem 11.6rem;
 }
 .rail::before {
   content: "";
@@ -884,12 +899,12 @@ function print() {
   offset, unlike the negative item-relative one TaskCard's .dot/.when use. */
 .gap {
   position: relative;
-  margin-left: -12.2rem;
-  padding-left: 12.2rem;
+  margin-left: -11.6rem;
+  padding-left: 11.6rem;
 }
 .gap-add {
   position: absolute;
-  /* Centered on .rail::before's line: 10.7rem minus half the 1.3rem width. */
+  /* Centered on .rail::before's line. */
   left: 10.05rem;
   top: 50%;
   transform: translateY(-50%);
@@ -931,6 +946,42 @@ function print() {
   border-style: solid;
   border-color: var(--accent);
   color: var(--accent);
+}
+.done-group {
+  margin-top: 1.2rem;
+  font-size: var(--fs-sm);
+}
+.done-group summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+.done-group ul {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.done-group li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.done-group .check {
+  flex-shrink: 0;
+  width: 1.1rem;
+  height: 1.1rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--done-color);
+  background: var(--done-color);
+  color: var(--paper-raised);
 }
 .add-end-wrap {
   position: relative;
