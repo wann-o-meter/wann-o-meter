@@ -33,13 +33,13 @@
       </header>
 
       <div class="stage">
-        <p class="hint" :class="{ armed }">{{ hintText }}</p>
+        <p class="hint armed">{{ hintText }}</p>
         <Timeline
           :tasks="tasks"
           :anchor-date="anchorDate"
           :anchor-name="selected.anchorName"
           :region-code="previewVariant?.regionCode"
-          :clickable="armed"
+          clickable
           keyed
           @place="onPlace"
         >
@@ -92,7 +92,6 @@ const props = defineProps<{
 
 const rootEl = useTemplateRef<HTMLElement>("rootEl");
 
-const armed = ref(false);
 const selectedSlug = ref(props.vorhaben[0]?.slug);
 const selected = computed(
   () =>
@@ -100,16 +99,10 @@ const selected = computed(
     props.vorhaben[0],
 );
 
-// Clicking the active chip toggles placement mode, clicking another one
-// switches Vorhaben and asks for a date right away.
 function pick(slug: string) {
-  if (slug === selectedSlug.value) {
-    armed.value = !armed.value;
-    return;
-  }
+  if (slug === selectedSlug.value) return;
   selectedSlug.value = slug;
   variantSlug.value = defaultVariantSlug();
-  armed.value = true;
 }
 
 const anchorDate = ref(""); // ISO day, "" until placed
@@ -150,7 +143,6 @@ const { tasks } = usePlannerSchedule(
 
 function onPlace(iso: string) {
   anchorDate.value = iso;
-  armed.value = false;
 }
 
 // Feeds the mounted DeadlinePlanner's own ?date=/?variant= handling (see
@@ -162,11 +154,11 @@ const planHref = computed(() => {
   return `/${selected.value.slug}/?${params.toString()}`;
 });
 
-const hintText = computed(() => {
-  if (armed.value) return "Zieh über den Zeitstrahl - wann ist es soweit?";
-  if (placed.value) return "Vorhaben gesetzt · anderes wählen zum Verschieben";
-  return "Wähle oben ein Vorhaben";
-});
+const hintText = computed(() =>
+  placed.value
+    ? "Zieh erneut, um den Termin zu verschieben"
+    : "Zieh über den Zeitstrahl - wann ist es soweit?",
+);
 
 function measureKeyed(attr: string): Map<string, DOMRect> {
   const map = new Map<string, DOMRect>();
@@ -348,6 +340,17 @@ h1 {
 .stage {
   margin-top: 2rem;
   position: relative;
+}
+@media (max-width: 36rem) {
+  header {
+    padding: 0 0 0.8rem;
+  }
+  .lede {
+    margin-bottom: 0.8rem;
+  }
+  .stage {
+    margin-top: 1rem;
+  }
 }
 .hint {
   font-family: var(--font-mono);

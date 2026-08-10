@@ -442,6 +442,11 @@ const hasRange = computed(
   font-size: var(--fs-md);
   color: var(--accent);
 }
+/* A square button has no text baseline to align the row by. */
+.anchor-divider .check {
+  align-self: center;
+  margin-top: 0;
+}
 .anchor-divider .label.done {
   text-decoration: line-through;
   color: var(--muted);

@@ -319,6 +319,16 @@ const ogDescription =
     padding-top: 2rem;
     padding-bottom: 3rem;
   }
+  /* Phones have no screen to spare above the fold. */
+  @media (max-width: 36rem) {
+    .header-bar {
+      padding-top: 0.6rem;
+      padding-bottom: 0.6rem;
+    }
+    main {
+      padding-top: 1rem;
+    }
+  }
 
   footer {
     margin-top: 3rem;

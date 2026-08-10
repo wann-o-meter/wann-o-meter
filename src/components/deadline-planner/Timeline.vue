@@ -208,10 +208,8 @@ const emit = defineEmits<{
   hover: [id: string | null];
 }>();
 
-// Two scales, one component. The full rail is a fixed 6px per day canvas the
-// user scrolls and clicks a date on. The compact strip instead fits its own
-// container, so when the overview widens on scroll the plan spreads out into
-// the new width rather than unfolding further to the right.
+// Both scales fit their container. The rail spans a fixed year, the compact
+// strip spans only the days the plan occupies.
 const RAIL_PPD = 6;
 const FIT_MIN_PPD = 2.2; // under this a dense plan is unreadable, so it scrolls instead
 const EDGE_PX = 30; // px kept free at both ends for the first and last cap
@@ -375,6 +373,7 @@ const usedLanes = computed(() => laneCount(taskLane.value));
 // the stylesheet is derived from these two plus the tokens in .timeline.
 const rootVars = computed(() => ({
   "--node": NODE_PX.value + "px",
+  "--edge": scale.value.edge + "px",
   "--ppd": scale.value.ppd + "px",
   "--lanes": String(usedLanes.value),
 }));
@@ -476,8 +475,14 @@ const schulferienBands = computed(() =>
     .filter((w) => w.x + w.width >= 0 && w.x <= trackWidth.value),
 );
 
+// The pin carries its own controls (the "Zeitplan öffnen" link), so a click
+// that starts there must not also drop a new date underneath it.
+function onPin(e: Event): boolean {
+  return !!(e.target as HTMLElement).closest?.(".pin");
+}
+
 function onScrollerMove(e: MouseEvent) {
-  if (!props.clickable || !trackEl.value) return;
+  if (!trackEl.value) return;
   const r = trackEl.value.getBoundingClientRect();
   const x = e.clientX - r.left;
   const d = scale.value.dateAt(x);
@@ -486,7 +491,7 @@ function onScrollerMove(e: MouseEvent) {
 // Touch: the ghost follows the finger and only the lift commits a date, so a
 // coarse first touch can be corrected while still looking at the label.
 function onScrubMove(e: TouchEvent) {
-  if (!props.clickable || !trackEl.value) return;
+  if (!props.clickable || !trackEl.value || onPin(e)) return;
   e.preventDefault();
   const t = e.touches[0];
   if (!t) return;
@@ -505,7 +510,7 @@ function onScrubEnd() {
 let scrubIso: string | null = null;
 
 function onScrollerClick(e: MouseEvent) {
-  if (!props.clickable || !trackEl.value) return;
+  if (!props.clickable || !trackEl.value || onPin(e)) return;
   const r = trackEl.value.getBoundingClientRect();
   const d = scale.value.dateAt(e.clientX - r.left);
   ghost.value = null;
@@ -644,7 +649,7 @@ function onNodeClick(id: string, e: MouseEvent) {
 }
 .days {
   position: absolute;
-  left: 0;
+  left: var(--edge);
   right: 0;
   top: var(--axis-y);
   height: var(--tick-day);
