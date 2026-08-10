@@ -23,17 +23,25 @@
           Geschlossen
         </span>
         <span class="legend-item">
+          <span class="swatch span"></span>
+          Zeitfenster
+        </span>
+        <span class="legend-item">
+          <span class="swatch weekend"></span>
+          Wochenende
+        </span>
+        <span class="legend-item">
           <span class="swatch past"></span>
           Vergangen
         </span>
-      </span>
-      <span class="legend-toggles">
         <label class="legend-item">
           <input type="checkbox" v-model="showFeiertage" />
+          <span class="swatch feiertage"></span>
           Feiertage
         </label>
         <label class="legend-item">
           <input type="checkbox" v-model="showSchulferien" />
+          <span class="swatch schulferien"></span>
           Schulferien
         </label>
       </span>
@@ -739,7 +747,13 @@ function onNodeClick(id: string, e: MouseEvent) {
   --ctx-y: 1.2rem; /* Feiertage/Schulferien strip, below the ruler */
   --ctx-h: 0.55rem;
   --band-up: 1.4rem; /* how far the weekend/past shading reaches above the axis */
-  --weekend-band: color-mix(in srgb, var(--ink) 3%, transparent);
+  --weekend-band: color-mix(in srgb, var(--ink) 5%, transparent);
+  --closed-band: color-mix(in srgb, var(--holiday) 28%, transparent);
+  --spent-hatch: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--ink) 9%, transparent) 0 2px,
+    transparent 2px 6px
+  );
   --mlabel-y: 1.5rem;
   --mlabel-size: var(--fs-xs);
   --pin-title: var(--fs-md);
@@ -798,24 +812,29 @@ function onNodeClick(id: string, e: MouseEvent) {
   background: var(--done-color);
 }
 .swatch.closed {
-  background: color-mix(in srgb, var(--holiday) 30%, transparent);
+  background: var(--closed-band);
+  border: 1px solid color-mix(in srgb, var(--holiday) 60%, transparent);
 }
 .swatch.past {
-  background-image: repeating-linear-gradient(
-    -45deg,
-    color-mix(in srgb, var(--ink) 30%, transparent) 0 2px,
-    transparent 2px 5px
-  );
+  background-image: var(--spent-hatch);
+  border: 1px solid var(--line);
 }
-.legend-keys,
-.legend-toggles {
+.swatch.weekend {
+  background: var(--weekend-band);
+  border: 1px solid var(--line);
+}
+.swatch.span {
+  width: 1.1rem;
+  height: 0.4rem;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--accent);
+  background: var(--paper-raised);
+}
+.legend-keys {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem 1rem;
-}
-.legend-toggles {
-  margin-left: auto;
 }
 .swatch.anchor {
   background: var(--anchor);
@@ -912,7 +931,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   position: absolute;
   top: calc(var(--axis-y) - var(--band-up));
   height: calc(var(--band-up) + var(--below));
-  background: color-mix(in srgb, var(--holiday) 22%, transparent);
+  background: var(--closed-band);
   pointer-events: none;
 }
 .htick {
@@ -942,11 +961,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   left: 0;
   top: calc(var(--axis-y) - var(--band-up));
   height: calc(var(--band-up) + var(--below));
-  background-image: repeating-linear-gradient(
-    -45deg,
-    color-mix(in srgb, var(--ink) 7%, transparent) 0 2px,
-    transparent 2px 6px
-  );
+  background-image: var(--spent-hatch);
   pointer-events: none;
 }
 .band {
@@ -1165,8 +1180,8 @@ function onNodeClick(id: string, e: MouseEvent) {
 /* Compact: same layout, larger type and ticks, one lane fewer. Nothing here
   repositions anything - it only retunes the tokens. */
 .compact {
-  --lane-h: 1.85rem;
-  --head-pad: 5.2rem;
+  --lane-h: 1.5rem;
+  --head-pad: 3.2rem;
   --tick-day: 0.5rem;
   --tick-week: 1.1rem;
   --tick-month: 1.45rem;
@@ -1226,8 +1241,8 @@ function onNodeClick(id: string, e: MouseEvent) {
   /* --lane-h has to clear --node (24px) by enough to read as separate lanes,
     and --today-top sits below the pin's two label lines so HEUTE gets a row. */
   .compact {
-    --lane-h: 1.85rem;
-    --head-pad: 4.3rem;
+    --lane-h: 1.5rem;
+    --head-pad: 3.2rem;
     --tick-day: 0.35rem;
     --tick-week: 0.75rem;
     --tick-month: 1.05rem;

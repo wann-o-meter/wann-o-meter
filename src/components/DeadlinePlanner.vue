@@ -216,15 +216,25 @@ function onToggleDone(id: string) {
 }
 
 // The plan in one sentence, so the numbers below have a frame.
-const summary = computed(() => {
+const nextOpen = computed(() => {
   const open = timeline.value.filter(
     (e) => e.id !== ANCHOR_ID && !doneIds[e.id],
   );
-  const head = `Aus deinem ${props.anchorLabel} am ${formatDateWithWeekday(anchorDate.value)} ergeben sich ${tasks.value.length} Aufgaben.`;
-  if (open.length === 0) return `${head} Alle sind erledigt.`;
-  const next = open.reduce((a, b) => (a.date! <= b.date! ? a : b));
-  return `${head} Die nächste offene ist am ${formatDateWithWeekday(next.date!)}.`;
+  return open.length === 0
+    ? null
+    : open.reduce((a, b) => (a.date! <= b.date! ? a : b));
 });
+const summaryHead = computed(
+  () =>
+    `Aus deinem ${props.anchorLabel} am ${formatDateWithWeekday(anchorDate.value)} ergeben sich ${tasks.value.length} Aufgaben. Die nächste offene ist am `,
+);
+// The same date said once: either it is a while off, or it is simply next.
+const quietSuffix = computed(() =>
+  quietUntil.value ? ", vorher ist nichts zu tun." : ".",
+);
+function jumpToNext() {
+  if (nextOpen.value) onTimelineSelect(nextOpen.value.id);
+}
 
 const suppressDate = computed(() => {
   const ids = new Set<string>();
@@ -240,11 +250,8 @@ const suppressDate = computed(() => {
 
 // Ticked-off tasks leave the running plan and collect in a fold at the end.
 const openNodes = computed(() => {
-  const kept = railNodes.value.filter(
-    (n) => n.kind === "gap" || !doneIds[n.entry.id] || n.entry.id === ANCHOR_ID,
-  );
-  // Filtering done tasks out can leave a gap with nothing above it, and a
-  // buffer before the plan starts measures nothing.
+  const kept = [...railNodes.value];
+  // A buffer before the plan starts measures nothing.
   while (kept.length > 0 && kept[0].kind === "gap") kept.shift();
   return kept;
 });
@@ -262,13 +269,14 @@ const nextUpId = computed(
 // Nothing happens between today and the first task, and saying so beats an
 // unexplained stretch of empty rail.
 const quietUntil = computed(() => {
-  if (stats.value.done > 0) return null;
-  const next = tasks.value.find((t) => t.date && !isPast(t.date));
-  if (!next) return null;
+  const next = tasks.value.find(
+    (t) => t.date && !isPast(t.date) && !doneIds[t.id],
+  );
+  if (!next) return false;
   const days = Math.round(
     (toDate(next.date!).getTime() - toDate(isoToday()).getTime()) / 86400000,
   );
-  return days >= 21 ? formatDateWithWeekday(next.date!) : null;
+  return days >= 21;
 });
 
 // The date under the flag while it is being dragged, so the collision count
@@ -299,7 +307,10 @@ const previewCollisions = computed(() => {
 const landscapeNote = computed(() => {
   if (previewCollisions.value !== null)
     return `${formatDateWithWeekday(dragPreview.value!)} · ${previewCollisions.value} Kollisionen`;
-  return "Ferien, Feiertage, Wochenenden und die schon vergangene Zeit.";
+  const n = blockedTasks.value.length;
+  return n === 0
+    ? "Kein Termin fällt auf einen geschlossenen Tag. Flagge ziehen zum Verschieben."
+    : `${n} Termin${n === 1 ? "" : "e"} auf geschlossenen Tagen. Flagge ziehen und zusehen, wie sich das ändert.`;
 });
 
 // Tasks that need an open office on a day when none is open.
@@ -604,22 +615,34 @@ function print() {
     </fieldset>
 
     <template v-if="anchorDate">
-      <div v-if="tasks.length > 0" class="mini-header">
+      <div v-if="stats.done > 0" class="mini-header">
         <b>{{ stats.done }} von {{ tasks.length }} erledigt</b>
         <progress :value="stats.done" :max="tasks.length"></progress>
       </div>
 
-      <p class="summary">{{ summary }}</p>
-      <p v-if="blockedTasks.length > 0" class="quiet grouped-warn">
-        {{ blockedTasks.length }}
-        {{ blockedTasks.length === 1 ? "Aufgabe fällt" : "Aufgaben fallen" }}
-        auf einen Tag mit geschlossenen Ämtern.
-        <button type="button" @click="shiftAllToWorkday">
-          {{ blockedTasks.length === 1 ? "Vorziehen" : "Alle vorziehen" }}
+      <div v-if="nextOpen" class="sticky-next">
+        <button type="button" @click="jumpToNext">
+          Nächste Aufgabe: {{ nextOpen.label }}
         </button>
-      </p>
-      <p v-if="quietUntil" class="quiet">
-        Bis {{ quietUntil }} ist nichts zu tun.
+      </div>
+
+      <p class="summary">
+        {{ summaryHead }}
+        <template v-if="nextOpen">
+          <a :href="`#task-${nextOpen.id}`" @click.prevent="jumpToNext">{{
+            formatDateWithWeekday(nextOpen.date!)
+          }}</a
+          >{{ quietSuffix }}
+        </template>
+        <template v-else>Alle Aufgaben sind erledigt.</template>
+        <span v-if="blockedTasks.length > 0" class="lead-warn">
+          {{ blockedTasks.length }}
+          {{ blockedTasks.length === 1 ? "Aufgabe fällt" : "Aufgaben fallen" }}
+          auf einen Tag mit geschlossenen Ämtern.
+          <button type="button" @click="shiftAllToWorkday">
+            {{ blockedTasks.length === 1 ? "Vorziehen" : "Alle vorziehen" }}
+          </button>
+        </span>
       </p>
 
       <div class="overview-wrap">
@@ -792,12 +815,6 @@ function print() {
         </ul>
       </div>
 
-      <div class="sticky-export">
-        <button type="button" @click="exportIcs">
-          <Download :size="14" /> Als ICS exportieren
-        </button>
-      </div>
-
       <div class="actions">
         <h2>Plan mitnehmen</h2>
         <div class="actions-buttons">
@@ -937,18 +954,13 @@ function print() {
   margin: 0 0 0.5rem;
   font-size: var(--fs-md);
 }
-.quiet {
-  margin: 0 0 1rem;
-  color: var(--muted);
+.lead-warn {
+  display: block;
+  margin-top: 0.25rem;
   font-size: var(--fs-sm);
+  color: var(--muted);
 }
-.grouped-warn {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-.grouped-warn button {
+.lead-warn button {
   font-size: var(--fs-xs);
   padding: 0.25rem 0.5rem;
 }
@@ -1200,30 +1212,36 @@ function print() {
   color: var(--muted);
 }
 
-/* Phones only: the desktop copy of this button lives in .actions below. */
-.sticky-export {
+/* Phones only, and it points into the plan rather than out of it. */
+.sticky-next {
   display: none;
 }
 @media (max-width: 40rem) {
-  .sticky-export {
+  .sticky-next {
     position: sticky;
-    bottom: 0;
+    top: 0;
     z-index: 7;
     display: block;
-    margin: 1rem -1rem 0;
+    margin: 0 -1rem 0.75rem;
     padding: 0.5rem 1rem;
     background: var(--paper);
-    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
   }
-  .sticky-export button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
+  .sticky-next button {
     width: 100%;
     background: var(--accent);
     border-color: var(--accent);
     color: var(--accent-ink);
+    font-size: var(--fs-sm);
+    text-align: left;
+  }
+  /* Three boxes for one editable value is not worth a phone screen. */
+  .form {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .field.static {
+    display: none;
   }
 }
 .actions {
@@ -1287,7 +1305,7 @@ function print() {
   .form,
   .overview-wrap,
   .mini-header,
-  .sticky-export,
+  .sticky-next,
   .gap-add,
   .add-end,
   .undo,

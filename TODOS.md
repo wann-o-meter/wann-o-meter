@@ -1,7 +1,7 @@
 # Open Todos
 
 - [x] shorten the explanation texts
-- [ ] on mobile the date selection on the start page is difficult because i scroll but i cannot really select the date in detail. it would be better to show a fixed window, e.g., a year from now and let the user scrub through
+- [x] on mobile the date selection on the start page is difficult because i scroll but i cannot really select the date in detail. it would be better to show a fixed window, e.g., a year from now and let the user scrub through
 - [x] currently all "Vorhaben" are shown as a list but the user cannot select anything else which is irritating because the user thinks that there are other options to select from
 - [x] the start page doesn't ask where only when but then a city is preselected. give the user the option to select a city by searching for it or use the current location and estimate the nearest city (Ort select added on the start page. Search and geolocation skipped, only 4 pilot cities exist and the data has no coordinates)
 - [x] "als ICS exportieren" downloads the ics directly, add a download icon to indicate it. same applies to checkliste drucken, add a printer icon
@@ -85,10 +85,6 @@
 - [x] Add margin in theme toggle between text and icon
 - [x] Verify that elements have enough margin but not too much (audited: 29 distinct spacing values in the redesigned files, snapped onto a 7-step scale of 0.25/0.5/0.75/1/1.5/2/3rem. Rail gutter constants and the calendar views were left alone)
 
-# Wann-O-Meter — UX/UI Changelist
-
-## Start page
-
 - [x] Add a date input as an equal alternative to dragging (`[31].[01].[2027]` or native picker) — drag-only is undiscoverable on desktop and broken on touch
 - [x] Add quick presets as chips: "In 3 Monaten", "Zum Monatsende", "Nächster Monatserste", "Weiß ich noch nicht" (three, "Weiß ich noch nicht" left out: the plan needs a date to exist at all)
 - [x] Put a visible, pre-positioned handle on the timeline (default: today + 3 months) with grip affordance, shadow, and `cursor: grab`
@@ -105,8 +101,6 @@
 - [x] Add keyboard support: arrow ±1 day, shift+arrow ±1 week, Home/End = bounds, visible focus ring
 - [x] Style the rail as a grabbable track (inset background, rounded ends), not a printed ruler
 
-## Planner — information
-
 - [x] Restore relative offsets on every card ("6 Wochen vorher", "2 Wochen danach") — your SSR HTML has this and hydration throws it away
 - [x] Pair or replace "in gut 5 Monaten" → `2 Wochen vor dem Umzug · in gut 5 Monaten`; six tasks currently all read "in gut 6 Monaten"
 - [x] Add the summary sentence at the top: "Aus deinem Umzugstag am 31. Januar 2027 ergeben sich 10 Fristen. Die erste ist am 4. November 2026."
@@ -116,8 +110,6 @@
 - [x] Mark the next actionable task with an "Als Nächstes" badge and stronger card treatment
 - [x] Bridge the empty gap between HEUTE (August) and the first task (November): "Bis November ist nichts zu tun."
 - [x] Handle past deadlines explicitly: "Frist verstrichen — was du jetzt tun kannst"
-
-## Planner — interaction
 
 - [x] Turn "Fällt auf ein Wochenende" from a red alert into a neutral hint with an action: "Sa/So — Ordnungsamt hat zu. Auf Fr, 29. Jan verschieben →"
 - [x] Suppress the weekend warning on the Umzugstag itself — moving on a Saturday is the normal case
@@ -129,17 +121,11 @@
 - [x] Apply "Wie berechnet? (4 Schritte)" to all computed dates or none (only offset_rule entries have a derivation, and the panel is collapsed for all of them. Fabricating steps for plain offsets would be inventing a calculation)
 - [x] Add "Plan-Link kopieren" with state encoded in the URL — "Auf diesem Gerät gespeichert" is an unmitigated data-loss risk (the link carries date, Ort, facets and Mietende. Ticks, notes and custom tasks stay in localStorage, and the copy now says so)
 - [x] Give the ICS/print block a heading ("Plan mitnehmen")
-
-## Planner — layout
-
 - [x] Remove duplicated dates inside cards when the left rail already shows them (currently inconsistent) (the gutter date is never suppressed now, so the in-card fallback is gone)
 - [x] Close the horizontal gap between the date rail and the cards
 - [x] Move the progress bar above the timeline and label it — it's currently clipped (the sticky scroll-widening strip that clipped it is gone, 97 lines lighter)
 - [x] Align card left edges (the first card sits ~5px left of the rest)
 - [x] Reduce box-in-box nesting: card → description → warning box → source chip is four nested borders (the warning box became a coloured line, the source chip and actions are one row)
-
-## Visual system
-
 - [x] Rounded corners consistently: 8px cards/inputs/buttons, 6px chips/badges, 999px only for category pills
 - [x] Use elevation instead of hairline borders — white surface + soft shadow on a tinted background
 - [x] Split the blue: it's currently the today marker, the Umzugstag, all links, and the primary button
@@ -148,22 +134,13 @@
 - [x] Add hover/active/focus states everywhere; nothing currently responds to a cursor
 - [x] Replace the "System" toggle with a sun/moon icon plus a proper label or dropdown (icon plus a visible label that names the current mode)
 - [x] Soften the page background or make cards white — near-identical greys give no figure/ground separation
-
-## Mobile
-
 - [x] Drop the left date rail below 640px; put the date above each card as a section header
 - [x] Rework the timeline for mobile: horizontal scroll with snap points, or a simplified month band (it fits its container instead of scrolling, and it is folded away by default)
 - [x] Enforce ≥44px tap targets on checkboxes and legend toggles
 - [x] Add a sticky "Als ICS exportieren" bottom bar
-
-## Copy
-
 - [x] Reframe "Quelle fehlt" as "Erfahrungswert" — as written it reads like a defect in your own product
 - [x] Add a one-line "Warum?" to every task, not just some ("Halteverbotszone" has none)
 - [x] Style the § chips as links with a consistent external-link icon (the global a[target=_blank] rule gives them the same arrow as every other outbound link)
-
-## Accessibility
-
 - [x] Add `role="slider"` + `aria-valuenow`/`aria-valuetext` to the timeline handle
 - [x] Don't encode task state in colour alone — add a shape or text label for filled/ring (four legend entries plus the state in each node's accessible name)
 - [x] Check contrast on grey secondary text ("in gut 4 Monaten", card descriptions) — several are below 4.5:1 (measured: muted 6.75:1, accent 7.19:1, warn 5.87:1 on paper. Holiday and done were 3.2 and 4.37, darkened to 5.22 and 5.21)
@@ -225,3 +202,32 @@
 - [x] "24 Tage Puffer" now appears above the first card, i.e. before any task — a buffer before the plan starts has no meaning (leading gaps are dropped, they appeared when a done task was filtered out)
 - [x] Date field and the sticky "Umzugstag: So., 08.11.2026" bar state the same value twice, directly adjacent (the sticky bar is progress only)
 - [x] The move date is a Sunday and still carries no warning of its own, though three derived tasks do (it was an inline span at the end of a wrapping row, now its own warning line)
+- [x] Die nächste offene ist am Do., 03.09.2026. -> make Do., 03.09.2026. a link that jumps to the next task
+- [x] The pill "Als nächstes" is not aligned with the buttons; it also overlaps with the task title on mobile (centred in the head row, and it no longer shares the blue with the card action)
+- [x] Don't remove the tasks completely from the overview. Still keep a separate small list with finished tasks, but accidentally clicking on the checkbox means that the task disappears and has to be retrieved (a ticked task stays in place and shrinks to its title, the fold below is a second view of it)
+      **Desktop**
+
+- [x] "Bis Do., 03.09.2026 ist nichts zu tun" contradicts "Die nächste offene ist am Do., 03.09.2026" two lines above — same date, opposite meaning
+- [x] Three separate status sentences stack before the timeline (task count, closed-office warning, nothing-to-do) — merge into one lead paragraph
+- [x] Weekend bars are still visible but now nearly invisible against the background while the "Vergangen" band below is much darker — the two greys should not compete (weekends 5%, spent time a 9% hatch, both cut from shared declarations)
+- [x] "Vergangen" legend swatch is a diagonal hatch but the actual band on the rail is solid grey — legend does not match rendering (swatch and band now share one --spent-hatch token, so they cannot drift)
+- [x] The past band ends at Sep, but "Heute" sits well to its left — verify what the band actually represents (that was the Schulferien band being read as the past one, both now have distinct keys)
+- [x] The brown/tan vertical bars (Feiertage?) are not in the legend; "Geschlossen" swatch is grey, not tan (the toggles lost their swatches when I unified the legend, they are back)
+- [x] Legend now split across two sides of the row (keys left, toggles right) with different alignment — keep them on one baseline
+- [x] The horizontal blue bar right of the Umzugstag is still unexplained (a task with a date range, keyed as "Zeitfenster")
+- [x] Caption "Ferien, Feiertage, Wochenenden und die schon vergangene Zeit" describes the layers but says nothing about what to do with them — replace with the collision count or drop
+- [x] "MIETENDE" toggle is a strong improvement, but it sits above "Wie berechnet?" while its effect shows in the date to the left — add the resulting lease-end date next to the toggle (the month comes from the rule's own derivation step, not from re-deriving it in the card)
+- [x] "Als Nächstes" badge and "Kündigungsschreiben bearbeiten" both in blue compete for primary attention within one card
+- [x] Gutter date "Do, 3. Sep. 2026" lost its relative line entirely here, while other entries have two — inconsistent (rule-based entries say "berechnete Frist" instead of nothing)
+
+**Mobile**
+
+- [x] Four stacked full-width boxes push the actual content below the fold — collapse Vorhaben/Umzugstag/Ort into one compact row with the date as the only prominent field
+- [x] "Vorhaben" is not editable (single option) yet takes the largest box on the smallest screen — render as text
+- [x] The sticky "Als ICS exportieren" bar covers content and is the wrong primary action at 0 of 10 done — nobody exports a plan they have not read
+- [x] Replace it with nothing, or with "Nächste Aufgabe" scrolling to the first open card
+- [x] Timeline is cut off mid-flag by the sticky bar — either hide the timeline on mobile or give it a fixed height above the fold (the bottom bar is gone and the strip is shorter)
+- [x] "Alle vorziehen" button sits on its own line and reads as the page's main action — inline it or demote it (inline in the lead paragraph now)
+- [x] Progress bar with 0 of 10 filled is pure decoration at this stage; hide until at least one item is checked
+- [x] Headline wraps to two lines and consumes a third of the viewport — consider a shorter mobile variant
+- [x] Nothing above the fold answers "when do I start" — the first date the user sees is buried in body text (the lead paragraph opens with the next open date as a link into the list)

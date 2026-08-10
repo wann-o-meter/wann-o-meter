@@ -93,6 +93,16 @@ const previousWorkday = computed(() => {
   return d.toISOString().slice(0, 10);
 });
 
+// The month the rule itself says the tenancy ends, not a re-derivation of it.
+const leaseEndLabel = computed(() => {
+  const step = props.entry.derivation?.find(
+    (d) => d.step === "target-end-month",
+  );
+  if (!step?.value) return "";
+  const [y, m] = step.value.split("-").map(Number);
+  return `bis Ende ${MONTH_NAMES[m - 1]} ${y}`;
+});
+
 const isSunday = computed(() => toDate(props.entry.date!).getUTCDay() === 0);
 
 // A step at offset 0 happens on the day itself, so it cannot move.
@@ -128,8 +138,12 @@ const hasRange = computed(
       <span v-if="entry.rescue" class="next-possible"
         ><ArrowRight :size="14" /> {{ whenDate(entry.rescue.date) }}</span
       >
-      <span v-if="!entry.rescue && !entry.offset_rule" class="rel">
-        {{ offsetLabel(entry, anchorLabel) }}
+      <span v-if="!entry.rescue" class="rel">
+        {{
+          entry.offset_rule
+            ? "berechnete Frist"
+            : offsetLabel(entry, anchorLabel)
+        }}
       </span>
     </div>
 
@@ -262,7 +276,7 @@ const hasRange = computed(
         </p>
       </div>
       <p v-if="entry.offset_rule || deferred" class="defer">
-        <span class="defer-label">Mietende</span>
+        <span class="defer-label">Mietende {{ leaseEndLabel }}</span>
         <button
           type="button"
           :aria-pressed="!deferred"
@@ -480,11 +494,13 @@ const hasRange = computed(
   border-left-width: 3px;
   box-shadow: var(--shadow-md);
 }
+/* A quiet label: the blue in this card belongs to its action. */
 .next-badge {
-  margin-left: auto;
-  border-color: var(--accent);
-  background: var(--accent);
-  color: var(--accent-ink);
+  align-self: center;
+  margin: 0 0 0 auto;
+  border-color: var(--line);
+  background: var(--paper);
+  color: var(--muted);
   font-family: var(--font-sans);
   white-space: nowrap;
 }
@@ -552,6 +568,14 @@ const hasRange = computed(
 .item.done .card {
   border-left: 3px solid var(--done-color);
   opacity: 0.75;
+}
+.item.done .card p,
+.item.done .card .range-line,
+.item.done .card .derivation,
+.item.done .card .cta-row,
+.item.done .card .defer,
+.item.done .card .badge {
+  display: none;
 }
 .item.done .card-head h3 {
   text-decoration: line-through;

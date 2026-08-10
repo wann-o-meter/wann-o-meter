@@ -90,6 +90,26 @@ h1 {
   font-size: var(--fs-xl);
   letter-spacing: -0.02em;
 }
+@media (max-width: 40rem) {
+  h1 {
+    font-size: var(--fs-lg);
+  }
+  h1,
+  h2,
+  h3 {
+    margin: 1rem 0 0.5rem;
+  }
+}
+@media (max-width: 40rem) {
+  h1 {
+    font-size: var(--fs-lg);
+  }
+  h1,
+  h2,
+  h3 {
+    margin: 1rem 0 0.5rem;
+  }
+}
 h2 {
   font-size: var(--fs-lg);
   padding-bottom: 0.25rem;
