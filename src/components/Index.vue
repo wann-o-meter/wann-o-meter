@@ -4,8 +4,7 @@
       <header>
         <h1>Was hast du vor?</h1>
         <p class="lede">
-          Setz es auf den Zeitstrahl. Alles, was vorher passieren muss, wächst
-          rückwärts daraus hervor.
+          Setz es auf den Zeitstrahl. Der Rest wächst rückwärts daraus hervor.
         </p>
         <div class="shelf">
           <button

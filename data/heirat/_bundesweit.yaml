@@ -8,7 +8,7 @@ deadlines:
     label: Eheschließung beim Standesamt anmelden
     offset_days: -180
     source_url: null
-    note: Kein gesetzlich fixierter Vorlauf, aber Standesämter sind oft Monate im Voraus ausgebucht und benötigte Dokumente (z.B. Ledigkeitsbescheinigung) haben eine begrenzte Gültigkeit - Frist nicht verifiziert.
+    note: Kein gesetzlicher Vorlauf. Standesämter sind oft Monate ausgebucht, Dokumente wie die Ledigkeitsbescheinigung gelten nur begrenzt. Nicht verifiziert.
   - id: dokumente-beschaffen
     label: Personenstandsurkunden und Ausweisdokumente beschaffen
     offset_days: -120

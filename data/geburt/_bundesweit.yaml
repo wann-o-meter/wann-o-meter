@@ -28,7 +28,7 @@ deadlines:
     label: Kind bei der Krankenversicherung anmelden
     offset_days: 60
     source_url: null
-    note: Bei gesetzlicher Familienversicherung meist beitragsfrei möglich, bei privater Versicherung der Eltern gilt oft eine Frist ohne Gesundheitsprüfung - Frist nicht verifiziert, bei der eigenen Kasse nachfragen.
+    note: Gesetzlich familienversichert meist beitragsfrei. Privat gilt oft eine Frist ohne Gesundheitsprüfung. Frist nicht verifiziert, bei der Kasse nachfragen.
   - id: geburtsurkunde-beantragen
     label: Geburtsurkunden beim Standesamt beantragen
     offset_days: 14

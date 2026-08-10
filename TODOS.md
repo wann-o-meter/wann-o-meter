@@ -1,6 +1,6 @@
 # Open Todos
 
-- [ ] shorten the explanation texts
+- [x] shorten the explanation texts
 - [ ] on mobile the date selection on the start page is difficult because i scroll but i cannot really select the date in detail. it would be better to show a fixed window, e.g., a year from now and let the user scrub through
 - [x] currently all "Vorhaben" are shown as a list but the user cannot select anything else which is irritating because the user thinks that there are other options to select from
 - [x] the start page doesn't ask where only when but then a city is preselected. give the user the option to select a city by searching for it or use the current location and estimate the nearest city (Ort select added on the start page. Search and geolocation skipped, only 4 pilot cities exist and the data has no coordinates)
@@ -9,10 +9,12 @@
 - [x] "Trifft auf mich zu" show the options below the text
 - [x] "Zurück zum Zeitstrahl" -> "Zurück zur Startseite"
 - [x] on mobile fix the date popup when changing the date of a card. it keeps closing.
-- [x] there is too many font types, sizes, weights, etc., On mobile it really gets messy. Consolidate this ![Messy mobile](image.png)
+- [x] there is too many font types, sizes, weights, etc., On mobile it really gets messy. Consolidate this ![Messy mobile](mobile.png)
 - [x] "Umzug/Hochzeit/... in deiner Stadt" is nice but it becomes messy if there are lets say 1500 cities
 - [ ] "Umzug" is preselected but you still have to click it to select the date
 - [ ] the checkbox for the main even in the list is looking weird
 - [ ] after placing the event on the timeline it cannot be reset without clicking the event type, e.g. Umzug which is bad UX
 - [ ] on mobile the top navbar and the top content has too much space such that the main content, meaning the events are almost hidden.
--
+- [ ] the ticks in the timeline don't align
+- [ ] on hover in the timeline show the date the mouse is on
+- [ ]
