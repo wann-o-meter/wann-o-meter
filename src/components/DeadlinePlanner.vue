@@ -589,6 +589,7 @@ function print() {
               @commit-attachment="commitAttachment(node.entry.id, $event)"
               @delete="deleteEntry(node.entry)"
               @open-date-edit="editingDateId = node.entry.id"
+              @close-date-edit="editingDateId = null"
               @commit-date-edit="onCommitDate(node.entry.id, $event)"
               @mouseenter="hoveredId = node.entry.id"
               @mouseleave="hoveredId = null"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import {
   Check,
   Pencil,
@@ -32,7 +32,7 @@ const props = defineProps<{
   dateEditOpen: boolean;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   (e: "toggle-done"): void;
   (e: "commit-label", value: string): void;
   (e: "open-note"): void;
@@ -41,8 +41,25 @@ defineEmits<{
   (e: "commit-attachment", value: string): void;
   (e: "delete"): void;
   (e: "open-date-edit"): void;
+  (e: "close-date-edit"): void;
   (e: "commit-date-edit", iso: string): void;
 }>();
+
+// A touch date wheel fires change on every spin, and committing re-renders the
+// rail under the open picker. So the date is parked and applied on close.
+const pendingDate = ref("");
+function parkDate(e: Event) {
+  const el = e.target as HTMLInputElement;
+  pendingDate.value = el.value;
+  // A pointer picker closes on selection, so it can commit at once.
+  if (matchMedia("(hover: hover)").matches) el.blur();
+}
+function closeDateEdit() {
+  const iso = pendingDate.value;
+  pendingDate.value = "";
+  if (iso) emit("commit-date-edit", iso);
+  else emit("close-date-edit");
+}
 
 // Full "17. Juni 2026" / "Mittwoch": the rail has room for it.
 function whenDate(iso: string): string {
@@ -61,8 +78,7 @@ function offsetLabel(offsetDays: number | null): string {
     : `${offsetDays} Tage danach`;
 }
 
-// Relative to today, not to the anchor day: "in 39 Tagen" is what tells you
-// whether to act now.
+// Relative to today, not to the anchor day: that is what says whether to act.
 function relativeLabel(iso: string): string {
   const todayIso = new Date().toISOString().slice(0, 10);
   const days = Math.round(
@@ -72,7 +88,6 @@ function relativeLabel(iso: string): string {
   return days > 0 ? `in ${days} Tagen` : `vor ${Math.abs(days)} Tagen`;
 }
 
-// "8. Nov" - short enough for a single inline line with up to three dates.
 function shortWhen(iso: string): string {
   const d = toDate(iso);
   return `${d.getUTCDate()}. ${MONTH_NAMES[d.getUTCMonth()].slice(0, 3)}`;
@@ -83,8 +98,7 @@ function monthLabel(yyyyMm: string): string {
   return `${MONTH_NAMES[m - 1]} ${y}`;
 }
 
-// True once the deadline is a real window, not just a point. Unresearched
-// entries default earliest/startBy to the deadline itself, so this stays false.
+// True once the deadline is a real window, not just a point.
 const hasRange = computed(
   () =>
     props.entry.earliestDate !== props.entry.date ||
@@ -148,9 +162,9 @@ const hasRange = computed(
         class="date-input"
         :value="entry.date"
         aria-label="Datum ändern"
-        @change="
-          $emit('commit-date-edit', ($event.target as HTMLInputElement).value)
-        "
+        @change="parkDate"
+        @blur="closeDateEdit"
+        @keydown.enter="($event.target as HTMLInputElement).blur()"
       />
     </div>
 
@@ -213,9 +227,9 @@ const hasRange = computed(
         class="date-input"
         :value="entry.date"
         aria-label="Datum ändern"
-        @change="
-          $emit('commit-date-edit', ($event.target as HTMLInputElement).value)
-        "
+        @change="parkDate"
+        @blur="closeDateEdit"
+        @keydown.enter="($event.target as HTMLInputElement).blur()"
       />
 
       <p v-if="hasRange" class="range-line">
@@ -582,9 +596,7 @@ const hasRange = computed(
   color: var(--ink);
   font-weight: 600;
 }
-/* Closed by default, native <details> - the proof it wasn't estimated
-  should be one click away, not printed into every card whether asked for or
-  not (only offset_rule-based entries have one anyway). */
+/* The proof it wasn't estimated should be one click away, not in every card. */
 .derivation {
   margin-top: 0.4rem;
   font-size: 0.78rem;
