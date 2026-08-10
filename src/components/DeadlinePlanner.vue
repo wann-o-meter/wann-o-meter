@@ -240,10 +240,6 @@ const { timeline, tasks, unscheduled, railNodes, stats } = usePlannerSchedule(
   overlapMonths,
 );
 
-// Only worth offering once the normal notice date is gone: before that it
-// buys nothing but a month of double rent, after it, it is the way out.
-const noticeMissed = computed(() => timeline.value.some((e) => e.pastDeadline));
-
 function isPast(date: string): boolean {
   return date < isoToday();
 }
@@ -552,24 +548,7 @@ function print() {
       </label>
     </fieldset>
 
-    <label v-if="noticeMissed || overlapMonths > 0" class="overlap">
-      <input
-        type="checkbox"
-        :checked="overlapMonths > 0"
-        @change="
-          overlapMonths = ($event.target as HTMLInputElement).checked ? 1 : 0
-        "
-      />
-      <span>
-        Kündigungstermin verpasst? Alte Wohnung einen Monat länger behalten.
-      </span>
-    </label>
-
     <template v-if="anchorDate">
-      <p v-if="tasks.length > 0" class="progress">
-        <span>{{ stats.done }} von {{ tasks.length }} erledigt</span>
-        <progress :value="stats.done" :max="tasks.length"></progress>
-      </p>
       <div ref="overviewEl" class="overview">
         <div class="overview-inner">
           <Timeline
@@ -586,6 +565,10 @@ function print() {
           />
         </div>
       </div>
+      <p v-if="tasks.length > 0" class="progress">
+        <span>{{ stats.done }} von {{ tasks.length }} erledigt</span>
+        <progress :value="stats.done" :max="tasks.length"></progress>
+      </p>
       <p
         class="scalenote"
         title="Ziehen verschiebt eine Aufgabe, Scrollen hebt den Tag im Zeitstrahl hervor"
@@ -670,6 +653,7 @@ function print() {
               :cta="taskCtaFor(node.entry.id)"
               :show-date="!suppressDate.has(node.entry.id)"
               :date-edit-open="editingDateId === node.entry.id"
+              :deferred="overlapMonths > 0"
               @toggle-done="onToggleDone(node.entry.id)"
               @commit-label="commitLabel(node.entry.id, $event)"
               @open-label-edit="startEditingLabel(node.entry.id)"
@@ -680,6 +664,7 @@ function print() {
               @delete="deleteEntry(node.entry)"
               @open-date-edit="editingDateId = node.entry.id"
               @close-date-edit="editingDateId = null"
+              @toggle-defer="overlapMonths = overlapMonths > 0 ? 0 : 1"
               @commit-date-edit="onCommitDate(node.entry.id, $event)"
               @mouseenter="hoveredId = node.entry.id"
               @mouseleave="hoveredId = null"
@@ -829,7 +814,7 @@ function print() {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  margin: 0 1rem 0.9rem;
+  margin: 0.9rem 0 0 12.2rem;
   font-size: var(--fs-xs);
   color: var(--muted);
 }
@@ -838,17 +823,6 @@ function print() {
   max-width: 14rem;
   height: 0.35rem;
   accent-color: var(--done-color);
-}
-.overlap {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  margin: 0 1rem 1rem;
-  font-size: var(--fs-sm);
-}
-.overlap input {
-  accent-color: var(--accent);
-  margin: 0;
 }
 .facets-hint {
   flex-basis: 100%;
@@ -1121,7 +1095,8 @@ function print() {
     left: 1.4rem;
   }
   .scalenote,
-  .verify-note {
+  .verify-note,
+  .progress {
     margin-left: 0;
   }
   .gap :deep(.task-picker) {

@@ -19,7 +19,7 @@ export interface NoticeDeadlineResult {
   leaseEndMonth: string; // YYYY-MM the tenancy would end - always targetEndMonth
   derivation: DerivationStep[];
   pastDeadline: boolean; // true when `date` has already passed `today`
-  rescue: { date: string; leaseEndMonth: string } | null; // earliest still-reachable alternative, informational only, set only when pastDeadline
+  rescue: { date: string; leaseEndMonth: string; label: string } | null; // earliest still-reachable alternative, informational only, set only when pastDeadline. `label` is worded here so the generic scheduler carries no tenancy vocabulary
 }
 
 function iso(d: Date): string {
@@ -29,7 +29,10 @@ function monthLabel(yyyyMm: string): string {
   const [y, m] = yyyyMm.split("-").map(Number);
   return `${MONTH_NAMES[m - 1]} ${y}`;
 }
-function addMonths(yyyyMm: string, n: number): { year: number; month0: number } {
+function addMonths(
+  yyyyMm: string,
+  n: number,
+): { year: number; month0: number } {
   const [y, m] = yyyyMm.split("-").map(Number);
   const total = m - 1 + n;
   const year = y + Math.floor(total / 12);
@@ -56,7 +59,7 @@ function monthKey(year: number, month0: number): string {
  * `regionCode` is nominally the *recipient's* (the landlord's) Bundesland
  * per § 193 BGB's Erklärungsort - real calculators ask for this directly.
  * This product only knows the destination Kommune's Bundesland, and uses
- * that as a stand-in; the assumption is named in the derivation so it's
+ * that as a stand-in. The assumption is named in the derivation so it is
  * checkable, not hidden in a Set.
  *
  * If the deadline for `targetEndMonth` has already passed `today`, `date`
@@ -114,7 +117,13 @@ export function bgb573cNoticeDeadline(
 
   const naturalIso = iso(natural.date);
   if (naturalIso >= today) {
-    return { date: naturalIso, leaseEndMonth: targetEndMonth, derivation, pastDeadline: false, rescue: null };
+    return {
+      date: naturalIso,
+      leaseEndMonth: targetEndMonth,
+      derivation,
+      pastDeadline: false,
+      rescue: null,
+    };
   }
 
   // The notice window for the targeted end month is already gone - `date`
@@ -143,6 +152,10 @@ export function bgb573cNoticeDeadline(
     leaseEndMonth: targetEndMonth,
     derivation,
     pastDeadline: true,
-    rescue: { date: iso(rescue.date), leaseEndMonth: candidateEndMonth },
+    rescue: {
+      date: iso(rescue.date),
+      leaseEndMonth: candidateEndMonth,
+      label: `Mietende dann Ende ${monthLabel(candidateEndMonth)}`,
+    },
   };
 }

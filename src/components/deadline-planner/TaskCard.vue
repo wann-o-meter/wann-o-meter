@@ -31,6 +31,7 @@ const props = defineProps<{
   cta: TaskCta | null;
   showDate: boolean; // false when the previous card already shows this same date
   dateEditOpen: boolean;
+  deferred: boolean; // the rule's target month was pushed back by a month
 }>();
 
 const emit = defineEmits<{
@@ -44,6 +45,7 @@ const emit = defineEmits<{
   (e: "delete"): void;
   (e: "open-date-edit"): void;
   (e: "close-date-edit"): void;
+  (e: "toggle-defer"): void;
   (e: "commit-date-edit", iso: string): void;
 }>();
 
@@ -89,10 +91,6 @@ function relativeLabel(iso: string): string {
 function shortWhen(iso: string): string {
   const d = toDate(iso);
   return `${d.getUTCDate()}. ${MONTH_NAMES[d.getUTCMonth()].slice(0, 3)}`;
-}
-function monthLabel(yyyyMm: string): string {
-  const [y, m] = yyyyMm.split("-").map(Number);
-  return `${MONTH_NAMES[m - 1]} ${y}`;
 }
 
 // True once the deadline is a real window, not just a point.
@@ -244,9 +242,16 @@ const hasRange = computed(
         <TriangleAlert :size="15" />
         Die Frist ist verstrichen. Spätestens am
         {{ shortWhen(entry.rescue.date) }}
-        nachholen (Mietende dann Ende
-        {{ monthLabel(entry.rescue.leaseEndMonth) }}).
+        nachholen ({{ entry.rescue.label }}).
       </p>
+      <label v-if="entry.rescue || deferred" class="defer">
+        <input
+          type="checkbox"
+          :checked="deferred"
+          @change="$emit('toggle-defer')"
+        />
+        <span>Alte Wohnung einen Monat länger behalten</span>
+      </label>
       <details v-if="entry.derivation?.length" class="derivation" open>
         <summary>Wie berechnet?</summary>
         <ol>
@@ -613,6 +618,17 @@ const hasRange = computed(
 .derivation summary {
   cursor: pointer;
   color: var(--accent);
+}
+.defer {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.5rem;
+  font-size: var(--fs-sm);
+}
+.defer input {
+  accent-color: var(--accent);
+  margin: 0;
 }
 .derivation .assumptions {
   margin: 0.4rem 0 0;

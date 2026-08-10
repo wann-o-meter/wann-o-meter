@@ -15,3 +15,4 @@ src/layouts/Layout.astro
 src/components/DeadlinePlanner.vue
 src/components/deadline-planner/Timeline.vue
 lib/deadline-plan.ts
+lib/notice-period.ts

@@ -53,7 +53,7 @@ export interface ScheduleEntry extends Deadline {
   // undefined rather than a meaningless value.
   derivation?: DerivationStep[];
   pastDeadline?: boolean;
-  rescue?: { date: string; leaseEndMonth: string } | null;
+  rescue?: { date: string; label: string } | null;
 }
 
 function addDays(iso: string, days: number): string {
@@ -92,19 +92,19 @@ export function computeSchedule(
   countryCode: string,
   regionCode?: string,
   today: string = new Date().toISOString().slice(0, 10),
-  overlapMonths = 0, // months of deliberate overlap between old and new flat
+  deferMonths = 0, // push an offset_rule's target period back by n months
 ): ScheduleEntry[] {
   const resolved = deadlines.map((d) => {
     let derivation: DerivationStep[] | undefined;
     let pastDeadline: boolean | undefined;
-    let rescue: { date: string; leaseEndMonth: string } | null | undefined;
+    let rescue: { date: string; label: string } | null | undefined;
     let date: string | null;
     if (d.offset_days === null) {
       date = null;
     } else if (d.offset_rule === "bgb-573c-notice") {
-      // Mietende defaults to the end of the moving month. overlapMonths
-      // pushes it back for anyone who wants to keep both flats a while.
-      const targetEndMonth = shiftMonth(anchorDate.slice(0, 7), overlapMonths);
+      // The rule's target period is the anchor month, unless the caller
+      // deliberately pushes it back (see deferMonths).
+      const targetEndMonth = shiftMonth(anchorDate.slice(0, 7), deferMonths);
       const result = bgb573cNoticeDeadline(
         targetEndMonth,
         countryCode,
@@ -114,7 +114,11 @@ export function computeSchedule(
       date = result.date; // always 1:1 with anchorDate, even when past - see notice-period.ts
       derivation = result.derivation;
       pastDeadline = result.pastDeadline;
-      rescue = result.rescue;
+      // Projected down on purpose: the scheduler carries a date and a
+      // sentence, never the rule's own domain fields.
+      rescue = result.rescue
+        ? { date: result.rescue.date, label: result.rescue.label }
+        : null;
     } else {
       date = addDays(anchorDate, d.offset_days);
     }
