@@ -107,20 +107,20 @@
 
 ## Planner — information
 
-- [ ] Restore relative offsets on every card ("6 Wochen vorher", "2 Wochen danach") — your SSR HTML has this and hydration throws it away
-- [ ] Pair or replace "in gut 5 Monaten" → `2 Wochen vor dem Umzug · in gut 5 Monaten`; six tasks currently all read "in gut 6 Monaten"
-- [ ] Add the summary sentence at the top: "Aus deinem Umzugstag am 31. Januar 2027 ergeben sich 10 Fristen. Die erste ist am 4. November 2026."
+- [x] Restore relative offsets on every card ("6 Wochen vorher", "2 Wochen danach") — your SSR HTML has this and hydration throws it away
+- [x] Pair or replace "in gut 5 Monaten" → `2 Wochen vor dem Umzug · in gut 5 Monaten`; six tasks currently all read "in gut 6 Monaten"
+- [x] Add the summary sentence at the top: "Aus deinem Umzugstag am 31. Januar 2027 ergeben sich 10 Fristen. Die erste ist am 4. November 2026."
 - [ ] Collapse the timeline by default, or move it below the first three tasks
 - [ ] Explain the circle vocabulary in the legend — filled vs. ring, green vs. red vs. blue
 - [ ] Rewrite "TRIFFT AUF MICH ZU → ☐ Auto" as a full sentence: "Ich habe ein Auto, das ich ummelden muss"; drop the section header if there's only one item
-- [ ] Mark the next actionable task with an "Als Nächstes" badge and stronger card treatment
-- [ ] Bridge the empty gap between HEUTE (August) and the first task (November): "Bis November ist nichts zu tun."
+- [x] Mark the next actionable task with an "Als Nächstes" badge and stronger card treatment
+- [x] Bridge the empty gap between HEUTE (August) and the first task (November): "Bis November ist nichts zu tun."
 - [ ] Handle past deadlines explicitly: "Frist verstrichen — was du jetzt tun kannst"
 
 ## Planner — interaction
 
-- [ ] Turn "Fällt auf ein Wochenende" from a red alert into a neutral hint with an action: "Sa/So — Ordnungsamt hat zu. Auf Fr, 29. Jan verschieben →"
-- [ ] Suppress the weekend warning on the Umzugstag itself — moving on a Saturday is the normal case
+- [x] Turn "Fällt auf ein Wochenende" from a red alert into a neutral hint with an action: "Sa/So — Ordnungsamt hat zu. Auf Fr, 29. Jan verschieben →"
+- [x] Suppress the weekend warning on the Umzugstag itself — moving on a Saturday is the normal case
 - [ ] Collapse completed tasks into a "3 erledigt ▾" group at the bottom
 - [ ] Add "Termin verschieben" per task so users can override a computed date
 - [ ] Make the header fields look editable — input styling, hover state, chevron on all three
@@ -158,8 +158,8 @@
 
 ## Copy
 
-- [ ] Reframe "Quelle fehlt" as "Erfahrungswert" — as written it reads like a defect in your own product
-- [ ] Add a one-line "Warum?" to every task, not just some ("Halteverbotszone" has none)
+- [x] Reframe "Quelle fehlt" as "Erfahrungswert" — as written it reads like a defect in your own product
+- [x] Add a one-line "Warum?" to every task, not just some ("Halteverbotszone" has none)
 - [ ] Style the § chips as links with a consistent external-link icon
 
 ## Accessibility

@@ -7,6 +7,7 @@ deadlines:
     label: Halteverbotszone für den Umzugswagen beim Ordnungsamt beantragen
     offset_days: -14
     source_url: null
+    note: Ohne freie Fläche vor der Tür trägt das Möbelteam jeden Karton die halbe Straße entlang.
   - id: rottenburg-anwohnerparkausweis
     label: Anwohnerparkausweis ummelden
     applies_if: [auto] # die Halteverbotszone braucht dagegen jeder Umzugswagen

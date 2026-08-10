@@ -40,7 +40,7 @@ export const GET: APIRoute = ({ site }) => {
 
 Backwards schedules for a life event: every step relative to one anchor day
 (moving day, birth date, last working day), each with its legal source. A step
-marked "Quelle fehlt" is not yet checked against its Gesetz - do not cite it
+marked "Erfahrungswert" is not yet checked against its Gesetz - do not cite it
 as a deadline.
 
 ${vorhabenLines.join("\n")}

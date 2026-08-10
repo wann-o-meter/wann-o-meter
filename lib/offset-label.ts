@@ -17,7 +17,8 @@ function amount(days: number): string {
 }
 
 export function offsetLabel(d: Deadline, anchorLabel: string): string {
-  if (d.offset_rule) return RULE_LABELS[d.offset_rule] ?? "Frist nach Regel berechnet";
+  if (d.offset_rule)
+    return RULE_LABELS[d.offset_rule] ?? "Frist nach Regel berechnet";
   if (d.offset_days === null) return "Frist noch nicht recherchiert";
   // Bare label, no "am" - anchorLabel is a nominative noun ("Letzter
   // Arbeitstag"), and a preposition would need it declined.
@@ -30,7 +31,7 @@ export function offsetLabel(d: Deadline, anchorLabel: string): string {
 export function sourceLabel(d: Deadline): string {
   if (d.source_url) return d.source_label ?? "Quelle";
   if (d.no_source_needed) return "Keine gesetzliche Frist";
-  return "Quelle fehlt";
+  return "Erfahrungswert";
 }
 
 // Unknown offsets sort last: they are the ones nobody has researched yet, not

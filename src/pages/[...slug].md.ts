@@ -37,7 +37,7 @@ ${lines.join("\n")}
 
 ## Hinweise
 
-- "Quelle fehlt" heißt: die Frist ist noch nicht gegen ihre Rechtsgrundlage geprüft. Nicht als belastbare Frist zitieren.
+- "Erfahrungswert" heißt: die Frist ist noch nicht gegen ihre Rechtsgrundlage geprüft. Nicht als belastbare Frist zitieren.
 - Angaben ohne Gewähr, keine Rechtsberatung.
 `;
 

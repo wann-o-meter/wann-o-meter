@@ -13,6 +13,7 @@ import {
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
 import { MONTH_NAMES, WEEKDAY_NAMES_SHORT } from "../../../lib/date-display";
 import { toDate } from "../../../lib/format-date";
+import { offsetLabel } from "../../../lib/offset-label";
 import type { TaskCta } from "./task-cta";
 
 const props = defineProps<{
@@ -31,6 +32,7 @@ const props = defineProps<{
   cta: TaskCta | null;
   showDate: boolean; // false when the previous card already shows this same date
   dateEditOpen: boolean;
+  isNext: boolean; // the one task to act on now
   deferred: boolean; // the rule's target month was pushed back by a month
 }>();
 
@@ -46,6 +48,7 @@ const emit = defineEmits<{
   (e: "open-date-edit"): void;
   (e: "close-date-edit"): void;
   (e: "toggle-defer"): void;
+  (e: "shift-to-workday"): void;
   (e: "commit-date-edit", iso: string): void;
 }>();
 
@@ -93,6 +96,14 @@ function shortWhen(iso: string): string {
   return `${d.getUTCDate()}. ${MONTH_NAMES[d.getUTCMonth()].slice(0, 3)}`;
 }
 
+// Nearest weekday at or before the deadline.
+const previousWorkday = computed(() => {
+  let d = toDate(props.entry.date!);
+  while (d.getUTCDay() === 0 || d.getUTCDay() === 6)
+    d = new Date(d.getTime() - 86400000);
+  return d.toISOString().slice(0, 10);
+});
+
 // True once the deadline is a real window, not just a point.
 const hasRange = computed(
   () =>
@@ -106,7 +117,7 @@ const hasRange = computed(
     class="item"
     :data-entry-id="entry.id"
     :data-entry-date="entry.date"
-    :class="{ anchor: isAnchor, past: isPast, done }"
+    :class="{ anchor: isAnchor, past: isPast, done, next: isNext }"
   >
     <span class="dot" :data-dot-key="entry.id"></span>
     <div v-if="showDate" class="when">
@@ -116,9 +127,10 @@ const hasRange = computed(
       <span v-if="entry.rescue" class="next-possible"
         ><ArrowRight :size="14" /> {{ whenDate(entry.rescue.date) }}</span
       >
-      <span v-if="!entry.rescue" class="rel">{{
-        relativeLabel(entry.date!)
-      }}</span>
+      <span v-if="!entry.rescue" class="rel">
+        <b>{{ offsetLabel(entry, anchorLabel) }}</b>
+        · {{ relativeLabel(entry.date!) }}
+      </span>
     </div>
 
     <div v-if="isAnchor" class="anchor-divider">
@@ -135,9 +147,7 @@ const hasRange = computed(
       <span v-if="!done && entry.collision" class="flag-inline"
         >Fällt auf {{ entry.collision }} - Ämter geschlossen.</span
       >
-      <span v-else-if="!done && entry.weekend" class="flag-inline"
-        >Fällt auf ein Wochenende.</span
-      >
+
       <button
         type="button"
         class="edit-anchor"
@@ -183,6 +193,9 @@ const hasRange = computed(
           "
         />
         <h3 v-else>{{ entry.label }}</h3>
+        <span v-if="isNext && !done" class="badge next-badge"
+          >Als Nächstes</span
+        >
         <div class="tools">
           <button
             type="button"
@@ -353,13 +366,15 @@ const hasRange = computed(
       <p v-if="!done && entry.impossible" class="flag flag-impossible">
         Bei diesem Termin nicht mehr rechtzeitig möglich - Termin sofort buchen.
       </p>
-      <!-- Weekend/holiday only matters for a single day you're pinned to -
-        with a range you can just act on a different day within it. -->
+      <!-- Only matters for a single pinned day, a range has other days. -->
       <p v-else-if="!done && !hasRange && entry.collision" class="flag">
-        Fällt auf {{ entry.collision }} - Ämter geschlossen.
+        Fällt auf {{ entry.collision }}, Ämter haben zu.
       </p>
-      <p v-else-if="!done && !hasRange && entry.weekend" class="flag">
-        Fällt auf ein Wochenende.
+      <p v-else-if="!done && !hasRange && entry.weekend" class="flag hint">
+        Sa/So, Ämter haben zu.
+        <button type="button" @click="$emit('shift-to-workday')">
+          Auf {{ shortWhen(previousWorkday) }} vorziehen
+        </button>
       </p>
     </div>
   </div>
@@ -423,10 +438,16 @@ const hasRange = computed(
   line-height: 1.3;
   white-space: nowrap;
 }
+/* Offset is the plan, countdown is the urgency. One line, not three. */
 .when .rel {
   font-family: var(--font-sans);
   color: var(--muted);
   font-size: var(--fs-xs);
+  text-align: right;
+}
+.when .rel b {
+  font-weight: 600;
+  color: var(--ink);
 }
 .when .next-possible {
   color: var(--warn);
@@ -445,6 +466,19 @@ const hasRange = computed(
 }
 .card:hover {
   box-shadow: var(--shadow-md);
+}
+.item.next .card {
+  border-color: var(--accent);
+  border-left-width: 3px;
+  box-shadow: var(--shadow-md);
+}
+.next-badge {
+  margin-left: auto;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-sans);
+  white-space: nowrap;
 }
 /* Full-width divider, not a card - an empty bordered box read as a stuck
   input field, and blue there implied "click me", not "milestone". */
@@ -747,11 +781,20 @@ const hasRange = computed(
 }
 .flag {
   display: flex;
-  align-items: flex-start;
-  gap: 0.35rem;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
   margin-top: 0.5rem !important;
   color: var(--warn) !important;
   font-size: var(--fs-sm) !important;
+}
+/* A closed office is a fact with a fix, not an alarm. */
+.flag.hint {
+  color: var(--muted) !important;
+}
+.flag button {
+  font-size: var(--fs-xs);
+  padding: 0.15rem 0.5rem;
 }
 .flag-impossible {
   font-weight: 600;

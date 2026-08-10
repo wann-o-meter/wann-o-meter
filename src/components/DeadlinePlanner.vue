@@ -18,7 +18,7 @@ import {
   facetLabel,
   facetsUsedBy,
 } from "../../lib/facets";
-import { toDate } from "../../lib/format-date";
+import { formatDateWithWeekday, toDate } from "../../lib/format-date";
 import { newSourceIssueUrl } from "../../lib/github-issue";
 import { generateIcs } from "../../lib/ics";
 import type { IcsEvent } from "../../lib/ics";
@@ -212,6 +212,42 @@ function onToggleDone(id: string) {
       )
       .addEventListener("finish", () => piece.remove());
   }
+}
+
+// The plan in one sentence, so the numbers below have a frame.
+const summary = computed(() => {
+  const dated = timeline.value.filter((e) => e.id !== ANCHOR_ID);
+  if (dated.length === 0) return "";
+  const first = dated.reduce((a, b) => (a.date! <= b.date! ? a : b));
+  return `Aus deinem ${props.anchorLabel} am ${formatDateWithWeekday(anchorDate.value)} ergeben sich ${dated.length} Fristen. Die erste ist am ${formatDateWithWeekday(first.date!)}.`;
+});
+
+// The first task still open and not in the past: the one to act on.
+const nextUpId = computed(
+  () =>
+    tasks.value.find((t) => t.date && !isPast(t.date) && !doneIds[t.id])?.id ??
+    null,
+);
+
+// Nothing happens between today and the first task, and saying so beats an
+// unexplained stretch of empty rail.
+const quietUntil = computed(() => {
+  const next = tasks.value.find((t) => t.date && !isPast(t.date));
+  if (!next) return null;
+  const days = Math.round(
+    (toDate(next.date!).getTime() - toDate(isoToday()).getTime()) / 86400000,
+  );
+  return days >= 21 ? formatDateWithWeekday(next.date!) : null;
+});
+
+// Moving a weekend deadline to the Friday before it, through the same
+// moveEntry path a drag uses.
+function shiftToWorkday(entry: { id: string; date: string | null }) {
+  if (!entry.date) return;
+  let d = toDate(entry.date);
+  while (d.getUTCDay() === 0 || d.getUTCDay() === 6)
+    d = new Date(d.getTime() - 86400000);
+  onCommitDate(entry.id, d.toISOString().slice(0, 10));
 }
 
 const sourceIssueUrl = newSourceIssueUrl();
@@ -549,6 +585,10 @@ function print() {
     </fieldset>
 
     <template v-if="anchorDate">
+      <p class="summary">{{ summary }}</p>
+      <p v-if="quietUntil" class="quiet">
+        Bis {{ quietUntil }} ist nichts zu tun.
+      </p>
       <div ref="overviewEl" class="overview">
         <div class="overview-inner">
           <Timeline
@@ -640,6 +680,7 @@ function print() {
               :is-past="!node.entry.rescue && isPast(node.entry.date!)"
               :done="!!doneIds[node.entry.id]"
               :is-custom="isCustom(node.entry.id)"
+              :is-next="node.entry.id === nextUpId"
               :editing="editingId === node.entry.id"
               :note-open="openNoteId === node.entry.id"
               :note-text="userNotes[node.entry.id]"
@@ -661,6 +702,7 @@ function print() {
               @open-date-edit="editingDateId = node.entry.id"
               @close-date-edit="editingDateId = null"
               @toggle-defer="overlapMonths = overlapMonths > 0 ? 0 : 1"
+              @shift-to-workday="shiftToWorkday(node.entry)"
               @commit-date-edit="onCommitDate(node.entry.id, $event)"
               @mouseenter="hoveredId = node.entry.id"
               @mouseleave="hoveredId = null"
@@ -693,7 +735,7 @@ function print() {
         <ul>
           <li v-for="entry in unscheduled" :key="entry.id">
             <span class="label">{{ entry.label }}</span>
-            <span class="badge missing">Quelle fehlt</span>
+            <span class="badge missing">Erfahrungswert</span>
           </li>
         </ul>
       </div>
@@ -797,6 +839,15 @@ function print() {
   padding: 0;
   /* No side indent - it has to line up with the form above and the rail below. */
   margin: 1rem 0;
+}
+.summary {
+  margin: 0 0 0.6rem;
+  font-size: var(--fs-md);
+}
+.quiet {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: var(--fs-sm);
 }
 .progress {
   display: flex;
