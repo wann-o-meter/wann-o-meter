@@ -388,7 +388,6 @@ const unverifiedCount = computed(
 
 // Scroll-linked highlight: tracks the page's own scroll (the rail has no inner scrollbox), picks the item closest to a fixed viewport line.
 const highlightedDate = ref<string | null>(null);
-const viewRange = ref<[string, string] | null>(null);
 let scrollRaf = false;
 function updateHighlight() {
   const container = railEl.value;
@@ -397,18 +396,10 @@ function updateHighlight() {
   let closestDate: string | null = null;
   let closestDelta = Number.POSITIVE_INFINITY;
   let lastDate: string | null = null;
-  // Which dates are on screen right now, for the timeline's viewport box.
-  let firstSeen: string | null = null;
-  let lastSeen: string | null = null;
   for (const el of items) {
     const date = el.dataset.entryDate;
     if (!date) continue;
     lastDate = date;
-    const box = el.getBoundingClientRect();
-    if (box.bottom > 0 && box.top < window.innerHeight) {
-      if (!firstSeen) firstSeen = date;
-      lastSeen = date;
-    }
     const delta = Math.abs(
       el.getBoundingClientRect().top - window.innerHeight / 2,
     );
@@ -425,7 +416,6 @@ function updateHighlight() {
     window.innerHeight + window.scrollY >=
     document.documentElement.scrollHeight - 2;
   highlightedDate.value = atBottom ? lastDate : (closestDate ?? lastDate);
-  viewRange.value = firstSeen && lastSeen ? [firstSeen, lastSeen] : null;
 }
 function onPageScroll() {
   if (scrollRaf) return;
@@ -621,7 +611,6 @@ function print() {
               :anchor-name="anchorLabel"
               :region-code="selected?.regionCode"
               :highlight-date="highlightedDate"
-              :view-range="viewRange"
               :hover-id="hoveredId"
               :done-ids="doneIds"
               compact
@@ -685,9 +674,8 @@ function print() {
                 focused: hoveredId === node.entry.id,
               }"
               :entry="node.entry"
-              :anchor-label="anchorLabel"
               :is-anchor="node.entry.id === ANCHOR_ID"
-              :is-past="!node.entry.rescue && isPast(node.entry.date!)"
+              :is-past="isPast(node.entry.date!)"
               :done="!!doneIds[node.entry.id]"
               :is-custom="isCustom(node.entry.id)"
               :is-next="node.entry.id === nextUpId"

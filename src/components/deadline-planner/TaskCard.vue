@@ -2,9 +2,10 @@
 import { computed, ref } from "vue";
 import {
   Check,
+  Ellipsis,
   MessageSquarePlus,
   Pencil,
-  X,
+  Trash2,
   ArrowUpRight,
   CalendarClock,
   TriangleAlert,
@@ -12,12 +13,10 @@ import {
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
 import { MONTH_NAMES, WEEKDAY_NAMES_SHORT } from "../../../lib/date-display";
 import { toDate } from "../../../lib/format-date";
-import { offsetLabel } from "../../../lib/offset-label";
 import type { TaskCta } from "./task-cta";
 
 const props = defineProps<{
   entry: ScheduleEntry;
-  anchorLabel: string; // "Umzugstag" etc - also the offset-0 label
   isAnchor: boolean;
   isPast: boolean;
   done: boolean;
@@ -94,6 +93,17 @@ const previousWorkday = computed(() => {
 
 const isSunday = computed(() => toDate(props.entry.date!).getUTCDay() === 0);
 
+// A <details> menu has no outside-click of its own, so it closes when an item
+// is used or when focus leaves it.
+function closeMenu(e: Event) {
+  const menu = e.currentTarget as HTMLDetailsElement;
+  if ((e.target as HTMLElement).closest("button")) menu.open = false;
+}
+function closeMenuOnBlur(e: FocusEvent) {
+  const menu = e.currentTarget as HTMLDetailsElement;
+  if (!menu.contains(e.relatedTarget as Node)) menu.open = false;
+}
+
 // A step at offset 0 happens on the day itself, so it cannot move.
 const pinnedToAnchor = computed(() => props.entry.offset_days === 0);
 const showOfficeClosed = computed(
@@ -117,29 +127,22 @@ const hasRange = computed(
     class="item"
     :data-entry-id="entry.id"
     :data-entry-date="entry.date"
-    :class="{ anchor: isAnchor, past: isPast, done, next: isNext }"
+    :class="{
+      anchor: isAnchor,
+      past: isPast && !entry.rescue,
+      done,
+      next: isNext,
+    }"
   >
     <span class="dot" :data-dot-key="entry.id"></span>
+    <!-- Always the entry's own deadline, never the rescue date: a card that
+      says "Frist verstrichen" has to be dated on the day that was missed. -->
     <div v-if="showDate" class="when">
-      <b :class="{ overdue: isPast }">{{
-        whenDate(entry.rescue ? entry.rescue.date : entry.date!)
-      }}</b>
-      <span v-if="!entry.offset_rule && entry.offset_days !== 0" class="rel">{{
-        offsetLabel(entry, anchorLabel)
-      }}</span>
+      <b :class="{ overdue: isPast }">{{ whenDate(entry.date!) }}</b>
     </div>
 
     <div v-if="isAnchor" class="anchor-divider">
-      <button
-        type="button"
-        class="check"
-        :aria-pressed="done"
-        aria-label="Als erledigt markieren"
-        @click="$emit('toggle-done')"
-      >
-        <Check v-if="done" :size="11" />
-      </button>
-      <span class="label" :class="{ done }">{{ entry.label }}</span>
+      <span class="label">{{ entry.label }}</span>
       <button
         type="button"
         class="edit-anchor"
@@ -165,6 +168,7 @@ const hasRange = computed(
     </div>
 
     <div v-else class="card">
+      <p v-if="isNext && !done" class="next-eyebrow">Als Nächstes</p>
       <div class="card-head">
         <button
           type="button"
@@ -189,43 +193,25 @@ const hasRange = computed(
           "
         />
         <h3 v-else>{{ entry.label }}</h3>
-        <span v-if="isNext && !done" class="badge next-badge"
-          >Als Nächstes</span
-        >
-        <div class="tools">
-          <button
-            type="button"
-            title="Termin verschieben"
-            aria-label="Termin verschieben"
-            @click="$emit('open-date-edit')"
-          >
-            <CalendarClock :size="12" />
-          </button>
-          <button
-            type="button"
-            title="Titel ändern"
-            aria-label="Titel ändern"
-            @click="$emit('open-label-edit')"
-          >
-            <Pencil :size="12" />
-          </button>
-          <button
-            type="button"
-            title="Notiz"
-            aria-label="Notiz"
-            @click="$emit('open-note')"
-          >
-            <MessageSquarePlus :size="12" />
-          </button>
-          <button
-            type="button"
-            title="Entfernen"
-            aria-label="Entfernen"
-            @click="$emit('delete')"
-          >
-            <X :size="13" />
-          </button>
-        </div>
+        <details class="tools" @click="closeMenu" @focusout="closeMenuOnBlur">
+          <summary aria-label="Aktionen" title="Aktionen">
+            <Ellipsis :size="14" />
+          </summary>
+          <div class="tool-menu">
+            <button type="button" @click="$emit('open-date-edit')">
+              <CalendarClock :size="12" /> Termin verschieben
+            </button>
+            <button type="button" @click="$emit('open-label-edit')">
+              <Pencil :size="12" /> Titel ändern
+            </button>
+            <button type="button" @click="$emit('open-note')">
+              <MessageSquarePlus :size="12" /> Notiz
+            </button>
+            <button type="button" class="danger" @click="$emit('delete')">
+              <Trash2 :size="12" /> Aufgabe entfernen
+            </button>
+          </div>
+        </details>
       </div>
 
       <input
@@ -248,15 +234,10 @@ const hasRange = computed(
           <b>Termin buchen bis {{ shortWhen(entry.startByDate!) }}</b></template
         >
       </p>
-      <div v-if="entry.rescue" class="past-deadline">
-        <b><TriangleAlert :size="15" /> Frist verstrichen</b>
-        <p>
-          Was du jetzt tun kannst: spätestens am
-          {{ shortWhen(entry.rescue.date) }} nachholen ({{
-            entry.rescue.label
-          }}).
-        </p>
-      </div>
+      <p v-if="entry.rescue" class="flag rescue">
+        <TriangleAlert :size="14" /> Frist verstrichen - bis
+        {{ shortWhen(entry.rescue.date) }} nachholen, {{ entry.rescue.label }}.
+      </p>
       <p v-if="entry.offset_rule || deferred" class="defer">
         <span class="defer-label">Mietende</span>
         <button
@@ -283,7 +264,9 @@ const hasRange = computed(
         </ol>
       </details>
 
-      <p v-if="entry.note">{{ entry.note }}</p>
+      <!-- An expired card is already the loudest thing in the plan, so it
+        keeps only the line that says what to do now. -->
+      <p v-if="entry.note && !entry.rescue">{{ entry.note }}</p>
       <a
         v-if="entry.source_url"
         class="badge stamp"
@@ -422,12 +405,6 @@ const hasRange = computed(
   align-items: flex-end;
   font-family: var(--font-mono);
 }
-.when .rel {
-  font-size: var(--fs-xs);
-  color: var(--muted);
-  line-height: 1.3;
-  text-align: right;
-}
 .when b {
   font-size: var(--fs-md);
   font-weight: 600;
@@ -435,7 +412,7 @@ const hasRange = computed(
   line-height: 1.25;
   white-space: nowrap;
 }
-.when b.past-deadline {
+.when b.overdue {
   text-decoration: line-through;
   color: var(--muted);
 }
@@ -455,15 +432,14 @@ const hasRange = computed(
   border-left-width: 3px;
   box-shadow: var(--shadow-md);
 }
-/* A quiet label: the blue in this card belongs to its action. */
-.next-badge {
-  align-self: center;
-  margin: 0 0 0 auto;
-  border-color: var(--line);
-  background: var(--paper);
-  color: var(--muted);
-  font-family: var(--font-sans);
-  white-space: nowrap;
+/* Status, not a control - so it sits above the title, not in the tool row. */
+.card .next-eyebrow {
+  margin: 0 0 0.15rem;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
 }
 /* Full-width divider, not a card - an empty bordered box read as a stuck
   input field, and blue there implied "click me", not "milestone". */
@@ -483,15 +459,6 @@ const hasRange = computed(
   font-weight: 600;
   font-size: var(--fs-md);
   color: var(--accent);
-}
-/* A square button has no text baseline to align the row by. */
-.anchor-divider .check {
-  align-self: center;
-  margin-top: 0;
-}
-.anchor-divider .label.done {
-  text-decoration: line-through;
-  color: var(--muted);
 }
 .anchor-warn {
   flex-basis: 100%;
@@ -614,14 +581,16 @@ const hasRange = computed(
   background: var(--done-color);
   border-color: var(--done-color);
 }
+/* One overflow menu instead of four guessable icons: every action keeps its
+  name, and deleting reads as "Aufgabe entfernen" before it happens. */
 .tools {
-  display: flex;
-  gap: 0.2rem;
+  position: relative;
   flex-shrink: 0;
   opacity: 0;
   transition: opacity 0.12s;
 }
 .card:hover .tools,
+.tools[open],
 .tools:focus-within {
   opacity: 1;
 }
@@ -630,23 +599,59 @@ const hasRange = computed(
     opacity: 1;
   }
 }
-.tools button {
-  width: 1.5rem;
-  height: 1.5rem;
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 2px;
-  cursor: pointer;
-  color: var(--muted);
+.tools summary {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  cursor: pointer;
+  color: var(--muted);
+  list-style: none;
 }
-.tools button:hover {
+.tools summary::-webkit-details-marker {
+  display: none;
+}
+.tools summary:hover,
+.tools[open] summary {
   background: var(--paper);
   border-color: var(--line);
   color: var(--ink);
+}
+.tool-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.25rem);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  min-width: 12rem;
+  padding: 0.25rem;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+}
+.tool-menu button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  cursor: pointer;
+}
+.tool-menu button:hover {
+  background: var(--paper);
+}
+.tool-menu .danger {
+  color: var(--warn);
 }
 .card p {
   margin: 0.25rem 0 0;
@@ -803,21 +808,8 @@ const hasRange = computed(
   font-size: var(--fs-xs);
   padding: 0.25rem 0.5rem;
 }
-.past-deadline {
-  margin-top: 0.5rem;
-  padding-left: 0.75rem;
-  border-left: 3px solid var(--warn);
-}
-.past-deadline b {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  color: var(--warn);
-  font-size: var(--fs-sm);
-}
-.past-deadline p {
-  margin: 0.25rem 0 0;
-  font-size: var(--fs-sm);
+.flag.rescue {
+  font-weight: 600;
 }
 .flag-impossible {
   font-weight: 600;

@@ -172,13 +172,13 @@ export function computeSchedule(
         };
       })
       // By the day the entry actually lands on, not by the offset that only
-      // approximates it: an offset_rule computes its own date, and an expired
-      // one is acted on at its rescue date. Sorting by offset made the rendered
-      // list non-chronological. Unresearched entries sort last.
+      // approximates it: an offset_rule computes its own date. Never by the
+      // rescue date - an expired deadline belongs where it was missed, at the
+      // start of the plan, not after everything still to come. Unresearched
+      // entries sort last.
       .sort((a, b) => {
-        const key = (e: ScheduleEntry) => e.rescue?.date ?? e.date;
-        const ka = key(a);
-        const kb = key(b);
+        const ka = a.date;
+        const kb = b.date;
         if (ka === null) return kb === null ? 0 : 1;
         if (kb === null) return -1;
         return ka < kb ? -1 : ka > kb ? 1 : 0;

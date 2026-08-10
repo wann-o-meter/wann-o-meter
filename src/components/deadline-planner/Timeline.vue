@@ -6,6 +6,19 @@
   >
     <div v-if="showLegend" class="legend below">
       <span class="legend-keys">
+        <span class="legend-item"><span class="swatch task"></span>offen</span>
+        <span class="legend-item"
+          ><span class="swatch task done"></span>erledigt</span
+        >
+        <span class="legend-item"
+          ><span class="swatch span"></span>möglich bis Frist</span
+        >
+        <span class="legend-item"
+          ><span class="swatch anchor"></span>{{ anchorName }}</span
+        >
+        <span class="legend-item"><span class="swatch past"></span>vorbei</span>
+      </span>
+      <span class="legend-keys">
         <label class="legend-item">
           <input type="checkbox" v-model="showFeiertage" />
           <span class="swatch feiertage"></span>
@@ -53,8 +66,7 @@
           :style="{ left: t.x + 'px' }"
         ></div>
         <div
-          v-for="t in monthTicks"
-          v-show="t.labelled"
+          v-for="t in monthLabels"
           :key="'ml' + t.x"
           class="mlabel"
           :class="{ flush: t.flush }"
@@ -91,13 +103,6 @@
             :style="{ left: h.x + 'px', width: Math.max(2, scale.ppd) + 'px' }"
           ></div>
         </template>
-
-        <div
-          v-if="viewportBox"
-          class="viewport"
-          :style="viewportBox"
-          aria-hidden="true"
-        ></div>
 
         <div class="today" :style="{ left: todayX + 'px' }">
           <b>HEUTE</b>
@@ -142,11 +147,7 @@
           </button>
           <div
             class="pin"
-            :class="{
-              hovered: hoverId === ANCHOR_ID,
-              done: doneIds[ANCHOR_ID],
-              flip: pinFlipped,
-            }"
+            :class="{ hovered: hoverId === ANCHOR_ID, flip: pinFlipped }"
             :style="{ left: pxIso(anchorDate) + 'px' }"
             :data-node-key="keyed ? ANCHOR_ID : null"
             :title="
@@ -226,7 +227,6 @@ const props = withDefaults(
     keyed?: boolean; // tag nodes with data-node-key (only one instance per page)
     compact?: boolean; // smaller strip, for use as an overview above the task list
     highlightDate?: string | null; // task date to mark as current and center on
-    viewRange?: [string, string] | null; // dates currently on screen in the list
     previewNote?: string | null; // extra line under the ghost while dragging
     dragHint?: string; // title on the flag, instead of a caption under the strip
     hoverId?: string | null; // task id (or ANCHOR_ID) to mark as hovered, set from outside
@@ -239,7 +239,6 @@ const props = withDefaults(
     keyed: false,
     compact: false,
     highlightDate: null,
-    viewRange: null,
     previewNote: null,
     dragHint: "",
     hoverId: null,
@@ -448,15 +447,6 @@ const rootVars = computed(() => ({
   "--lanes": String(usedLanes.value),
 }));
 
-// Which slice of the plan the reader currently has on screen.
-const viewportBox = computed(() => {
-  const r = props.viewRange;
-  if (!r) return null;
-  const left = pxIso(r[0]);
-  const right = pxIso(r[1]);
-  return { left: `${left}px`, width: `${Math.max(6, right - left)}px` };
-});
-
 const pinLabel = computed(() =>
   placed.value
     ? `${weekdayShort(toDate(props.anchorDate))}, ${langDate(toDate(props.anchorDate))}`
@@ -477,21 +467,45 @@ const weekTicks = computed(() =>
   mondays(scale.value.start, scale.value.end).map(px),
 );
 
+// Room one month name needs: a label nearer the right edge than this is
+// pulled back inside the track rather than dropped.
+const LABEL_PX = 60;
+
 const monthTicks = computed(() => {
   // A label needs roughly 3rem of clear space, so on a tight scale only every
   // nth month gets one. The ticks themselves always stay.
   const step = Math.max(1, Math.ceil(48 / (scale.value.ppd * 30.4)));
-  // A label near the right edge is pulled back inside the track rather than
-  // dropped, so every month divider keeps its name.
-  const LABEL_PX = 60;
   return monthStarts(scale.value.start, scale.value.end).map((m, i) => ({
     x: px(m),
     labelled: i % step === 0,
     flush: px(m) + LABEL_PX > scale.value.width,
-    label:
-      MONTH_NAMES[m.getUTCMonth()].slice(0, 3) +
-      (m.getUTCMonth() === 0 ? " " + m.getUTCFullYear() : ""),
+    label: monthName(m),
   }));
+});
+
+function monthName(d: Date): string {
+  return (
+    MONTH_NAMES[d.getUTCMonth()].slice(0, 3) +
+    (d.getUTCMonth() === 0 ? " " + d.getUTCFullYear() : "")
+  );
+}
+
+// A window almost never opens on the 1st, so the month it starts in has no
+// tick of its own - without this the strip can show a single month name for
+// weeks of rail.
+const monthLabels = computed(() => {
+  const labels = monthTicks.value.filter((t) => t.labelled);
+  const start = scale.value.start;
+  const clear =
+    labels.length === 0 || labels[0].x - scale.value.edge > LABEL_PX;
+  if (start.getUTCDate() !== 1 && clear)
+    labels.unshift({
+      x: scale.value.edge,
+      labelled: true,
+      flush: false,
+      label: monthName(start),
+    });
+  return labels;
 });
 
 const holidayTicks = computed(() => {
@@ -746,7 +760,8 @@ function onNodeClick(id: string, e: MouseEvent) {
   --below: calc(
     var(--ctx-y) + var(--ctx-h)
   ); /* rail bottom, above the labels */
-  --foot: calc(var(--mlabel-y) + 1.5rem);
+  /* Month labels plus the room a hovered node's tooltip needs under them. */
+  --foot: calc(var(--mlabel-y) + 2.5rem);
 }
 .legend {
   display: flex;
@@ -765,6 +780,8 @@ function onNodeClick(id: string, e: MouseEvent) {
   display: flex;
   align-items: center;
   gap: 0.35rem;
+}
+label.legend-item {
   cursor: pointer;
 }
 .legend-item input {
@@ -793,16 +810,8 @@ function onNodeClick(id: string, e: MouseEvent) {
   border-color: var(--done-color);
   background: var(--done-color);
 }
-.swatch.closed {
-  background: var(--closed-band);
-  border: 1px solid color-mix(in srgb, var(--holiday) 60%, transparent);
-}
 .swatch.past {
   background-image: var(--spent-hatch);
-  border: 1px solid var(--line);
-}
-.swatch.weekend {
-  background: var(--weekend-band);
   border: 1px solid var(--line);
 }
 .swatch.span {
@@ -824,9 +833,6 @@ function onNodeClick(id: string, e: MouseEvent) {
 }
 .swatch.feiertage {
   background: var(--holiday);
-}
-.legend-toggles .legend-item {
-  gap: 0.25rem;
 }
 .swatch.schulferien {
   background: var(--school);
@@ -931,15 +937,6 @@ function onNodeClick(id: string, e: MouseEvent) {
   position: absolute;
   top: calc(var(--axis-y) - var(--band-up));
   height: calc(var(--band-up) + var(--below));
-  pointer-events: none;
-}
-.viewport {
-  position: absolute;
-  top: calc(var(--axis-y) - var(--band-up));
-  height: calc(var(--band-up) + var(--below));
-  border-radius: var(--radius-sm);
-  border: 1px solid color-mix(in srgb, var(--ink) 35%, transparent);
-  background: color-mix(in srgb, var(--ink) 4%, transparent);
   pointer-events: none;
 }
 .spent {
@@ -1111,9 +1108,6 @@ function onNodeClick(id: string, e: MouseEvent) {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
-.pin.done {
-  background: var(--done-color);
-}
 .node .start-by {
   position: absolute;
   top: 0;
@@ -1124,20 +1118,22 @@ function onNodeClick(id: string, e: MouseEvent) {
 .node::after {
   content: attr(data-label);
   position: absolute;
-  bottom: calc(var(--node) + 0.45rem);
+  /* Below the axis, never above it: above is where the Umzugstag flag keeps
+    its name and date, and a tooltip there covered exactly that. The lane
+    offset is added back, so every tooltip hangs off the axis at the same
+    height whatever lane its node sits in. */
+  top: calc(var(--lane, 0) * var(--lane-h) + var(--node) + 0.5rem);
   left: 50%;
   transform: translateX(-50%);
   background: var(--ink);
   color: var(--paper);
   font-size: var(--fs-xs);
   /* Wraps instead of one unclipped nowrap line - a long label on a narrow
-    strip used to blow out sideways into whatever else was nearby (the
-    Umzugstag pin, most often). z-index wins it against .pin's own text too,
-    which has no z-index of its own and otherwise paints on top since it's
-    later in the DOM. --head-pad guarantees the room it needs above the top
-    lane, so overflow-y: hidden can't clip it. */
+    strip used to blow out sideways into whatever else was nearby. --foot
+    guarantees the room it needs below the axis, so overflow-y: hidden can't
+    clip it. */
   white-space: normal;
-  max-width: 11rem;
+  max-width: 16rem;
   text-align: center;
   z-index: 5;
   padding: 0.25rem 0.5rem;

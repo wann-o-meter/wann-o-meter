@@ -170,6 +170,27 @@ describe("computeSchedule", () => {
     expect(result.map((e) => e.id)).toEqual(["frueher", "kuendigen"]);
   });
 
+  it("keeps an expired entry at its own date, not at its rescue date", () => {
+    // Notice deadline 2024-01-04 is gone by 2024-02-01, rescue is 2024-02-05.
+    // The missed deadline still belongs before the 2024-01-20 entry.
+    const result = computeSchedule(
+      "2024-03-15",
+      [
+        deadline({ id: "spaeter", offset_days: -55 }),
+        deadline({
+          id: "kuendigen",
+          offset_days: -90,
+          offset_rule: "bgb-573c-notice",
+        }),
+      ],
+      "DE",
+      undefined,
+      "2024-02-01",
+    );
+    expect(result.map((e) => e.id)).toEqual(["kuendigen", "spaeter"]);
+    expect(result[0].rescue?.date).toBe("2024-02-05");
+  });
+
   it("leaves derivation/pastDeadline undefined for plain offset-based entries", () => {
     const [entry] = computeSchedule(
       "2027-06-15",
