@@ -6,34 +6,6 @@
   >
     <div v-if="showLegend" class="legend below">
       <span class="legend-keys">
-        <span class="legend-item">
-          <span class="swatch task"></span>
-          Aufgabe
-        </span>
-        <span class="legend-item">
-          <span class="swatch task done"></span>
-          Erledigt
-        </span>
-        <span class="legend-item">
-          <span class="swatch anchor"></span>
-          {{ anchorName }}
-        </span>
-        <span class="legend-item">
-          <span class="swatch closed"></span>
-          Geschlossen
-        </span>
-        <span class="legend-item">
-          <span class="swatch span"></span>
-          Zeitfenster
-        </span>
-        <span class="legend-item">
-          <span class="swatch weekend"></span>
-          Wochenende
-        </span>
-        <span class="legend-item">
-          <span class="swatch past"></span>
-          Vergangen
-        </span>
         <label class="legend-item">
           <input type="checkbox" v-model="showFeiertage" />
           <span class="swatch feiertage"></span>
@@ -132,6 +104,7 @@
 
         <div v-if="ghost" class="ghost" :style="{ left: ghost.x + 'px' }">
           <b>{{ ghost.label }}</b>
+          <i v-if="previewNote">{{ previewNote }}</i>
         </div>
 
         <template v-if="placed">
@@ -178,7 +151,13 @@
             }"
             :style="{ left: pxIso(anchorDate) + 'px' }"
             :data-node-key="keyed ? ANCHOR_ID : null"
-            :title="compact ? 'Zur Aufgabe springen' : undefined"
+            :title="
+              draggable
+                ? dragHint
+                : compact
+                  ? 'Zur Aufgabe springen'
+                  : undefined
+            "
             :tabindex="movable ? 0 : undefined"
             :role="movable ? 'slider' : undefined"
             :aria-label="movable ? `${anchorName} wählen` : undefined"
@@ -250,6 +229,8 @@ const props = withDefaults(
     compact?: boolean; // smaller strip, for use as an overview above the task list
     highlightDate?: string | null; // task date to mark as current and center on
     viewRange?: [string, string] | null; // dates currently on screen in the list
+    previewNote?: string | null; // extra line under the ghost while dragging
+    dragHint?: string; // title on the flag, instead of a caption under the strip
     hoverId?: string | null; // task id (or ANCHOR_ID) to mark as hovered, set from outside
     showLegend?: boolean; // Feiertage/Schulferien toggle row
     doneIds?: Record<string, boolean>; // task id (or ANCHOR_ID) -> done, for the green "done" node fill
@@ -261,6 +242,8 @@ const props = withDefaults(
     compact: false,
     highlightDate: null,
     viewRange: null,
+    previewNote: null,
+    dragHint: "",
     hoverId: null,
     showLegend: true,
     doneIds: () => ({}),
@@ -747,11 +730,11 @@ function onNodeClick(id: string, e: MouseEvent) {
   --ctx-y: 1.2rem; /* Feiertage/Schulferien strip, below the ruler */
   --ctx-h: 0.55rem;
   --band-up: 1.4rem; /* how far the weekend/past shading reaches above the axis */
-  --weekend-band: color-mix(in srgb, var(--ink) 5%, transparent);
+  --weekend-band: color-mix(in srgb, var(--ink) 3.5%, transparent);
   --closed-band: color-mix(in srgb, var(--holiday) 28%, transparent);
   --spent-hatch: repeating-linear-gradient(
     -45deg,
-    color-mix(in srgb, var(--ink) 9%, transparent) 0 2px,
+    color-mix(in srgb, var(--ink) 6%, transparent) 0 2px,
     transparent 2px 6px
   );
   --mlabel-y: 1.5rem;
@@ -1166,6 +1149,16 @@ function onNodeClick(id: string, e: MouseEvent) {
   background: var(--anchor);
   opacity: 0.25;
   pointer-events: none;
+}
+.ghost i {
+  position: absolute;
+  top: calc(var(--fs-xs) + 0.5rem);
+  left: 0.5rem;
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  white-space: nowrap;
 }
 .ghost b {
   position: absolute;

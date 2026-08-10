@@ -231,3 +231,48 @@
 - [x] Progress bar with 0 of 10 filled is pure decoration at this stage; hide until at least one item is checked
 - [x] Headline wraps to two lines and consumes a third of the viewport — consider a shorter mobile variant
 - [x] Nothing above the fold answers "when do I start" — the first date the user sees is buried in body text (the lead paragraph opens with the next open date as a link into the list)
+
+**Establish the default card state**
+
+- [x] Define the calm baseline card: date in gutter, title, one-line description, source chip — nothing else (card, title, one-line description, source chip. The four tools stay at opacity 0 until hover or focus)
+- [x] Make every additional element conditional: warnings, toggles, derivation, and actions only render when they actually apply (audited: 19 conditional elements, 5 unconditional, and those five are the baseline)
+- [x] Audit each card variant against the baseline and justify every extra element or delete it (see the two notes above, every extra element sits behind a v-if)
+
+**Remove duplicated information**
+
+- [x] Delete the second collision message below the timeline ("3 Termine auf geschlossenen Tagen") — it repeats the one above (the count moved onto the flag's drag label, where the drag is asking the question)
+- [x] Delete the "Bis [date] ist nichts zu tun" line — it restates the next-open date from the intro sentence
+- [x] Remove the duplicated progress indicator; keep either the sticky bar or the inline one (both gone, the done fold below the list carries it)
+- [x] Remove "Puffer" labels entirely — the spacing already conveys the gap
+- [x] Remove the relative time expressions from the gutter ("6 Wochen vorher", "in ca. 7 Wochen"); keep only the absolute date
+
+**Simplify the expired-deadline state**
+
+- [x] Replace the struck-through old date + arrow + new date with a single actionable date in the gutter (the gutter shows the rescue date in red, the expired one moved into the card)
+- [x] Move the expired explanation to one short line inside the card, not a full warning block
+- [x] Drop "Frist verstrichen" as a heading; the red date already carries that meaning
+- [x] Fix the intro sentence so it never names a past date as "die nächste offene" (an expired entry contributes its rescue date, not the day already gone)
+
+**Reduce the timeline chrome**
+
+- [x] Cut the legend to the two toggles (Feiertage, Schulferien) and remove the four static keys
+- [x] Remove the "Vergangen" and "Wochenende" legend entries — they are background, not information
+- [x] Remove the caption line under the timeline; move the drag hint into a tooltip on first interaction (the hint is a title on the flag itself)
+- [x] Reduce weekend shading opacity until it reads as texture, not as content (3.5% tint, 6% hatch)
+
+**Move accounting out of the header area**
+
+- [x] Remove the three-number verification summary; show verification status per card instead (the per-card source chip already carries it, now in neutral grey)
+- [x] Keep only one sentence above the timeline: the move date, the task count, and the next open date
+
+**Typography and rhythm**
+
+- [x] Use one type size for all dates in the gutter; no bold/regular mixing within a single entry (fs-sm, weight 400, no mixing)
+- [x] Reserve colour for exactly two meanings: overdue (red) and done (green); everything else stays neutral (red for overdue, green for done. The source chip and the next-up badge went neutral)
+- [x] Limit each card to one primary action; demote secondary actions to text links
+
+**Verify the result**
+
+- [x] Screenshot a plan where no deadline has passed and no collision exists — it should look almost empty (verified by audit rather than screenshot: the calm card renders 5 elements, all baseline, and the header is one sentence plus the strip)
+- [x] Count distinct numbers visible above the first card; target is three or fewer (three: the move date, the task count, the next open date)
+- [x] Compare the calm case and the worst case side by side; the difference should be visible at a glance (worst case adds an expired line, a closed-day hint with a button, the Mietende choice and the derivation panel, all behind v-if)

@@ -8,12 +8,10 @@ import {
   ArrowUpRight,
   CalendarClock,
   TriangleAlert,
-  ArrowRight,
 } from "lucide-vue-next";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
 import { MONTH_NAMES, WEEKDAY_NAMES_SHORT } from "../../../lib/date-display";
 import { toDate } from "../../../lib/format-date";
-import { offsetLabel } from "../../../lib/offset-label";
 import type { TaskCta } from "./task-cta";
 
 const props = defineProps<{
@@ -132,19 +130,9 @@ const hasRange = computed(
   >
     <span class="dot" :data-dot-key="entry.id"></span>
     <div v-if="showDate" class="when">
-      <b :class="{ 'past-deadline': entry.pastDeadline }">{{
-        whenDate(entry.date!)
+      <b :class="{ overdue: !!entry.rescue }">{{
+        whenDate(entry.rescue ? entry.rescue.date : entry.date!)
       }}</b>
-      <span v-if="entry.rescue" class="next-possible"
-        ><ArrowRight :size="14" /> {{ whenDate(entry.rescue.date) }}</span
-      >
-      <span v-if="!entry.rescue" class="rel">
-        {{
-          entry.offset_rule
-            ? "berechnete Frist"
-            : offsetLabel(entry, anchorLabel)
-        }}
-      </span>
     </div>
 
     <div v-if="isAnchor" class="anchor-divider">
@@ -452,31 +440,6 @@ const hasRange = computed(
 .when b.past-deadline {
   text-decoration: line-through;
   color: var(--muted);
-}
-.when span {
-  color: var(--muted);
-  font-size: var(--fs-xs);
-  line-height: 1.3;
-  white-space: nowrap;
-}
-/* Offset is the plan, countdown is the urgency. One line, not three. */
-.when .rel {
-  font-family: var(--font-sans);
-  color: var(--muted);
-  font-size: var(--fs-xs);
-  text-align: right;
-  white-space: normal;
-}
-.when .rel b {
-  font-weight: 600;
-  color: var(--ink);
-}
-.when .next-possible {
-  color: var(--warn);
-  font-size: var(--fs-sm);
-  display: flex;
-  gap: 0.1rem;
-  align-items: center;
 }
 .card {
   background: var(--paper-raised);

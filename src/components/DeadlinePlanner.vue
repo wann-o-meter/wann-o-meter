@@ -220,17 +220,18 @@ const nextOpen = computed(() => {
   const open = timeline.value.filter(
     (e) => e.id !== ANCHOR_ID && !doneIds[e.id],
   );
-  return open.length === 0
-    ? null
-    : open.reduce((a, b) => (a.date! <= b.date! ? a : b));
+  // An expired entry's actionable day is its rescue date, not the day that
+  // already went by, so the sentence can never name a past date.
+  const upcoming = open.filter((e) => !isPast(e.rescue?.date ?? e.date!));
+  const pool = upcoming.length > 0 ? upcoming : open;
+  if (pool.length === 0) return null;
+  const pick = (e: (typeof pool)[number]) => e.rescue?.date ?? e.date!;
+  const next = pool.reduce((a, b) => (pick(a) <= pick(b) ? a : b));
+  return { id: next.id, label: next.label, date: pick(next) };
 });
 const summaryHead = computed(
   () =>
     `Aus deinem ${props.anchorLabel} am ${formatDateWithWeekday(anchorDate.value)} ergeben sich ${tasks.value.length} Aufgaben. Die nächste offene ist am `,
-);
-// The same date said once: either it is a while off, or it is simply next.
-const quietSuffix = computed(() =>
-  quietUntil.value ? ", vorher ist nichts zu tun." : ".",
 );
 function jumpToNext() {
   if (nextOpen.value) onTimelineSelect(nextOpen.value.id);
@@ -268,16 +269,6 @@ const nextUpId = computed(
 
 // Nothing happens between today and the first task, and saying so beats an
 // unexplained stretch of empty rail.
-const quietUntil = computed(() => {
-  const next = tasks.value.find(
-    (t) => t.date && !isPast(t.date) && !doneIds[t.id],
-  );
-  if (!next) return false;
-  const days = Math.round(
-    (toDate(next.date!).getTime() - toDate(isoToday()).getTime()) / 86400000,
-  );
-  return days >= 21;
-});
 
 // The date under the flag while it is being dragged, so the collision count
 // can answer "is this a better day" before the drag ends.
@@ -295,6 +286,11 @@ function blockedAt(shiftDays: number): number {
     selected.value?.regionCode,
   ).filter((e) => e.needs_office === true && (e.weekend || e.collision)).length;
 }
+const previewNote = computed(() =>
+  previewCollisions.value === null
+    ? null
+    : `${previewCollisions.value} Kollisionen`,
+);
 const previewCollisions = computed(() => {
   if (!dragPreview.value) return null;
   const shift = Math.round(
@@ -302,15 +298,6 @@ const previewCollisions = computed(() => {
       86400000,
   );
   return blockedAt(shift);
-});
-
-const landscapeNote = computed(() => {
-  if (previewCollisions.value !== null)
-    return `${formatDateWithWeekday(dragPreview.value!)} · ${previewCollisions.value} Kollisionen`;
-  const n = blockedTasks.value.length;
-  return n === 0
-    ? "Kein Termin fällt auf einen geschlossenen Tag. Flagge ziehen zum Verschieben."
-    : `${n} Termin${n === 1 ? "" : "e"} auf geschlossenen Tagen. Flagge ziehen und zusehen, wie sich das ändert.`;
 });
 
 // Tasks that need an open office on a day when none is open.
@@ -394,12 +381,6 @@ const verifiableTasks = computed(() =>
 );
 const unverifiedCount = computed(
   () => verifiableTasks.value.filter((t) => t.source_url === null).length,
-);
-const verifiedCount = computed(
-  () => verifiableTasks.value.length - unverifiedCount.value,
-);
-const noSourceCount = computed(
-  () => tasks.value.length - verifiableTasks.value.length,
 );
 
 // Only the FIRST card in a run of same-date entries shows its date - three
@@ -615,11 +596,6 @@ function print() {
     </fieldset>
 
     <template v-if="anchorDate">
-      <div v-if="stats.done > 0" class="mini-header">
-        <b>{{ stats.done }} von {{ tasks.length }} erledigt</b>
-        <progress :value="stats.done" :max="tasks.length"></progress>
-      </div>
-
       <div v-if="nextOpen" class="sticky-next">
         <button type="button" @click="jumpToNext">
           Nächste Aufgabe: {{ nextOpen.label }}
@@ -632,17 +608,9 @@ function print() {
           <a :href="`#task-${nextOpen.id}`" @click.prevent="jumpToNext">{{
             formatDateWithWeekday(nextOpen.date!)
           }}</a
-          >{{ quietSuffix }}
+          >.
         </template>
         <template v-else>Alle Aufgaben sind erledigt.</template>
-        <span v-if="blockedTasks.length > 0" class="lead-warn">
-          {{ blockedTasks.length }}
-          {{ blockedTasks.length === 1 ? "Aufgabe fällt" : "Aufgaben fallen" }}
-          auf einen Tag mit geschlossenen Ämtern.
-          <button type="button" @click="shiftAllToWorkday">
-            {{ blockedTasks.length === 1 ? "Vorziehen" : "Alle vorziehen" }}
-          </button>
-        </span>
       </p>
 
       <div class="overview-wrap">
@@ -661,24 +629,14 @@ function print() {
               draggable
               @select="onTimelineSelect"
               @place="anchorDate = $event"
+              :preview-note="previewNote"
+              drag-hint="Flagge ziehen, um den Termin zu verschieben"
               @preview="dragPreview = $event"
               @hover="hoveredId = $event"
             />
           </div>
         </div>
-        <p class="scalenote">{{ landscapeNote }}</p>
       </div>
-      <p v-if="unverifiedCount > 0" class="verify-note">
-        <Info :size="13" />
-        <span>
-          Von {{ tasks.length }} Aufgaben sind {{ verifiedCount }} gesetzlich
-          belegt, {{ unverifiedCount }} beruhen auf Erfahrungswerten,
-          {{ noSourceCount }} brauchen keine Quelle.
-          <a :href="sourceIssueUrl" target="_blank" rel="noopener"
-            >Quelle vorschlagen</a
-          >
-        </span>
-      </p>
       <div class="rail-column">
         <div ref="railEl" class="rail">
           <template
@@ -692,9 +650,6 @@ function print() {
               :class="{ tall: node.bufferDays >= 14 }"
               :style="{ height: `${node.heightPx}px` }"
             >
-              <span v-if="node.bufferDays >= 14" class="gap-label">
-                {{ node.bufferDays }} Tage Puffer
-              </span>
               <button
                 type="button"
                 class="gap-add"
@@ -1067,17 +1022,6 @@ function print() {
   position: relative;
   margin-left: -11.6rem;
   padding-left: 11.6rem;
-}
-/* Every gap tall enough to notice says how long it is. */
-.gap-label {
-  position: absolute;
-  left: 11.6rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--muted);
-  pointer-events: none;
 }
 .gap-add {
   position: absolute;
