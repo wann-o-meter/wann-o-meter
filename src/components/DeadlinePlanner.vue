@@ -228,13 +228,6 @@ const { timeline, tasks, unscheduled, railNodes } = usePlannerSchedule(
   doneIds,
 );
 
-// One hero number per screen: the countdown on the first deadline still open.
-const nextUpId = computed(
-  () =>
-    tasks.value.find((t) => t.date && !isPast(t.date) && !doneIds[t.id])?.id ??
-    null,
-);
-
 function isPast(date: string): boolean {
   return date < isoToday();
 }
@@ -630,7 +623,6 @@ function print() {
               :has-attachment="node.entry.id in attachments"
               :cta="taskCtaFor(node.entry.id)"
               :show-date="!suppressDate.has(node.entry.id)"
-              :is-next="node.entry.id === nextUpId"
               :date-edit-open="editingDateId === node.entry.id"
               @toggle-done="onToggleDone(node.entry.id)"
               @commit-label="commitLabel(node.entry.id, $event)"

@@ -11,7 +11,7 @@ import {
   ArrowRight,
 } from "lucide-vue-next";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
-import { MONTH_NAMES, WEEKDAY_NAMES_LONG } from "../../../lib/date-display";
+import { MONTH_NAMES, WEEKDAY_NAMES_SHORT } from "../../../lib/date-display";
 import { toDate } from "../../../lib/format-date";
 import type { TaskCta } from "./task-cta";
 
@@ -30,7 +30,6 @@ const props = defineProps<{
   hasAttachment: boolean;
   cta: TaskCta | null;
   showDate: boolean; // false when the previous card already shows this same date
-  isNext: boolean; // the first still-open deadline, the one hero number
   dateEditOpen: boolean;
 }>();
 
@@ -64,31 +63,24 @@ function closeDateEdit() {
   else emit("close-date-edit");
 }
 
-// Full "17. Juni 2026" / "Mittwoch": the rail has room for it.
+// "Mo, 17. Juni 2026": the weekday belongs to the date, not to its own row.
 function whenDate(iso: string): string {
   const d = toDate(iso);
-  return `${d.getUTCDate()}. ${MONTH_NAMES[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
-}
-function weekdayName(iso: string): string {
-  return WEEKDAY_NAMES_LONG[(toDate(iso).getUTCDay() + 6) % 7];
+  const weekday = WEEKDAY_NAMES_SHORT[(d.getUTCDay() + 6) % 7];
+  return `${weekday}, ${d.getUTCDate()}. ${MONTH_NAMES[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
-function offsetLabel(offsetDays: number | null): string {
-  if (offsetDays === null) return "Frist noch nicht recherchiert";
-  if (offsetDays === 0) return props.anchorLabel;
-  return offsetDays < 0
-    ? `${Math.abs(offsetDays)} Tage vorher`
-    : `${offsetDays} Tage danach`;
-}
-
-// Relative to today, not to the anchor day: that is what says whether to act.
+// Relative to today, and coarser past 90 days: nobody can feel "128 Tage".
 function relativeLabel(iso: string): string {
   const todayIso = new Date().toISOString().slice(0, 10);
   const days = Math.round(
     (toDate(iso).getTime() - toDate(todayIso).getTime()) / 86400000,
   );
   if (days === 0) return "heute";
-  return days > 0 ? `in ${days} Tagen` : `vor ${Math.abs(days)} Tagen`;
+  if (days < 0) return `vor ${Math.abs(days)} Tagen`;
+  if (days <= 90) return `in ${days} Tagen`;
+  const months = Math.round(days / 30.4);
+  return months < 12 ? `in gut ${months} Monaten` : "in über einem Jahr";
 }
 
 function shortWhen(iso: string): string {
@@ -113,7 +105,7 @@ const hasRange = computed(
     class="item"
     :data-entry-id="entry.id"
     :data-entry-date="entry.date"
-    :class="{ anchor: isAnchor, past: isPast, done, next: isNext }"
+    :class="{ anchor: isAnchor, past: isPast, done }"
   >
     <span class="dot" :data-dot-key="entry.id"></span>
     <div v-if="showDate" class="when">
@@ -123,13 +115,12 @@ const hasRange = computed(
       <span v-if="entry.rescue" class="next-possible"
         ><ArrowRight :size="14" /> {{ whenDate(entry.rescue.date) }}</span
       >
-      <span
-        >{{ weekdayName(entry.date!) }} ·
-        {{ offsetLabel(entry.offset_days) }}</span
-      >
       <span v-if="!entry.rescue" class="rel">{{
         relativeLabel(entry.date!)
       }}</span>
+      <span v-if="entry.offset_days === null" class="rel unresearched"
+        >Frist noch nicht recherchiert</span
+      >
     </div>
 
     <div v-if="isAnchor" class="anchor-divider">
@@ -400,8 +391,10 @@ const hasRange = computed(
   font-family: var(--font-mono);
 }
 .when b {
-  font-size: var(--fs-sm);
-  line-height: 1.3;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.25;
   white-space: nowrap;
 }
 .when b.past-deadline {
@@ -415,14 +408,12 @@ const hasRange = computed(
   white-space: nowrap;
 }
 .when .rel {
-  color: var(--accent);
+  font-family: var(--font-sans);
+  color: var(--muted);
   font-size: var(--fs-xs);
 }
-.item.next .when .rel {
-  font-family: var(--font-mono);
-  font-size: var(--fs-lg);
-  font-weight: 600;
-  line-height: 1.2;
+.when .rel.unresearched {
+  color: var(--warn);
 }
 .when .next-possible {
   color: var(--warn);

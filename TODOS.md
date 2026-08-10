@@ -24,4 +24,34 @@
 - [x] add a small confetti effect when a task is done
 - [x] add localhost integration to save the progress of the tasks (localStorage, keyed per Vorhaben and Ort)
 - [x] in the timeline the button link to the deadline view is overlapping with the dates ![alt text](overlapping.png)
-- [x] read through the review and fix the problems. after you're done, remove the review about the design. (grey ramp skipped, the proposed label grey fails contrast on paper. H1 stays weight 600, the scale has only 400 and 600. Planner and global styles only, the Kalender views were not audited)
+- [x] read through the review and fix the problems. after you're done, remove the review about the design. (grey ramp skipped, the proposed label grey fails contrast on paper. H1 stays weight 600, the scale has only 400 and 600)
+- [x] fix the order and size of the card dates: 5. Oktober 2026 ← 20px mono 600, near-black, Montag · 90 Tage vorher ← 12px sans, grey, in 56 Tagen ← 12px sans, grey
+- [x] Reverse the date hierarchy: make the absolute date the large, dominant element and demote the countdown to small muted text — humans anchor on "5. Oktober", not "in 56 Tagen"
+- [ ] instead of saying in 56 Tagen, use weeks, e.g., noch ca. 8 Wochen
+- [x] Drop "90 Tage vorher" entirely, or move it into the card as context — three different time expressions per entry is two too many
+- [x] Add the weekday to the same line as the date rather than a separate row, e.g. "Mo, 5. Oktober 2026"
+- [x] For dates beyond ~90 days out, replace the day countdown with a coarser unit ("in gut 4 Monaten") — 128 days is not a quantity anyone can feel
+- [ ] Move "Trifft auf mich zu" above the fold explanation: a single unchecked "Auto" chip reads like a broken filter, not an opt-in — add a short line like "Ergänze deine Situation für weitere Aufgaben"
+- [ ] Add more filter chips at once (Haustier, Kinder, Gewerbe, Eigentum) so the row looks like a set of choices rather than one stray checkbox
+- [ ] "5 von 7 Fristen sind noch nicht verifiziert" is honest but alarming as the first thing under the timeline — reword toward what is verified, e.g. "2 Fristen gesetzlich belegt, 5 auf Erfahrungswerten"
+- [ ] Give the verification notice a way to act on it — link it to the "Quelle vorschlagen" flow instead of leaving it as a dead-end warning
+- [ ] Move the "Umzug in deiner Stadt" city switcher above the timeline: choosing the wrong city invalidates everything below it, so discovering it at the bottom is too late
+- [ ] Make the city chips reflect the current selection more clearly — Rottenburg is outlined but reads as hoverable, not as "you are here"
+- [ ] Fix the mini timeline's right edge: "Jan 20…" is clipped, and the Umzugstag label collides with the axis
+- [ ] Add a legend or tooltip for the stacked circles in the mini timeline — they currently look like decoration, not like the tasks below
+- [ ] Make the mini timeline clickable to scroll to the matching task, otherwise it is a picture rather than a control
+- [ ] Distinguish "Puffer" values visually from task dates — right now "30 Tage Puffer" sits in the same column flow and competes with real deadlines
+- [ ] Reconsider showing puffer at all for gaps under ~14 days; "7 Tage Puffer" twice in a row adds noise without insight
+- [ ] Give the Umzugstag row real content (Zählerstände ablesen, Übergabeprotokoll) — an empty highlighted row looks like a rendering bug
+- [ ] Remove the unlabeled icon next to "Umzugstag" or give it a visible label
+- [ ] Unify action buttons: "Kündigungsschreiben aufsetzen" appears once as a boxed button and once as a plain button of different width — same action, same treatment
+- [ ] Separate source chips from action buttons visually: "§ 573c BGB" and "Kündigungsschreiben aufsetzen" sit side by side at equal weight but are metadata vs. action
+- [ ] Shorten the "Wohnung kündigen" description to one sentence and move the two assumptions (Feiertage nach Zielort, Mietende ohne Überlappung) into the "Wie berechnet?" panel where they belong
+- [ ] Make "Mietende ohne Überlappung" an actual toggle instead of a disclaimer — it changes the deadline by a full month and is the most consequential hidden assumption on the page
+- [ ] Open "Wie berechnet?" by default on the one card that has it, since it is the strongest trust signal on the page and currently hidden behind a summary
+- [ ] Add descriptions to the cards that have none — five of seven are title-only and read as unfinished next to the fully written first card
+- [ ] Add "Möglich ab / Frist" lines to more tasks, not just Ummeldung — the range model is the differentiator and appears exactly once
+- [ ] Reduce the left gutter width or widen the cards; roughly a quarter of the content column is empty whitespace between date and card
+- [ ] Clarify "Auf diesem Gerät gespeichert" — state what happens on another device and whether an account will exist later
+- [ ] Add a "was ist erledigt" progress indicator near the top; with checkboxes present, users will want a count without scrolling
+- [ ] Consider collapsing tasks whose date has passed rather than leaving them inline, once the plan is in active use
