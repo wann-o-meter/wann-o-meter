@@ -8,7 +8,7 @@ import {
   useTemplateRef,
   watch,
 } from "vue";
-import { Plus } from "lucide-vue-next";
+import { Download, Plus, Printer } from "lucide-vue-next";
 import TaskCard from "./deadline-planner/TaskCard.vue";
 import TaskPicker from "./deadline-planner/TaskPicker.vue";
 import Timeline from "./deadline-planner/Timeline.vue";
@@ -630,8 +630,12 @@ function print() {
 
       <div class="actions">
         <div class="actions-buttons">
-          <button type="button" @click="exportIcs">Als ICS exportieren</button>
-          <button type="button" @click="print">Checkliste drucken</button>
+          <button type="button" @click="exportIcs">
+            <Download :size="14" /> Als ICS exportieren
+          </button>
+          <button type="button" @click="print">
+            <Printer :size="14" /> Checkliste drucken
+          </button>
         </div>
         <p
           title="Änderungen gelten nur in diesem Tab und werden beim Neuladen zurückgesetzt"
@@ -734,14 +738,13 @@ function print() {
   margin: 1rem 0;
 }
 .facets legend {
-  float: left; /* a legend is not a flex item, so it would sit on its own line */
+  /* Not a flex item, so it sits on its own line above the options. */
   font-family: var(--font-mono);
   font-size: 0.7rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
-  padding: 0 0.5rem 0 0;
-  line-height: 1.9rem;
+  padding: 0 0 0.5rem;
 }
 .facet {
   display: inline-flex;
@@ -954,6 +957,11 @@ function print() {
   display: flex;
   gap: 0.6rem;
   flex-wrap: wrap;
+}
+.actions-buttons button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 @media (max-width: 48rem) {

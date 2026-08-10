@@ -44,8 +44,7 @@ defineEmits<{
   (e: "commit-date-edit", iso: string): void;
 }>();
 
-// Full "17. Juni 2026" / "Mittwoch" instead of the compact format - the rail
-// has room, reads less like a table row.
+// Full "17. Juni 2026" / "Mittwoch": the rail has room for it.
 function whenDate(iso: string): string {
   const d = toDate(iso);
   return `${d.getUTCDate()}. ${MONTH_NAMES[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
@@ -62,8 +61,8 @@ function offsetLabel(offsetDays: number | null): string {
     : `${offsetDays} Tage danach`;
 }
 
-// Relative to today, not to the anchor day - "in 39 Tagen" is what tells you
-// whether to act now, "42 Tage vorher" only tells you the plan's own rhythm.
+// Relative to today, not to the anchor day: "in 39 Tagen" is what tells you
+// whether to act now.
 function relativeLabel(iso: string): string {
   const todayIso = new Date().toISOString().slice(0, 10);
   const days = Math.round(
@@ -84,9 +83,8 @@ function monthLabel(yyyyMm: string): string {
   return `${MONTH_NAMES[m - 1]} ${y}`;
 }
 
-// True once the deadline is a real window, not just a point - earliest and
-// startBy both default to the deadline itself when unresearched (see
-// computeSchedule), so this is false for the vast majority of today's data.
+// True once the deadline is a real window, not just a point. Unresearched
+// entries default earliest/startBy to the deadline itself, so this stays false.
 const hasRange = computed(
   () =>
     props.entry.earliestDate !== props.entry.date ||
@@ -367,15 +365,12 @@ const hasRange = computed(
 }
 .when {
   position: absolute;
-  /* Right edge sits just shy of the rail's dot/line (dot at -1.8rem) - was
-    -13rem, leaving several rem of dead space between the date and the card
-    text it belongs to. */
+  /* Right edge sits just shy of the rail's dot/line (dot at -1.8rem). */
   left: -10.5rem;
   top: 0.55rem;
   width: 8rem;
-  /* flex + align-items:flex-end right-aligns each line by its OWN box, not
-    by the shared text-align line-box - the weekday/offset line is often
-    wider than the 8rem width and needs its right edge pinned regardless. */
+  /* align-items:flex-end right-aligns each line by its OWN box: lines wider
+    than 8rem still get their right edge pinned. */
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -476,9 +471,7 @@ const hasRange = computed(
   text-decoration: line-through;
   color: var(--muted);
 }
-/* Spotlight: whichever card the Timeline overview is currently centered on
-  (scroll position, see DeadlinePlanner's highlightedDate) stands out, every
-  other card recedes - a visual anchor for "where am I in this list". */
+/* Spotlight: the card the Timeline is centered on stands out, others recede. */
 .card {
   transition:
     opacity 0.15s,
@@ -494,9 +487,7 @@ const hasRange = computed(
     0 8px 20px color-mix(in srgb, var(--accent) 25%, transparent),
     0 2px 6px color-mix(in srgb, var(--ink) 10%, transparent);
 }
-/* Focused: a hover (either direction, card <-> Timeline node) or a brief
-  flash after clicking a Timeline node - independent of .current so both can
-  show at once without fighting each other's transform/opacity. */
+/* Focused: hover from either side, independent of .current so both can show. */
 .item.focused .card {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
@@ -583,8 +574,7 @@ const hasRange = computed(
   color: var(--muted);
   font-size: 0.88rem;
 }
-/* The only bold number in the card is the one you actually need to act on -
-  earliest/deadline are context, the start-by day is the decision. */
+/* Only the start-by day is bold: it is the decision, the rest is context. */
 .range-line {
   font-size: 0.85rem;
 }
@@ -688,6 +678,9 @@ const hasRange = computed(
   border-left-width: 3px;
 }
 @media (max-width: 32rem) {
+  .item {
+    margin-bottom: 1.1rem;
+  }
   .when {
     position: static;
     width: auto;
@@ -697,7 +690,7 @@ const hasRange = computed(
     flex-wrap: wrap;
     gap: 0.5rem;
     align-items: baseline;
-    margin: 0 0 0.3rem 1.1rem;
+    margin: 0 0 0.5rem 1.1rem;
   }
   .dot {
     left: 0;
