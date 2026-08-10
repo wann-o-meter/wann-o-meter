@@ -208,6 +208,9 @@ function onToggleDone(id: string) {
   }
 }
 
+// Below this a gap is just breathing room. Labelling it twice in a row adds
+// noise without insight.
+const BUFFER_LABEL_DAYS = 14;
 const sourceIssueUrl = newSourceIssueUrl();
 const editingDateId = ref<string | null>(null);
 function onCommitDate(id: string, iso: string) {
@@ -583,7 +586,7 @@ function print() {
               class="gap"
               :style="{ height: `${node.heightPx}px` }"
             >
-              <span v-if="node.bufferDays > 0" class="gap-label">
+              <span v-if="node.bufferDays >= BUFFER_LABEL_DAYS" class="gap-label">
                 {{ node.bufferDays }} Tage Puffer
               </span>
               <button
@@ -926,6 +929,8 @@ function print() {
   border-color: var(--accent);
   color: var(--accent);
 }
+/* Dead time, not a deadline: set back from the card edge and washed out, so
+  it can never be mistaken for the date column above it. */
 .gap-label {
   position: absolute;
   left: 12.5rem;
@@ -933,7 +938,9 @@ function print() {
   transform: translateY(-50%);
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
-  color: var(--muted);
+  color: color-mix(in srgb, var(--muted) 70%, transparent);
+  border-left: 1px dashed var(--line);
+  padding-left: 0.5rem;
   pointer-events: none;
 }
 .add-end {

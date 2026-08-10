@@ -39,6 +39,16 @@ deadlines:
     source_url: https://www.gesetze-im-internet.de/fzv_2023/__15.html
     source_label: § 15 Abs. 4 FZV
     note: Das Gesetz nennt keine Tagesfrist, nur "unverzüglich" - 14 Tage ist die übliche Praxisempfehlung.
+  - id: zaehlerstaende-ablesen
+    label: Zählerstände ablesen (Strom, Gas, Wasser)
+    offset_days: 0
+    source_url: null
+    no_source_needed: true # keine Frist, sondern eine Aufgabe am Umzugstag selbst
+  - id: uebergabeprotokoll
+    label: Übergabeprotokoll für die alte Wohnung unterschreiben
+    offset_days: 0
+    source_url: null
+    no_source_needed: true # keine Frist, das Protokoll entsteht bei der Übergabe
   - id: rundfunkbeitrag
     label: Rundfunkbeitrag ummelden
     offset_days: 14

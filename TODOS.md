@@ -40,10 +40,10 @@
 - [x] Fix the mini timeline's right edge: "Jan 20…" is clipped, and the Umzugstag label collides with the axis
 - [x] Add a legend or tooltip for the stacked circles in the mini timeline — they currently look like decoration, not like the tasks below
 - [x] Make the mini timeline clickable to scroll to the matching task, otherwise it is a picture rather than a control (already wired, onTimelineSelect scrolls the rail and flashes the card)
-- [ ] Distinguish "Puffer" values visually from task dates — right now "30 Tage Puffer" sits in the same column flow and competes with real deadlines
-- [ ] Reconsider showing puffer at all for gaps under ~14 days; "7 Tage Puffer" twice in a row adds noise without insight
-- [ ] Give the Umzugstag row real content (Zählerstände ablesen, Übergabeprotokoll) — an empty highlighted row looks like a rendering bug
-- [ ] Remove the unlabeled icon next to "Umzugstag" or give it a visible label
+- [x] Distinguish "Puffer" values visually from task dates — right now "30 Tage Puffer" sits in the same column flow and competes with real deadlines
+- [x] Reconsider showing puffer at all for gaps under ~14 days; "7 Tage Puffer" twice in a row adds noise without insight
+- [x] Give the Umzugstag row real content (Zählerstände ablesen, Übergabeprotokoll) — an empty highlighted row looks like a rendering bug
+- [x] Remove the unlabeled icon next to "Umzugstag" or give it a visible label
 - [ ] Unify action buttons: "Kündigungsschreiben aufsetzen" appears once as a boxed button and once as a plain button of different width — same action, same treatment
 - [ ] Separate source chips from action buttons visually: "§ 573c BGB" and "Kündigungsschreiben aufsetzen" sit side by side at equal weight but are metadata vs. action
 - [ ] Shorten the "Wohnung kündigen" description to one sentence and move the two assumptions (Feiertage nach Zielort, Mietende ohne Überlappung) into the "Wie berechnet?" panel where they belong

@@ -143,11 +143,9 @@ const hasRange = computed(
       <button
         type="button"
         class="edit-anchor"
-        title="Datum ändern"
-        aria-label="Datum ändern"
         @click="$emit('open-date-edit')"
       >
-        <CalendarClock :size="12" />
+        <CalendarClock :size="12" /> Datum ändern
       </button>
       <input
         v-if="dateEditOpen"
@@ -468,17 +466,15 @@ const hasRange = computed(
   background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 .edit-anchor {
-  width: 1.5rem;
-  height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--fs-xs);
+  padding: 0.2rem 0.5rem;
   border: 1px solid transparent;
   background: transparent;
-  border-radius: 2px;
   cursor: pointer;
   color: var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
 }
 .edit-anchor:hover {
   background: var(--paper);
