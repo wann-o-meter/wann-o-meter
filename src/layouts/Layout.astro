@@ -1,7 +1,7 @@
 ---
 import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
-import { Monitor, Moon, Search, Sun } from "@lucide/astro";
+import { Monitor, Moon, Sun } from "@lucide/astro";
 import {
   feedbackIssueUrl,
   feedbackMailtoUrl,
@@ -113,6 +113,7 @@ const ogDescription =
           <Monitor size={16} data-theme-icon="system" class="active" />
           <Sun size={16} data-theme-icon="light" />
           <Moon size={16} data-theme-icon="dark" />
+          <span data-theme-label>System</span>
         </button>
       </div>
     </header>
@@ -146,8 +147,7 @@ const ogDescription =
       // <ClientRouter /> swaps the body, so the nodes this found on first load
       // are gone afterwards and any listener on them went with it.
       // astro:page-load also fires on the initial load, so this is not a
-      // behaviour change for a normal page visit. (The Cmd+K handler at the
-      // bottom deliberately stays OUTSIDE this - see there.)
+      // behaviour change for a normal page visit.
       document.addEventListener("astro:page-load", () => {
         const el = document.getElementById("today-indicator");
         if (el instanceof HTMLAnchorElement) {
@@ -188,6 +188,8 @@ const ogDescription =
             "aria-label",
             `Farbschema: ${THEME_LABELS[t]}`,
           );
+          const label = themeToggle.querySelector("[data-theme-label]");
+          if (label) label.textContent = THEME_LABELS[t];
           for (const icon of themeToggle.querySelectorAll(
             "[data-theme-icon]",
           )) {
@@ -210,25 +212,6 @@ const ogDescription =
         });
       });
 
-      // Cmd+K (Mac) / Ctrl+K (everyone else) jumps to the homepage search,
-      // same target as the "Durchsuchen" nav link - focuses it directly if
-      // we're already on "/", otherwise navigates there.
-      //
-      // Outside the astro:page-load block above ON PURPOSE: this binds to
-      // `document`, which survives a view-transition swap. Re-binding it per
-      // navigation would stack a duplicate handler every time. So this one
-      // script block has two lifetimes - per-navigation above, once here.
-      document.addEventListener("keydown", (e) => {
-        if (e.key.toLowerCase() !== "k" || !(e.metaKey || e.ctrlKey)) return;
-        e.preventDefault();
-        const input = document.getElementById("search-input");
-        if (input instanceof HTMLInputElement) {
-          input.focus({ preventScroll: true });
-          input.scrollIntoView({ block: "center", behavior: "smooth" });
-        } else {
-          window.location.href = "/#search-input";
-        }
-      });
     </script>
   </body>
 </html>
@@ -302,6 +285,9 @@ const ogDescription =
   }
   nav a:hover {
     color: var(--accent);
+  }
+  .theme-toggle span {
+    font-size: var(--fs-xs);
   }
   .theme-toggle {
     display: inline-flex;

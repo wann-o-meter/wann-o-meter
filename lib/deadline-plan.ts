@@ -23,7 +23,6 @@ export const deadlineSchema = z.object({
   label: z.string(),
   offset_days: z.number().int().nullable(), // the legal/actual deadline - a ballpark approximation when offset_rule is set, since sorting still needs a plain number
   offset_rule: z.enum(["bgb-573c-notice"]).optional(), // computes the real date instead of using offset_days directly - see lib/notice-period.ts
-  assumptions: z.array(z.string()).optional(), // shown inside "Wie berechnet?", not as card prose
   earliest_offset_days: z.number().int().optional(), // frühestens möglich - absent means "same as the deadline", not "unknown"
   lead_time_days: z.number().int().positive().optional(), // Vorlaufzeit (Termin etc.) - absent means "no known lead time"
   lead_time_source: z.string().optional(),
@@ -110,6 +109,7 @@ export function computeSchedule(
         countryCode,
         regionCode,
         today,
+        deferMonths,
       );
       date = result.date; // always 1:1 with anchorDate, even when past - see notice-period.ts
       derivation = result.derivation;

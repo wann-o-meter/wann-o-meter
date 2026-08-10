@@ -5,6 +5,10 @@
     :style="rootVars"
   >
     <div v-if="showLegend" class="legend">
+      <span class="legend-item">
+        <span class="swatch task"></span>
+        Aufgabe
+      </span>
       <label class="legend-item">
         <input type="checkbox" v-model="showFeiertage" />
         <span class="swatch feiertage"></span>
@@ -400,7 +404,7 @@ const pinFlipped = computed(
   () =>
     props.compact &&
     placed.value &&
-    trackWidth.value - pxIso(props.anchorDate) < 180,
+    trackWidth.value - pxIso(props.anchorDate) < 240,
 );
 
 // Week ticks (Monday-aligned) stay real elements so they keep their hover
@@ -486,7 +490,7 @@ function onPin(e: Event): boolean {
 }
 
 function onScrollerMove(e: MouseEvent) {
-  if (!trackEl.value) return;
+  if (!props.clickable || !trackEl.value) return;
   const r = trackEl.value.getBoundingClientRect();
   const x = e.clientX - r.left;
   const d = scale.value.dateAt(x);
@@ -625,6 +629,11 @@ function onNodeClick(id: string, e: MouseEvent) {
   width: 0.45rem;
   height: 0.45rem;
   border-radius: 2px;
+}
+.swatch.task {
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: var(--paper-raised);
 }
 .swatch.feiertage {
   background: var(--warn);

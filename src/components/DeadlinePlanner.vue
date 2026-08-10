@@ -214,9 +214,6 @@ function onToggleDone(id: string) {
   }
 }
 
-// Below this a gap is just breathing room. Labelling it twice in a row adds
-// noise without insight.
-const BUFFER_LABEL_DAYS = 14;
 const sourceIssueUrl = newSourceIssueUrl();
 const editingDateId = ref<string | null>(null);
 function onCommitDate(id: string, iso: string) {
@@ -257,6 +254,9 @@ const unverifiedCount = computed(
 );
 const verifiedCount = computed(
   () => verifiableTasks.value.length - unverifiedCount.value,
+);
+const noSourceCount = computed(
+  () => tasks.value.length - verifiableTasks.value.length,
 );
 
 // Only the FIRST card in a run of same-date entries shows its date - three
@@ -564,11 +564,11 @@ function print() {
             @hover="hoveredId = $event"
           />
         </div>
+        <p v-if="tasks.length > 0" class="progress">
+          <span>{{ stats.done }} von {{ tasks.length }} erledigt</span>
+          <progress :value="stats.done" :max="tasks.length"></progress>
+        </p>
       </div>
-      <p v-if="tasks.length > 0" class="progress">
-        <span>{{ stats.done }} von {{ tasks.length }} erledigt</span>
-        <progress :value="stats.done" :max="tasks.length"></progress>
-      </p>
       <p
         class="scalenote"
         title="Ziehen verschiebt eine Aufgabe, Scrollen hebt den Tag im Zeitstrahl hervor"
@@ -579,8 +579,9 @@ function print() {
       <p v-if="unverifiedCount > 0" class="verify-note">
         <Info :size="13" />
         <span>
-          {{ verifiedCount }} Fristen gesetzlich belegt, {{ unverifiedCount }}
-          auf Erfahrungswerten.
+          Von {{ tasks.length }} Aufgaben sind {{ verifiedCount }} gesetzlich
+          belegt, {{ unverifiedCount }} beruhen auf Erfahrungswerten,
+          {{ noSourceCount }} brauchen keine Quelle.
           <a :href="sourceIssueUrl" target="_blank" rel="noopener"
             >Quelle vorschlagen</a
           >
@@ -595,14 +596,9 @@ function print() {
             <div
               v-if="node.kind === 'gap'"
               class="gap"
+              :title="`${node.bufferDays} Tage Puffer`"
               :style="{ height: `${node.heightPx}px` }"
             >
-              <span
-                v-if="node.bufferDays >= BUFFER_LABEL_DAYS"
-                class="gap-label"
-              >
-                {{ node.bufferDays }} Tage Puffer
-              </span>
               <button
                 type="button"
                 class="gap-add"
@@ -814,7 +810,7 @@ function print() {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  margin: 0.9rem 0 0 12.2rem;
+  margin: 0.3rem 0 0;
   font-size: var(--fs-xs);
   color: var(--muted);
 }
@@ -960,20 +956,6 @@ function print() {
   border-color: var(--accent);
   color: var(--accent);
 }
-/* Dead time, not a deadline: set back from the card edge and washed out, so
-  it can never be mistaken for the date column above it. */
-.gap-label {
-  position: absolute;
-  left: 12.2rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: color-mix(in srgb, var(--muted) 70%, transparent);
-  border-left: 1px dashed var(--line);
-  padding-left: 0.5rem;
-  pointer-events: none;
-}
 .add-end {
   display: block;
   width: 100%;
@@ -1091,12 +1073,8 @@ function print() {
   .gap-add {
     left: 0.05rem;
   }
-  .gap-label {
-    left: 1.4rem;
-  }
   .scalenote,
-  .verify-note,
-  .progress {
+  .verify-note {
     margin-left: 0;
   }
   .gap :deep(.task-picker) {

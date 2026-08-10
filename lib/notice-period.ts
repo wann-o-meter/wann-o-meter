@@ -75,6 +75,7 @@ export function bgb573cNoticeDeadline(
   countryCode: string,
   regionCode: string | undefined,
   today: string,
+  deferMonths = 0, // > 0 when the caller deliberately keeps the old flat longer
 ): NoticeDeadlineResult {
   const derivation: DerivationStep[] = [];
   const region = regionCode ? `${countryCode}-${regionCode}` : countryCode;
@@ -84,7 +85,11 @@ export function bgb573cNoticeDeadline(
   });
   derivation.push({
     step: "target-end-month",
-    label: `Angenommenes Mietende: Ende ${monthLabel(targetEndMonth)} (kein Überlappungsmonat eingeplant)`,
+    label: `Angenommenes Mietende: Ende ${monthLabel(targetEndMonth)} (${
+      deferMonths > 0
+        ? `${deferMonths} Überlappungsmonat eingeplant`
+        : "kein Überlappungsmonat eingeplant"
+    })`,
     value: targetEndMonth,
   });
 

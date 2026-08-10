@@ -60,24 +60,24 @@
 - [x] Doesn't "Alte Wohnung einen Monat länger behalten" only make sense when the deadline has passed? (agreed, it now lives on the card whose deadline was missed)
 - [x] The progress bar will be hidden behind the widened timeline that gets widened on scroll.
 - [x] The "Alte Wohnung einen Monat länger" looks out of place
-- [ ] Fix contradiction in the derivation: overlap toggle is on (move 20 Oct, lease end Nov 30) but step 2 states "kein Überlappungsmonat eingeplant" — the trust panel is showing false text
-- [ ] Fix the verification count: "2 gesetzlich belegt, 5 auf Erfahrungswerten" adds to 7 of 10 tasks — three are unaccounted for
-- [ ] Show a date for every task: Nachsendeauftrag, Halteverbot, Zählerstände, Übergabeprotokoll and Rundfunkbeitrag currently have only a rail dot and no visible date
-- [ ] Especially fix Halteverbot — its lead time is the entire reason the task exists, and it currently shows no date at all
-- [ ] Add a compact in-card date line as fallback whenever the gutter label is suppressed by collision
-- [ ] Remove the duplicated assumptions in "Wie berechnet?" — the holiday region and lease-end assumptions each appear twice, once as a numbered step and once as "Annahme:"
-- [ ] Invert the derivation panel order: result first and prominent, calculation steps collapsed below, assumptions last and stated once
-- [ ] Shorten the "Wohnung kündigen" card overall — it is roughly five times the height of every other card and pushes the rest of the plan below the fold
-- [ ] Move the overlap toggle out of "Trifft auf mich zu" and into the Kündigen card, where its effect is visible on the date
-- [ ] Render it as a choice rather than a question, e.g. "Mietende: Ende Okt · Ende Nov (Überlappung)" instead of "Kündigungstermin verpasst?"
-- [ ] Separate the two kinds of toggles conceptually: "Auto" is a personal attribute, overlap is a planning decision — they should not share a group
-- [ ] Fix the city switcher: "Rottenburg am Neckar (aktuell)" renders as bare text between chips and looks broken — style it as a selected chip
-- [ ] Fix the clipped Umzugstag label on the right edge of the mini timeline
-- [ ] Remove or explain the grey "Mo, 2. November 2026" floating top-right of the mini timeline — it reads as a stuck hover state
-- [ ] Label or remove the unlabeled monitor icon in the header
-- [ ] Restore the search affordance in the header, or drop the header nav entirely rather than leaving one mystery control
-- [ ] Reconsider "28 Tage Puffer" appearing exactly once — a single occurrence reads as arbitrary rather than systematic
-- [ ] Add the Bürgeramt appointment lead time to the Ummeldung calculation: the description mentions needing an appointment, but the plan only shows the legal deadline, not when to start
-- [ ] Give the mini timeline a legend or hover labels — the stacked circles still require the caption to be understood
-- [ ] Consider whether checked-off tasks should keep full card height; the green completed cards take as much space as open ones
-- [ ] Make the progress bar clickable or sticky so it stays useful once the user scrolls into the list
+- [x] Fix contradiction in the derivation: overlap toggle is on (move 20 Oct, lease end Nov 30) but step 2 states "kein Überlappungsmonat eingeplant" — the trust panel is showing false text
+- [x] Fix the verification count: "2 gesetzlich belegt, 5 auf Erfahrungswerten" adds to 7 of 10 tasks — three are unaccounted for
+- [x] Show a date for every task: Nachsendeauftrag, Halteverbot, Zählerstände, Übergabeprotokoll and Rundfunkbeitrag currently have only a rail dot and no visible date
+- [x] Especially fix Halteverbot — its lead time is the entire reason the task exists, and it currently shows no date at all
+- [x] Add a compact in-card date line as fallback whenever the gutter label is suppressed by collision
+- [x] Remove the duplicated assumptions in "Wie berechnet?" — the holiday region and lease-end assumptions each appear twice, once as a numbered step and once as "Annahme:"
+- [x] Invert the derivation panel order: result first and prominent, calculation steps collapsed below, assumptions last and stated once
+- [x] Shorten the "Wohnung kündigen" card overall — it is roughly five times the height of every other card and pushes the rest of the plan below the fold
+- [x] Move the overlap toggle out of "Trifft auf mich zu" and into the Kündigen card, where its effect is visible on the date
+- [x] Render it as a choice rather than a question, e.g. "Mietende: Ende Okt · Ende Nov (Überlappung)" instead of "Kündigungstermin verpasst?"
+- [x] Separate the two kinds of toggles conceptually: "Auto" is a personal attribute, overlap is a planning decision — they should not share a group
+- [x] Fix the city switcher: "Rottenburg am Neckar (aktuell)" renders as bare text between chips and looks broken — style it as a selected chip
+- [x] Fix the clipped Umzugstag label on the right edge of the mini timeline
+- [x] Remove or explain the grey "Mo, 2. November 2026" floating top-right of the mini timeline — it reads as a stuck hover state
+- [x] Label or remove the unlabeled monitor icon in the header
+- [x] Restore the search affordance in the header, or drop the header nav entirely rather than leaving one mystery control (dropped: the Cmd+K handler still pointed at a #search-input that no longer exists)
+- [x] Reconsider "28 Tage Puffer" appearing exactly once — a single occurrence reads as arbitrary rather than systematic (label removed entirely, the gap height already carries it and the number moved to its tooltip)
+- [x] Add the Bürgeramt appointment lead time to the Ummeldung calculation: the description mentions needing an appointment, but the plan only shows the legal deadline, not when to start (skipped: a lead time is a concrete number and varies by Kommune, inventing one is what the null placeholders exist to prevent)
+- [x] Give the mini timeline a legend or hover labels — the stacked circles still require the caption to be understood
+- [x] Consider whether checked-off tasks should keep full card height; the green completed cards take as much space as open ones
+- [x] Move the progress bar under the timeline and make it sticky so it stays useful once the user scrolls into the list

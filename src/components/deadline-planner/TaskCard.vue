@@ -158,6 +158,7 @@ const hasRange = computed(
     </div>
 
     <div v-else class="card">
+      <p v-if="!showDate" class="card-date">{{ whenDate(entry.date!) }}</p>
       <div class="card-head">
         <button
           type="button"
@@ -244,24 +245,32 @@ const hasRange = computed(
         {{ shortWhen(entry.rescue.date) }}
         nachholen ({{ entry.rescue.label }}).
       </p>
-      <label v-if="entry.rescue || deferred" class="defer">
-        <input
-          type="checkbox"
-          :checked="deferred"
-          @change="$emit('toggle-defer')"
-        />
-        <span>Alte Wohnung einen Monat länger behalten</span>
-      </label>
-      <details v-if="entry.derivation?.length" class="derivation" open>
-        <summary>Wie berechnet?</summary>
+      <p v-if="entry.rescue || deferred" class="defer">
+        <span class="defer-label">Mietende</span>
+        <button
+          type="button"
+          :aria-pressed="!deferred"
+          @click="deferred && $emit('toggle-defer')"
+        >
+          Ende des Umzugsmonats
+        </button>
+        <button
+          type="button"
+          :aria-pressed="deferred"
+          @click="!deferred && $emit('toggle-defer')"
+        >
+          Einen Monat später (Überlappung)
+        </button>
+      </p>
+      <details v-if="entry.derivation?.length" class="derivation">
+        <summary>
+          Wie berechnet? ({{ entry.derivation.length }} Schritte)
+        </summary>
         <ol>
           <li v-for="step in entry.derivation" :key="step.step">
             {{ step.label }}
           </li>
         </ol>
-        <ul v-if="entry.assumptions?.length" class="assumptions">
-          <li v-for="a in entry.assumptions" :key="a">{{ a }}</li>
-        </ul>
       </details>
 
       <p v-if="entry.note">{{ entry.note }}</p>
@@ -493,6 +502,13 @@ const hasRange = computed(
   border-left: 3px solid var(--done-color);
   opacity: 0.75;
 }
+.item.done .card p,
+.item.done .card .range-line,
+.item.done .card .derivation,
+.item.done .card .cta-row,
+.item.done .card .badge {
+  display: none;
+}
 .item.done .card-head h3 {
   text-decoration: line-through;
   color: var(--muted);
@@ -517,6 +533,12 @@ const hasRange = computed(
 .item.focused .card {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.card-date {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--muted);
 }
 .card-head {
   display: flex;
@@ -622,22 +644,25 @@ const hasRange = computed(
 .defer {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  margin-top: 0.5rem;
-  font-size: var(--fs-sm);
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0;
 }
-.defer input {
-  accent-color: var(--accent);
-  margin: 0;
-}
-.derivation .assumptions {
-  margin: 0.4rem 0 0;
-  padding-left: 1.1rem;
-  list-style: none;
-}
-.derivation .assumptions li::before {
-  content: "Annahme: ";
+.defer-label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--muted);
+}
+.defer button {
+  font-size: var(--fs-xs);
+  padding: 0.2rem 0.5rem;
+}
+.defer button[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
 }
 .cta-row {
   margin-top: 0.6rem;
