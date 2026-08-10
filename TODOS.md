@@ -24,4 +24,4 @@
 - [x] add a small confetti effect when a task is done
 - [x] add localhost integration to save the progress of the tasks (localStorage, keyed per Vorhaben and Ort)
 - [x] in the timeline the button link to the deadline view is overlapping with the dates ![alt text](overlapping.png)
-- [x] read through the review and fix the problems. after you're done, remove the review about the design. (grey ramp skipped, the proposed label grey fails contrast on paper. H1 stays weight 600, the scale has only 400 and 600)
+- [x] read through the review and fix the problems. after you're done, remove the review about the design. (grey ramp skipped, the proposed label grey fails contrast on paper. H1 stays weight 600, the scale has only 400 and 600. Planner and global styles only, the Kalender views were not audited)
