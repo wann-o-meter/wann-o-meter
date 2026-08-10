@@ -807,6 +807,9 @@ function print() {
   min-width: 0;
 }
 .rail {
+  /* Distance from a card's left edge to the rail line. TaskCard's dots read
+    it so they stay centred on the line at every breakpoint. */
+  --rail-gap: 1.5rem;
   position: relative;
   margin: 0;
   padding: 0.5rem 0 0.5rem 12.5rem;
@@ -976,6 +979,7 @@ function print() {
 }
 @media (max-width: 32rem) {
   .rail {
+    --rail-gap: 1.2rem;
     padding-left: 1.4rem;
   }
   .gap {

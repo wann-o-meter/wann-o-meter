@@ -353,19 +353,18 @@ const hasRange = computed(
   position: relative;
 }
 .dot {
+  --dot: 0.55rem;
   position: absolute;
-  left: -1.8rem;
+  left: calc(-1 * var(--rail-gap, 1.5rem) - var(--dot) / 2);
   top: 0.4rem;
-  width: 0.55rem;
-  height: 0.55rem;
+  width: var(--dot);
+  height: var(--dot);
   border-radius: 50%;
   background: var(--paper);
   border: 1.5px solid var(--accent);
 }
 .item.anchor .dot {
-  width: 0.8rem;
-  height: 0.8rem;
-  left: -1.95rem;
+  --dot: 0.8rem;
   background: var(--accent);
   border-color: var(--accent);
 }
@@ -707,12 +706,6 @@ const hasRange = computed(
     gap: 0.5rem;
     align-items: baseline;
     margin: 0 0 0.5rem 1.1rem;
-  }
-  .dot {
-    left: 0;
-  }
-  .item.anchor .dot {
-    left: -0.1rem;
   }
 }
 
