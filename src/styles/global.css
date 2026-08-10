@@ -32,7 +32,7 @@
   --fs-sm: 0.85rem;
   --fs-md: 1rem;
   --fs-lg: 1.4rem;
-  --fs-xl: 2rem;
+  --fs-xl: 1.85rem;
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
@@ -57,6 +57,7 @@ html {
 body {
   margin: 0;
   font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: var(--fs-md);
   line-height: 1.6;
   color: var(--ink);
@@ -72,6 +73,7 @@ h3 {
 }
 h1 {
   font-size: var(--fs-xl);
+  letter-spacing: -0.02em;
 }
 h2 {
   font-size: var(--fs-lg);
@@ -166,8 +168,8 @@ th {
 }
 .source-item .label {
   display: block;
-  font-family: var(--font-mono);
   font-size: var(--fs-xs);
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--accent);
@@ -205,8 +207,6 @@ th {
   display: inline-block;
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   padding: 0.1rem 0.4rem;
   border: 1px solid var(--accent);
   color: var(--accent);

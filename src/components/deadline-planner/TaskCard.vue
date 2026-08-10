@@ -30,6 +30,7 @@ const props = defineProps<{
   hasAttachment: boolean;
   cta: TaskCta | null;
   showDate: boolean; // false when the previous card already shows this same date
+  isNext: boolean; // the first still-open deadline, the one hero number
   dateEditOpen: boolean;
 }>();
 
@@ -112,7 +113,7 @@ const hasRange = computed(
     class="item"
     :data-entry-id="entry.id"
     :data-entry-date="entry.date"
-    :class="{ anchor: isAnchor, past: isPast, done }"
+    :class="{ anchor: isAnchor, past: isPast, done, next: isNext }"
   >
     <span class="dot" :data-dot-key="entry.id"></span>
     <div v-if="showDate" class="when">
@@ -417,6 +418,12 @@ const hasRange = computed(
   color: var(--accent);
   font-size: var(--fs-xs);
 }
+.item.next .when .rel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  line-height: 1.2;
+}
 .when .next-possible {
   color: var(--warn);
   font-size: var(--fs-sm);
@@ -597,6 +604,7 @@ const hasRange = computed(
 }
 .card p {
   margin: 0.3rem 0 0;
+  max-width: 68ch;
   color: var(--muted);
   font-size: var(--fs-sm);
 }

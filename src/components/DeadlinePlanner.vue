@@ -8,7 +8,7 @@ import {
   useTemplateRef,
   watch,
 } from "vue";
-import { Download, Plus, Printer } from "lucide-vue-next";
+import { Download, Info, Plus, Printer } from "lucide-vue-next";
 import TaskCard from "./deadline-planner/TaskCard.vue";
 import TaskPicker from "./deadline-planner/TaskPicker.vue";
 import Timeline from "./deadline-planner/Timeline.vue";
@@ -226,6 +226,13 @@ const { timeline, tasks, unscheduled, railNodes } = usePlannerSchedule(
   workingDeadlines,
   () => props.anchorLabel,
   doneIds,
+);
+
+// One hero number per screen: the countdown on the first deadline still open.
+const nextUpId = computed(
+  () =>
+    tasks.value.find((t) => t.date && !isPast(t.date) && !doneIds[t.id])?.id ??
+    null,
 );
 
 function isPast(date: string): boolean {
@@ -556,6 +563,7 @@ function print() {
         Abstände sind maßstäblich.
       </p>
       <p v-if="unverifiedCount > 0" class="verify-note">
+        <Info :size="13" />
         {{ unverifiedCount }} von {{ verifiableTasks.length }} Fristen sind noch
         nicht verifiziert.
       </p>
@@ -622,6 +630,7 @@ function print() {
               :has-attachment="node.entry.id in attachments"
               :cta="taskCtaFor(node.entry.id)"
               :show-date="!suppressDate.has(node.entry.id)"
+              :is-next="node.entry.id === nextUpId"
               :date-edit-open="editingDateId === node.entry.id"
               @toggle-done="onToggleDone(node.entry.id)"
               @commit-label="commitLabel(node.entry.id, $event)"
@@ -732,8 +741,8 @@ function print() {
 }
 .field span {
   display: block;
-  font-family: var(--font-mono);
   font-size: var(--fs-xs);
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
@@ -779,8 +788,8 @@ function print() {
 }
 .facets legend {
   /* Not a flex item, so it sits on its own line above the options. */
-  font-family: var(--font-mono);
   font-size: var(--fs-xs);
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
@@ -842,7 +851,10 @@ function print() {
   border-left: 2px solid var(--line);
   background: color-mix(in srgb, var(--muted) 8%, transparent);
   color: var(--muted);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-xs);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 .rail-column {
   min-width: 0;
@@ -911,8 +923,6 @@ function print() {
   transform: translateY(-50%);
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--muted);
   pointer-events: none;
 }

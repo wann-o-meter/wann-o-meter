@@ -604,9 +604,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   flex-wrap: wrap;
   gap: 1rem;
   padding: 0.5rem 0 0.7rem;
-  font-family: var(--font-mono);
-  font-size: var(--fs-sm);
-  letter-spacing: 0.02em;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 .legend-item {
@@ -621,8 +619,8 @@ function onNodeClick(id: string, e: MouseEvent) {
 }
 .swatch {
   display: inline-block;
-  width: 0.6rem;
-  height: 0.6rem;
+  width: 0.45rem;
+  height: 0.45rem;
   border-radius: 2px;
 }
 .swatch.feiertage {
@@ -734,7 +732,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   left: -0.65rem;
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.03em;
   background: var(--paper);
   padding: 0 0.25rem;
 }

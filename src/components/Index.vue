@@ -324,8 +324,8 @@ h1 {
   margin-top: 0.9rem;
 }
 .place span {
-  font-family: var(--font-mono);
   font-size: var(--fs-xs);
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
@@ -353,9 +353,9 @@ h1 {
   }
 }
 .hint {
-  font-family: var(--font-mono);
   font-size: var(--fs-xs);
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
   margin: 0 0 0.6rem;
