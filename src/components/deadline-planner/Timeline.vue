@@ -7,7 +7,19 @@
     <div v-if="showLegend" class="legend">
       <span class="legend-item">
         <span class="swatch task"></span>
-        Aufgabe
+        Offen
+      </span>
+      <span class="legend-item">
+        <span class="swatch task done"></span>
+        Erledigt
+      </span>
+      <span class="legend-item">
+        <span class="swatch task warn"></span>
+        Amt hat zu
+      </span>
+      <span class="legend-item">
+        <span class="swatch anchor"></span>
+        {{ anchorName }}
       </span>
       <label class="legend-item">
         <input type="checkbox" v-model="showFeiertage" />
@@ -114,7 +126,7 @@
             }"
             :data-node-key="keyed ? t.id : null"
             :data-label="nodeLabel(t)"
-            :aria-label="nodeLabel(t)"
+            :aria-label="`${nodeLabel(t)} (${nodeState(t)})`"
             :title="
               compact ? `${nodeLabel(t)} - zur Aufgabe springen` : undefined
             "
@@ -320,6 +332,13 @@ function langDate(d: Date): string {
 }
 function weekdayShort(d: Date): string {
   return WEEKDAY_NAMES_SHORT[(d.getUTCDay() + 6) % 7];
+}
+// Colour alone never carries the state: the accessible name says it too.
+function nodeState(t: ScheduleEntry & { date: string }): string {
+  if (props.doneIds[t.id]) return "erledigt";
+  if (t.impossible) return "nicht mehr rechtzeitig";
+  if (t.weekend || t.collision) return "Amt hat zu";
+  return "offen";
 }
 function nodeLabel(t: ScheduleEntry & { date: string }): string {
   return `${shortDate(toDate(t.date))} · ${t.label}`;
@@ -665,6 +684,13 @@ function onNodeClick(id: string, e: MouseEvent) {
   margin: 0;
   cursor: pointer;
 }
+/* Touch: a checkbox is a ~13px box, a finger is not. */
+@media (hover: none) {
+  .legend-item {
+    position: relative;
+    padding: 0.5rem 0;
+  }
+}
 .swatch {
   display: inline-block;
   width: 0.45rem;
@@ -675,6 +701,17 @@ function onNodeClick(id: string, e: MouseEvent) {
   border-radius: 50%;
   border: 2px solid var(--accent);
   background: var(--paper-raised);
+}
+.swatch.task.done {
+  border-color: var(--done-color);
+  background: var(--done-color);
+}
+.swatch.task.warn {
+  border-color: var(--warn);
+}
+.swatch.anchor {
+  background: var(--anchor);
+  clip-path: polygon(0 0, 100% 0, 60% 50%, 100% 100%, 0 100%);
 }
 .swatch.feiertage {
   background: var(--holiday);

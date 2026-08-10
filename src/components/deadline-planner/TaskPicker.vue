@@ -79,7 +79,6 @@ defineEmits<{
   border-top: 1px solid var(--line);
   border-radius: 0;
   color: var(--muted);
-  font-family: var(--font-mono);
   font-size: var(--fs-xs);
   text-transform: uppercase;
   letter-spacing: 0.04em;

@@ -511,7 +511,7 @@ function print() {
     </div>
 
     <fieldset v-if="facetOptions.length > 0" class="facets">
-      <legend>Trifft auf mich zu</legend>
+      <legend v-if="facetOptions.length > 1">Trifft auf mich zu</legend>
       <p class="facets-hint">Ergänze deine Situation für weitere Aufgaben.</p>
       <label v-for="id in facetOptions" :key="id" class="facet">
         <input v-model="activeFacets" type="checkbox" :value="id" />
@@ -701,6 +701,12 @@ function print() {
             <span class="badge missing">Erfahrungswert</span>
           </li>
         </ul>
+      </div>
+
+      <div class="sticky-export">
+        <button type="button" @click="exportIcs">
+          <Download :size="14" /> Als ICS exportieren
+        </button>
       </div>
 
       <div class="actions">
@@ -1091,6 +1097,32 @@ function print() {
   color: var(--muted);
 }
 
+/* Phones only: the desktop copy of this button lives in .actions below. */
+.sticky-export {
+  display: none;
+}
+@media (max-width: 40rem) {
+  .sticky-export {
+    position: sticky;
+    bottom: 0;
+    z-index: 7;
+    display: block;
+    margin: 1rem -1rem 0;
+    padding: 0.6rem 1rem;
+    background: var(--paper);
+    border-top: 1px solid var(--line);
+  }
+  .sticky-export button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+}
 .actions {
   margin-top: 2.5rem;
   padding: 1rem 1.2rem;
@@ -1121,7 +1153,7 @@ function print() {
   gap: 0.4rem;
 }
 
-@media (max-width: 32rem) {
+@media (max-width: 40rem) {
   .rail {
     --rail-gap: 1.2rem;
     padding-left: 1.4rem;
@@ -1152,6 +1184,7 @@ function print() {
   .form,
   .overview-wrap,
   .mini-header,
+  .sticky-export,
   .gap-add,
   .add-end,
   .undo,

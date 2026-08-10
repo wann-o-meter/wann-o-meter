@@ -8,16 +8,18 @@ import type { Deadline } from "./deadline-plan";
 // its keys, and the planner only offers a chip for a facet that some deadline
 // in the selected variant actually uses, so tagging a new entry is a one-line
 // data change with no UI work.
+// Full sentences: a bare "Auto" next to a checkbox reads as a broken filter,
+// not as something the reader is being asked about themselves.
 export const FACET_LABELS: Record<string, string> = {
-  haustier_hund: "Hund",
-  haustier_katze: "Katze",
-  auto: "Auto",
-  gewerbe: "Gewerbe",
-  kinder: "Kinder",
-  studium: "Studium",
-  arbeitssuchend: "Arbeitssuchend",
-  wohngeld: "Wohngeld",
-  jagdschein: "Jagdschein",
+  haustier_hund: "Ich habe einen Hund",
+  haustier_katze: "Ich habe eine Katze",
+  auto: "Ich habe ein Auto, das ich ummelden muss",
+  gewerbe: "Ich habe ein Gewerbe angemeldet",
+  kinder: "Kinder ziehen mit um",
+  studium: "Ich studiere",
+  arbeitssuchend: "Ich bin arbeitssuchend gemeldet",
+  wohngeld: "Ich beziehe Wohngeld",
+  jagdschein: "Ich habe einen Jagdschein",
 };
 
 export const FACET_IDS = Object.keys(FACET_LABELS) as [string, ...string[]];

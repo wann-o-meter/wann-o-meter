@@ -242,12 +242,15 @@ const hasRange = computed(
           <b>Termin buchen bis {{ shortWhen(entry.startByDate!) }}</b></template
         >
       </p>
-      <p v-if="entry.rescue" class="flag flag-past-deadline">
-        <TriangleAlert :size="15" />
-        Die Frist ist verstrichen. Spätestens am
-        {{ shortWhen(entry.rescue.date) }}
-        nachholen ({{ entry.rescue.label }}).
-      </p>
+      <div v-if="entry.rescue" class="past-deadline">
+        <b><TriangleAlert :size="15" /> Frist verstrichen</b>
+        <p>
+          Was du jetzt tun kannst: spätestens am
+          {{ shortWhen(entry.rescue.date) }} nachholen ({{
+            entry.rescue.label
+          }}).
+        </p>
+      </div>
       <p v-if="entry.rescue || deferred" class="defer">
         <span class="defer-label">Mietende</span>
         <button
@@ -582,6 +585,7 @@ const hasRange = computed(
   background: var(--paper);
 }
 .check {
+  position: relative;
   flex-shrink: 0;
   width: 1.1rem;
   height: 1.1rem;
@@ -786,13 +790,34 @@ const hasRange = computed(
   font-size: var(--fs-xs);
   padding: 0.15rem 0.5rem;
 }
+.past-deadline {
+  margin-top: 0.6rem;
+  padding-left: 0.7rem;
+  border-left: 3px solid var(--warn);
+}
+.past-deadline b {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--warn);
+  font-size: var(--fs-sm);
+}
+.past-deadline p {
+  margin: 0.15rem 0 0;
+  font-size: var(--fs-sm);
+}
 .flag-impossible {
   font-weight: 600;
   border-left-width: 3px;
 }
-@media (max-width: 32rem) {
+@media (max-width: 40rem) {
   .item {
     margin-bottom: 1.1rem;
+  }
+  .check::before {
+    content: "";
+    position: absolute;
+    inset: -0.55rem;
   }
   .when {
     position: static;

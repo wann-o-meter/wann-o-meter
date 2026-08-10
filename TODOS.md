@@ -111,11 +111,11 @@
 - [x] Pair or replace "in gut 5 Monaten" → `2 Wochen vor dem Umzug · in gut 5 Monaten`; six tasks currently all read "in gut 6 Monaten"
 - [x] Add the summary sentence at the top: "Aus deinem Umzugstag am 31. Januar 2027 ergeben sich 10 Fristen. Die erste ist am 4. November 2026."
 - [x] Collapse the timeline by default, or move it below the first three tasks
-- [ ] Explain the circle vocabulary in the legend — filled vs. ring, green vs. red vs. blue
-- [ ] Rewrite "TRIFFT AUF MICH ZU → ☐ Auto" as a full sentence: "Ich habe ein Auto, das ich ummelden muss"; drop the section header if there's only one item
+- [x] Explain the circle vocabulary in the legend — filled vs. ring, green vs. red vs. blue
+- [x] Rewrite "TRIFFT AUF MICH ZU → ☐ Auto" as a full sentence: "Ich habe ein Auto, das ich ummelden muss"; drop the section header if there's only one item
 - [x] Mark the next actionable task with an "Als Nächstes" badge and stronger card treatment
 - [x] Bridge the empty gap between HEUTE (August) and the first task (November): "Bis November ist nichts zu tun."
-- [ ] Handle past deadlines explicitly: "Frist verstrichen — was du jetzt tun kannst"
+- [x] Handle past deadlines explicitly: "Frist verstrichen — was du jetzt tun kannst"
 
 ## Planner — interaction
 
@@ -126,7 +126,7 @@
 - [x] Make the header fields look editable — input styling, hover state, chevron on all three
 - [x] Add a sticky mini-header on scroll: Umzugstag + "3 von 10 erledigt"
 - [x] Give every card the same action row — only "Wohnung kündigen" has a CTA
-- [ ] Apply "Wie berechnet? (4 Schritte)" to all computed dates or none
+- [x] Apply "Wie berechnet? (4 Schritte)" to all computed dates or none (only offset_rule entries have a derivation, and the panel is collapsed for all of them. Fabricating steps for plain offsets would be inventing a calculation)
 - [x] Add "Plan-Link kopieren" with state encoded in the URL — "Auf diesem Gerät gespeichert" is an unmitigated data-loss risk (the link carries date, Ort, facets and Mietende. Ticks, notes and custom tasks stay in localStorage, and the copy now says so)
 - [x] Give the ICS/print block a heading ("Plan mitnehmen")
 
@@ -144,26 +144,47 @@
 - [x] Use elevation instead of hairline borders — white surface + soft shadow on a tinted background
 - [x] Split the blue: it's currently the today marker, the Umzugstag, all links, and the primary button
 - [x] Split the red: it's Feiertage, weekend warnings, and open-task rings
-- [ ] Restrict mono to dates and numbers — logo + dates + UI labels dilutes the effect
-- [ ] Add hover/active/focus states everywhere; nothing currently responds to a cursor
-- [ ] Replace the "System" toggle with a sun/moon icon plus a proper label or dropdown
+- [x] Restrict mono to dates and numbers — logo + dates + UI labels dilutes the effect (logo and button labels moved to sans, mono is dates and counts only)
+- [x] Add hover/active/focus states everywhere; nothing currently responds to a cursor
+- [x] Replace the "System" toggle with a sun/moon icon plus a proper label or dropdown (icon plus a visible label that names the current mode)
 - [x] Soften the page background or make cards white — near-identical greys give no figure/ground separation
 
 ## Mobile
 
-- [ ] Drop the left date rail below 640px; put the date above each card as a section header
-- [ ] Rework the timeline for mobile: horizontal scroll with snap points, or a simplified month band
-- [ ] Enforce ≥44px tap targets on checkboxes and legend toggles
-- [ ] Add a sticky "Als ICS exportieren" bottom bar
+- [x] Drop the left date rail below 640px; put the date above each card as a section header
+- [x] Rework the timeline for mobile: horizontal scroll with snap points, or a simplified month band (it fits its container instead of scrolling, and it is folded away by default)
+- [x] Enforce ≥44px tap targets on checkboxes and legend toggles
+- [x] Add a sticky "Als ICS exportieren" bottom bar
 
 ## Copy
 
 - [x] Reframe "Quelle fehlt" as "Erfahrungswert" — as written it reads like a defect in your own product
 - [x] Add a one-line "Warum?" to every task, not just some ("Halteverbotszone" has none)
-- [ ] Style the § chips as links with a consistent external-link icon
+- [x] Style the § chips as links with a consistent external-link icon (the global a[target=_blank] rule gives them the same arrow as every other outbound link)
 
 ## Accessibility
 
 - [x] Add `role="slider"` + `aria-valuenow`/`aria-valuetext` to the timeline handle
-- [ ] Don't encode task state in colour alone — add a shape or text label for filled/ring
-- [ ] Check contrast on grey secondary text ("in gut 4 Monaten", card descriptions) — several are below 4.5:1
+- [x] Don't encode task state in colour alone — add a shape or text label for filled/ring (four legend entries plus the state in each node's accessible name)
+- [x] Check contrast on grey secondary text ("in gut 4 Monaten", card descriptions) — several are below 4.5:1 (measured: muted 6.75:1, accent 7.19:1, warn 5.87:1 on paper. Holiday and done were 3.2 and 4.37, darkened to 5.22 and 5.21)
+
+- [ ] Move date 08.11.2026 is a Sunday and gets no warning of its own, while every task around it is flagged — moving on a Sunday raises Hausordnung/Ruhezeit issues and landlords rarely do handovers then
+- [ ] "Zählerstände ablesen" offers "Auf 6. Nov vorziehen" — this task must happen on the move day itself, never before; suppress date-shifting for same-day tasks
+- [ ] Same for "Übergabeprotokoll unterschreiben" — it is tied to the handover, not to office hours
+- [ ] "Sa/So, Ämter haben zu" is applied to tasks with no Amt involved (Nachsendeauftrag is online, Zählerstände and Übergabeprotokoll involve the landlord) — gate the warning on whether the task actually requires an authority
+- [ ] Five identical "Sa/So, Ämter haben zu" + "vorziehen" pairs in one plan reads as a template artifact; consider one grouped notice ("4 Aufgaben fallen auf ein Wochenende — alle vorziehen")
+- [ ] Sperrmüll falls on Allerheiligen and gets a red warning but no "vorziehen" button, unlike every weekend case — inconsistent affordance for the more severe collision
+- [ ] Huge unlabeled whitespace between 3 Sep and 25 Okt (~7 weeks) — the "Puffer" label that previously filled this is gone, so it now reads as a layout bug
+- [ ] Gutter label "Frist nach § 573c BGB, abhängig vom Umzugsmonat" overflows the column and breaks the left alignment of every other entry
+- [ ] Progress is stated three times: sticky bar "2 von 10 erledigt", "Fortschritt: 2 von 10 erledigt", and "2 erledigt" at the bottom — keep one
+- [ ] "Bis Do., 03.09.2026 ist nichts zu tun" contradicts two tasks already being marked done
+- [ ] "Umzugstag" repeats as the relative label for four consecutive gutter entries — collapse same-day tasks under one date header
+- [ ] The Zeitstrahl is now collapsed behind "Zeitstrahl anzeigen" — it was the strongest visual differentiator; consider open by default, or at least a thumbnail preview
+- [ ] Umzugstag row is still an empty highlighted bar with only a "Datum ändern" control — either give it content or make it a slim divider
+- [ ] "Datum ändern" on the Umzugstag vs. "Termin verschieben" on tasks are the same gesture with two labels
+- [ ] "Termin verschieben" appears on all ten cards at equal weight — demote to an icon or hover action so it stops competing with the real per-task actions
+- [ ] The "2 erledigt" disclosure sits at the very bottom, far from the progress bar it relates to — move it next to the progress indicator
+- [ ] Intro sentence says "10 Fristen", the verification line says "10 Aufgaben" — pick one noun, since not every entry is a Frist
+- [ ] "Ich habe ein Auto, das ich ummelden muss" is a single lonely checkbox again; either show the full set of situation toggles or hide the group until more exist
+- [ ] The overlap/Mietende decision has disappeared entirely from this version — verify it is still reachable, since it moves the first deadline by a full month
+- [ ] Make t

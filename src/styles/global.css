@@ -23,8 +23,8 @@
   --today: #14161a; /* now, a fact rather than an accent */
   --warn: #a8331f; /* something needs a decision */
   --warn-ink: #fff8f5;
-  --holiday: #b8791f; /* Ämter closed, calendar context only */
-  --done-color: #3f7d4a;
+  --holiday: #8a5a12; /* Ämter closed, calendar context only */
+  --done-color: #377043;
   --radius: 8px; /* cards, inputs, buttons */
   --radius-sm: 6px; /* chips and badges */
   --radius-pill: 999px; /* category pills only */
