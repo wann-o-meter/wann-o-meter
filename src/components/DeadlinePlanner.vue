@@ -721,43 +721,35 @@ function print() {
 
 <style scoped>
 .deadline-planner {
-  /* No calendar sidebar anymore - a single content column doesn't need the
-    old two-column width, the sitewide .wrap (62rem) was already clamping
-    this down anyway, just leaving dead space on wide screens. */
+  /* A single content column does not need the old two-column width. */
   max-width: 58rem;
-  /* --paper/--paper-raised are lightened and pulled apart locally so a card
-    reads as raised, not just outlined - the shadow tokens below are this
-    component's own deliberate departure from the sitewide flat/no-shadow
-    look (see global.css), kept local rather than global for that reason. */
-  --done-color: #3f7d4a;
-  --paper: #fbfcfe;
-  --paper-raised: #ffffff;
-  --shadow-sm: 0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent);
-  --shadow-md: 0 2px 6px color-mix(in srgb, var(--ink) 8%, transparent);
-  --shadow-lg: 0 4px 14px color-mix(in srgb, var(--ink) 16%, transparent);
+  /* The elevation scale and the palette are sitewide now (see global.css),
+    only these two are this component's own. */
+  --shadow-lg: 0 6px 24px color-mix(in srgb, var(--ink) 18%, transparent);
   --tint-accent: color-mix(in srgb, var(--accent) 10%, transparent);
 }
-/* :global() has to wrap the WHOLE selector, not just the :root part - Vue's
-  scoped-CSS compiler otherwise silently drops everything outside it, so this
-  rule never matched .deadline-planner at all and dark mode never reached the
-  component's own colors (the actual "light mode is broken" bug). */
-:global(:root[data-theme="dark"] .deadline-planner) {
-  --done-color: #7cc98a;
-  --paper: #191c22;
-  --paper-raised: #232733;
-}
+/* Separate elevated fields, not one hairline-divided grid. */
 .form {
   display: grid;
   grid-template-columns: 1.3fr 1fr 1fr;
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
+  gap: 0.6rem;
 }
 .field {
   display: block;
   background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   padding: 0.9rem 1.1rem;
   box-shadow: var(--shadow-sm);
+  transition:
+    border-color 0.12s,
+    box-shadow 0.12s;
+}
+/* Every field is editable, so every field reacts to a cursor. */
+.field:hover,
+.field:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
 }
 .field span {
   display: block;

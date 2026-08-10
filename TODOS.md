@@ -81,3 +81,89 @@
 - [x] Give the mini timeline a legend or hover labels — the stacked circles still require the caption to be understood
 - [x] Consider whether checked-off tasks should keep full card height; the green completed cards take as much space as open ones
 - [x] Move the progress bar under the timeline and make it sticky so it stays useful once the user scrolls into the list
+- [x] Introduce a more user-friendly design with rounded corners and better shadows, remove blue glowing shadows
+- [x] Add margin in theme toggle between text and icon
+- [ ] Verify that elements have enough margin but not too much
+
+# Wann-O-Meter — UX/UI Changelist
+
+## Start page
+
+- [ ] Add a date input as an equal alternative to dragging (`[31].[01].[2027]` or native picker) — drag-only is undiscoverable on desktop and broken on touch
+- [ ] Add quick presets as chips: "In 3 Monaten", "Zum Monatsende", "Nächster Monatserste", "Weiß ich noch nicht"
+- [ ] Put a visible, pre-positioned handle on the timeline (default: today + 3 months) with grip affordance, shadow, and `cursor: grab`
+- [ ] Show a live preview under the handle while dragging: "So, 31. Jan 2027 · erste Aufgabe am 4. Nov 2026 · 10 Fristen"
+- [ ] Rewrite the subline — "Der Rest wächst rückwärts daraus hervor" is a metaphor, not an instruction → "Wähl dein Datum — alle Fristen werden rückwärts berechnet."
+- [ ] Remove the Feiertage/Schulferien checkboxes from the start page (they filter data that isn't visible yet)
+- [ ] Remove "Aufgabe" from the start-page legend — there are zero tasks at this point
+- [ ] Fix the dead vertical space; the footer is stranded mid-viewport
+- [ ] Unify the measure — headline column ~540px vs. timeline ~1300px
+- [ ] Restyle the ORT select to match the category chips
+- [ ] Defer ORT until after the date is chosen, or geo-default it
+- [ ] Fix the label: "ZIEH ÜBER DEN ZEITSTRAHL - WANN IST ES SOWEIT?" → sentence case, en dash, shorter
+- [ ] Add a 3-step "So funktioniert's" strip: Datum wählen → Fristen sehen → Als Kalender exportieren
+- [ ] Add keyboard support: arrow ±1 day, shift+arrow ±1 week, Home/End = bounds, visible focus ring
+- [x] Style the rail as a grabbable track (inset background, rounded ends), not a printed ruler
+
+## Planner — information
+
+- [ ] Restore relative offsets on every card ("6 Wochen vorher", "2 Wochen danach") — your SSR HTML has this and hydration throws it away
+- [ ] Pair or replace "in gut 5 Monaten" → `2 Wochen vor dem Umzug · in gut 5 Monaten`; six tasks currently all read "in gut 6 Monaten"
+- [ ] Add the summary sentence at the top: "Aus deinem Umzugstag am 31. Januar 2027 ergeben sich 10 Fristen. Die erste ist am 4. November 2026."
+- [ ] Collapse the timeline by default, or move it below the first three tasks
+- [ ] Explain the circle vocabulary in the legend — filled vs. ring, green vs. red vs. blue
+- [ ] Rewrite "TRIFFT AUF MICH ZU → ☐ Auto" as a full sentence: "Ich habe ein Auto, das ich ummelden muss"; drop the section header if there's only one item
+- [ ] Mark the next actionable task with an "Als Nächstes" badge and stronger card treatment
+- [ ] Bridge the empty gap between HEUTE (August) and the first task (November): "Bis November ist nichts zu tun."
+- [ ] Handle past deadlines explicitly: "Frist verstrichen — was du jetzt tun kannst"
+
+## Planner — interaction
+
+- [ ] Turn "Fällt auf ein Wochenende" from a red alert into a neutral hint with an action: "Sa/So — Ordnungsamt hat zu. Auf Fr, 29. Jan verschieben →"
+- [ ] Suppress the weekend warning on the Umzugstag itself — moving on a Saturday is the normal case
+- [ ] Collapse completed tasks into a "3 erledigt ▾" group at the bottom
+- [ ] Add "Termin verschieben" per task so users can override a computed date
+- [ ] Make the header fields look editable — input styling, hover state, chevron on all three
+- [ ] Add a sticky mini-header on scroll: Umzugstag + "3 von 10 erledigt"
+- [ ] Give every card the same action row — only "Wohnung kündigen" has a CTA
+- [ ] Apply "Wie berechnet? (4 Schritte)" to all computed dates or none
+- [ ] Add "Plan-Link kopieren" with state encoded in the URL — "Auf diesem Gerät gespeichert" is an unmitigated data-loss risk
+- [ ] Give the ICS/print block a heading ("Plan mitnehmen")
+
+## Planner — layout
+
+- [ ] Remove duplicated dates inside cards when the left rail already shows them (currently inconsistent)
+- [ ] Close the horizontal gap between the date rail and the cards
+- [ ] Move the progress bar above the timeline and label it — it's currently clipped
+- [ ] Align card left edges (the first card sits ~5px left of the rest)
+- [ ] Reduce box-in-box nesting: card → description → warning box → source chip is four nested borders
+
+## Visual system
+
+- [x] Rounded corners consistently: 8px cards/inputs/buttons, 6px chips/badges, 999px only for category pills
+- [x] Use elevation instead of hairline borders — white surface + soft shadow on a tinted background
+- [x] Split the blue: it's currently the today marker, the Umzugstag, all links, and the primary button
+- [x] Split the red: it's Feiertage, weekend warnings, and open-task rings
+- [ ] Restrict mono to dates and numbers — logo + dates + UI labels dilutes the effect
+- [ ] Add hover/active/focus states everywhere; nothing currently responds to a cursor
+- [ ] Replace the "System" toggle with a sun/moon icon plus a proper label or dropdown
+- [x] Soften the page background or make cards white — near-identical greys give no figure/ground separation
+
+## Mobile
+
+- [ ] Drop the left date rail below 640px; put the date above each card as a section header
+- [ ] Rework the timeline for mobile: horizontal scroll with snap points, or a simplified month band
+- [ ] Enforce ≥44px tap targets on checkboxes and legend toggles
+- [ ] Add a sticky "Als ICS exportieren" bottom bar
+
+## Copy
+
+- [ ] Reframe "Quelle fehlt" as "Erfahrungswert" — as written it reads like a defect in your own product
+- [ ] Add a one-line "Warum?" to every task, not just some ("Halteverbotszone" has none)
+- [ ] Style the § chips as links with a consistent external-link icon
+
+## Accessibility
+
+- [ ] Add `role="slider"` + `aria-valuenow`/`aria-valuetext` to the timeline handle
+- [ ] Don't encode task state in colour alone — add a shape or text label for filled/ring
+- [ ] Check contrast on grey secondary text ("in gut 4 Monaten", card descriptions) — several are below 4.5:1

@@ -636,7 +636,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   background: var(--paper-raised);
 }
 .swatch.feiertage {
-  background: var(--warn);
+  background: var(--holiday);
 }
 .swatch.schulferien {
   background: var(--school);
@@ -660,8 +660,9 @@ function onNodeClick(id: string, e: MouseEvent) {
   position: absolute;
   left: 0;
   right: 0;
-  top: var(--axis-y);
-  height: 1px;
+  top: calc(var(--axis-y) - 3px);
+  height: 7px;
+  border-radius: var(--radius-pill);
   background: var(--line);
 }
 .days {
@@ -719,7 +720,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   top: calc(var(--axis-y) + var(--ctx-y));
   width: 2px;
   height: var(--ctx-h);
-  background: var(--warn);
+  background: var(--holiday);
 }
 .band {
   position: absolute;
@@ -736,7 +737,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   top: var(--today-top);
   height: calc(var(--axis-y) + var(--below) - var(--today-top));
   width: 1px;
-  background: var(--ink);
+  background: var(--today);
 }
 .today b {
   position: absolute;
@@ -756,7 +757,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   width: 2px;
 }
 .pin {
-  background: var(--accent);
+  background: var(--anchor);
   cursor: pointer;
 }
 /* A pennant on the mast, so the anchor day reads as a marker planted on the
@@ -768,7 +769,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   left: 2px;
   width: 1.6rem;
   height: 1.1rem;
-  background: var(--accent);
+  background: var(--anchor);
   clip-path: polygon(0 0, 100% 0, 65% 50%, 100% 100%, 0 100%);
 }
 .pin.flip::before {
@@ -789,7 +790,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   font-weight: 600;
   font-size: var(--pin-title);
   white-space: nowrap;
-  color: var(--accent);
+  color: var(--anchor);
 }
 .pin i {
   position: absolute;
@@ -821,6 +822,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   height: 2px;
   background: var(--accent);
   opacity: 0.3;
+  border-radius: var(--radius-pill);
 }
 .node {
   position: absolute;
@@ -904,7 +906,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   opacity: 1;
 }
 .ghost {
-  background: var(--accent);
+  background: var(--anchor);
   opacity: 0.25;
   pointer-events: none;
 }
@@ -914,7 +916,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   left: 0.5rem;
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
-  color: var(--accent);
+  color: var(--anchor);
   white-space: nowrap;
 }
 

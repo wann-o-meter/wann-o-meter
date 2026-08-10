@@ -4,23 +4,32 @@
 @import "@fontsource/ibm-plex-mono/500.css";
 
 /*
-  Leitidee: amtlicher Fahrplan/Aktenordner, nicht Tech-Startup. Papier statt
-  Weiss, kuehles Amtsblau als Akzentfarbe, Mono-Ziffern fuer alles Datierte
-  (Zahlen sollen wie in einer Tabelle aussehen). Keine Radien, keine Schatten
-  - flach wie ein gedrucktes Formular. Hell ist der Standard, Dunkel ist eine
-  bewusste Wahl ueber den Theme-Toggle, nicht das System.
+  Leitidee: amtlicher Fahrplan/Aktenordner, nicht Tech-Startup. Kuehles
+  Amtsblau als Akzentfarbe, Mono-Ziffern fuer alles Datierte. Flaechen werden
+  durch Hoehe getrennt, nicht durch Haarlinien: getoenter Grund, weisse
+  Karten, weiche Schatten. Hell ist der Standard, Dunkel eine bewusste Wahl
+  ueber den Theme-Toggle, nicht das System.
 */
 :root {
   color-scheme: light;
-  --paper: #f6f7f9;
-  --paper-raised: #eceff3;
+  --paper: #eef1f5; /* tinted ground, so a card can be lighter than it */
+  --paper-raised: #ffffff;
   --ink: #14161a;
-  --muted: #5b616b;
-  --line: #c7cdd6;
-  --accent: #1d4f91;
+  --muted: #4d545e;
+  --line: #d5dae2;
+  --accent: #1d4f91; /* links and primary actions */
   --accent-ink: #f8fafc;
-  --warn: #a8331f;
+  --anchor: #7a3fa8; /* the Vorhaben's own day, not an action */
+  --today: #14161a; /* now, a fact rather than an accent */
+  --warn: #a8331f; /* something needs a decision */
   --warn-ink: #fff8f5;
+  --holiday: #b8791f; /* Ämter closed, calendar context only */
+  --done-color: #3f7d4a;
+  --radius: 8px; /* cards, inputs, buttons */
+  --radius-sm: 6px; /* chips and badges */
+  --radius-pill: 999px; /* category pills only */
+  --shadow-sm: 0 1px 2px rgb(20 22 26 / 0.06), 0 1px 3px rgb(20 22 26 / 0.08);
+  --shadow-md: 0 2px 4px rgb(20 22 26 / 0.06), 0 6px 16px rgb(20 22 26 / 0.1);
   --font-sans:
     "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono:
@@ -36,15 +45,21 @@
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --paper: #14161b;
+  --paper: #101217;
   --paper-raised: #1c2028;
   --ink: #e7eaf0;
-  --muted: #99a1af;
+  --muted: #a7aeba;
   --line: #333844;
   --accent: #6fa3e0;
   --accent-ink: #0c1016;
+  --anchor: #c39ae0;
+  --today: #e7eaf0;
   --warn: #e0836b;
   --warn-ink: #17181a;
+  --holiday: #d8ab5f;
+  --done-color: #6aa877;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 2px 4px rgb(0 0 0 / 0.35), 0 6px 16px rgb(0 0 0 / 0.45);
 }
 
 * {
@@ -103,10 +118,14 @@ select,
 input {
   font: inherit;
   color: inherit;
-  background: var(--paper);
+  background: var(--paper-raised);
   border: 1px solid var(--line);
-  border-radius: 0;
+  border-radius: var(--radius);
   padding: 0.4rem 0.6rem;
+  transition:
+    border-color 0.12s,
+    background-color 0.12s,
+    box-shadow 0.12s;
 }
 input[type="search"] {
   -webkit-appearance: none;
@@ -114,9 +133,18 @@ input[type="search"] {
 }
 button {
   cursor: pointer;
-  background: var(--paper-raised);
+  box-shadow: var(--shadow-sm);
 }
 button:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+button:active {
+  box-shadow: none;
+  transform: translateY(1px);
+}
+select:hover,
+input:hover {
   border-color: var(--accent);
 }
 
@@ -210,6 +238,7 @@ a[target="_blank"]:not(:has(svg))::after {
 
 .badge {
   display: inline-block;
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
   padding: 0.1rem 0.4rem;

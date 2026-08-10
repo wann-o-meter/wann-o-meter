@@ -382,8 +382,8 @@ const hasRange = computed(
 }
 .item.anchor .dot {
   --dot: 0.8rem;
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--anchor);
+  border-color: var(--anchor);
 }
 .item.past .dot {
   border-color: var(--muted);
@@ -438,11 +438,13 @@ const hasRange = computed(
 .card {
   background: var(--paper-raised);
   border: 1px solid var(--line);
-  padding: 0.7rem 0.9rem;
-  margin-bottom: 0.4rem;
-  box-shadow:
-    0 1px 3px color-mix(in srgb, var(--ink) 7%, transparent),
-    0 1px 1px color-mix(in srgb, var(--ink) 5%, transparent);
+  border-radius: var(--radius);
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.5rem;
+  box-shadow: var(--shadow-sm);
+}
+.card:hover {
+  box-shadow: var(--shadow-md);
 }
 /* Full-width divider, not a card - an empty bordered box read as a stuck
   input field, and blue there implied "click me", not "milestone". */
@@ -453,8 +455,8 @@ const hasRange = computed(
   gap: 0.6rem;
   margin: 0.4rem 0 0.8rem;
   padding: 0.5rem 0;
-  border-top: 2px solid var(--accent);
-  border-bottom: 2px solid var(--accent);
+  border-top: 2px solid var(--anchor);
+  border-bottom: 2px solid var(--anchor);
 }
 .anchor-divider .label {
   font-weight: 600;
@@ -518,21 +520,16 @@ const hasRange = computed(
   transition:
     opacity 0.15s,
     transform 0.15s,
+    border-color 0.15s,
     box-shadow 0.15s;
 }
-.item:not(.current) .card {
-  opacity: 0.6;
-}
+/* An accent edge and elevation, never a blue glow. */
 .item.current .card {
-  transform: scale(1.02);
-  box-shadow:
-    0 8px 20px color-mix(in srgb, var(--accent) 25%, transparent),
-    0 2px 6px color-mix(in srgb, var(--ink) 10%, transparent);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-lg);
 }
-/* Focused: hover from either side, independent of .current so both can show. */
 .item.focused .card {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .card-date {
   margin: 0 0 0.35rem;
@@ -681,9 +678,14 @@ const hasRange = computed(
   margin-left: 0;
 }
 .badge.stamp {
-  border-color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
   color: var(--accent);
   background: var(--tint-accent);
+  text-decoration: none;
+}
+.badge.stamp:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
 }
 .badge.custom {
   border-color: var(--line);
@@ -744,11 +746,11 @@ const hasRange = computed(
   cursor: text;
 }
 .flag {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
   margin-top: 0.5rem !important;
-  padding: 0.4rem 0.6rem;
-  border-left: 2px solid var(--warn);
-  background: color-mix(in srgb, var(--warn) 12%, transparent);
-  color: var(--ink) !important;
+  color: var(--warn) !important;
   font-size: var(--fs-sm) !important;
 }
 .flag-impossible {
