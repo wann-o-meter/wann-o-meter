@@ -20,9 +20,9 @@
 - [x] the dots on the rail aren't centered
 - [x] the pencil icon on the card implies that the user can change the text which it doesn't. change the icon to a note with a plus (StickyNotePlus) and add a way to edit the title of the task (MessageSquarePlus, lucide-vue-next 1.0.0 has no StickyNotePlus)
 - [x] Kündigungsschreiben aufsetzen is a CTO but it's a button that opens a textbox whereas the reference to gesetze-im-internet is a link. there should be a better distiction between links and buttons
-- [ ] Buttons and links should have similar sizes, links that open a new tab should have an arrow from lower left to upper right
+- [ ] Buttons and links should have similar sizes, correct margins, and links that open a new tab should have an arrow from lower left to upper right
 - [x] add a small confetti effect when a task is done
-- [ ] add localhost integration to save the progress of the tasks
+- [x] add localhost integration to save the progress of the tasks (localStorage, keyed per Vorhaben and Ort)
 - [ ] read through the review and fix the problems. after you're done, remove the review about the design.
 
 ## Review from Opus about the design

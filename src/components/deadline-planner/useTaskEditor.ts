@@ -1,4 +1,11 @@
-import { type ComputedRef, computed, nextTick, reactive, ref } from "vue";
+import {
+  type ComputedRef,
+  computed,
+  nextTick,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import type { Deadline, ScheduleEntry } from "../../../lib/deadline-plan";
 import type { PlanVariant } from "./types";
 import { LETTER_TEMPLATE } from "./task-cta";
@@ -15,12 +22,14 @@ interface CustomTask {
   offsetDays: number;
 }
 
-// Client-only editing layer, nothing persisted (no login/storage) - exists so
-// the plan can be worked FROM, not just read. `rootEl` is the component root,
-// used to focus a task's input right after it's created or opened.
+// Client-only editing layer - exists so the plan can be worked FROM, not just
+// read. `rootEl` is the component root, used to focus a task's input right
+// after it's created or opened. `storageKey` scopes what is kept in
+// localStorage, so two plans never see each other's progress.
 export function useTaskEditor(
   selected: ComputedRef<PlanVariant | undefined>,
   rootEl: { value: HTMLElement | null },
+  storageKey?: ComputedRef<string>,
 ) {
   let customUid = 0;
   const customTasks = ref<CustomTask[]>([]);
@@ -150,10 +159,75 @@ export function useTaskEditor(
   }
 
   function addTaskAtEnd(knownOffsets: number[], label = "") {
-    const offset = (knownOffsets.length > 0 ? Math.max(...knownOffsets) : 0) + 3;
+    const offset =
+      (knownOffsets.length > 0 ? Math.max(...knownOffsets) : 0) + 3;
     const id = `${CUSTOM_PREFIX}${++customUid}`;
     customTasks.value.push({ id, label, offsetDays: offset });
     if (!label) startEditingLabel(id);
+  }
+
+  // Persistence. Everything below is derived state, so one snapshot of these
+  // seven fields restores a plan exactly.
+  const maps = {
+    done: doneIds,
+    deleted: deletedIds,
+    notes: userNotes,
+    labels: labelOverrides,
+    offsets: offsetOverrides,
+    attachments,
+  } as const;
+
+  function restore(raw: string | null) {
+    for (const map of Object.values(maps))
+      for (const key of Object.keys(map)) delete map[key];
+    customTasks.value = [];
+    customUid = 0;
+    if (!raw) return;
+    let saved;
+    try {
+      saved = JSON.parse(raw);
+    } catch {
+      return;
+    }
+    for (const [name, map] of Object.entries(maps))
+      Object.assign(map, saved[name] ?? {});
+    customTasks.value = Array.isArray(saved.custom) ? saved.custom : [];
+    for (const task of customTasks.value)
+      customUid = Math.max(
+        customUid,
+        Number(task.id.slice(CUSTOM_PREFIX.length)) || 0,
+      );
+  }
+
+  if (storageKey && typeof localStorage !== "undefined") {
+    watch(storageKey, (key) => restore(localStorage.getItem(key)), {
+      immediate: true,
+    });
+    watch(
+      [
+        doneIds,
+        deletedIds,
+        userNotes,
+        labelOverrides,
+        offsetOverrides,
+        attachments,
+        customTasks,
+      ],
+      () => {
+        const snapshot = Object.fromEntries(
+          Object.entries(maps).map(([name, map]) => [name, { ...map }]),
+        );
+        try {
+          localStorage.setItem(
+            storageKey.value,
+            JSON.stringify({ ...snapshot, custom: customTasks.value }),
+          );
+        } catch {
+          // quota or private mode - the plan still works, it just won't persist
+        }
+      },
+      { deep: true },
+    );
   }
 
   return {

@@ -158,7 +158,11 @@ const {
   insertCustomTask,
   addTaskAtEnd,
   moveEntry,
-} = useTaskEditor(selectedForPlan, rootEl);
+} = useTaskEditor(
+  selectedForPlan,
+  rootEl,
+  computed(() => `wann:plan:${props.vorhaben}:${selectedSlug.value}`),
+);
 
 // Editing a date directly, instead of dragging a card to a different gap -
 // same underlying moveEntry(id, offsetDays), just fed from a native date
@@ -675,10 +679,8 @@ function print() {
             <Printer :size="14" /> Checkliste drucken
           </button>
         </div>
-        <p
-          title="Änderungen gelten nur in diesem Tab und werden beim Neuladen zurückgesetzt"
-        >
-          Nur in diesem Tab gespeichert.
+        <p title="Gespeichert im Browser, nicht auf einem Server">
+          Auf diesem Gerät gespeichert.
         </p>
       </div>
     </template>
