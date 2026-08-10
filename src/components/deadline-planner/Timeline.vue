@@ -57,6 +57,7 @@
           v-show="t.labelled"
           :key="'ml' + t.x"
           class="mlabel"
+          :class="{ flush: t.flush }"
           :style="{ left: t.x + 'px' }"
         >
           {{ t.label }}
@@ -129,9 +130,6 @@
             :data-node-key="keyed ? t.id : null"
             :data-label="nodeLabel(t)"
             :aria-label="`${nodeLabel(t)} (${nodeState(t)})`"
-            :title="
-              compact ? `${nodeLabel(t)} - zur Aufgabe springen` : undefined
-            "
             @click="onNodeClick(t.id, $event)"
             @mouseenter="emit('hover', t.id)"
             @mouseleave="emit('hover', null)"
@@ -483,12 +481,13 @@ const monthTicks = computed(() => {
   // A label needs roughly 3rem of clear space, so on a tight scale only every
   // nth month gets one. The ticks themselves always stay.
   const step = Math.max(1, Math.ceil(48 / (scale.value.ppd * 30.4)));
-  // A label that would run past the track gets clipped by the scroller, so
-  // the last one or two are dropped instead of showing "Jan 20".
+  // A label near the right edge is pulled back inside the track rather than
+  // dropped, so every month divider keeps its name.
   const LABEL_PX = 60;
   return monthStarts(scale.value.start, scale.value.end).map((m, i) => ({
     x: px(m),
-    labelled: i % step === 0 && px(m) + LABEL_PX <= scale.value.width,
+    labelled: i % step === 0,
+    flush: px(m) + LABEL_PX > scale.value.width,
     label:
       MONTH_NAMES[m.getUTCMonth()].slice(0, 3) +
       (m.getUTCMonth() === 0 ? " " + m.getUTCFullYear() : ""),
@@ -759,8 +758,8 @@ function onNodeClick(id: string, e: MouseEvent) {
 }
 /* Under the bands it explains, not floating above the whole component. */
 .legend.below {
-  order: 2;
-  padding: 0.5rem 0 0;
+  order: 0;
+  padding: 0 0 0.5rem;
 }
 .legend-item {
   display: flex;
@@ -894,10 +893,14 @@ function onNodeClick(id: string, e: MouseEvent) {
 }
 .mtick {
   position: absolute;
-  top: var(--axis-y);
+  top: calc(var(--axis-y) - var(--band-up));
   width: 1px;
-  height: var(--tick-month);
-  background: var(--line);
+  height: calc(var(--band-up) + var(--below));
+  background: color-mix(in srgb, var(--line) 60%, transparent);
+}
+.mlabel.flush {
+  transform: translateX(-100%);
+  padding: 0 0.5rem 0 0;
 }
 .mlabel {
   position: absolute;
@@ -942,8 +945,9 @@ function onNodeClick(id: string, e: MouseEvent) {
 .spent {
   position: absolute;
   left: 0;
-  top: calc(var(--axis-y) - var(--band-up));
-  height: calc(var(--band-up) + var(--below));
+  top: calc(var(--axis-y) - 3px);
+  height: 7px;
+  border-radius: var(--radius-pill);
   background-image: var(--spent-hatch);
   pointer-events: none;
 }

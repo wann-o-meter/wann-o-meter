@@ -230,8 +230,7 @@ const nextOpen = computed(() => {
   return { id: next.id, label: next.label, date: pick(next) };
 });
 const summaryHead = computed(
-  () =>
-    `Aus deinem ${props.anchorLabel} am ${formatDateWithWeekday(anchorDate.value)} ergeben sich ${tasks.value.length} Aufgaben. Die nächste offene ist am `,
+  () => `${tasks.value.length} Aufgaben. Die nächste offene ist am `,
 );
 function jumpToNext() {
   if (nextOpen.value) onTimelineSelect(nextOpen.value.id);

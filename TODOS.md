@@ -276,3 +276,35 @@
 - [x] Screenshot a plan where no deadline has passed and no collision exists — it should look almost empty (verified by audit rather than screenshot: the calm card renders 5 elements, all baseline, and the header is one sentence plus the strip)
 - [x] Count distinct numbers visible above the first card; target is three or fewer (three: the move date, the task count, the next open date)
 - [x] Compare the calm case and the worst case side by side; the difference should be visible at a glance (worst case adds an expired line, a closed-day hint with a button, the Mietende choice and the derivation panel, all behind v-if)
+
+**Bugs**
+
+- [x] Tooltip renders twice — a dark box over the timeline and a light box below it, both with the same text (the node had a native title and a CSS tooltip saying the same thing)
+- [x] Tooltip overlaps and hides the Umzugstag flag label and its date
+- [x] Sort order is broken: 3 Sep, then 21 Jul, then 18 Aug — the list is no longer chronological: <http://localhost:4321/umzug/?date=2026-09-01&variant=rottenburg> (real bug: computeSchedule sorted by offset_days, which is only an approximation for rule-based entries and ignores a rescue date entirely. It sorts by the resolved day now, with a test)
+- [x] "Frist verstrichen" shows on a card dated 3 Sep 2026, which is in the future relative to the move date — verify the expired check compares against today, not against something else (the red was keyed to "has a rescue" rather than "is actually past")
+- [x] "Die nächste offene ist am Di., 18.08.2026" but the first card shown is 3 Sep — intro and list disagree (same sort bug, intro and list now agree by construction)
+- [x] Only one month label ("Sep") is visible on the whole timeline (edge labels are pulled back inside the track instead of dropped)
+
+**Timeline**
+
+- [x] The left hatched block and the grey block after it are two different past-markers with no distinction in meaning (only one past marker left, and it is a thin rule on the axis)
+- [x] Grey shading now covers most of the rail width, so the "past" treatment no longer reads as past
+- [x] The blue horizontal bar still has no explanation now that the legend was reduced (a task with a date range. It is the only blue left on the strip now that the past marker is a hatch)
+- [x] Move the Feiertage/Schulferien toggles above the timeline or into it — below the rail and above the list they read as list filters
+- [x] Timeline lost its month grid; add back light month dividers so positions are readable (full-height dividers at 60% line)
+
+**The expired card**
+
+- [x] Card is still ~6× the height of a normal one; the expired state should compress, not expand
+- [x] "Frist verstrichen" heading plus the explanatory sentence say the same thing twice — keep the sentence
+- [x] The Mietende control now spans three lines (label, active chip, inactive chip) — put both chips on one row under a short label
+- [x] "MIETENDE BIS ENDE SEPTEMBER 2026" in caps competes with the card title for attention
+- [x] "Wie berechnet? (6 Schritte)" — drop the step count, it is inventory not information
+- [x] "Spätester Kündigungstermin nach § 573c Abs. 1 BGB" duplicates the § 573c chip directly below it (the chip carries the citation, the note is gone)
+
+**Density**
+
+- [x] Gutter dates have no relative context at all now, while the intro sentence has three dates — the balance flipped too far (one quiet offset line back in the gutter, and the intro dropped the move date the form field already shows)
+- [x] Completed card (21 Juli) keeps full card height with a border; collapse done items to a single line
+- [x] Vertical gaps between cards are now larger than the cards themselves in places — cap the proportional spacing (max gap 72px to 48px, and the per-day factor 2.6 to 1.6)

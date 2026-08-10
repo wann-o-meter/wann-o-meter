@@ -155,24 +155,33 @@ export function computeSchedule(
   );
   const byDate = new Map(holidays.map((h) => [h.date, h.name]));
 
-  return resolved
-    .map((d) => {
-      const weekend =
-        d.date !== null && [0, 6].includes(toDate(d.date).getUTCDay());
-      const impossible =
-        d.startByDate !== null &&
-        d.earliestDate !== null &&
-        d.startByDate < d.earliestDate;
-      return {
-        ...d,
-        weekend,
-        impossible,
-        collision: d.date ? (byDate.get(d.date) ?? null) : null,
-      };
-    })
-    .sort((a, b) => {
-      if (a.offset_days === null) return b.offset_days === null ? 0 : 1;
-      if (b.offset_days === null) return -1;
-      return a.offset_days - b.offset_days;
-    });
+  return (
+    resolved
+      .map((d) => {
+        const weekend =
+          d.date !== null && [0, 6].includes(toDate(d.date).getUTCDay());
+        const impossible =
+          d.startByDate !== null &&
+          d.earliestDate !== null &&
+          d.startByDate < d.earliestDate;
+        return {
+          ...d,
+          weekend,
+          impossible,
+          collision: d.date ? (byDate.get(d.date) ?? null) : null,
+        };
+      })
+      // By the day the entry actually lands on, not by the offset that only
+      // approximates it: an offset_rule computes its own date, and an expired
+      // one is acted on at its rescue date. Sorting by offset made the rendered
+      // list non-chronological. Unresearched entries sort last.
+      .sort((a, b) => {
+        const key = (e: ScheduleEntry) => e.rescue?.date ?? e.date;
+        const ka = key(a);
+        const kb = key(b);
+        if (ka === null) return kb === null ? 0 : 1;
+        if (kb === null) return -1;
+        return ka < kb ? -1 : ka > kb ? 1 : 0;
+      })
+  );
 }

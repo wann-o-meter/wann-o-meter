@@ -11,7 +11,7 @@ deadlines:
     offset_rule: bgb-573c-notice
     source_url: https://www.gesetze-im-internet.de/bgb/__573c.html
     source_label: § 573c BGB
-    note: Spätester Kündigungstermin nach § 573c Abs. 1 BGB.
+    note: Schriftlich und unterschrieben, am besten per Einwurf-Einschreiben.
   - id: internetanbieter-kuendigen-ummelden
     label: Internetanbieter kündigen oder umziehen lassen
     offset_days: -42

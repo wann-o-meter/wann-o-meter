@@ -12,6 +12,7 @@ import {
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
 import { MONTH_NAMES, WEEKDAY_NAMES_SHORT } from "../../../lib/date-display";
 import { toDate } from "../../../lib/format-date";
+import { offsetLabel } from "../../../lib/offset-label";
 import type { TaskCta } from "./task-cta";
 
 const props = defineProps<{
@@ -91,16 +92,6 @@ const previousWorkday = computed(() => {
   return d.toISOString().slice(0, 10);
 });
 
-// The month the rule itself says the tenancy ends, not a re-derivation of it.
-const leaseEndLabel = computed(() => {
-  const step = props.entry.derivation?.find(
-    (d) => d.step === "target-end-month",
-  );
-  if (!step?.value) return "";
-  const [y, m] = step.value.split("-").map(Number);
-  return `bis Ende ${MONTH_NAMES[m - 1]} ${y}`;
-});
-
 const isSunday = computed(() => toDate(props.entry.date!).getUTCDay() === 0);
 
 // A step at offset 0 happens on the day itself, so it cannot move.
@@ -130,9 +121,12 @@ const hasRange = computed(
   >
     <span class="dot" :data-dot-key="entry.id"></span>
     <div v-if="showDate" class="when">
-      <b :class="{ overdue: !!entry.rescue }">{{
+      <b :class="{ overdue: isPast }">{{
         whenDate(entry.rescue ? entry.rescue.date : entry.date!)
       }}</b>
+      <span v-if="!entry.offset_rule && entry.offset_days !== 0" class="rel">{{
+        offsetLabel(entry, anchorLabel)
+      }}</span>
     </div>
 
     <div v-if="isAnchor" class="anchor-divider">
@@ -264,7 +258,7 @@ const hasRange = computed(
         </p>
       </div>
       <p v-if="entry.offset_rule || deferred" class="defer">
-        <span class="defer-label">Mietende {{ leaseEndLabel }}</span>
+        <span class="defer-label">Mietende</span>
         <button
           type="button"
           :aria-pressed="!deferred"
@@ -281,9 +275,7 @@ const hasRange = computed(
         </button>
       </p>
       <details v-if="entry.derivation?.length" class="derivation">
-        <summary>
-          Wie berechnet? ({{ entry.derivation.length }} Schritte)
-        </summary>
+        <summary>Wie berechnet?</summary>
         <ol>
           <li v-for="step in entry.derivation" :key="step.step">
             {{ step.label }}
@@ -430,6 +422,12 @@ const hasRange = computed(
   align-items: flex-end;
   font-family: var(--font-mono);
 }
+.when .rel {
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  line-height: 1.3;
+  text-align: right;
+}
 .when b {
   font-size: var(--fs-md);
   font-weight: 600;
@@ -538,6 +536,18 @@ const hasRange = computed(
 .item.done .card .cta-row,
 .item.done .card .defer,
 .item.done .card .badge {
+  display: none;
+}
+.item.done .card {
+  padding: 0.25rem 0.75rem;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+.item.done .card:hover {
+  box-shadow: none;
+}
+.item.done .tools {
   display: none;
 }
 .item.done .card-head h3 {
@@ -665,18 +675,21 @@ const hasRange = computed(
 .defer {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
   margin: 0.5rem 0 0;
 }
 .defer-label {
+  flex-shrink: 0;
   font-size: var(--fs-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   color: var(--muted);
 }
 .defer button {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: var(--fs-xs);
   padding: 0.25rem 0.5rem;
 }

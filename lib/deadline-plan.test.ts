@@ -150,6 +150,26 @@ describe("computeSchedule", () => {
     expect(entry.date).toBe("2024-02-05");
   });
 
+  it("orders by the day an entry lands on, not by its offset approximation", () => {
+    // The rule's offset_days (-90) would sort it first, but its computed date
+    // (2024-01-04) falls after the -120 day entry (2023-11-16).
+    const result = computeSchedule(
+      "2024-03-15",
+      [
+        deadline({
+          id: "kuendigen",
+          offset_days: -90,
+          offset_rule: "bgb-573c-notice",
+        }),
+        deadline({ id: "frueher", offset_days: -120 }),
+      ],
+      "DE",
+      undefined,
+      "2023-10-01",
+    );
+    expect(result.map((e) => e.id)).toEqual(["frueher", "kuendigen"]);
+  });
+
   it("leaves derivation/pastDeadline undefined for plain offset-based entries", () => {
     const [entry] = computeSchedule(
       "2027-06-15",
