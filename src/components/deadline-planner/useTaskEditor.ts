@@ -27,6 +27,8 @@ export function useTaskEditor(
   const doneIds = reactive<Record<string, boolean>>({});
   const deletedIds = reactive<Record<string, boolean>>({});
   const userNotes = reactive<Record<string, string>>({});
+  // A renamed read-only deadline. Custom tasks own their label instead.
+  const labelOverrides = reactive<Record<string, string>>({});
   // Rescheduling a real (read-only) deadline via moveEntry() - a custom
   // task mutates its own offsetDays instead, see moveEntry() below.
   const offsetOverrides = reactive<Record<string, number>>({});
@@ -58,6 +60,9 @@ export function useTaskEditor(
         d.id in offsetOverrides
           ? { ...d, offset_days: offsetOverrides[d.id] }
           : d,
+      )
+      .map((d) =>
+        d.id in labelOverrides ? { ...d, label: labelOverrides[d.id] } : d,
       );
   });
 
@@ -82,8 +87,11 @@ export function useTaskEditor(
 
   function commitLabel(id: string, value: string) {
     if (editingId.value !== id) return;
+    const label = value.trim();
     const task = customTasks.value.find((t) => t.id === id);
-    if (task) task.label = value.trim() || "Ohne Titel";
+    if (task) task.label = label || "Ohne Titel";
+    else if (label) labelOverrides[id] = label;
+    else delete labelOverrides[id];
     editingId.value = null;
   }
 
@@ -159,6 +167,7 @@ export function useTaskEditor(
     workingDeadlines,
     isCustom: isCustomTask,
     toggleDone,
+    startEditingLabel,
     commitLabel,
     openNote,
     commitNote,

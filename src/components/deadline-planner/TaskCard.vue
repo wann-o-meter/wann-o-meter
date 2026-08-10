@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import {
   Check,
+  MessageSquarePlus,
   Pencil,
   X,
   ArrowUpRight,
@@ -35,6 +36,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "toggle-done"): void;
   (e: "commit-label", value: string): void;
+  (e: "open-label-edit"): void;
   (e: "open-note"): void;
   (e: "commit-note", value: string): void;
   (e: "open-attachment"): void;
@@ -204,11 +206,19 @@ const hasRange = computed(
           </button>
           <button
             type="button"
+            title="Titel ändern"
+            aria-label="Titel ändern"
+            @click="$emit('open-label-edit')"
+          >
+            <Pencil :size="12" />
+          </button>
+          <button
+            type="button"
             title="Notiz"
             aria-label="Notiz"
             @click="$emit('open-note')"
           >
-            <Pencil :size="12" />
+            <MessageSquarePlus :size="12" />
           </button>
           <button
             type="button"

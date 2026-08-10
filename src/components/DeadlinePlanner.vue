@@ -147,6 +147,7 @@ const {
   workingDeadlines,
   isCustom,
   toggleDone,
+  startEditingLabel,
   commitLabel,
   openNote,
   commitNote,
@@ -583,6 +584,7 @@ function print() {
               :date-edit-open="editingDateId === node.entry.id"
               @toggle-done="toggleDone(node.entry.id)"
               @commit-label="commitLabel(node.entry.id, $event)"
+              @open-label-edit="startEditingLabel(node.entry.id)"
               @open-note="openNote(node.entry.id)"
               @commit-note="commitNote(node.entry.id, $event)"
               @open-attachment="openAttachment(node.entry.id)"

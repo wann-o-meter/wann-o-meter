@@ -18,7 +18,7 @@
 - [x] the ticks in the timeline don't align
 - [x] on hover in the timeline show the date the mouse is on
 - [x] the dots on the rail aren't centered
-- [ ] the pencil icon on the card implies that the user can change the text which it doesn't. change the icon to a note with a plus (StickyNotePlus) and add a way to edit the title of the task
+- [x] the pencil icon on the card implies that the user can change the text which it doesn't. change the icon to a note with a plus (StickyNotePlus) and add a way to edit the title of the task (MessageSquarePlus, lucide-vue-next 1.0.0 has no StickyNotePlus)
 - [ ] Kündigungsschreiben aufsetzen is a CTO but it's a button that opens a textbox whereas the reference to gesetze-im-internet is a link. there should be a better distiction between links and buttons
 - [ ] add a small confetti effect when a task is done
 - [ ] add localhost integration to save the progress of the tasks
