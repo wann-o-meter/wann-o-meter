@@ -43,7 +43,7 @@
 
     <section v-if="showPlanner" class="planner-wrap">
       <button class="back" type="button" @click="backToRail">
-        &larr; zurück zum Zeitstrahl
+        &larr; Zurück zur Startseite
       </button>
       <DeadlinePlanner
         :key="selected.slug"
