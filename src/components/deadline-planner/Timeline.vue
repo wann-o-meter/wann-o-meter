@@ -26,6 +26,7 @@
       @touchstart="onScrubMove"
       @touchmove="onScrubMove"
       @touchend="onScrubEnd"
+      @touchcancel="onScrubCancel"
     >
       <div class="track" ref="trackEl" :style="{ width: trackWidth + 'px' }">
         <div class="axis"></div>
@@ -492,7 +493,6 @@ function onScrollerMove(e: MouseEvent) {
 // coarse first touch can be corrected while still looking at the label.
 function onScrubMove(e: TouchEvent) {
   if (!props.clickable || !trackEl.value || onPin(e)) return;
-  e.preventDefault();
   const t = e.touches[0];
   if (!t) return;
   const r = trackEl.value.getBoundingClientRect();
@@ -500,6 +500,12 @@ function onScrubMove(e: TouchEvent) {
   const d = scale.value.dateAt(x);
   scrubIso = isoOf(d);
   ghost.value = { x, label: `${weekdayShort(d)}, ${langDate(d)}` };
+}
+// pan-y hands vertical gestures back to the browser, which cancels the touch
+// instead of ending it. Without this the ghost sticks and the date is stale.
+function onScrubCancel() {
+  ghost.value = null;
+  scrubIso = null;
 }
 function onScrubEnd() {
   if (!props.clickable || !scrubIso) return;
@@ -633,7 +639,8 @@ function onNodeClick(id: string, e: MouseEvent) {
 }
 .armed .scroller {
   cursor: copy;
-  touch-action: none; /* the drag scrubs the date, it never pans the page */
+  /* Sideways drags scrub the date, up and down still scrolls the page. */
+  touch-action: pan-y;
 }
 .track {
   position: relative;
