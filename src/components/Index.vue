@@ -19,6 +19,14 @@
             {{ v.label }}
           </button>
         </div>
+        <label v-if="selected.variants.length > 1" class="place">
+          <span>{{ selected.variantLabel }}</span>
+          <select v-model="variantSlug">
+            <option v-for="v in selected.variants" :key="v.slug" :value="v.slug">
+              {{ v.label }}
+            </option>
+          </select>
+        </label>
       </header>
 
       <div class="stage">
@@ -51,7 +59,7 @@
         :anchor-label="selected.anchorLabel"
         :variant-label="selected.variantLabel"
         :variants="selected.variants"
-        :default-slug="selected.defaultVariant"
+        :default-slug="variantSlug"
       />
     </section>
   </div>
@@ -97,6 +105,7 @@ function pick(slug: string) {
     return;
   }
   selectedSlug.value = slug;
+  variantSlug.value = defaultVariantSlug();
   armed.value = true;
 }
 
@@ -109,11 +118,18 @@ const showPlanner = ref(false);
 
 const placed = computed(() => anchorDate.value !== "");
 
+function defaultVariantSlug() {
+  const v = selected.value;
+  return (
+    v.variants.find((x) => x.slug === v.defaultVariant)?.slug ??
+    v.variants[0]?.slug
+  );
+}
+const variantSlug = ref(defaultVariantSlug());
 const previewVariant = computed(
   () =>
-    selected.value.variants.find(
-      (v) => v.slug === selected.value.defaultVariant,
-    ) ?? selected.value.variants[0],
+    selected.value.variants.find((v) => v.slug === variantSlug.value) ??
+    selected.value.variants[0],
 );
 // No facet chips in the teaser, so it shows what the planner shows with none
 // ticked - otherwise nodes would vanish the moment the planner mounts.
@@ -304,6 +320,26 @@ h1 {
 .chip:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+.place {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+.place span {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.place select {
+  font-size: 0.94rem;
+  padding: 0.35rem 0.6rem;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
 }
 
 .stage {
