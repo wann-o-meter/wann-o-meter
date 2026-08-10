@@ -13,3 +13,4 @@ lib/year-pages.ts
 lib/schema.ts
 src/layouts/Layout.astro
 src/components/DeadlinePlanner.vue
+src/components/deadline-planner/Timeline.vue

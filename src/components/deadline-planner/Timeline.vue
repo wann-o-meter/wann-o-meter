@@ -23,6 +23,9 @@
       @mousemove="onScrollerMove"
       @mouseleave="ghost = null"
       @click="onScrollerClick"
+      @touchstart="onScrubMove"
+      @touchmove="onScrubMove"
+      @touchend="onScrubEnd"
     >
       <div class="track" ref="trackEl" :style="{ width: trackWidth + 'px' }">
         <div class="axis"></div>
@@ -232,7 +235,9 @@ const placed = computed(() => props.anchorDate !== "");
 // short of the clicked day in CET/CEST.
 const today = utcDay(new Date());
 const START = addDays(today, -14);
-const END = addDays(START, Math.round(15 * 30.4));
+// A fixed year-long range, so the rail always fits its container and a drag
+// scrubs the date instead of fighting a horizontal scroll.
+const END = addDays(today, 365);
 
 // Measured, not guessed: the compact scale is a function of it.
 const containerWidth = ref(0);
@@ -254,7 +259,18 @@ onBeforeUnmount(() => resizeObserver?.disconnect());
 // be on the rail can fall outside it. relevantDates is declared further down,
 // which is fine, a computed only reads it once it is asked for a value.
 const scale = computed(() => {
-  if (!props.compact) return makeScale(START, END, RAIL_PPD);
+  if (!props.compact) {
+    // Before mount there is nothing to measure, so the fixed rail scale is the
+    // better first paint.
+    if (containerWidth.value === 0) return makeScale(START, END, RAIL_PPD);
+    const ppd = fitPpd(
+      daysBetween(START, END),
+      containerWidth.value,
+      0,
+      EDGE_PX,
+    );
+    return makeScale(START, END, ppd, EDGE_PX);
+  }
   const window = fitWindow(today, relevantDates.value, START, END, 3, 45);
   // Server-rendered, before any element exists to measure: the fixed rail
   // scale is a far better first paint than the minimum.
@@ -355,7 +371,7 @@ const taskLane = computed(() =>
 // for three.
 const usedLanes = computed(() => laneCount(taskLane.value));
 
-// One source of truth for node size and lane count; every vertical offset in
+// One source of truth for node size and lane count. Every vertical offset in
 // the stylesheet is derived from these two plus the tokens in .timeline.
 const rootVars = computed(() => ({
   "--node": NODE_PX.value + "px",
@@ -388,7 +404,7 @@ const pinFlipped = computed(
 );
 
 // Week ticks (Monday-aligned) stay real elements so they keep their hover
-// affordance; days are the gradient in .days.
+// affordance. Days are the gradient in .days.
 const weekTicks = computed(() =>
   mondays(scale.value.start, scale.value.end).map(px),
 );
@@ -467,6 +483,27 @@ function onScrollerMove(e: MouseEvent) {
   const d = scale.value.dateAt(x);
   ghost.value = { x, label: `${weekdayShort(d)}, ${langDate(d)}` };
 }
+// Touch: the ghost follows the finger and only the lift commits a date, so a
+// coarse first touch can be corrected while still looking at the label.
+function onScrubMove(e: TouchEvent) {
+  if (!props.clickable || !trackEl.value) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  if (!t) return;
+  const r = trackEl.value.getBoundingClientRect();
+  const x = t.clientX - r.left;
+  const d = scale.value.dateAt(x);
+  scrubIso = isoOf(d);
+  ghost.value = { x, label: `${weekdayShort(d)}, ${langDate(d)}` };
+}
+function onScrubEnd() {
+  if (!props.clickable || !scrubIso) return;
+  ghost.value = null;
+  emit("place", scrubIso);
+  scrubIso = null;
+}
+let scrubIso: string | null = null;
+
 function onScrollerClick(e: MouseEvent) {
   if (!props.clickable || !trackEl.value) return;
   const r = trackEl.value.getBoundingClientRect();
@@ -591,6 +628,7 @@ function onNodeClick(id: string, e: MouseEvent) {
 }
 .armed .scroller {
   cursor: copy;
+  touch-action: none; /* the drag scrubs the date, it never pans the page */
 }
 .track {
   position: relative;

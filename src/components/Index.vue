@@ -35,17 +35,6 @@
 
       <div class="stage">
         <p class="hint" :class="{ armed }">{{ hintText }}</p>
-        <label class="scrub">
-          <input
-            type="range"
-            min="0"
-            :max="SCRUB_DAYS"
-            step="1"
-            v-model.number="dayOffset"
-            :aria-label="`${selected.anchorLabel} wählen`"
-          />
-          <output>{{ scrubLabel }}</output>
-        </label>
         <Timeline
           :tasks="tasks"
           :anchor-date="anchorDate"
@@ -91,13 +80,6 @@ import {
   useTemplateRef,
 } from "vue";
 import { appliesTo } from "../../lib/facets";
-import { formatDateWithWeekday, toDate } from "../../lib/format-date";
-import {
-  addDays,
-  daysBetween,
-  isoOf,
-  utcDay,
-} from "../../lib/timeline-geometry";
 import DeadlinePlanner from "./DeadlinePlanner.vue";
 import Timeline from "./deadline-planner/Timeline.vue";
 import { usePlannerSchedule } from "./deadline-planner/usePlannerSchedule";
@@ -172,23 +154,6 @@ function onPlace(iso: string) {
   armed.value = false;
 }
 
-// Scrubbing a fixed year-long window beats clicking a 15-month scroll canvas
-// on a phone, where scrolling and tapping fight each other.
-const SCRUB_DAYS = 365;
-const TODAY = utcDay(new Date());
-const DEFAULT_OFFSET = 30;
-const dayOffset = computed({
-  get: () =>
-    anchorDate.value
-      ? daysBetween(TODAY, toDate(anchorDate.value))
-      : DEFAULT_OFFSET,
-  set: (n: number) => onPlace(isoOf(addDays(TODAY, n))),
-});
-const scrubLabel = computed(
-  () =>
-    `${formatDateWithWeekday(isoOf(addDays(TODAY, dayOffset.value)))} · in ${dayOffset.value} Tagen`,
-);
-
 // Feeds the mounted DeadlinePlanner's own ?date=/?variant= handling (see
 // usePlannerSchedule), and keeps the address bar honest with no real nav.
 const planHref = computed(() => {
@@ -199,7 +164,7 @@ const planHref = computed(() => {
 });
 
 const hintText = computed(() => {
-  if (armed.value) return "Klick auf den Zeitstrahl - wann ist es soweit?";
+  if (armed.value) return "Zieh über den Zeitstrahl - wann ist es soweit?";
   if (placed.value) return "Vorhaben gesetzt · anderes wählen zum Verschieben";
   return "Wähle oben ein Vorhaben";
 });
@@ -396,32 +361,6 @@ h1 {
 }
 .hint.armed {
   color: var(--accent);
-}
-
-.scrub {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  margin-bottom: 1rem;
-}
-.scrub input {
-  flex: 1 1 auto;
-  min-width: 0;
-  accent-color: var(--accent);
-}
-.scrub output {
-  flex: 0 0 auto;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--muted);
-  white-space: nowrap;
-}
-@media (max-width: 36rem) {
-  .scrub {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.4rem;
-  }
 }
 
 .btn {
