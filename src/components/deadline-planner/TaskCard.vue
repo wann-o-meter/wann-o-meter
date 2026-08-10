@@ -67,7 +67,9 @@ function closeDateEdit() {
 function whenDate(iso: string): string {
   const d = toDate(iso);
   const weekday = WEEKDAY_NAMES_SHORT[(d.getUTCDay() + 6) % 7];
-  return `${weekday}, ${d.getUTCDate()}. ${MONTH_NAMES[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  const month = MONTH_NAMES[d.getUTCMonth()];
+  const short = month.length > 4 ? `${month.slice(0, 3)}.` : month;
+  return `${weekday}, ${d.getUTCDate()}. ${short} ${d.getUTCFullYear()}`;
 }
 
 // Relative to today, and coarser past 90 days: nobody can feel "128 Tage".
@@ -119,9 +121,6 @@ const hasRange = computed(
       <span v-if="!entry.rescue" class="rel">{{
         relativeLabel(entry.date!)
       }}</span>
-      <span v-if="entry.offset_days === null" class="rel unresearched"
-        >Frist noch nicht recherchiert</span
-      >
     </div>
 
     <div v-if="isAnchor" class="anchor-divider">
@@ -383,9 +382,9 @@ const hasRange = computed(
 .when {
   position: absolute;
   /* Right edge sits just shy of the rail's dot/line (dot at -1.8rem). */
-  left: -10.5rem;
+  left: -12.2rem;
   top: 0.55rem;
-  width: 8rem;
+  width: 10.5rem;
   /* align-items:flex-end right-aligns each line by its OWN box: lines wider
     than 8rem still get their right edge pinned. */
   display: flex;
@@ -414,9 +413,6 @@ const hasRange = computed(
   font-family: var(--font-sans);
   color: var(--muted);
   font-size: var(--fs-xs);
-}
-.when .rel.unresearched {
-  color: var(--warn);
 }
 .when .next-possible {
   color: var(--warn);

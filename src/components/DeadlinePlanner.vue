@@ -101,9 +101,13 @@ const anchorDate = ref(
       ),
 );
 
+// The single most consequential assumption in the plan: whether the old flat
+// ends with the moving month or a month later. Worth a control, not a footnote.
+const overlapMonths = ref(urlParams?.get("overlap") === "1" ? 1 : 0);
+
 // Keeps the plan shareable as a link - replaceState, not pushState, so picking a date doesn't spam browser history.
 watch(
-  [anchorDate, selectedSlug, activeFacets],
+  [anchorDate, selectedSlug, activeFacets, overlapMonths],
   () => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -112,6 +116,8 @@ watch(
     if (activeFacets.value.length > 0)
       params.set("facets", activeFacets.value.join(","));
     else params.delete("facets");
+    if (overlapMonths.value > 0) params.set("overlap", "1");
+    else params.delete("overlap");
     const query = params.toString();
     history.replaceState(
       null,
@@ -225,9 +231,6 @@ function onCommitDate(id: string, iso: string) {
   moveEntry(id, days);
 }
 
-// The single most consequential assumption in the plan: whether the old flat
-// ends with the moving month or a month later. Worth a control, not a footnote.
-const overlapMonths = ref(0);
 const hasNoticeRule = computed(() =>
   workingDeadlines.value.some((d) => d.offset_rule === "bgb-573c-notice"),
 );
@@ -908,10 +911,10 @@ function print() {
 .scalenote {
   font-size: var(--fs-xs);
   color: var(--muted);
-  margin: 0.9rem 0 0.9rem 10.5rem;
+  margin: 0.9rem 0 0.9rem 12.2rem;
 }
 .verify-note {
-  margin: 0 0 0.9rem 10.5rem;
+  margin: 0 0 0.9rem 12.2rem;
   padding: 0.5rem 0.8rem;
   border-left: 2px solid var(--line);
   background: color-mix(in srgb, var(--muted) 8%, transparent);
@@ -930,12 +933,12 @@ function print() {
   --rail-gap: 1.5rem;
   position: relative;
   margin: 0;
-  padding: 0.5rem 0 0.5rem 10.5rem;
+  padding: 0.5rem 0 0.5rem 12.2rem;
 }
 .rail::before {
   content: "";
   position: absolute;
-  left: 9rem;
+  left: 10.7rem;
   top: 0.4rem;
   bottom: 0.4rem;
   width: 1px;
@@ -949,13 +952,13 @@ function print() {
   offset, unlike the negative item-relative one TaskCard's .dot/.when use. */
 .gap {
   position: relative;
-  margin-left: -10.5rem;
-  padding-left: 10.5rem;
+  margin-left: -12.2rem;
+  padding-left: 12.2rem;
 }
 .gap-add {
   position: absolute;
-  /* Centered on .rail::before's line: 9rem minus half the 1.3rem width. */
-  left: 8.35rem;
+  /* Centered on .rail::before's line: 10.7rem minus half the 1.3rem width. */
+  left: 10.05rem;
   top: 50%;
   transform: translateY(-50%);
   width: 1.3rem;
@@ -985,7 +988,7 @@ function print() {
   it can never be mistaken for the date column above it. */
 .gap-label {
   position: absolute;
-  left: 10.5rem;
+  left: 12.2rem;
   top: 50%;
   transform: translateY(-50%);
   font-family: var(--font-mono);

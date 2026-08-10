@@ -51,8 +51,10 @@
 - [x] Open "Wie berechnet?" by default on the one card that has it, since it is the strongest trust signal on the page and currently hidden behind a summary
 - [x] Add descriptions to the cards that have none (Umzug only, the other Vorhaben have no data yet) — five of seven are title-only and read as unfinished next to the fully written first card
 - [x] Add "Möglich ab / Frist" lines to more tasks (skipped: a range needs a researched earliest day per task, inventing those is exactly what the null placeholders exist to prevent), not just Ummeldung — the range model is the differentiator and appears exactly once
-- [x] Reduce the left gutter width or widen the cards; roughly a quarter of the content column is empty whitespace between date and card
+- [x] Reduce the left gutter width or widen the cards; roughly a quarter of the content column is empty whitespace between date and card (partly: the promoted 18px date needs 10.5rem, so the gutter is 12.2rem instead of 12.5rem. A big date and a narrow gutter cannot both hold, months are now abbreviated to buy what room there was)
 - [x] Clarify "Auf diesem Gerät gespeichert" — state what happens on another device and whether an account will exist later
 - [x] Add a "was ist erledigt" progress indicator near the top; with checkboxes present, users will want a count without scrolling
 - [x] Consider collapsing tasks whose date has passed (deferred by the item itself, "once the plan is in active use") rather than leaving them inline, once the plan is in active use
-- [x] the main event is already a vertical bar. why not make it a flag? :)
+- [ ] the main event is already a vertical bar. why not make it a big flag? :)
+- [ ] The code is centers around rent and embedds elements that are only relevant for renting. E.g. isn't leaseEnd something that is something related only to leasing of an appartment.
+- [ ] Doesn't "Alte Wohnung einen Monat länger" only make sense when the deadline has passed?
