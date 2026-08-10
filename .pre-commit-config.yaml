@@ -17,4 +17,5 @@ repos:
         entry: python3 scripts/check_style.py
         language: system
         files: \.(py|ts|tsx|js|jsx|vue|astro|md)$
-        exclude: ^(dist/|node_modules/|\.astro/)
+        # TODOS.md is an inbox for pasted notes, not prose the project ships.
+        exclude: ^(dist/|node_modules/|\.astro/|TODOS\.md$)

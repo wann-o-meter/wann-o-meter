@@ -94,7 +94,6 @@ function shortWhen(iso: string): string {
   const d = toDate(iso);
   return `${d.getUTCDate()}. ${MONTH_NAMES[d.getUTCMonth()].slice(0, 3)}`;
 }
-// "YYYY-MM" -> "November 2026", for entry.rescue.leaseEndMonth.
 function monthLabel(yyyyMm: string): string {
   const [y, m] = yyyyMm.split("-").map(Number);
   return `${MONTH_NAMES[m - 1]} ${y}`;
@@ -289,7 +288,7 @@ const hasRange = computed(
         <button
           v-else
           type="button"
-          class="cta-link"
+          class="cta-button"
           @click="$emit('open-attachment')"
         >
           {{
@@ -641,21 +640,24 @@ const hasRange = computed(
 }
 /* Its own row in body type, not a badge - an action ("aufsetzen") and a
   source citation are different kinds of thing and shouldn't look identical. */
+/* A link leaves the page, a button acts in place. Same colour, own shape. */
 .cta-link {
-  display: block;
+  display: inline-block;
   margin-top: 0.5rem;
-  padding: 0;
-  border: 0;
   color: var(--accent);
-  background: transparent;
-  font-family: inherit;
   font-size: var(--fs-sm);
   text-decoration: underline;
   text-underline-offset: 0.15em;
-  cursor: pointer;
 }
 .cta-link:hover {
   opacity: 0.8;
+}
+.cta-button {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: var(--fs-sm);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 .note-input {
   display: block;
@@ -721,7 +723,8 @@ const hasRange = computed(
 
 @media print {
   .tools,
-  .cta-link {
+  .cta-link,
+  .cta-button {
     display: none;
   }
   .check {
