@@ -413,9 +413,12 @@ const monthTicks = computed(() => {
   // A label needs roughly 3rem of clear space, so on a tight scale only every
   // nth month gets one. The ticks themselves always stay.
   const step = Math.max(1, Math.ceil(48 / (scale.value.ppd * 30.4)));
+  // A label that would run past the track gets clipped by the scroller, so
+  // the last one or two are dropped instead of showing "Jan 20".
+  const LABEL_PX = 60;
   return monthStarts(scale.value.start, scale.value.end).map((m, i) => ({
     x: px(m),
-    labelled: i % step === 0,
+    labelled: i % step === 0 && px(m) + LABEL_PX <= scale.value.width,
     label:
       MONTH_NAMES[m.getUTCMonth()].slice(0, 3) +
       (m.getUTCMonth() === 0 ? " " + m.getUTCFullYear() : ""),
@@ -893,7 +896,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   repositions anything - it only retunes the tokens. */
 .compact {
   --lane-h: 1.85rem;
-  --head-pad: 4.6rem;
+  --head-pad: 5.2rem;
   --tick-day: 0.5rem;
   --tick-week: 1.1rem;
   --tick-month: 1.45rem;

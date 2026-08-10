@@ -559,7 +559,8 @@ function print() {
         class="scalenote"
         title="Ziehen verschiebt eine Aufgabe, Scrollen hebt den Tag im Zeitstrahl hervor"
       >
-        Abstände sind maßstäblich.
+        Jeder Kreis ist eine Aufgabe, Klick springt zur Karte. Abstände sind
+        maßstäblich.
       </p>
       <p v-if="unverifiedCount > 0" class="verify-note">
         <Info :size="13" />

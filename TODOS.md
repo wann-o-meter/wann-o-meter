@@ -37,9 +37,9 @@
 - [x] Give the verification notice a way to act on it — link it to the "Quelle vorschlagen" flow instead of leaving it as a dead-end warning
 - [x] Move the "Umzug in deiner Stadt" city switcher above the timeline: choosing the wrong city invalidates everything below it, so discovering it at the bottom is too late (the live Ort select already sits above the timeline in the planner form. The bottom nav is cross-page linking, moving it would push the tool below the fold)
 - [x] Make the city chips reflect the current selection more clearly — Rottenburg is outlined but reads as hoverable, not as "you are here"
-- [ ] Fix the mini timeline's right edge: "Jan 20…" is clipped, and the Umzugstag label collides with the axis
-- [ ] Add a legend or tooltip for the stacked circles in the mini timeline — they currently look like decoration, not like the tasks below
-- [ ] Make the mini timeline clickable to scroll to the matching task, otherwise it is a picture rather than a control
+- [x] Fix the mini timeline's right edge: "Jan 20…" is clipped, and the Umzugstag label collides with the axis
+- [x] Add a legend or tooltip for the stacked circles in the mini timeline — they currently look like decoration, not like the tasks below
+- [x] Make the mini timeline clickable to scroll to the matching task, otherwise it is a picture rather than a control (already wired, onTimelineSelect scrolls the rail and flashes the card)
 - [ ] Distinguish "Puffer" values visually from task dates — right now "30 Tage Puffer" sits in the same column flow and competes with real deadlines
 - [ ] Reconsider showing puffer at all for gaps under ~14 days; "7 Tage Puffer" twice in a row adds noise without insight
 - [ ] Give the Umzugstag row real content (Zählerstände ablesen, Übergabeprotokoll) — an empty highlighted row looks like a rendering bug
