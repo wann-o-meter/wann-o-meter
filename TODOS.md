@@ -27,14 +27,14 @@
 - [x] read through the review and fix the problems. after you're done, remove the review about the design. (grey ramp skipped, the proposed label grey fails contrast on paper. H1 stays weight 600, the scale has only 400 and 600)
 - [x] fix the order and size of the card dates: 5. Oktober 2026 ← 20px mono 600, near-black, Montag · 90 Tage vorher ← 12px sans, grey, in 56 Tagen ← 12px sans, grey
 - [x] Reverse the date hierarchy: make the absolute date the large, dominant element and demote the countdown to small muted text — humans anchor on "5. Oktober", not "in 56 Tagen"
-- [ ] instead of saying in 56 Tagen, use weeks, e.g., noch ca. 8 Wochen
+- [ ] instead of saying in 56 Tagen, use weeks, e.g., in ca. 8 Wochen
 - [x] Drop "90 Tage vorher" entirely, or move it into the card as context — three different time expressions per entry is two too many
 - [x] Add the weekday to the same line as the date rather than a separate row, e.g. "Mo, 5. Oktober 2026"
 - [x] For dates beyond ~90 days out, replace the day countdown with a coarser unit ("in gut 4 Monaten") — 128 days is not a quantity anyone can feel
-- [ ] Move "Trifft auf mich zu" above the fold explanation: a single unchecked "Auto" chip reads like a broken filter, not an opt-in — add a short line like "Ergänze deine Situation für weitere Aufgaben"
-- [ ] Add more filter chips at once (Haustier, Kinder, Gewerbe, Eigentum) so the row looks like a set of choices rather than one stray checkbox
-- [ ] "5 von 7 Fristen sind noch nicht verifiziert" is honest but alarming as the first thing under the timeline — reword toward what is verified, e.g. "2 Fristen gesetzlich belegt, 5 auf Erfahrungswerten"
-- [ ] Give the verification notice a way to act on it — link it to the "Quelle vorschlagen" flow instead of leaving it as a dead-end warning
+- [x] Move "Trifft auf mich zu" above the fold explanation: a single unchecked "Auto" chip reads like a broken filter, not an opt-in — add a short line like "Ergänze deine Situation für weitere Aufgaben"
+- [x] Add more filter chips at once (Haustier, Kinder, Gewerbe, Eigentum) so the row looks like a set of choices rather than one stray checkbox (skipped: a chip only exists where a deadline actually depends on it, so adding four would mean inventing the deadlines behind them)
+- [x] "5 von 7 Fristen sind noch nicht verifiziert" is honest but alarming as the first thing under the timeline — reword toward what is verified, e.g. "2 Fristen gesetzlich belegt, 5 auf Erfahrungswerten"
+- [x] Give the verification notice a way to act on it — link it to the "Quelle vorschlagen" flow instead of leaving it as a dead-end warning
 - [ ] Move the "Umzug in deiner Stadt" city switcher above the timeline: choosing the wrong city invalidates everything below it, so discovering it at the bottom is too late
 - [ ] Make the city chips reflect the current selection more clearly — Rottenburg is outlined but reads as hoverable, not as "you are here"
 - [ ] Fix the mini timeline's right edge: "Jan 20…" is clipped, and the Umzugstag label collides with the axis

@@ -19,6 +19,7 @@ import {
   facetsUsedBy,
 } from "../../lib/facets";
 import { toDate } from "../../lib/format-date";
+import { newSourceIssueUrl } from "../../lib/github-issue";
 import { generateIcs } from "../../lib/ics";
 import type { IcsEvent } from "../../lib/ics";
 import { taskCtaFor } from "./deadline-planner/task-cta";
@@ -207,6 +208,7 @@ function onToggleDone(id: string) {
   }
 }
 
+const sourceIssueUrl = newSourceIssueUrl();
 const editingDateId = ref<string | null>(null);
 function onCommitDate(id: string, iso: string) {
   editingDateId.value = null;
@@ -242,6 +244,9 @@ const verifiableTasks = computed(() =>
 );
 const unverifiedCount = computed(
   () => verifiableTasks.value.filter((t) => t.source_url === null).length,
+);
+const verifiedCount = computed(
+  () => verifiableTasks.value.length - unverifiedCount.value,
 );
 
 // Only the FIRST card in a run of same-date entries shows its date - three
@@ -526,6 +531,7 @@ function print() {
 
     <fieldset v-if="facetOptions.length > 0" class="facets">
       <legend>Trifft auf mich zu</legend>
+      <p class="facets-hint">Ergänze deine Situation für weitere Aufgaben.</p>
       <label v-for="id in facetOptions" :key="id" class="facet">
         <input v-model="activeFacets" type="checkbox" :value="id" />
         <span>{{ facetLabel(id) }}</span>
@@ -557,8 +563,13 @@ function print() {
       </p>
       <p v-if="unverifiedCount > 0" class="verify-note">
         <Info :size="13" />
-        {{ unverifiedCount }} von {{ verifiableTasks.length }} Fristen sind noch
-        nicht verifiziert.
+        <span>
+          {{ verifiedCount }} Fristen gesetzlich belegt, {{ unverifiedCount }}
+          auf Erfahrungswerten.
+          <a :href="sourceIssueUrl" target="_blank" rel="noopener"
+            >Quelle vorschlagen</a
+          >
+        </span>
       </p>
       <div class="rail-column">
         <div ref="railEl" class="rail">
@@ -777,6 +788,12 @@ function print() {
   padding: 0;
   /* No side indent - it has to line up with the form above and the rail below. */
   margin: 1rem 0;
+}
+.facets-hint {
+  flex-basis: 100%;
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+  font-size: var(--fs-xs);
 }
 .facets legend {
   /* Not a flex item, so it sits on its own line above the options. */
