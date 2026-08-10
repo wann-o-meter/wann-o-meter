@@ -166,6 +166,43 @@ const {
 // in workingDeadlines at all (usePlannerSchedule injects it separately with
 // a fixed offset_days: 0), so moveEntry has nothing to move - editing its
 // date means moving the anchor itself, the same as the form's date field.
+// Ticking a task off earns a 12 piece burst. Drawn on body, so no card and no
+// overflow: hidden can clip it.
+function onToggleDone(id: string) {
+  const wasDone = doneIds[id];
+  toggleDone(id);
+  if (wasDone || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const el = rootEl.value?.querySelector(`[data-entry-id="${id}"] .check`);
+  if (!el) return;
+  const box = el.getBoundingClientRect();
+  const colors = ["var(--accent)", "var(--warn)", "var(--ink)"];
+  for (let i = 0; i < 12; i++) {
+    const piece = document.createElement("i");
+    piece.className = "wom-confetti";
+    piece.style.left = `${box.left + box.width / 2}px`;
+    piece.style.top = `${box.top + box.height / 2}px`;
+    piece.style.background = colors[i % colors.length];
+    document.body.appendChild(piece);
+    const angle = (Math.PI * 2 * i) / 12 + Math.random() * 0.4;
+    const dist = 40 + Math.random() * 40;
+    piece
+      .animate(
+        [
+          { transform: "translate(0,0) scale(1)", opacity: 1 },
+          {
+            transform: `translate(${Math.cos(angle) * dist}px,${Math.sin(angle) * dist + 30}px) scale(0.4) rotate(${Math.random() * 360}deg)`,
+            opacity: 0,
+          },
+        ],
+        {
+          duration: 600 + Math.random() * 300,
+          easing: "cubic-bezier(.2,.7,.4,1)",
+        },
+      )
+      .addEventListener("finish", () => piece.remove());
+  }
+}
+
 const editingDateId = ref<string | null>(null);
 function onCommitDate(id: string, iso: string) {
   editingDateId.value = null;
@@ -582,7 +619,7 @@ function print() {
               :cta="taskCtaFor(node.entry.id)"
               :show-date="!suppressDate.has(node.entry.id)"
               :date-edit-open="editingDateId === node.entry.id"
-              @toggle-done="toggleDone(node.entry.id)"
+              @toggle-done="onToggleDone(node.entry.id)"
               @commit-label="commitLabel(node.entry.id, $event)"
               @open-label-edit="startEditingLabel(node.entry.id)"
               @open-note="openNote(node.entry.id)"
@@ -1018,5 +1055,14 @@ function print() {
   .actions {
     display: none;
   }
+}
+
+/* Confetti lives on document.body, so scoped selectors can never match it. */
+:global(.wom-confetti) {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  pointer-events: none;
+  z-index: 80;
 }
 </style>
