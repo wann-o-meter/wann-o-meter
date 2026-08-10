@@ -44,7 +44,6 @@ const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 const rootEl = useTemplateRef<HTMLElement>("rootEl");
 const railEl = useTemplateRef<HTMLElement>("railEl");
-const overviewEl = useTemplateRef<HTMLElement>("overviewEl");
 
 function isoToday(): string {
   return new Date().toISOString().slice(0, 10);
@@ -342,95 +341,20 @@ function updateHighlight() {
     document.documentElement.scrollHeight - 2;
   highlightedDate.value = atBottom ? lastDate : (closestDate ?? lastDate);
 }
-// The sticky overview widens toward the full viewport width as it approaches
-// its sticky point. The gaps to the viewport edge are measured rather than
-// derived from vw units, so a scrollbar cannot make the strip overshoot the
-// screen and force the page into horizontal scrolling.
-function measureGap() {
-  const el = overviewEl.value;
-  const host = el?.parentElement;
-  if (!el || !host) return;
-  const r = host.getBoundingClientRect();
-  const cs = getComputedStyle(host);
-  const viewport = document.documentElement.clientWidth; // without the scrollbar
-  el.style.setProperty(
-    "--gap-left",
-    `${Math.max(0, r.left + parseFloat(cs.paddingLeft))}px`,
-  );
-  el.style.setProperty(
-    "--gap-right",
-    `${Math.max(0, viewport - r.right + parseFloat(cs.paddingRight))}px`,
-  );
-}
-
-const lockEffects =
-  typeof window === "undefined"
-    ? null
-    : window.matchMedia("(max-width: 48rem), (prefers-reduced-motion: reduce)");
-
-let lastWiden = -1;
-
-function clamp01(v: number): number {
-  return v < 0 ? 0 : v > 1 ? 1 : v;
-}
-function easeInOutCubic(t: number): number {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
-function easeOutCubic(t: number): number {
-  return 1 - Math.pow(1 - t, 3);
-}
-
-// The ramp is only the container width. The strip inside re-fits its own
-// scale to whatever width it ends up with (see Timeline.vue), so widening
-// spreads the plan out instead of revealing more empty rail to the right.
-const WIDEN_DISTANCE = 220; // px of scroll over which the widen ramps up
-const PARALLAX_LIFT = 16;
-function updateWiden() {
-  const el = overviewEl.value;
-  if (!el || lockEffects?.matches) return;
-  const top = el.getBoundingClientRect().top;
-  const raw = clamp01((WIDEN_DISTANCE - top) / WIDEN_DISTANCE);
-  const widen = easeInOutCubic(raw);
-  // Unter einem halben Prozent sieht niemand etwas, 0 und 1 aber immer
-  // schreiben, damit die Endzustände exakt erreicht werden.
-  if (Math.abs(widen - lastWiden) < 0.004 && raw > 0 && raw < 1) return;
-  lastWiden = widen;
-  el.style.setProperty("--widen", widen.toFixed(4));
-  el.style.setProperty(
-    "--parallax",
-    `${((1 - easeOutCubic(raw)) * PARALLAX_LIFT).toFixed(2)}px`,
-  );
-}
 function onPageScroll() {
   if (scrollRaf) return;
   scrollRaf = true;
   requestAnimationFrame(() => {
     scrollRaf = false;
     updateHighlight();
-    updateWiden();
   });
 }
-let gapObserver: ResizeObserver | undefined;
 onMounted(() => {
   window.addEventListener("scroll", onPageScroll, { passive: true });
-  nextTick(() => {
-    measureGap();
-    updateHighlight();
-    updateWiden();
-  });
-  const host = overviewEl.value?.parentElement;
-  if (!host) return;
-  // Re-measures itself after a resize instead of needing its own listener.
-  gapObserver = new ResizeObserver(() => {
-    measureGap();
-    lastWiden = -1;
-    updateWiden();
-  });
-  gapObserver.observe(host);
+  nextTick(updateHighlight);
 });
 onBeforeUnmount(() => {
   window.removeEventListener("scroll", onPageScroll);
-  gapObserver?.disconnect();
 });
 watch(railNodes, () => nextTick(updateHighlight));
 
@@ -589,33 +513,37 @@ function print() {
       <p v-if="quietUntil" class="quiet">
         Bis {{ quietUntil }} ist nichts zu tun.
       </p>
-      <div ref="overviewEl" class="overview">
-        <div class="overview-inner">
-          <Timeline
-            :tasks="tasks"
-            :anchor-date="anchorDate"
-            :anchor-name="anchorLabel"
-            :region-code="selected?.regionCode"
-            :highlight-date="highlightedDate"
-            :hover-id="hoveredId"
-            :done-ids="doneIds"
-            compact
-            @select="onTimelineSelect"
-            @hover="hoveredId = $event"
-          />
-        </div>
-        <p v-if="tasks.length > 0" class="progress">
-          <span>{{ stats.done }} von {{ tasks.length }} erledigt</span>
-          <progress :value="stats.done" :max="tasks.length"></progress>
-        </p>
-      </div>
-      <p
-        class="scalenote"
-        title="Ziehen verschiebt eine Aufgabe, Scrollen hebt den Tag im Zeitstrahl hervor"
-      >
-        Jeder Kreis ist eine Aufgabe, Klick springt zur Karte. Abstände sind
-        maßstäblich.
+
+      <p v-if="tasks.length > 0" class="progress">
+        <span
+          >Fortschritt: {{ stats.done }} von {{ tasks.length }} erledigt</span
+        >
+        <progress :value="stats.done" :max="tasks.length"></progress>
       </p>
+
+      <details class="overview-wrap">
+        <summary>Zeitstrahl anzeigen</summary>
+        <div class="overview">
+          <div class="overview-inner">
+            <Timeline
+              :tasks="tasks"
+              :anchor-date="anchorDate"
+              :anchor-name="anchorLabel"
+              :region-code="selected?.regionCode"
+              :highlight-date="highlightedDate"
+              :hover-id="hoveredId"
+              :done-ids="doneIds"
+              compact
+              @select="onTimelineSelect"
+              @hover="hoveredId = $event"
+            />
+          </div>
+        </div>
+        <p class="scalenote">
+          Jeder Kreis ist eine Aufgabe, Klick springt zur Karte. Abstände sind
+          maßstäblich.
+        </p>
+      </details>
       <p v-if="unverifiedCount > 0" class="verify-note">
         <Info :size="13" />
         <span>
@@ -901,27 +829,16 @@ function print() {
   margin: 0;
 }
 
-.overview {
-  --widen: 0;
-  --parallax: 0px;
-  --gap-left: 0px;
-  --gap-right: 0px;
-
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  margin: 0 calc(var(--gap-right) * -1 * var(--widen)) 1rem
-    calc(var(--gap-left) * -1 * var(--widen));
-  padding-inline: calc(0.9rem * var(--widen));
-  background: var(--paper);
-  box-shadow:
-    0 1px 0 var(--line),
-    0 calc(6px * var(--widen)) calc(20px * var(--widen))
-      color-mix(in srgb, var(--ink) calc(12% * var(--widen)), transparent);
+.overview-wrap {
+  margin-bottom: 1rem;
 }
-.overview-inner {
-  transform: translate3d(0, var(--parallax), 0);
-  will-change: transform;
+.overview-wrap summary {
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+.overview {
+  margin: 0.6rem 0 1rem;
 }
 .scalenote {
   font-size: var(--fs-xs);
@@ -1089,18 +1006,6 @@ function print() {
   gap: 0.4rem;
 }
 
-@media (max-width: 48rem) {
-  .overview {
-    --widen: 1 !important;
-    --parallax: 0px !important;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .overview {
-    --widen: 1 !important;
-    --parallax: 0px !important;
-  }
-}
 @media (max-width: 32rem) {
   .rail {
     --rail-gap: 1.2rem;

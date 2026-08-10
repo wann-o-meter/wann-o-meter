@@ -110,7 +110,7 @@
 - [x] Restore relative offsets on every card ("6 Wochen vorher", "2 Wochen danach") — your SSR HTML has this and hydration throws it away
 - [x] Pair or replace "in gut 5 Monaten" → `2 Wochen vor dem Umzug · in gut 5 Monaten`; six tasks currently all read "in gut 6 Monaten"
 - [x] Add the summary sentence at the top: "Aus deinem Umzugstag am 31. Januar 2027 ergeben sich 10 Fristen. Die erste ist am 4. November 2026."
-- [ ] Collapse the timeline by default, or move it below the first three tasks
+- [x] Collapse the timeline by default, or move it below the first three tasks
 - [ ] Explain the circle vocabulary in the legend — filled vs. ring, green vs. red vs. blue
 - [ ] Rewrite "TRIFFT AUF MICH ZU → ☐ Auto" as a full sentence: "Ich habe ein Auto, das ich ummelden muss"; drop the section header if there's only one item
 - [x] Mark the next actionable task with an "Als Nächstes" badge and stronger card treatment
@@ -134,7 +134,7 @@
 
 - [ ] Remove duplicated dates inside cards when the left rail already shows them (currently inconsistent)
 - [ ] Close the horizontal gap between the date rail and the cards
-- [ ] Move the progress bar above the timeline and label it — it's currently clipped
+- [x] Move the progress bar above the timeline and label it — it's currently clipped (the sticky scroll-widening strip that clipped it is gone, 97 lines lighter)
 - [ ] Align card left edges (the first card sits ~5px left of the rest)
 - [ ] Reduce box-in-box nesting: card → description → warning box → source chip is four nested borders
 
