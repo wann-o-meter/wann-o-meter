@@ -1,10 +1,10 @@
 <template>
   <div
     class="timeline"
-    :class="{ armed: clickable, compact }"
+    :class="{ armed: clickable, movable, compact }"
     :style="rootVars"
   >
-    <div v-if="showLegend" class="legend">
+    <div v-if="showLegend" class="legend below">
       <span class="legend-item">
         <span class="swatch task"></span>
         Offen
@@ -51,6 +51,8 @@
           Dropped once the scale is tight enough that the lines would read as
           moire rather than as days. -->
         <div v-if="showDayTicks" class="days"></div>
+        <div class="weekends" :style="weekendStyle"></div>
+        <div class="spent" :style="{ width: todayX + 'px' }"></div>
 
         <div
           v-for="x in weekTicks"
@@ -150,21 +152,25 @@
             :style="{ left: pxIso(anchorDate) + 'px' }"
             :data-node-key="keyed ? ANCHOR_ID : null"
             :title="compact ? 'Zur Aufgabe springen' : undefined"
-            :tabindex="clickable ? 0 : undefined"
-            :role="clickable ? 'slider' : undefined"
-            :aria-label="clickable ? `${anchorName} wählen` : undefined"
-            :aria-valuemin="clickable ? 0 : undefined"
-            :aria-valuemax="clickable ? daysBetween(START, END) : undefined"
+            :tabindex="movable ? 0 : undefined"
+            :role="movable ? 'slider' : undefined"
+            :aria-label="movable ? `${anchorName} wählen` : undefined"
+            :aria-valuemin="movable ? 0 : undefined"
+            :aria-valuemax="movable ? daysBetween(START, END) : undefined"
             :aria-valuenow="
-              clickable ? daysBetween(START, toDate(anchorDate)) : undefined
+              movable ? daysBetween(START, toDate(anchorDate)) : undefined
             "
-            :aria-valuetext="clickable ? pinLabel : undefined"
+            :aria-valuetext="movable ? pinLabel : undefined"
             @keydown="onPinKey"
+            @pointerdown="onPinDown"
+            @pointermove="onPinMove"
+            @pointerup="onPinUp"
+            @pointercancel="onPinUp"
             @click="onNodeClick(ANCHOR_ID, $event)"
             @mouseenter="emit('hover', ANCHOR_ID)"
             @mouseleave="emit('hover', null)"
           >
-            <span v-if="clickable" class="grip"></span>
+            <span v-if="movable" class="grip"></span>
             <b>{{ anchorName }}</b
             ><i>{{ pinLabel }}</i>
             <slot name="pin-extra" />
@@ -212,6 +218,7 @@ const props = withDefaults(
     anchorName: string; // bold pin label, e.g. "Umzug"
     regionCode?: string;
     clickable?: boolean; // click-to-place a new anchor date
+    draggable?: boolean; // drag the flag only, clicks still select tasks
     keyed?: boolean; // tag nodes with data-node-key (only one instance per page)
     compact?: boolean; // smaller strip, for use as an overview above the task list
     highlightDate?: string | null; // task date to mark as current and center on
@@ -221,6 +228,7 @@ const props = withDefaults(
   }>(),
   {
     clickable: false,
+    draggable: false,
     keyed: false,
     compact: false,
     highlightDate: null,
@@ -246,7 +254,7 @@ const EDGE_PX = 30; // px kept free at both ends for the first and last cap
 // Node diameter lives here, not in CSS, because the lane packer needs the
 // exact rendered geometry - it is handed to CSS as --node so the two can't
 // drift apart.
-const NODE_PX = computed(() => (props.compact ? 24 : 13));
+const NODE_PX = computed(() => (props.compact ? 11 : 13));
 
 const scrollerEl = useTemplateRef<HTMLElement>("scrollerEl");
 const trackEl = useTemplateRef<HTMLElement>("trackEl");
@@ -256,6 +264,8 @@ const showFeiertage = ref(true);
 const showSchulferien = ref(true);
 
 const placed = computed(() => props.anchorDate !== "");
+// Either interaction model puts the flag under the user's control.
+const movable = computed(() => props.clickable || props.draggable);
 
 // All internal days are UTC midnight (see lib/timeline-geometry). Mixing in
 // locally-constructed dates made isoOf() and every ghost/pin label fall a day
@@ -320,6 +330,20 @@ function pxIso(iso: string): number {
   return px(toDate(iso));
 }
 const trackWidth = computed(() => scale.value.width);
+
+// Weekends as one repeating gradient rather than 104 elements: the stripe
+// starts on the window's first Saturday and repeats every seven days.
+const weekendStyle = computed(() => {
+  const start = scale.value.start;
+  const toSaturday = (6 - ((start.getUTCDay() + 6) % 7) + 7) % 7;
+  const ppd = scale.value.ppd;
+  return {
+    left: `${scale.value.edge + toSaturday * ppd}px`,
+    width: `${Math.max(0, scale.value.width - scale.value.edge - toSaturday * ppd)}px`,
+    backgroundSize: `${ppd * 7}px 100%`,
+    backgroundImage: `linear-gradient(90deg, var(--weekend-band) 0 ${ppd * 2}px, transparent ${ppd * 2}px 100%)`,
+  };
+});
 const todayX = computed(() => px(today));
 // Day lines closer together than this read as moire, not as days.
 const showDayTicks = computed(() => scale.value.ppd >= 4);
@@ -397,7 +421,7 @@ const taskLane = computed(() =>
       left: nodeLeft(t),
       width: nodeWidth(t),
     })),
-    props.compact ? 3 : 4,
+    props.compact ? 1 : 4,
   ),
 );
 // The strip is only as tall as the deepest cluster actually needs. A plan
@@ -560,6 +584,7 @@ function onScrubEnd() {
 let scrubIso: string | null = null;
 
 function onScrollerClick(e: MouseEvent) {
+  if (props.compact) return onLandscapeClick(e);
   if (!props.clickable || !trackEl.value || onPin(e)) return;
   const r = trackEl.value.getBoundingClientRect();
   const d = scale.value.dateAt(e.clientX - r.left);
@@ -612,7 +637,7 @@ const KEY_STEPS: Record<string, number> = {
   ArrowUp: 1,
 };
 function onPinKey(e: KeyboardEvent) {
-  if (!props.clickable) return;
+  if (!movable.value) return;
   const current = toDate(props.anchorDate);
   let next: Date | null = null;
   if (e.key === "Home") next = START;
@@ -626,6 +651,43 @@ function onPinKey(e: KeyboardEvent) {
   if (next < START) next = START;
   if (next > END) next = END;
   emit("place", isoOf(next));
+}
+
+// Dragging the flag: pointer events so mouse, pen and touch share one path.
+let dragging = false;
+function onPinDown(e: PointerEvent) {
+  if (!props.draggable || !trackEl.value) return;
+  dragging = true;
+  (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+  e.preventDefault();
+}
+function onPinMove(e: PointerEvent) {
+  if (!dragging || !trackEl.value) return;
+  const r = trackEl.value.getBoundingClientRect();
+  const d = scale.value.dateAt(e.clientX - r.left);
+  ghost.value = { x: px(d), label: `${weekdayShort(d)}, ${langDate(d)}` };
+  emit("preview", isoOf(d));
+}
+function onPinUp() {
+  if (!dragging) return;
+  dragging = false;
+  const iso = ghost.value ? isoOf(scale.value.dateAt(ghost.value.x)) : null;
+  clearGhost();
+  if (iso) emit("place", iso);
+}
+
+// The nearest task to wherever the strip was clicked, so the whole width is
+// a control rather than only the dots on it.
+function onLandscapeClick(e: MouseEvent) {
+  if (!trackEl.value || onPin(e)) return;
+  const r = trackEl.value.getBoundingClientRect();
+  const x = e.clientX - r.left;
+  let best: { id: string; d: number } | null = null;
+  for (const t of visibleTasks.value) {
+    const d = Math.abs(pxIso(t.date) - x);
+    if (!best || d < best.d) best = { id: t.id, d };
+  }
+  if (best) emit("select", best.id);
 }
 
 function onNodeClick(id: string, e: MouseEvent) {
@@ -642,10 +704,12 @@ function onNodeClick(id: string, e: MouseEvent) {
   from the packer, which is why the strip grows exactly as much as the
   densest cluster demands and no more. */
 .timeline {
+  display: flex;
+  flex-direction: column;
   /* Schulferien has no sitewide color of its own - blended from the two
     tokens that already exist rather than inventing a new raw hex, so it
     still flips correctly in dark mode. */
-  --school: color-mix(in srgb, var(--warn) 45%, var(--accent) 55%);
+  --school: color-mix(in srgb, var(--holiday) 40%, var(--accent) 60%);
 
   --lane-h: 1.1rem; /* must stay > --node, or stacked lanes touch */
   --head-pad: 5.2rem; /* clearance above the top lane: pin stack + tooltips */
@@ -654,6 +718,8 @@ function onNodeClick(id: string, e: MouseEvent) {
   --tick-month: 0.95rem;
   --ctx-y: 1.2rem; /* Feiertage/Schulferien strip, below the ruler */
   --ctx-h: 0.55rem;
+  --band-up: 1.4rem; /* how far the weekend/past shading reaches above the axis */
+  --weekend-band: color-mix(in srgb, var(--ink) 6%, transparent);
   --mlabel-y: 2.05rem;
   --mlabel-size: var(--fs-xs);
   --pin-title: var(--fs-md);
@@ -669,10 +735,15 @@ function onNodeClick(id: string, e: MouseEvent) {
 .legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  padding: 0.5rem 0 0.7rem;
+  align-items: center;
+  gap: 0.5rem 1rem;
   font-size: var(--fs-xs);
   color: var(--muted);
+}
+/* Under the bands it explains, not floating above the whole component. */
+.legend.below {
+  order: 2;
+  padding: 0.5rem 0 0;
 }
 .legend-item {
   display: flex;
@@ -724,6 +795,9 @@ function onNodeClick(id: string, e: MouseEvent) {
   overflow-y: hidden;
   padding-bottom: 0.6rem;
   cursor: crosshair;
+}
+.movable .grip {
+  touch-action: none;
 }
 .armed .scroller {
   cursor: copy;
@@ -800,11 +874,25 @@ function onNodeClick(id: string, e: MouseEvent) {
   height: var(--ctx-h);
   background: var(--holiday);
 }
+.weekends {
+  position: absolute;
+  top: calc(var(--axis-y) - var(--band-up));
+  height: calc(var(--band-up) + var(--below));
+  pointer-events: none;
+}
+.spent {
+  position: absolute;
+  left: 0;
+  top: calc(var(--axis-y) - var(--band-up));
+  height: calc(var(--band-up) + var(--below));
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  pointer-events: none;
+}
 .band {
   position: absolute;
   top: calc(var(--axis-y) + var(--ctx-y));
   height: var(--ctx-h);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 .band.schulferien {
   background: color-mix(in srgb, var(--school) 30%, transparent);
@@ -1045,7 +1133,10 @@ function onNodeClick(id: string, e: MouseEvent) {
   top: -1.5rem;
   left: -0.75rem;
 }
-.compact .node,
+.compact .node {
+  border-width: 1.5px;
+  cursor: pointer;
+}
 .compact .pin {
   cursor: pointer;
 }

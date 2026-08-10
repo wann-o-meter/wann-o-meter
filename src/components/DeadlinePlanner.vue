@@ -20,12 +20,14 @@ import {
 } from "../../lib/facets";
 import { formatDateWithWeekday, toDate } from "../../lib/format-date";
 import { newSourceIssueUrl } from "../../lib/github-issue";
+import { computeSchedule } from "../../lib/deadline-plan";
 import { generateIcs } from "../../lib/ics";
 import type { IcsEvent } from "../../lib/ics";
 import { taskCtaFor } from "./deadline-planner/task-cta";
 import { useTaskEditor } from "./deadline-planner/useTaskEditor";
 import {
   ANCHOR_ID,
+  COUNTRY_CODE,
   usePlannerSchedule,
 } from "./deadline-planner/usePlannerSchedule";
 import type { PlanVariant } from "./deadline-planner/types";
@@ -260,6 +262,40 @@ const quietUntil = computed(() => {
     (toDate(next.date!).getTime() - toDate(isoToday()).getTime()) / 86400000,
   );
   return days >= 21 ? formatDateWithWeekday(next.date!) : null;
+});
+
+// The date under the flag while it is being dragged, so the collision count
+// can answer "is this a better day" before the drag ends.
+const dragPreview = ref<string | null>(null);
+function isoShift(iso: string, days: number): string {
+  return new Date(toDate(iso).getTime() + days * 86400000)
+    .toISOString()
+    .slice(0, 10);
+}
+function blockedAt(shiftDays: number): number {
+  return computeSchedule(
+    isoShift(anchorDate.value, shiftDays),
+    workingDeadlines.value,
+    COUNTRY_CODE,
+    selected.value?.regionCode,
+  ).filter((e) => e.needs_office === true && (e.weekend || e.collision)).length;
+}
+const previewCollisions = computed(() => {
+  if (!dragPreview.value) return null;
+  const shift = Math.round(
+    (toDate(dragPreview.value).getTime() - toDate(anchorDate.value).getTime()) /
+      86400000,
+  );
+  return blockedAt(shift);
+});
+
+const landscapeNote = computed(() => {
+  if (previewCollisions.value !== null)
+    return `${formatDateWithWeekday(dragPreview.value!)} · ${previewCollisions.value} Kollisionen`;
+  const n = blockedTasks.value.length;
+  if (n === 0)
+    return "Ferien, Feiertage und Wochenenden im Blick. Dieses Fenster ist frei.";
+  return `Ferien, Feiertage und Wochenenden im Blick. ${n} Aufgabe${n === 1 ? "" : "n"} fällt auf einen geschlossenen Tag.`;
 });
 
 // Tasks that need an open office on a day when none is open.
@@ -589,8 +625,7 @@ function print() {
         Bis {{ quietUntil }} ist nichts zu tun.
       </p>
 
-      <details class="overview-wrap" open>
-        <summary>Zeitstrahl</summary>
+      <div class="overview-wrap">
         <div class="overview">
           <div class="overview-inner">
             <Timeline
@@ -602,16 +637,16 @@ function print() {
               :hover-id="hoveredId"
               :done-ids="doneIds"
               compact
+              draggable
               @select="onTimelineSelect"
+              @place="anchorDate = $event"
+              @preview="dragPreview = $event"
               @hover="hoveredId = $event"
             />
           </div>
         </div>
-        <p class="scalenote">
-          Jeder Kreis ist eine Aufgabe, Klick springt zur Karte. Abstände sind
-          maßstäblich.
-        </p>
-      </details>
+        <p class="scalenote">{{ landscapeNote }}</p>
+      </div>
       <p v-if="unverifiedCount > 0" class="verify-note">
         <Info :size="13" />
         <span>
@@ -954,16 +989,24 @@ function print() {
   margin: 0;
 }
 
+/* The landscape stays on screen while the list scrolls past it. */
 .overview-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 6;
   margin-bottom: 1rem;
+  padding-bottom: 0.3rem;
+  background: var(--paper);
+  box-shadow: 0 1px 0 var(--line);
 }
-.overview-wrap summary {
-  cursor: pointer;
-  font-size: var(--fs-sm);
-  color: var(--muted);
+@media (max-width: 40rem) {
+  .overview-wrap {
+    position: static;
+    box-shadow: none;
+  }
 }
 .overview {
-  margin: 0.6rem 0 1rem;
+  margin: 0.4rem 0 0;
 }
 .scalenote {
   font-size: var(--fs-xs);

@@ -188,21 +188,21 @@
 - [x] "Ich habe ein Auto, das ich ummelden muss" is a single lonely checkbox again; either show the full set of situation toggles or hide the group until more exist
 - [x] The overlap/Mietende decision has disappeared entirely from this version — verify it is still reachable, since it moves the first deadline by a full month (it shows on any card with an offset_rule now, not only once the deadline has passed)
 
-- [ ] Show the timeline by default again — remove the "Zeitstrahl anzeigen" disclosure
-- [ ] Reframe it from "overview of tasks" to "the landscape the tasks sit in", so it stops duplicating the list below
-- [ ] Demote task dots: smaller, lighter, no stacking — they are secondary here
-- [ ] Promote context layers: make Schulferien bands, Feiertag ticks, weekend shading and local closures the dominant visual content
-- [ ] Add weekend shading as a repeating subtle pattern so weekend collisions are visible before reading any card
-- [ ] Keep exactly one prominent marker: the Umzugstag flag
-- [ ] Grey out the region before today so remaining lead time is visible at a glance
-- [ ] Make the Umzugstag marker draggable on the timeline, recomputing the whole chain live
-- [ ] While dragging, show the resulting collision count as a live readout (e.g. "3 Kollisionen" → "0 Kollisionen")
-- [ ] Snap dragging to whole days and show the target date next to the cursor
-- [ ] Make the timeline sticky under the header at ~64px height so it stays visible while scrolling the list
+- [x] Show the timeline by default again — remove the "Zeitstrahl anzeigen" disclosure
+- [x] Reframe it from "overview of tasks" to "the landscape the tasks sit in", so it stops duplicating the list below
+- [x] Demote task dots: smaller, lighter, no stacking — they are secondary here (11px instead of 24px, thinner ring, one lane instead of three)
+- [x] Promote context layers: make Schulferien bands, Feiertag ticks, weekend shading and local closures the dominant visual content
+- [x] Add weekend shading as a repeating subtle pattern so weekend collisions are visible before reading any card (one repeating gradient aligned to the window's first Saturday, not 104 elements)
+- [x] Keep exactly one prominent marker: the Umzugstag flag
+- [x] Grey out the region before today so remaining lead time is visible at a glance
+- [x] Make the Umzugstag marker draggable on the timeline, recomputing the whole chain live (pointer events, so mouse, pen and touch share one path)
+- [x] While dragging, show the resulting collision count as a live readout (e.g. "3 Kollisionen" → "0 Kollisionen")
+- [x] Snap dragging to whole days and show the target date next to the cursor
+- [x] Make the timeline sticky under the header at ~64px height so it stays visible while scrolling the list
 - [ ] Add a viewport indicator on the sticky timeline showing which time range the user is currently reading
-- [ ] Make clicking a point on the timeline scroll the list to the nearest task
-- [ ] Move the Feiertage/Schulferien toggles into the timeline itself rather than above it
-- [ ] Add a legend or inline labels for the context bands, since they carry the meaning now
-- [ ] Verify the timeline still communicates something when no collisions exist — it should read as "this window is clear", not as empty decoration
-- [ ] Fall back to a static, non-sticky version on mobile with drag replaced by tap-to-select
-- [ ] If the full interactive version is too much for now, ship the reduced variant: context bands plus Umzugstag only, no task dots, always visible
+- [x] Make clicking a point on the timeline scroll the list to the nearest task
+- [x] Move the Feiertage/Schulferien toggles into the timeline itself rather than above it
+- [x] Add a legend or inline labels for the context bands, since they carry the meaning now
+- [x] Verify the timeline still communicates something when no collisions exist — it should read as "this window is clear", not as empty decoration ("Dieses Fenster ist frei." rather than a blank strip)
+- [x] Fall back to a static, non-sticky version on mobile with drag replaced by tap-to-select
+- [x] If the full interactive version is too much for now, ship the reduced variant: context bands plus Umzugstag only, no task dots, always visible (not needed, the full version is in)
