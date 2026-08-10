@@ -33,7 +33,10 @@ describe("computeSchedule", () => {
   it("sorts unknown offsets last without dropping them", () => {
     const result = computeSchedule(
       "2027-06-15",
-      [deadline({ id: "known", offset_days: -1 }), deadline({ id: "unknown", offset_days: null })],
+      [
+        deadline({ id: "known", offset_days: -1 }),
+        deadline({ id: "unknown", offset_days: null }),
+      ],
       "DE",
       "BW",
     );
@@ -42,18 +45,33 @@ describe("computeSchedule", () => {
   });
 
   it("flags a date that lands on a public holiday", () => {
-    const [entry] = computeSchedule("2027-10-03", [deadline({ id: "tag-der-einheit", offset_days: 0 })], "DE", "BW");
+    const [entry] = computeSchedule(
+      "2027-10-03",
+      [deadline({ id: "tag-der-einheit", offset_days: 0 })],
+      "DE",
+      "BW",
+    );
     expect(entry.collision).toBe("Tag der Deutschen Einheit");
   });
 
   it("flags a date that lands on a weekend", () => {
     // 2027-06-13 is a Sunday
-    const [entry] = computeSchedule("2027-06-13", [deadline({ id: "sonntag", offset_days: 0 })], "DE", "BW");
+    const [entry] = computeSchedule(
+      "2027-06-13",
+      [deadline({ id: "sonntag", offset_days: 0 })],
+      "DE",
+      "BW",
+    );
     expect(entry.weekend).toBe(true);
   });
 
   it("defaults earliestDate/startByDate to the deadline itself when unresearched", () => {
-    const [entry] = computeSchedule("2027-06-15", [deadline({ id: "plain", offset_days: 14 })], "DE", "BW");
+    const [entry] = computeSchedule(
+      "2027-06-15",
+      [deadline({ id: "plain", offset_days: 14 })],
+      "DE",
+      "BW",
+    );
     expect(entry.earliestDate).toBe(entry.date);
     expect(entry.startByDate).toBe(entry.date);
     expect(entry.impossible).toBe(false);
@@ -96,7 +114,13 @@ describe("computeSchedule", () => {
     // long past 2024-01-04, which would otherwise trigger the rescue path.
     const [entry] = computeSchedule(
       "2024-03-15",
-      [deadline({ id: "wohnung-kuendigen", offset_days: -90, offset_rule: "bgb-573c-notice" })],
+      [
+        deadline({
+          id: "wohnung-kuendigen",
+          offset_days: -90,
+          offset_rule: "bgb-573c-notice",
+        }),
+      ],
       "DE",
       undefined,
       "2023-12-01",
@@ -106,8 +130,33 @@ describe("computeSchedule", () => {
     expect(entry.pastDeadline).toBe(false);
   });
 
+  it("pushes the notice deadline a month back when an overlap month is kept", () => {
+    // Same move as above, but the old flat is kept through April: the notice
+    // deadline moves from the January window to the February one.
+    const [entry] = computeSchedule(
+      "2024-03-15",
+      [
+        deadline({
+          id: "wohnung-kuendigen",
+          offset_days: -90,
+          offset_rule: "bgb-573c-notice",
+        }),
+      ],
+      "DE",
+      undefined,
+      "2023-12-01",
+      1,
+    );
+    expect(entry.date).toBe("2024-02-05");
+  });
+
   it("leaves derivation/pastDeadline undefined for plain offset-based entries", () => {
-    const [entry] = computeSchedule("2027-06-15", [deadline({ id: "plain", offset_days: 14 })], "DE", "BW");
+    const [entry] = computeSchedule(
+      "2027-06-15",
+      [deadline({ id: "plain", offset_days: 14 })],
+      "DE",
+      "BW",
+    );
     expect(entry.derivation).toBeUndefined();
     expect(entry.pastDeadline).toBeUndefined();
   });

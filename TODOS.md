@@ -44,14 +44,15 @@
 - [x] Reconsider showing puffer at all for gaps under ~14 days; "7 Tage Puffer" twice in a row adds noise without insight
 - [x] Give the Umzugstag row real content (Zählerstände ablesen, Übergabeprotokoll) — an empty highlighted row looks like a rendering bug
 - [x] Remove the unlabeled icon next to "Umzugstag" or give it a visible label
-- [ ] Unify action buttons: "Kündigungsschreiben aufsetzen" appears once as a boxed button and once as a plain button of different width — same action, same treatment
-- [ ] Separate source chips from action buttons visually: "§ 573c BGB" and "Kündigungsschreiben aufsetzen" sit side by side at equal weight but are metadata vs. action
-- [ ] Shorten the "Wohnung kündigen" description to one sentence and move the two assumptions (Feiertage nach Zielort, Mietende ohne Überlappung) into the "Wie berechnet?" panel where they belong
-- [ ] Make "Mietende ohne Überlappung" an actual toggle instead of a disclaimer — it changes the deadline by a full month and is the most consequential hidden assumption on the page
-- [ ] Open "Wie berechnet?" by default on the one card that has it, since it is the strongest trust signal on the page and currently hidden behind a summary
+- [x] Unify action buttons: "Kündigungsschreiben aufsetzen" appears once as a boxed button and once as a plain button of different width — same action, same treatment
+- [x] Separate source chips from action buttons visually: "§ 573c BGB" and "Kündigungsschreiben aufsetzen" sit side by side at equal weight but are metadata vs. action
+- [x] Shorten the "Wohnung kündigen" description to one sentence and move the two assumptions (Feiertage nach Zielort, Mietende ohne Überlappung) into the "Wie berechnet?" panel where they belong
+- [x] Make "Mietende ohne Überlappung" an actual toggle instead of a disclaimer — it changes the deadline by a full month and is the most consequential hidden assumption on the page
+- [x] Open "Wie berechnet?" by default on the one card that has it, since it is the strongest trust signal on the page and currently hidden behind a summary
 - [ ] Add descriptions to the cards that have none — five of seven are title-only and read as unfinished next to the fully written first card
 - [ ] Add "Möglich ab / Frist" lines to more tasks, not just Ummeldung — the range model is the differentiator and appears exactly once
 - [ ] Reduce the left gutter width or widen the cards; roughly a quarter of the content column is empty whitespace between date and card
 - [ ] Clarify "Auf diesem Gerät gespeichert" — state what happens on another device and whether an account will exist later
 - [ ] Add a "was ist erledigt" progress indicator near the top; with checkboxes present, users will want a count without scrolling
 - [ ] Consider collapsing tasks whose date has passed rather than leaving them inline, once the plan is in active use
+- [ ] the main event is already a vertical bar. why not make it a flag? :)

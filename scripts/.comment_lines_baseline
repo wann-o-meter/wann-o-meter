@@ -14,3 +14,4 @@ lib/schema.ts
 src/layouts/Layout.astro
 src/components/DeadlinePlanner.vue
 src/components/deadline-planner/Timeline.vue
+lib/deadline-plan.ts

@@ -23,6 +23,7 @@ export const deadlineSchema = z.object({
   label: z.string(),
   offset_days: z.number().int().nullable(), // the legal/actual deadline - a ballpark approximation when offset_rule is set, since sorting still needs a plain number
   offset_rule: z.enum(["bgb-573c-notice"]).optional(), // computes the real date instead of using offset_days directly - see lib/notice-period.ts
+  assumptions: z.array(z.string()).optional(), // shown inside "Wie berechnet?", not as card prose
   earliest_offset_days: z.number().int().optional(), // frühestens möglich - absent means "same as the deadline", not "unknown"
   lead_time_days: z.number().int().positive().optional(), // Vorlaufzeit (Termin etc.) - absent means "no known lead time"
   lead_time_source: z.string().optional(),
@@ -67,7 +68,7 @@ function addDays(iso: string, days: number): string {
  * stay null and sort last. countryCode/regionCode select which holidays count
  * as a collision (see lib/holidays.ts). `today` defaults to the real current
  * date - only offset_rule entries that need to check "has this already
- * passed" (currently bgb-573c-notice) actually read it; pass it explicitly
+ * passed" (currently bgb-573c-notice) actually read it. Pass it explicitly
  * in tests to keep them deterministic.
  *
  * Also resolves earliestDate/startByDate/impossible - a deadline is not just
@@ -77,12 +78,21 @@ function addDays(iso: string, days: number): string {
  * the corresponding *_days field is unresearched, so an entry with neither
  * field behaves exactly like a plain point deadline.
  */
+function shiftMonth(yyyyMm: string, n: number): string {
+  const [y, m] = yyyyMm.split("-").map(Number);
+  const total = m - 1 + n;
+  const year = y + Math.floor(total / 12);
+  const month = (((total % 12) + 12) % 12) + 1;
+  return `${year}-${String(month).padStart(2, "0")}`;
+}
+
 export function computeSchedule(
   anchorDate: string,
   deadlines: Deadline[],
   countryCode: string,
   regionCode?: string,
   today: string = new Date().toISOString().slice(0, 10),
+  overlapMonths = 0, // months of deliberate overlap between old and new flat
 ): ScheduleEntry[] {
   const resolved = deadlines.map((d) => {
     let derivation: DerivationStep[] | undefined;
@@ -92,11 +102,15 @@ export function computeSchedule(
     if (d.offset_days === null) {
       date = null;
     } else if (d.offset_rule === "bgb-573c-notice") {
-      // "Mietende = Ende des Umzugsmonats" - the assumed target end month,
-      // for lack of a UI control to choose a different one yet (see
-      // lib/notice-period.ts's own doc comment).
-      const targetEndMonth = anchorDate.slice(0, 7);
-      const result = bgb573cNoticeDeadline(targetEndMonth, countryCode, regionCode, today);
+      // Mietende defaults to the end of the moving month. overlapMonths
+      // pushes it back for anyone who wants to keep both flats a while.
+      const targetEndMonth = shiftMonth(anchorDate.slice(0, 7), overlapMonths);
+      const result = bgb573cNoticeDeadline(
+        targetEndMonth,
+        countryCode,
+        regionCode,
+        today,
+      );
       date = result.date; // always 1:1 with anchorDate, even when past - see notice-period.ts
       derivation = result.derivation;
       pastDeadline = result.pastDeadline;
@@ -110,20 +124,46 @@ export function computeSchedule(
         : d.earliest_offset_days !== undefined
           ? addDays(anchorDate, d.earliest_offset_days)
           : date;
-    const startByDate = date === null ? null : d.lead_time_days ? addDays(date, -d.lead_time_days) : date;
-    return { ...d, date, earliestDate, startByDate, derivation, pastDeadline, rescue };
+    const startByDate =
+      date === null
+        ? null
+        : d.lead_time_days
+          ? addDays(date, -d.lead_time_days)
+          : date;
+    return {
+      ...d,
+      date,
+      earliestDate,
+      startByDate,
+      derivation,
+      pastDeadline,
+      rescue,
+    };
   });
 
-  const years = new Set(resolved.flatMap((d) => (d.date ? [toDate(d.date).getUTCFullYear()] : [])));
+  const years = new Set(
+    resolved.flatMap((d) => (d.date ? [toDate(d.date).getUTCFullYear()] : [])),
+  );
   years.add(toDate(anchorDate).getUTCFullYear());
-  const holidays: Holiday[] = [...years].flatMap((y) => holidaysFor(y, countryCode, regionCode));
+  const holidays: Holiday[] = [...years].flatMap((y) =>
+    holidaysFor(y, countryCode, regionCode),
+  );
   const byDate = new Map(holidays.map((h) => [h.date, h.name]));
 
   return resolved
     .map((d) => {
-      const weekend = d.date !== null && [0, 6].includes(toDate(d.date).getUTCDay());
-      const impossible = d.startByDate !== null && d.earliestDate !== null && d.startByDate < d.earliestDate;
-      return { ...d, weekend, impossible, collision: d.date ? (byDate.get(d.date) ?? null) : null };
+      const weekend =
+        d.date !== null && [0, 6].includes(toDate(d.date).getUTCDay());
+      const impossible =
+        d.startByDate !== null &&
+        d.earliestDate !== null &&
+        d.startByDate < d.earliestDate;
+      return {
+        ...d,
+        weekend,
+        impossible,
+        collision: d.date ? (byDate.get(d.date) ?? null) : null,
+      };
     })
     .sort((a, b) => {
       if (a.offset_days === null) return b.offset_days === null ? 0 : 1;

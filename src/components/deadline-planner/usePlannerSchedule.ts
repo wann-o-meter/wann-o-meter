@@ -30,6 +30,7 @@ export function usePlannerSchedule(
   workingDeadlines: ComputedRef<Deadline[]>,
   anchorLabel: () => string,
   doneIds: Record<string, boolean>,
+  overlapMonths?: Ref<number>,
 ) {
   const schedule = computed<ScheduleEntry[]>(() => {
     if (!anchorDate.value || !selected.value) return [];
@@ -47,12 +48,20 @@ export function usePlannerSchedule(
       withAnchor,
       COUNTRY_CODE,
       selected.value.regionCode,
+      undefined,
+      overlapMonths?.value ?? 0,
     );
   });
 
-  const timeline = computed(() => schedule.value.filter((e) => e.date !== null));
-  const unscheduled = computed(() => schedule.value.filter((e) => e.date === null));
-  const tasks = computed(() => schedule.value.filter((e) => e.id !== ANCHOR_ID));
+  const timeline = computed(() =>
+    schedule.value.filter((e) => e.date !== null),
+  );
+  const unscheduled = computed(() =>
+    schedule.value.filter((e) => e.date === null),
+  );
+  const tasks = computed(() =>
+    schedule.value.filter((e) => e.id !== ANCHOR_ID),
+  );
 
   const railNodes = computed<RailNode[]>(() => {
     const nodes: RailNode[] = [];
@@ -62,7 +71,9 @@ export function usePlannerSchedule(
         const bufferDays = Math.max(
           0,
           Math.round(
-            (toDate(entry.earliestDate!).getTime() - toDate(prev.date!).getTime()) / 86400000,
+            (toDate(entry.earliestDate!).getTime() -
+              toDate(prev.date!).getTime()) /
+              86400000,
           ),
         );
         nodes.push({
@@ -81,14 +92,21 @@ export function usePlannerSchedule(
 
   const stats = computed(() => {
     const open = tasks.value.filter((e) => !doneIds[e.id]);
-    const firstOpen = timeline.value.find((e) => e.id !== ANCHOR_ID && !doneIds[e.id]);
+    const firstOpen = timeline.value.find(
+      (e) => e.id !== ANCHOR_ID && !doneIds[e.id],
+    );
     const warnings = timeline.value.filter(
-      (e) => e.id !== ANCHOR_ID && !doneIds[e.id] && (e.weekend || e.collision || e.impossible),
+      (e) =>
+        e.id !== ANCHOR_ID &&
+        !doneIds[e.id] &&
+        (e.weekend || e.collision || e.impossible),
     ).length;
     return {
       open: open.length,
       done: tasks.value.length - open.length,
-      first: firstOpen ? formatDate(firstOpen.date!).replace(/\.\d{4}$/, "") : "—",
+      first: firstOpen
+        ? formatDate(firstOpen.date!).replace(/\.\d{4}$/, "")
+        : "—",
       warnings,
     };
   });

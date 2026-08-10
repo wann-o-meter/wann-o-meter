@@ -11,7 +11,10 @@ deadlines:
     offset_rule: bgb-573c-notice
     source_url: https://www.gesetze-im-internet.de/bgb/__573c.html
     source_label: § 573c BGB
-    note: Spätester Kündigungstermin nach § 573c Abs. 1 BGB, Rechenweg unter "Wie berechnet?". Feiertage gelten nach dem Zielort, nicht nach dem Sitz des Vermieters. Angenommenes Mietende ist das Ende des Umzugsmonats, wer eine Überlappung will, muss früher kündigen.
+    note: Spätester Kündigungstermin nach § 573c Abs. 1 BGB.
+    assumptions:
+      - Feiertage gelten nach dem Zielort des Umzugs, nicht nach dem Sitz des Vermieters.
+      - Mietende ist das Ende des Umzugsmonats, solange keine Überlappung gewählt ist.
   - id: internetanbieter-kuendigen-ummelden
     label: Internetanbieter kündigen oder umziehen lassen
     offset_days: -42

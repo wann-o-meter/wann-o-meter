@@ -242,17 +242,21 @@ const hasRange = computed(
       </p>
       <p v-if="entry.rescue" class="flag flag-past-deadline">
         <TriangleAlert :size="15" />
-        Frist verstrichen - spätestens {{ shortWhen(entry.rescue.date) }}
+        Die Frist ist verstrichen. Spätestens am
+        {{ shortWhen(entry.rescue.date) }}
         nachholen (Mietende dann Ende
         {{ monthLabel(entry.rescue.leaseEndMonth) }}).
       </p>
-      <details v-if="entry.derivation?.length" class="derivation">
+      <details v-if="entry.derivation?.length" class="derivation" open>
         <summary>Wie berechnet?</summary>
         <ol>
           <li v-for="step in entry.derivation" :key="step.step">
             {{ step.label }}
           </li>
         </ol>
+        <ul v-if="entry.assumptions?.length" class="assumptions">
+          <li v-for="a in entry.assumptions" :key="a">{{ a }}</li>
+        </ul>
       </details>
 
       <p v-if="entry.note">{{ entry.note }}</p>
@@ -266,7 +270,7 @@ const hasRange = computed(
       >
       <span v-else-if="isCustom" class="badge custom">Eigene Aufgabe</span>
 
-      <template v-if="cta">
+      <div v-if="cta" class="cta-row">
         <a
           v-if="cta.kind === 'link'"
           class="cta-link"
@@ -285,7 +289,7 @@ const hasRange = computed(
             hasAttachment ? `${cta.label} bearbeiten` : `${cta.label} aufsetzen`
           }}
         </button>
-      </template>
+      </div>
 
       <textarea
         v-if="attachmentOpen"
@@ -612,6 +616,20 @@ const hasRange = computed(
 .derivation summary {
   cursor: pointer;
   color: var(--accent);
+}
+.derivation .assumptions {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+  list-style: none;
+}
+.derivation .assumptions li::before {
+  content: "Annahme: ";
+  color: var(--muted);
+}
+.cta-row {
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--line);
 }
 .derivation ol {
   margin: 0.4rem 0 0;

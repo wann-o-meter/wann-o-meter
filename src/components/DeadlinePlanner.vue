@@ -225,12 +225,20 @@ function onCommitDate(id: string, iso: string) {
   moveEntry(id, days);
 }
 
+// The single most consequential assumption in the plan: whether the old flat
+// ends with the moving month or a month later. Worth a control, not a footnote.
+const overlapMonths = ref(0);
+const hasNoticeRule = computed(() =>
+  workingDeadlines.value.some((d) => d.offset_rule === "bgb-573c-notice"),
+);
+
 const { timeline, tasks, unscheduled, railNodes } = usePlannerSchedule(
   anchorDate,
   selected,
   workingDeadlines,
   () => props.anchorLabel,
   doneIds,
+  overlapMonths,
 );
 
 function isPast(date: string): boolean {
@@ -541,6 +549,17 @@ function print() {
       </label>
     </fieldset>
 
+    <label v-if="hasNoticeRule" class="overlap">
+      <input
+        type="checkbox"
+        :checked="overlapMonths > 0"
+        @change="
+          overlapMonths = ($event.target as HTMLInputElement).checked ? 1 : 0
+        "
+      />
+      <span>Alte Wohnung einen Monat länger behalten</span>
+    </label>
+
     <template v-if="anchorDate">
       <div ref="overviewEl" class="overview">
         <div class="overview-inner">
@@ -586,7 +605,10 @@ function print() {
               class="gap"
               :style="{ height: `${node.heightPx}px` }"
             >
-              <span v-if="node.bufferDays >= BUFFER_LABEL_DAYS" class="gap-label">
+              <span
+                v-if="node.bufferDays >= BUFFER_LABEL_DAYS"
+                class="gap-label"
+              >
                 {{ node.bufferDays }} Tage Puffer
               </span>
               <button
@@ -792,6 +814,17 @@ function print() {
   padding: 0;
   /* No side indent - it has to line up with the form above and the rail below. */
   margin: 1rem 0;
+}
+.overlap {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 1rem 1rem;
+  font-size: var(--fs-sm);
+}
+.overlap input {
+  accent-color: var(--accent);
+  margin: 0;
 }
 .facets-hint {
   flex-basis: 100%;
