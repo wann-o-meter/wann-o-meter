@@ -77,20 +77,6 @@ function whenDate(iso: string): string {
   return `${weekday}, ${d.getUTCDate()}. ${short} ${d.getUTCFullYear()}`;
 }
 
-// Relative to today, and coarser past 90 days: nobody can feel "128 Tage".
-function relativeLabel(iso: string): string {
-  const todayIso = new Date().toISOString().slice(0, 10);
-  const days = Math.round(
-    (toDate(iso).getTime() - toDate(todayIso).getTime()) / 86400000,
-  );
-  if (days === 0) return "heute";
-  if (days < 0) return `vor ${Math.abs(days)} Tagen`;
-  if (days < 14) return `in ${days} Tagen`;
-  if (days <= 90) return `in ca. ${Math.round(days / 7)} Wochen`;
-  const months = Math.round(days / 30.4);
-  return months < 12 ? `in gut ${months} Monaten` : "in über einem Jahr";
-}
-
 function shortWhen(iso: string): string {
   const d = toDate(iso);
   return `${d.getUTCDate()}. ${MONTH_NAMES[d.getUTCMonth()].slice(0, 3)}`;
@@ -142,9 +128,8 @@ const hasRange = computed(
       <span v-if="entry.rescue" class="next-possible"
         ><ArrowRight :size="14" /> {{ whenDate(entry.rescue.date) }}</span
       >
-      <span v-if="!entry.rescue" class="rel">
-        <b v-if="!entry.offset_rule">{{ offsetLabel(entry, anchorLabel) }}</b>
-        {{ entry.offset_rule ? "" : "· " }}{{ relativeLabel(entry.date!) }}
+      <span v-if="!entry.rescue && !entry.offset_rule" class="rel">
+        {{ offsetLabel(entry, anchorLabel) }}
       </span>
     </div>
 
@@ -159,10 +144,6 @@ const hasRange = computed(
         <Check v-if="done" :size="11" />
       </button>
       <span class="label" :class="{ done }">{{ entry.label }}</span>
-      <span v-if="isSunday" class="flag-inline"
-        >Sonntag, Hausordnung und Ruhezeiten beachten, Übergaben sind
-        unüblich.</span
-      >
       <button
         type="button"
         class="edit-anchor"
@@ -180,6 +161,11 @@ const hasRange = computed(
         @blur="closeDateEdit"
         @keydown.enter="($event.target as HTMLInputElement).blur()"
       />
+      <p v-if="isSunday" class="anchor-warn">
+        <TriangleAlert :size="14" />
+        Ein Sonntag: Hausordnung und Ruhezeiten gelten, und Übergaben machen die
+        wenigsten Vermieter.
+      </p>
     </div>
 
     <div v-else class="card">
@@ -530,8 +516,13 @@ const hasRange = computed(
   text-decoration: line-through;
   color: var(--muted);
 }
-.anchor-divider .flag-inline {
-  font-size: var(--fs-xs);
+.anchor-warn {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0.25rem 0 0;
+  font-size: var(--fs-sm);
   color: var(--warn);
 }
 .item.current .anchor-divider {

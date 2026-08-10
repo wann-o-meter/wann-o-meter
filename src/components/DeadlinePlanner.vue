@@ -217,10 +217,13 @@ function onToggleDone(id: string) {
 
 // The plan in one sentence, so the numbers below have a frame.
 const summary = computed(() => {
-  const dated = timeline.value.filter((e) => e.id !== ANCHOR_ID);
-  if (dated.length === 0) return "";
-  const first = dated.reduce((a, b) => (a.date! <= b.date! ? a : b));
-  return `Aus deinem ${props.anchorLabel} am ${formatDateWithWeekday(anchorDate.value)} ergeben sich ${dated.length} Aufgaben. Die erste ist am ${formatDateWithWeekday(first.date!)}.`;
+  const open = timeline.value.filter(
+    (e) => e.id !== ANCHOR_ID && !doneIds[e.id],
+  );
+  const head = `Aus deinem ${props.anchorLabel} am ${formatDateWithWeekday(anchorDate.value)} ergeben sich ${tasks.value.length} Aufgaben.`;
+  if (open.length === 0) return `${head} Alle sind erledigt.`;
+  const next = open.reduce((a, b) => (a.date! <= b.date! ? a : b));
+  return `${head} Die nächste offene ist am ${formatDateWithWeekday(next.date!)}.`;
 });
 
 const suppressDate = computed(() => {
@@ -236,11 +239,15 @@ const suppressDate = computed(() => {
 });
 
 // Ticked-off tasks leave the running plan and collect in a fold at the end.
-const openNodes = computed(() =>
-  railNodes.value.filter(
+const openNodes = computed(() => {
+  const kept = railNodes.value.filter(
     (n) => n.kind === "gap" || !doneIds[n.entry.id] || n.entry.id === ANCHOR_ID,
-  ),
-);
+  );
+  // Filtering done tasks out can leave a gap with nothing above it, and a
+  // buffer before the plan starts measures nothing.
+  while (kept.length > 0 && kept[0].kind === "gap") kept.shift();
+  return kept;
+});
 const doneEntries = computed(() =>
   timeline.value.filter((e) => e.id !== ANCHOR_ID && doneIds[e.id]),
 );
@@ -292,10 +299,7 @@ const previewCollisions = computed(() => {
 const landscapeNote = computed(() => {
   if (previewCollisions.value !== null)
     return `${formatDateWithWeekday(dragPreview.value!)} · ${previewCollisions.value} Kollisionen`;
-  const n = blockedTasks.value.length;
-  if (n === 0)
-    return "Ferien, Feiertage und Wochenenden im Blick. Dieses Fenster ist frei.";
-  return `Ferien, Feiertage und Wochenenden im Blick. ${n} Aufgabe${n === 1 ? "" : "n"} fällt auf einen geschlossenen Tag.`;
+  return "Ferien, Feiertage, Wochenenden und die schon vergangene Zeit.";
 });
 
 // Tasks that need an open office on a day when none is open.
@@ -600,36 +604,19 @@ function print() {
     </fieldset>
 
     <template v-if="anchorDate">
-      <div class="mini-header">
-        <b>{{ anchorLabel }}: {{ formatDateWithWeekday(anchorDate) }}</b>
-        <span v-if="tasks.length > 0" class="progress">
-          {{ stats.done }} von {{ tasks.length }} erledigt
-          <progress :value="stats.done" :max="tasks.length"></progress>
-        </span>
+      <div v-if="tasks.length > 0" class="mini-header">
+        <b>{{ stats.done }} von {{ tasks.length }} erledigt</b>
+        <progress :value="stats.done" :max="tasks.length"></progress>
       </div>
-      <details v-if="doneEntries.length > 0" class="done-group">
-        <summary>{{ doneEntries.length }} erledigt</summary>
-        <ul>
-          <li v-for="entry in doneEntries" :key="entry.id">
-            <button
-              type="button"
-              class="check"
-              aria-pressed="true"
-              aria-label="Wieder öffnen"
-              @click="toggleDone(entry.id)"
-            >
-              <Check :size="11" />
-            </button>
-            <span>{{ entry.label }}</span>
-          </li>
-        </ul>
-      </details>
 
       <p class="summary">{{ summary }}</p>
-      <p v-if="blockedTasks.length > 1" class="quiet grouped-warn">
-        {{ blockedTasks.length }} Aufgaben fallen auf einen Tag mit
-        geschlossenen Ämtern.
-        <button type="button" @click="shiftAllToWorkday">Alle vorziehen</button>
+      <p v-if="blockedTasks.length > 0" class="quiet grouped-warn">
+        {{ blockedTasks.length }}
+        {{ blockedTasks.length === 1 ? "Aufgabe fällt" : "Aufgaben fallen" }}
+        auf einen Tag mit geschlossenen Ämtern.
+        <button type="button" @click="shiftAllToWorkday">
+          {{ blockedTasks.length === 1 ? "Vorziehen" : "Alle vorziehen" }}
+        </button>
       </p>
       <p v-if="quietUntil" class="quiet">
         Bis {{ quietUntil }} ist nichts zu tun.
@@ -771,6 +758,24 @@ function print() {
           />
         </div>
 
+        <details v-if="doneEntries.length > 0" class="done-group">
+          <summary>Erledigte Aufgaben</summary>
+          <ul>
+            <li v-for="entry in doneEntries" :key="entry.id">
+              <button
+                type="button"
+                class="check"
+                aria-pressed="true"
+                aria-label="Wieder öffnen"
+                @click="toggleDone(entry.id)"
+              >
+                <Check :size="11" />
+              </button>
+              <span>{{ entry.label }}</span>
+            </li>
+          </ul>
+        </details>
+
         <p v-if="lastDeleted" class="undo">
           „{{ lastDeleted.label }}" entfernt.
           <button type="button" @click="undoDelete">Rückgängig</button>
@@ -910,14 +915,10 @@ function print() {
   margin: 1rem 0;
 }
 .mini-header {
-  position: sticky;
-  top: 0;
-  z-index: 6;
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.5rem 1rem;
   margin-bottom: 0.75rem;
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius);
@@ -926,8 +927,11 @@ function print() {
   box-shadow: var(--shadow-sm);
   font-size: var(--fs-sm);
 }
-.mini-header span {
-  color: var(--muted);
+.mini-header progress {
+  flex: 1 1 8rem;
+  max-width: 14rem;
+  height: 0.25rem;
+  accent-color: var(--done-color);
 }
 .summary {
   margin: 0 0 0.5rem;
@@ -947,20 +951,6 @@ function print() {
 .grouped-warn button {
   font-size: var(--fs-xs);
   padding: 0.25rem 0.5rem;
-}
-.progress {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin: 0.25rem 0 0;
-  font-size: var(--fs-xs);
-  color: var(--muted);
-}
-.progress progress {
-  flex: 1 1 auto;
-  max-width: 14rem;
-  height: 0.35rem;
-  accent-color: var(--done-color);
 }
 .facets-hint {
   flex-basis: 100%;

@@ -5,32 +5,38 @@
     :style="rootVars"
   >
     <div v-if="showLegend" class="legend below">
-      <span class="legend-item">
-        <span class="swatch task"></span>
-        Offen
+      <span class="legend-keys">
+        <span class="legend-item">
+          <span class="swatch task"></span>
+          Aufgabe
+        </span>
+        <span class="legend-item">
+          <span class="swatch task done"></span>
+          Erledigt
+        </span>
+        <span class="legend-item">
+          <span class="swatch anchor"></span>
+          {{ anchorName }}
+        </span>
+        <span class="legend-item">
+          <span class="swatch closed"></span>
+          Geschlossen
+        </span>
+        <span class="legend-item">
+          <span class="swatch past"></span>
+          Vergangen
+        </span>
       </span>
-      <span class="legend-item">
-        <span class="swatch task done"></span>
-        Erledigt
+      <span class="legend-toggles">
+        <label class="legend-item">
+          <input type="checkbox" v-model="showFeiertage" />
+          Feiertage
+        </label>
+        <label class="legend-item">
+          <input type="checkbox" v-model="showSchulferien" />
+          Schulferien
+        </label>
       </span>
-      <span class="legend-item">
-        <span class="swatch task warn"></span>
-        Amt hat zu
-      </span>
-      <span class="legend-item">
-        <span class="swatch anchor"></span>
-        {{ anchorName }}
-      </span>
-      <label class="legend-item">
-        <input type="checkbox" v-model="showFeiertage" />
-        <span class="swatch feiertage"></span>
-        Feiertage
-      </label>
-      <label class="legend-item">
-        <input type="checkbox" v-model="showSchulferien" />
-        <span class="swatch schulferien"></span>
-        Schulferien
-      </label>
     </div>
 
     <div
@@ -96,6 +102,13 @@
             :title="h.name"
             :style="{ left: h.x + 'px' }"
           ></div>
+          <div
+            v-for="h in holidayTicks"
+            :key="'hb' + h.date"
+            class="closed-day"
+            :title="h.name"
+            :style="{ left: h.x + 'px', width: Math.max(2, scale.ppd) + 'px' }"
+          ></div>
         </template>
 
         <div
@@ -114,14 +127,13 @@
         </div>
 
         <template v-if="placed">
-          <div class="thread" :style="threadStyle"></div>
           <button
             v-for="t in visibleTasks"
             :key="t.id"
             type="button"
             class="node"
             :class="{
-              warn: t.weekend || t.collision,
+              warn: t.impossible,
               current: t.date === highlightDate,
               hovered: t.id === hoverId,
               impossible: t.impossible,
@@ -344,7 +356,7 @@ const trackWidth = computed(() => scale.value.width);
 // starts on the window's first Saturday and repeats every seven days.
 const weekendStyle = computed(() => {
   const start = scale.value.start;
-  const toSaturday = (6 - ((start.getUTCDay() + 6) % 7) + 7) % 7;
+  const toSaturday = (5 - ((start.getUTCDay() + 6) % 7) + 7) % 7;
   const ppd = scale.value.ppd;
   return {
     left: `${scale.value.edge + toSaturday * ppd}px`,
@@ -446,16 +458,6 @@ const rootVars = computed(() => ({
   "--ppd": scale.value.ppd + "px",
   "--lanes": String(usedLanes.value),
 }));
-
-const threadStyle = computed(() => {
-  if (!visibleTasks.value.length) return {};
-  // min/max, not first/last - visibleTasks follows the props order, which is
-  // not necessarily chronological.
-  const xs = visibleTasks.value.map((t) => pxIso(t.date));
-  const left = Math.min(...xs);
-  const right = Math.max(...xs);
-  return { left: left + "px", width: Math.max(0, right - left) + "px" };
-});
 
 // Which slice of the plan the reader currently has on screen.
 const viewportBox = computed(() => {
@@ -737,8 +739,8 @@ function onNodeClick(id: string, e: MouseEvent) {
   --ctx-y: 1.2rem; /* Feiertage/Schulferien strip, below the ruler */
   --ctx-h: 0.55rem;
   --band-up: 1.4rem; /* how far the weekend/past shading reaches above the axis */
-  --weekend-band: color-mix(in srgb, var(--ink) 6%, transparent);
-  --mlabel-y: 2.05rem;
+  --weekend-band: color-mix(in srgb, var(--ink) 3%, transparent);
+  --mlabel-y: 1.5rem;
   --mlabel-size: var(--fs-xs);
   --pin-title: var(--fs-md);
   --pin-sub: var(--fs-xs);
@@ -795,8 +797,25 @@ function onNodeClick(id: string, e: MouseEvent) {
   border-color: var(--done-color);
   background: var(--done-color);
 }
-.swatch.task.warn {
-  border-color: var(--warn);
+.swatch.closed {
+  background: color-mix(in srgb, var(--holiday) 30%, transparent);
+}
+.swatch.past {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--ink) 30%, transparent) 0 2px,
+    transparent 2px 5px
+  );
+}
+.legend-keys,
+.legend-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+.legend-toggles {
+  margin-left: auto;
 }
 .swatch.anchor {
   background: var(--anchor);
@@ -804,6 +823,9 @@ function onNodeClick(id: string, e: MouseEvent) {
 }
 .swatch.feiertage {
   background: var(--holiday);
+}
+.legend-toggles .legend-item {
+  gap: 0.25rem;
 }
 .swatch.schulferien {
   background: var(--school);
@@ -885,6 +907,14 @@ function onNodeClick(id: string, e: MouseEvent) {
   white-space: nowrap;
   padding-left: 0.5rem;
 }
+/* The day is closed, not the task that lands on it. */
+.closed-day {
+  position: absolute;
+  top: calc(var(--axis-y) - var(--band-up));
+  height: calc(var(--band-up) + var(--below));
+  background: color-mix(in srgb, var(--holiday) 22%, transparent);
+  pointer-events: none;
+}
 .htick {
   position: absolute;
   top: calc(var(--axis-y) + var(--ctx-y));
@@ -912,7 +942,11 @@ function onNodeClick(id: string, e: MouseEvent) {
   left: 0;
   top: calc(var(--axis-y) - var(--band-up));
   height: calc(var(--band-up) + var(--below));
-  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--ink) 7%, transparent) 0 2px,
+    transparent 2px 6px
+  );
   pointer-events: none;
 }
 .band {
@@ -1031,14 +1065,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   right: 1.9rem;
   text-align: right;
 }
-.thread {
-  position: absolute;
-  top: var(--axis-y);
-  height: 2px;
-  background: var(--accent);
-  opacity: 0.3;
-  border-radius: var(--radius-pill);
-}
+
 .node {
   position: absolute;
   /* --lane (set inline, see taskLane) staggers capsules whose spans touch on

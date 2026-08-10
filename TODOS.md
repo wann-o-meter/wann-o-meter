@@ -206,3 +206,22 @@
 - [x] Verify the timeline still communicates something when no collisions exist — it should read as "this window is clear", not as empty decoration ("Dieses Fenster ist frei." rather than a blank strip)
 - [x] Fall back to a static, non-sticky version on mobile with drag replaced by tap-to-select
 - [x] If the full interactive version is too much for now, ship the reduced variant: context bands plus Umzugstag only, no task dots, always visible (not needed, the full version is in)
+
+- [x] Weekend shading is too heavy — the grey bars dominate and read as the primary content, while the actual months and tasks recede; drop opacity substantially (3% instead of 6%)
+- [x] Weekend bars appear roughly every 7 days but with inconsistent widths and no clear pairing to Sa/So — verify the day-to-pixel mapping is correct (real off-by-one: Saturday is index 5 in the Mon-first scheme, not 6, so the stripes were painting Sun+Mon)
+- [x] Two parallel horizontal rails (the light blue line and the grey bar below) with no legend for the lower one — either label it or merge them (the thread under the capsules is gone, one rail left)
+- [x] The dark grey band from before "Heute" to Sep is the same colour as the weekend shading but means something else (past / Sommerferien?) — needs a distinct treatment (past time is a diagonal hatch now, weekends stay a flat tint)
+- [x] The red/brown horizontal bar right of the Umzugstag is unexplained — no legend entry covers it (it was a task capsule recoloured for a closed day. Dots no longer carry that, see the next item)
+- [x] Legend has 6 items in 3 different visual languages (hollow circle, filled circle, red circle, flag, checkbox+swatch) — unify into one row of swatches, move the two toggles apart from the four static keys (five swatches in one row, the two toggles pushed to the right)
+- [x] "Amt hat zu" as a task state conflates a property of the date with a property of the task — consider marking the _day_ as closed rather than recolouring the dot (the day gets a closed band, the dot stays a task)
+- [x] Month labels sit below the axis while the Umzugstag label sits above with a large gap — vertical rhythm is inconsistent
+- [x] Caption "3 Aufgaben fällt auf einen geschlossenen Tag" — grammar error, and it duplicates the same sentence 400px above with different wording ("3 Aufgaben fallen auf einen Tag mit geschlossenen Ämtern") (the caption now describes the bands, the count lives in one place with agreeing grammar)
+- [x] "Alle vorziehen" appears once at the top but the per-task "vorziehen" buttons are gone from the cards — verify the individual override is still reachable (still per-card for the five office tasks, and the grouped button now shows for one as well)
+- [x] The "1 erledigt" disclosure is now expanded above the intro sentence, so a struck-through task is the first thing under the sticky bar — move it back below the list or collapse by default (back below the list, titled rather than counted)
+- [x] Intro says the first task is 03.09. but the first visible card is 27.09. — because 03.09. is the completed one; the sentence should reflect the remaining plan (it names the next open one now)
+- [x] Progress shown twice again (sticky bar + "1 erledigt" disclosure)
+- [x] Gutter label wraps awkwardly ("6 Wochen vorher · in ca. / 7 Wochen") — widen the column or drop one of the two relative expressions
+- [x] "6 Wochen vorher" and "in ca. 7 Wochen" sit adjacent and are easily confused; they anchor to different reference points (the countdown to today is gone, the offset to the Vorhaben stays)
+- [x] "24 Tage Puffer" now appears above the first card, i.e. before any task — a buffer before the plan starts has no meaning (leading gaps are dropped, they appeared when a done task was filtered out)
+- [x] Date field and the sticky "Umzugstag: So., 08.11.2026" bar state the same value twice, directly adjacent (the sticky bar is progress only)
+- [x] The move date is a Sunday and still carries no warning of its own, though three derived tasks do (it was an inline span at the end of a wrapping row, now its own warning line)
