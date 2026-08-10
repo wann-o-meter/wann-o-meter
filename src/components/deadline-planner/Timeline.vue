@@ -25,7 +25,7 @@
       class="scroller"
       ref="scrollerEl"
       @mousemove="onScrollerMove"
-      @mouseleave="ghost = null"
+      @mouseleave="clearGhost"
       @click="onScrollerClick"
       @touchstart="onScrubMove"
       @touchmove="onScrubMove"
@@ -138,10 +138,21 @@
             :style="{ left: pxIso(anchorDate) + 'px' }"
             :data-node-key="keyed ? ANCHOR_ID : null"
             :title="compact ? 'Zur Aufgabe springen' : undefined"
+            :tabindex="clickable ? 0 : undefined"
+            :role="clickable ? 'slider' : undefined"
+            :aria-label="clickable ? `${anchorName} wählen` : undefined"
+            :aria-valuemin="clickable ? 0 : undefined"
+            :aria-valuemax="clickable ? daysBetween(START, END) : undefined"
+            :aria-valuenow="
+              clickable ? daysBetween(START, toDate(anchorDate)) : undefined
+            "
+            :aria-valuetext="clickable ? pinLabel : undefined"
+            @keydown="onPinKey"
             @click="onNodeClick(ANCHOR_ID, $event)"
             @mouseenter="emit('hover', ANCHOR_ID)"
             @mouseleave="emit('hover', null)"
           >
+            <span v-if="clickable" class="grip"></span>
             <b>{{ anchorName }}</b
             ><i>{{ pinLabel }}</i>
             <slot name="pin-extra" />
@@ -211,6 +222,7 @@ const emit = defineEmits<{
   place: [iso: string];
   select: [id: string];
   hover: [id: string | null];
+  preview: [iso: string | null];
 }>();
 
 // Both scales fit their container. The rail spans a fixed year, the compact
@@ -489,6 +501,11 @@ function onPin(e: Event): boolean {
   return !!(e.target as HTMLElement).closest?.(".pin");
 }
 
+function clearGhost() {
+  ghost.value = null;
+  emit("preview", null);
+}
+
 function onScrollerMove(e: MouseEvent) {
   if (!props.clickable || !trackEl.value) return;
   const r = trackEl.value.getBoundingClientRect();
@@ -507,16 +524,17 @@ function onScrubMove(e: TouchEvent) {
   const d = scale.value.dateAt(x);
   scrubIso = isoOf(d);
   ghost.value = { x, label: `${weekdayShort(d)}, ${langDate(d)}` };
+  emit("preview", scrubIso);
 }
 // pan-y hands vertical gestures back to the browser, which cancels the touch
 // instead of ending it. Without this the ghost sticks and the date is stale.
 function onScrubCancel() {
-  ghost.value = null;
+  clearGhost();
   scrubIso = null;
 }
 function onScrubEnd() {
   if (!props.clickable || !scrubIso) return;
-  ghost.value = null;
+  clearGhost();
   emit("place", scrubIso);
   scrubIso = null;
 }
@@ -526,7 +544,7 @@ function onScrollerClick(e: MouseEvent) {
   if (!props.clickable || !trackEl.value || onPin(e)) return;
   const r = trackEl.value.getBoundingClientRect();
   const d = scale.value.dateAt(e.clientX - r.left);
-  ghost.value = null;
+  clearGhost();
   emit("place", isoOf(d));
   nextTick(() => {
     scrollerEl.value?.scrollTo({
@@ -568,6 +586,29 @@ onBeforeUnmount(() => clearTimeout(centerTimer));
 // deliberate click rather than a live scroll-position mirror, so it can't
 // fight the page's own scrolling the way a scroll-linked sync would. Keyed by
 // task id, not date - several tasks can share the same day.
+const KEY_STEPS: Record<string, number> = {
+  ArrowLeft: -1,
+  ArrowRight: 1,
+  ArrowDown: -1,
+  ArrowUp: 1,
+};
+function onPinKey(e: KeyboardEvent) {
+  if (!props.clickable) return;
+  const current = toDate(props.anchorDate);
+  let next: Date | null = null;
+  if (e.key === "Home") next = START;
+  else if (e.key === "End") next = END;
+  else if (e.key === "PageDown") next = addDays(current, -30);
+  else if (e.key === "PageUp") next = addDays(current, 30);
+  else if (e.key in KEY_STEPS)
+    next = addDays(current, KEY_STEPS[e.key] * (e.shiftKey ? 7 : 1));
+  if (!next) return;
+  e.preventDefault();
+  if (next < START) next = START;
+  if (next > END) next = END;
+  emit("place", isoOf(next));
+}
+
 function onNodeClick(id: string, e: MouseEvent) {
   if (props.clickable) return; // let it bubble to onScrollerClick (place a new date)
   e.stopPropagation();
@@ -779,6 +820,28 @@ function onNodeClick(id: string, e: MouseEvent) {
 }
 /* A width change reads as "hovered" without a glow - a filter: drop-shadow
   here looked fine in light mode but far too bright against a dark background. */
+.grip {
+  position: absolute;
+  top: calc(var(--axis-y) - 0.55rem);
+  left: -0.45rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: var(--paper-raised);
+  border: 3px solid var(--anchor);
+  box-shadow: var(--shadow-md);
+  cursor: grab;
+}
+.pin:active .grip {
+  cursor: grabbing;
+}
+.pin:focus-visible {
+  outline: none;
+}
+.pin:focus-visible .grip {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
 .pin.hovered {
   width: 4px;
   margin-left: -1px;

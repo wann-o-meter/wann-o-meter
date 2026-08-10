@@ -4,7 +4,7 @@
       <header>
         <h1>Was hast du vor?</h1>
         <p class="lede">
-          Setz es auf den Zeitstrahl. Der Rest wächst rückwärts daraus hervor.
+          Wähl dein Datum, alle Fristen werden rückwärts berechnet.
         </p>
         <div class="shelf">
           <button
@@ -18,6 +18,55 @@
             {{ v.label }}
           </button>
         </div>
+      </header>
+
+      <div class="stage">
+        <div class="pickers">
+          <label class="date-field">
+            <span>{{ selected.anchorLabel }}</span>
+            <input
+              type="date"
+              :value="anchorDate"
+              :min="minDate"
+              :max="maxDate"
+              @change="onPlace(($event.target as HTMLInputElement).value)"
+            />
+          </label>
+          <div class="presets">
+            <button
+              v-for="p in presets"
+              :key="p.label"
+              type="button"
+              class="chip small"
+              :aria-pressed="anchorDate === p.iso()"
+              @click="onPlace(p.iso())"
+            >
+              {{ p.label }}
+            </button>
+          </div>
+        </div>
+
+        <p class="hint">{{ hintText }}</p>
+        <Timeline
+          :tasks="tasks"
+          :anchor-date="anchorDate"
+          :anchor-name="selected.anchorName"
+          :region-code="previewVariant?.regionCode"
+          :show-legend="false"
+          clickable
+          keyed
+          @place="onPlace"
+          @preview="previewIso = $event"
+        >
+          <template #pin-extra>
+            <a class="btn primary" :href="planHref" @click.prevent="openPlan"
+              >Zeitplan öffnen <ArrowRight :size="14"
+            /></a>
+          </template>
+        </Timeline>
+
+        <p class="summary">{{ summaryText }}</p>
+
         <label v-if="selected.variants.length > 1" class="place">
           <span>{{ selected.variantLabel }}</span>
           <select v-model="variantSlug">
@@ -30,25 +79,12 @@
             </option>
           </select>
         </label>
-      </header>
 
-      <div class="stage">
-        <p class="hint armed">{{ hintText }}</p>
-        <Timeline
-          :tasks="tasks"
-          :anchor-date="anchorDate"
-          :anchor-name="selected.anchorName"
-          :region-code="previewVariant?.regionCode"
-          clickable
-          keyed
-          @place="onPlace"
-        >
-          <template #pin-extra>
-            <a class="btn primary" :href="planHref" @click.prevent="openPlan"
-              >Zeitplan öffnen <ArrowRight :size="14"
-            /></a>
-          </template>
-        </Timeline>
+        <ol class="how">
+          <li>Datum wählen</li>
+          <li>Fristen sehen</li>
+          <li>Als Kalender exportieren</li>
+        </ol>
       </div>
     </section>
 
@@ -79,6 +115,13 @@ import {
   useTemplateRef,
 } from "vue";
 import { appliesTo } from "../../lib/facets";
+import { formatDateWithWeekday, toDate } from "../../lib/format-date";
+import {
+  addDays,
+  daysBetween,
+  isoOf,
+  utcDay,
+} from "../../lib/timeline-geometry";
 import DeadlinePlanner from "./DeadlinePlanner.vue";
 import Timeline from "./deadline-planner/Timeline.vue";
 import { usePlannerSchedule } from "./deadline-planner/usePlannerSchedule";
@@ -105,14 +148,34 @@ function pick(slug: string) {
   variantSlug.value = defaultVariantSlug();
 }
 
-const anchorDate = ref(""); // ISO day, "" until placed
+// Pre-positioned: the handle is visible and the plan real from first paint.
+const TODAY = utcDay(new Date());
+const minDate = isoOf(addDays(TODAY, -14));
+const maxDate = isoOf(addDays(TODAY, 365));
+const anchorDate = ref(isoOf(addDays(TODAY, 90)));
+// The date under the cursor while dragging, so the summary reads live.
+const previewIso = ref<string | null>(null);
+
+function endOfMonth(n: number): string {
+  const d = new Date(TODAY);
+  d.setUTCMonth(d.getUTCMonth() + n + 1, 0);
+  return isoOf(d);
+}
+function firstOfMonth(n: number): string {
+  const d = new Date(TODAY);
+  d.setUTCMonth(d.getUTCMonth() + n, 1);
+  return isoOf(d);
+}
+const presets = [
+  { label: "In 3 Monaten", iso: () => isoOf(addDays(TODAY, 90)) },
+  { label: "Zum Monatsende", iso: () => endOfMonth(0) },
+  { label: "Nächster Monatserste", iso: () => firstOfMonth(1) },
+];
 // usePlannerSchedule's stats need a doneIds map, but this teaser has no
 // checkboxes - nothing ever writes to it, so stats.done stays 0.
 const doneIds = reactive<Record<string, boolean>>({});
 // True once the real DeadlinePlanner is mounted in place of the rail.
 const showPlanner = ref(false);
-
-const placed = computed(() => anchorDate.value !== "");
 
 function defaultVariantSlug() {
   const v = selected.value;
@@ -127,8 +190,7 @@ const previewVariant = computed(
     selected.value.variants.find((v) => v.slug === variantSlug.value) ??
     selected.value.variants[0],
 );
-// No facet chips in the teaser, so it shows what the planner shows with none
-// ticked - otherwise nodes would vanish the moment the planner mounts.
+// No facet chips here, so it shows what the planner shows with none ticked.
 const workingDeadlines = computed(() =>
   (previewVariant.value?.deadlines ?? []).filter((d) => appliesTo(d, [])),
 );
@@ -154,11 +216,24 @@ const planHref = computed(() => {
   return `/${selected.value.slug}/?${params.toString()}`;
 });
 
-const hintText = computed(() =>
-  placed.value
-    ? "Zieh erneut, um den Termin zu verschieben"
-    : "Zieh über den Zeitstrahl - wann ist es soweit?",
-);
+const hintText =
+  "Zieh den Griff, tippe auf den Zeitstrahl oder nutz die Pfeiltasten.";
+
+// Reads the dragged date first, so a move shows before the finger lifts.
+const summaryText = computed(() => {
+  const iso = previewIso.value ?? anchorDate.value;
+  const dated = tasks.value.filter((t) => t.date !== null);
+  const first = dated.reduce<string | null>(
+    (min, t) => (min === null || t.date! < min ? t.date! : min),
+    null,
+  );
+  const when = formatDateWithWeekday(iso);
+  if (!first) return when;
+  // Tasks shift rigidly with the anchor, so the preview shifts with it.
+  const shift = daysBetween(toDate(anchorDate.value), toDate(iso));
+  const firstShown = isoOf(addDays(toDate(first), shift));
+  return `${when} · ${dated.length} Fristen · erste am ${formatDateWithWeekday(firstShown)}`;
+});
 
 function measureKeyed(attr: string): Map<string, DOMRect> {
   const map = new Map<string, DOMRect>();
@@ -303,9 +378,13 @@ h1 {
   gap: 0.5rem;
 }
 .chip {
-  border-radius: 100px;
+  border-radius: var(--radius-pill);
   padding: 0.5rem 1rem;
-  font-size: var(--fs-md);
+  font-size: var(--fs-sm);
+}
+.chip.small {
+  padding: 0.3rem 0.75rem;
+  font-size: var(--fs-xs);
 }
 .chip[aria-pressed="true"] {
   background: var(--accent);
@@ -319,22 +398,17 @@ h1 {
 
 .place {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.5rem;
-  margin-top: 0.9rem;
+  margin-top: 1.2rem;
 }
 .place span {
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
+  margin-bottom: 0;
 }
 .place select {
-  font-size: var(--fs-md);
-  padding: 0.35rem 0.6rem;
-  background: var(--paper-raised);
-  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  padding: 0.5rem 1rem;
+  font-size: var(--fs-sm);
 }
 
 .stage {
@@ -353,19 +427,68 @@ h1 {
   }
 }
 .hint {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  margin: 0 0 0.6rem;
+}
+
+.pickers {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-bottom: 1.2rem;
+}
+.date-field span,
+.place span {
+  display: block;
   font-size: var(--fs-xs);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
-  margin: 0 0 0.6rem;
-  height: 1rem;
+  margin-bottom: 0.3rem;
 }
-.hint.armed {
+.date-field input {
+  font-size: var(--fs-md);
+  font-family: var(--font-mono);
+  padding: 0.45rem 0.7rem;
+}
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-bottom: 0.2rem;
+}
+.summary {
+  margin: 0.8rem 0 0;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  min-height: 1.5rem;
+}
+.how {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.6rem;
+  margin: 2rem 0 0;
+  padding: 1rem 0 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+  counter-reset: step;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+.how li {
+  counter-increment: step;
+}
+.how li::before {
+  content: counter(step) ". ";
   color: var(--accent);
+  font-weight: 600;
 }
 
 .btn {
+  border-radius: var(--radius);
   font-weight: 600;
   font-size: var(--fs-xs);
   padding: 0.3rem 0.7rem;

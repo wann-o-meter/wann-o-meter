@@ -89,20 +89,20 @@
 
 ## Start page
 
-- [ ] Add a date input as an equal alternative to dragging (`[31].[01].[2027]` or native picker) — drag-only is undiscoverable on desktop and broken on touch
-- [ ] Add quick presets as chips: "In 3 Monaten", "Zum Monatsende", "Nächster Monatserste", "Weiß ich noch nicht"
-- [ ] Put a visible, pre-positioned handle on the timeline (default: today + 3 months) with grip affordance, shadow, and `cursor: grab`
-- [ ] Show a live preview under the handle while dragging: "So, 31. Jan 2027 · erste Aufgabe am 4. Nov 2026 · 10 Fristen"
-- [ ] Rewrite the subline — "Der Rest wächst rückwärts daraus hervor" is a metaphor, not an instruction → "Wähl dein Datum — alle Fristen werden rückwärts berechnet."
-- [ ] Remove the Feiertage/Schulferien checkboxes from the start page (they filter data that isn't visible yet)
-- [ ] Remove "Aufgabe" from the start-page legend — there are zero tasks at this point
-- [ ] Fix the dead vertical space; the footer is stranded mid-viewport
-- [ ] Unify the measure — headline column ~540px vs. timeline ~1300px
-- [ ] Restyle the ORT select to match the category chips
-- [ ] Defer ORT until after the date is chosen, or geo-default it
-- [ ] Fix the label: "ZIEH ÜBER DEN ZEITSTRAHL - WANN IST ES SOWEIT?" → sentence case, en dash, shorter
-- [ ] Add a 3-step "So funktioniert's" strip: Datum wählen → Fristen sehen → Als Kalender exportieren
-- [ ] Add keyboard support: arrow ±1 day, shift+arrow ±1 week, Home/End = bounds, visible focus ring
+- [x] Add a date input as an equal alternative to dragging (`[31].[01].[2027]` or native picker) — drag-only is undiscoverable on desktop and broken on touch
+- [x] Add quick presets as chips: "In 3 Monaten", "Zum Monatsende", "Nächster Monatserste", "Weiß ich noch nicht" (three, "Weiß ich noch nicht" left out: the plan needs a date to exist at all)
+- [x] Put a visible, pre-positioned handle on the timeline (default: today + 3 months) with grip affordance, shadow, and `cursor: grab`
+- [x] Show a live preview under the handle while dragging: "So, 31. Jan 2027 · erste Aufgabe am 4. Nov 2026 · 10 Fristen"
+- [x] Rewrite the subline — "Der Rest wächst rückwärts daraus hervor" is a metaphor, not an instruction → "Wähl dein Datum — alle Fristen werden rückwärts berechnet."
+- [x] Remove the Feiertage/Schulferien checkboxes from the start page (they filter data that isn't visible yet)
+- [x] Remove "Aufgabe" from the start-page legend — there are zero tasks at this point
+- [x] Fix the dead vertical space; the footer is stranded mid-viewport (the plan now renders from first paint, so the page fills)
+- [x] Unify the measure — headline column ~540px vs. timeline ~1300px
+- [x] Restyle the ORT select to match the category chips
+- [x] Defer ORT until after the date is chosen, or geo-default it
+- [x] Fix the label: "ZIEH ÜBER DEN ZEITSTRAHL - WANN IST ES SOWEIT?" → sentence case, en dash, shorter
+- [x] Add a 3-step "So funktioniert's" strip: Datum wählen → Fristen sehen → Als Kalender exportieren
+- [x] Add keyboard support: arrow ±1 day, shift+arrow ±1 week, Home/End = bounds, visible focus ring
 - [x] Style the rail as a grabbable track (inset background, rounded ends), not a printed ruler
 
 ## Planner — information
@@ -164,6 +164,6 @@
 
 ## Accessibility
 
-- [ ] Add `role="slider"` + `aria-valuenow`/`aria-valuetext` to the timeline handle
+- [x] Add `role="slider"` + `aria-valuenow`/`aria-valuetext` to the timeline handle
 - [ ] Don't encode task state in colour alone — add a shape or text label for filled/ring
 - [ ] Check contrast on grey secondary text ("in gut 4 Monaten", card descriptions) — several are below 4.5:1
