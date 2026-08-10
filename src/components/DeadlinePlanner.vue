@@ -232,7 +232,7 @@ const hasNoticeRule = computed(() =>
   workingDeadlines.value.some((d) => d.offset_rule === "bgb-573c-notice"),
 );
 
-const { timeline, tasks, unscheduled, railNodes } = usePlannerSchedule(
+const { timeline, tasks, unscheduled, railNodes, stats } = usePlannerSchedule(
   anchorDate,
   selected,
   workingDeadlines,
@@ -561,6 +561,10 @@ function print() {
     </label>
 
     <template v-if="anchorDate">
+      <p v-if="tasks.length > 0" class="progress">
+        <span>{{ stats.done }} von {{ tasks.length }} erledigt</span>
+        <progress :value="stats.done" :max="tasks.length"></progress>
+      </p>
       <div ref="overviewEl" class="overview">
         <div class="overview-inner">
           <Timeline
@@ -717,8 +721,9 @@ function print() {
             <Printer :size="14" /> Checkliste drucken
           </button>
         </div>
-        <p title="Gespeichert im Browser, nicht auf einem Server">
-          Auf diesem Gerät gespeichert.
+        <p>
+          Auf diesem Gerät gespeichert, im Browser und nicht auf einem Server.
+          Auf einem anderen Gerät ist der Plan leer, Konten gibt es noch keine.
         </p>
       </div>
     </template>
@@ -815,6 +820,20 @@ function print() {
   /* No side indent - it has to line up with the form above and the rail below. */
   margin: 1rem 0;
 }
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 1rem 0.9rem;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+.progress progress {
+  flex: 1 1 auto;
+  max-width: 14rem;
+  height: 0.35rem;
+  accent-color: var(--done-color);
+}
 .overlap {
   display: flex;
   align-items: center;
@@ -889,10 +908,10 @@ function print() {
 .scalenote {
   font-size: var(--fs-xs);
   color: var(--muted);
-  margin: 0.9rem 0 0.9rem 12.5rem;
+  margin: 0.9rem 0 0.9rem 10.5rem;
 }
 .verify-note {
-  margin: 0 0 0.9rem 12.5rem;
+  margin: 0 0 0.9rem 10.5rem;
   padding: 0.5rem 0.8rem;
   border-left: 2px solid var(--line);
   background: color-mix(in srgb, var(--muted) 8%, transparent);
@@ -911,12 +930,12 @@ function print() {
   --rail-gap: 1.5rem;
   position: relative;
   margin: 0;
-  padding: 0.5rem 0 0.5rem 12.5rem;
+  padding: 0.5rem 0 0.5rem 10.5rem;
 }
 .rail::before {
   content: "";
   position: absolute;
-  left: 11rem;
+  left: 9rem;
   top: 0.4rem;
   bottom: 0.4rem;
   width: 1px;
@@ -930,13 +949,13 @@ function print() {
   offset, unlike the negative item-relative one TaskCard's .dot/.when use. */
 .gap {
   position: relative;
-  margin-left: -12.5rem;
-  padding-left: 12.5rem;
+  margin-left: -10.5rem;
+  padding-left: 10.5rem;
 }
 .gap-add {
   position: absolute;
-  /* Centered on .rail::before's line: 11rem minus half the 1.3rem width. */
-  left: 10.35rem;
+  /* Centered on .rail::before's line: 9rem minus half the 1.3rem width. */
+  left: 8.35rem;
   top: 50%;
   transform: translateY(-50%);
   width: 1.3rem;
@@ -966,7 +985,7 @@ function print() {
   it can never be mistaken for the date column above it. */
 .gap-label {
   position: absolute;
-  left: 12.5rem;
+  left: 10.5rem;
   top: 50%;
   transform: translateY(-50%);
   font-family: var(--font-mono);

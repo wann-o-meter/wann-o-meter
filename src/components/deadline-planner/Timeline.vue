@@ -750,6 +750,18 @@ function onNodeClick(id: string, e: MouseEvent) {
   background: var(--accent);
   cursor: pointer;
 }
+/* A pennant on the mast, so the anchor day reads as a marker planted on the
+  rail rather than as one more vertical rule. */
+.pin::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 2px;
+  width: 0.55rem;
+  height: 0.45rem;
+  background: var(--accent);
+  clip-path: polygon(0 0, 100% 0, 60% 50%, 100% 100%, 0 100%);
+}
 /* A width change reads as "hovered" without a glow - a filter: drop-shadow
   here looked fine in light mode but far too bright against a dark background. */
 .pin.hovered {

@@ -22,14 +22,17 @@ deadlines:
     note: Längster Vorlauf im ganzen Plan, oft mit Techniktermin.
   - id: strom-gas-ummeldung
     label: Strom- und Gasanbieter über den Umzug informieren
+    note: Entweder Vertrag mitnehmen oder am alten Ort kündigen und am neuen neu abschließen.
     offset_days: -14
     source_url: null
   - id: nachsendeauftrag
     label: Nachsendeauftrag bei der Post einrichten
+    note: Leitet Briefe an die neue Adresse weiter, solange nicht überall umgemeldet ist.
     offset_days: -14
     source_url: null
   - id: ummeldung-einwohnermeldeamt
     label: Ummeldung beim Einwohnermeldeamt
+    note: Braucht die Wohnungsgeberbestätigung des Vermieters und einen Termin beim Bürgeramt.
     offset_days: 14
     earliest_offset_days: 0 # geht erst ab Einzug - kein Rechercheergebnis, sondern per Definition unmöglich davor
     source_url: https://www.gesetze-im-internet.de/bmg/__17.html
@@ -44,15 +47,18 @@ deadlines:
     note: Das Gesetz nennt keine Tagesfrist, nur "unverzüglich" - 14 Tage ist die übliche Praxisempfehlung.
   - id: zaehlerstaende-ablesen
     label: Zählerstände ablesen (Strom, Gas, Wasser)
+    note: Am besten mit Foto, damit die Schlussrechnung überprüfbar bleibt.
     offset_days: 0
     source_url: null
     no_source_needed: true # keine Frist, sondern eine Aufgabe am Umzugstag selbst
   - id: uebergabeprotokoll
     label: Übergabeprotokoll für die alte Wohnung unterschreiben
+    note: Hält Zustand, Mängel und Schlüsselzahl fest und ist die Grundlage für die Kaution.
     offset_days: 0
     source_url: null
     no_source_needed: true # keine Frist, das Protokoll entsteht bei der Übergabe
   - id: rundfunkbeitrag
     label: Rundfunkbeitrag ummelden
+    note: Die Beitragsnummer zieht mit um, eine zweite Anmeldung wäre eine Doppelzahlung.
     offset_days: 14
     source_url: null

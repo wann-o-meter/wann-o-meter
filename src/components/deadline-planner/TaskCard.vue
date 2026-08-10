@@ -78,7 +78,8 @@ function relativeLabel(iso: string): string {
   );
   if (days === 0) return "heute";
   if (days < 0) return `vor ${Math.abs(days)} Tagen`;
-  if (days <= 90) return `in ${days} Tagen`;
+  if (days < 14) return `in ${days} Tagen`;
+  if (days <= 90) return `in ca. ${Math.round(days / 7)} Wochen`;
   const months = Math.round(days / 30.4);
   return months < 12 ? `in gut ${months} Monaten` : "in über einem Jahr";
 }
