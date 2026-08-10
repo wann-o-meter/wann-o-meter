@@ -20,10 +20,16 @@ const LINK_CTAS: Record<string, TaskCta> = {
   },
 };
 
+// Two tasks in a plan can both be a cancellation, so the letter says which
+// one it is - "Kündigungsschreiben" twice on one page names neither.
+const LETTER_CTAS: Record<string, string> = {
+  "wohnung-kuendigen": "Kündigung der Wohnung",
+  "internetanbieter-kuendigen-ummelden": "Kündigung beim Internetanbieter",
+};
+
 export function taskCtaFor(id: string): TaskCta | null {
   if (id in LINK_CTAS) return LINK_CTAS[id];
-  if (id.includes("kuendig"))
-    return { kind: "letter", label: "Kündigungsschreiben" };
+  if (id in LETTER_CTAS) return { kind: "letter", label: LETTER_CTAS[id] };
   return null;
 }
 

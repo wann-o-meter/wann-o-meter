@@ -20,6 +20,12 @@
         </div>
       </header>
 
+      <ol class="how">
+        <li>Datum wählen</li>
+        <li>Fristen sehen</li>
+        <li>Als Kalender exportieren</li>
+      </ol>
+
       <div class="stage">
         <div class="pickers">
           <label class="date-field">
@@ -31,6 +37,18 @@
               :max="maxDate"
               @change="onPlace(($event.target as HTMLInputElement).value)"
             />
+          </label>
+          <label v-if="selected.variants.length > 1" class="place">
+            <span>{{ selected.variantLabel }}</span>
+            <select v-model="variantSlug">
+              <option
+                v-for="v in selected.variants"
+                :key="v.slug"
+                :value="v.slug"
+              >
+                {{ v.label }}
+              </option>
+            </select>
           </label>
           <div class="presets">
             <button
@@ -57,34 +75,13 @@
           keyed
           @place="onPlace"
           @preview="previewIso = $event"
-        >
-          <template #pin-extra>
-            <a class="btn primary" :href="planHref" @click.prevent="openPlan"
-              >Zeitplan öffnen <ArrowRight :size="14"
-            /></a>
-          </template>
-        </Timeline>
+        />
 
         <p class="summary">{{ summaryText }}</p>
 
-        <label v-if="selected.variants.length > 1" class="place">
-          <span>{{ selected.variantLabel }}</span>
-          <select v-model="variantSlug">
-            <option
-              v-for="v in selected.variants"
-              :key="v.slug"
-              :value="v.slug"
-            >
-              {{ v.label }}
-            </option>
-          </select>
-        </label>
-
-        <ol class="how">
-          <li>Datum wählen</li>
-          <li>Fristen sehen</li>
-          <li>Als Kalender exportieren</li>
-        </ol>
+        <a class="btn primary" :href="planHref" @click.prevent="openPlan"
+          >Zeitplan öffnen <ArrowRight :size="14"
+        /></a>
       </div>
     </section>
 
@@ -227,12 +224,12 @@ const summaryText = computed(() => {
     (min, t) => (min === null || t.date! < min ? t.date! : min),
     null,
   );
-  const when = formatDateWithWeekday(iso);
-  if (!first) return when;
+  // No date here: it is already on the field and on the flag.
+  if (!first) return `${dated.length} Fristen`;
   // Tasks shift rigidly with the anchor, so the preview shifts with it.
   const shift = daysBetween(toDate(anchorDate.value), toDate(iso));
   const firstShown = isoOf(addDays(toDate(first), shift));
-  return `${when} · ${dated.length} Fristen · erste am ${formatDateWithWeekday(firstShown)}`;
+  return `${dated.length} Fristen · erste am ${formatDateWithWeekday(firstShown)}`;
 });
 
 function measureKeyed(attr: string): Map<string, DOMRect> {
@@ -396,15 +393,6 @@ h1 {
   cursor: default;
 }
 
-.place {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-.place span {
-  margin-bottom: 0;
-}
 .place select {
   border-radius: var(--radius-pill);
   padding: 0.5rem 1rem;
@@ -470,9 +458,8 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem 1.6rem;
-  margin: 2rem 0 0;
-  padding: 1rem 0 0;
-  border-top: 1px solid var(--line);
+  margin: 0;
+  padding: 0 0 1rem;
   list-style: none;
   counter-reset: step;
   font-size: var(--fs-sm);
@@ -499,6 +486,9 @@ h1 {
   white-space: nowrap;
 }
 .btn.primary {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  font-size: var(--fs-sm);
   background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-ink);

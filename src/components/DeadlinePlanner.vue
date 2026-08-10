@@ -20,14 +20,12 @@ import {
 } from "../../lib/facets";
 import { formatDateWithWeekday, toDate } from "../../lib/format-date";
 import { newSourceIssueUrl } from "../../lib/github-issue";
-import { computeSchedule } from "../../lib/deadline-plan";
 import { generateIcs } from "../../lib/ics";
 import type { IcsEvent } from "../../lib/ics";
 import { taskCtaFor } from "./deadline-planner/task-cta";
 import { useTaskEditor } from "./deadline-planner/useTaskEditor";
 import {
   ANCHOR_ID,
-  COUNTRY_CODE,
   usePlannerSchedule,
 } from "./deadline-planner/usePlannerSchedule";
 import type { PlanVariant } from "./deadline-planner/types";
@@ -236,18 +234,6 @@ function jumpToNext() {
   if (nextOpen.value) onTimelineSelect(nextOpen.value.id);
 }
 
-const suppressDate = computed(() => {
-  const ids = new Set<string>();
-  let lastDate: string | null = null;
-  for (const node of railNodes.value) {
-    if (node.kind !== "item") continue;
-    if (node.entry.date !== null && node.entry.date === lastDate)
-      ids.add(node.entry.id);
-    lastDate = node.entry.date;
-  }
-  return ids;
-});
-
 // Ticked-off tasks leave the running plan and collect in a fold at the end.
 const openNodes = computed(() => {
   const kept = [...railNodes.value];
@@ -265,70 +251,6 @@ const nextUpId = computed(
     tasks.value.find((t) => t.date && !isPast(t.date) && !doneIds[t.id])?.id ??
     null,
 );
-
-// Nothing happens between today and the first task, and saying so beats an
-// unexplained stretch of empty rail.
-
-// The date under the flag while it is being dragged, so the collision count
-// can answer "is this a better day" before the drag ends.
-const dragPreview = ref<string | null>(null);
-function isoShift(iso: string, days: number): string {
-  return new Date(toDate(iso).getTime() + days * 86400000)
-    .toISOString()
-    .slice(0, 10);
-}
-function blockedAt(shiftDays: number): number {
-  return computeSchedule(
-    isoShift(anchorDate.value, shiftDays),
-    workingDeadlines.value,
-    COUNTRY_CODE,
-    selected.value?.regionCode,
-  ).filter((e) => e.needs_office === true && (e.weekend || e.collision)).length;
-}
-const previewNote = computed(() =>
-  previewCollisions.value === null
-    ? null
-    : `${previewCollisions.value} Kollisionen`,
-);
-const previewCollisions = computed(() => {
-  if (!dragPreview.value) return null;
-  const shift = Math.round(
-    (toDate(dragPreview.value).getTime() - toDate(anchorDate.value).getTime()) /
-      86400000,
-  );
-  return blockedAt(shift);
-});
-
-// Tasks that need an open office on a day when none is open.
-const blockedTasks = computed(() =>
-  tasks.value.filter(
-    (t) =>
-      t.needs_office === true &&
-      !doneIds[t.id] &&
-      t.date !== null &&
-      t.offset_days !== 0 &&
-      (t.weekend || t.collision),
-  ),
-);
-function shiftAllToWorkday() {
-  for (const t of blockedTasks.value) shiftToWorkday(t);
-}
-
-// Moving a weekend deadline to the Friday before it, through the same
-// moveEntry path a drag uses.
-function shiftToWorkday(entry: {
-  id: string;
-  date: string | null;
-  collision?: string | null;
-  weekend?: boolean;
-}) {
-  if (!entry.date) return;
-  let d = toDate(entry.date);
-  if (entry.collision && !entry.weekend) d = new Date(d.getTime() - 86400000);
-  while (d.getUTCDay() === 0 || d.getUTCDay() === 6)
-    d = new Date(d.getTime() - 86400000);
-  onCommitDate(entry.id, d.toISOString().slice(0, 10));
-}
 
 // The URL already carries date, Ort, facets and the Mietende choice. It does
 // NOT carry ticks, notes or custom tasks, so the label must not promise them.
@@ -381,10 +303,6 @@ const verifiableTasks = computed(() =>
 const unverifiedCount = computed(
   () => verifiableTasks.value.filter((t) => t.source_url === null).length,
 );
-
-// Only the FIRST card in a run of same-date entries shows its date - three
-// identical "15. Oktober 2026" blocks stacked on top of each other read like
-// a rendering bug, not "these three tasks happen to share a day".
 
 // Scroll-linked highlight: tracks the page's own scroll (the rail has no inner scrollbox), picks the item closest to a fixed viewport line.
 const highlightedDate = ref<string | null>(null);
@@ -617,9 +535,7 @@ function print() {
               draggable
               @select="onTimelineSelect"
               @place="anchorDate = $event"
-              :preview-note="previewNote"
               drag-hint="Flagge ziehen, um den Termin zu verschieben"
-              @preview="dragPreview = $event"
               @hover="hoveredId = $event"
             />
           </div>
@@ -679,7 +595,6 @@ function print() {
               :done="!!doneIds[node.entry.id]"
               :is-custom="isCustom(node.entry.id)"
               :is-next="node.entry.id === nextUpId"
-              :show-date="!suppressDate.has(node.entry.id)"
               :editing="editingId === node.entry.id"
               :note-open="openNoteId === node.entry.id"
               :note-text="userNotes[node.entry.id]"
@@ -700,7 +615,6 @@ function print() {
               @open-date-edit="editingDateId = node.entry.id"
               @close-date-edit="editingDateId = null"
               @toggle-defer="overlapMonths = overlapMonths > 0 ? 0 : 1"
-              @shift-to-workday="shiftToWorkday(node.entry)"
               @commit-date-edit="onCommitDate(node.entry.id, $event)"
               @mouseenter="hoveredId = node.entry.id"
               @mouseleave="hoveredId = null"
@@ -954,10 +868,18 @@ function print() {
   background: var(--paper);
   box-shadow: 0 1px 0 var(--line);
 }
+/* The sticky strip floats over the list, so a card scrolled into view stops
+  below it instead of behind it. */
+.rail :deep(.item) {
+  scroll-margin-top: 13rem;
+}
 @media (max-width: 40rem) {
   .overview-wrap {
     position: static;
     box-shadow: none;
+  }
+  .rail :deep(.item) {
+    scroll-margin-top: 4rem;
   }
 }
 .overview {

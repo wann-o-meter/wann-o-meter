@@ -191,6 +191,50 @@ describe("computeSchedule", () => {
     expect(result[0].rescue?.date).toBe("2024-02-05");
   });
 
+  it("rolls a needs_office step off a closed day and remembers the day it left", () => {
+    // 2027-06-13 is a Sunday. Only the office step moves.
+    const result = computeSchedule(
+      "2027-06-13",
+      [
+        deadline({ id: "amt", offset_days: 7, needs_office: true }),
+        deadline({ id: "privat", offset_days: 7 }),
+      ],
+      "DE",
+      "BW",
+    );
+    const amt = result.find((e) => e.id === "amt")!;
+    const privat = result.find((e) => e.id === "privat")!;
+    expect(amt.date).toBe("2027-06-21");
+    expect(amt.movedFrom).toBe("2027-06-20");
+    expect(amt.weekend).toBe(false);
+    expect(privat.date).toBe("2027-06-20");
+    expect(privat.movedFrom).toBeUndefined();
+  });
+
+  it("keeps a needs_office step on the anchor day where it belongs", () => {
+    const [entry] = computeSchedule(
+      "2027-06-13",
+      [deadline({ id: "amt", offset_days: 0, needs_office: true })],
+      "DE",
+      "BW",
+    );
+    expect(entry.date).toBe("2027-06-13");
+    expect(entry.weekend).toBe(true);
+  });
+
+  it("rolls past a public holiday, not just past the weekend", () => {
+    // A day after 2027-10-02 is Tag der Deutschen Einheit, so the step lands
+    // on the Monday after it.
+    const [entry] = computeSchedule(
+      "2027-10-02",
+      [deadline({ id: "amt", offset_days: 1, needs_office: true })],
+      "DE",
+      "BW",
+    );
+    expect(entry.date).toBe("2027-10-04");
+    expect(entry.movedFrom).toBe("2027-10-03");
+  });
+
   it("leaves derivation/pastDeadline undefined for plain offset-based entries", () => {
     const [entry] = computeSchedule(
       "2027-06-15",

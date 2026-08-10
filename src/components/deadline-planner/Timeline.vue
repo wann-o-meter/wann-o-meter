@@ -6,17 +6,12 @@
   >
     <div v-if="showLegend" class="legend below">
       <span class="legend-keys">
-        <span class="legend-item"><span class="swatch task"></span>offen</span>
-        <span class="legend-item"
-          ><span class="swatch task done"></span>erledigt</span
-        >
         <span class="legend-item"
           ><span class="swatch span"></span>möglich bis Frist</span
         >
         <span class="legend-item"
-          ><span class="swatch anchor"></span>{{ anchorName }}</span
+          ><span class="swatch task done"></span>erledigt</span
         >
-        <span class="legend-item"><span class="swatch past"></span>vorbei</span>
       </span>
       <span class="legend-keys">
         <label class="legend-item">
@@ -110,7 +105,6 @@
 
         <div v-if="ghost" class="ghost" :style="{ left: ghost.x + 'px' }">
           <b>{{ ghost.label }}</b>
-          <i v-if="previewNote">{{ previewNote }}</i>
         </div>
 
         <template v-if="placed">
@@ -178,7 +172,6 @@
             <span v-if="movable" class="grip"></span>
             <b>{{ anchorName }}</b
             ><i>{{ pinLabel }}</i>
-            <slot name="pin-extra" />
           </div>
         </template>
       </div>
@@ -227,7 +220,6 @@ const props = withDefaults(
     keyed?: boolean; // tag nodes with data-node-key (only one instance per page)
     compact?: boolean; // smaller strip, for use as an overview above the task list
     highlightDate?: string | null; // task date to mark as current and center on
-    previewNote?: string | null; // extra line under the ghost while dragging
     dragHint?: string; // title on the flag, instead of a caption under the strip
     hoverId?: string | null; // task id (or ANCHOR_ID) to mark as hovered, set from outside
     showLegend?: boolean; // Feiertage/Schulferien toggle row
@@ -239,7 +231,6 @@ const props = withDefaults(
     keyed: false,
     compact: false,
     highlightDate: null,
-    previewNote: null,
     dragHint: "",
     hoverId: null,
     showLegend: true,
@@ -299,25 +290,17 @@ onMounted(() => {
 });
 onBeforeUnmount(() => resizeObserver?.disconnect());
 
-// The compact strip drops the empty months at the ends of the 15 month canvas
-// and shows exactly the days the plan occupies. Same tasks either way: the
-// window is derived from the task dates themselves, so nothing that used to
-// be on the rail can fall outside it. relevantDates is declared further down,
-// which is fine, a computed only reads it once it is asked for a value.
+// Both scales show the days the plan occupies and drop the empty months at
+// the ends of the year-long canvas - a rail spanning 13 months to hold three
+// months of activity is mostly nothing. The window follows the anchor, and
+// only a committed anchor moves it, so it never rescales mid-drag. The bigger
+// minimum span on the rail keeps it usable as a date picker: there is always
+// room either side of the plan to drop a new day on. relevantDates is
+// declared further down, which is fine, a computed only reads it once it is
+// asked for a value.
 const scale = computed(() => {
-  if (!props.compact) {
-    // Before mount there is nothing to measure, so the fixed rail scale is the
-    // better first paint.
-    if (containerWidth.value === 0) return makeScale(START, END, RAIL_PPD);
-    const ppd = fitPpd(
-      daysBetween(START, END),
-      containerWidth.value,
-      0,
-      EDGE_PX,
-    );
-    return makeScale(START, END, ppd, EDGE_PX);
-  }
-  const window = fitWindow(today, relevantDates.value, START, END, 3, 45);
+  const minSpan = props.compact ? 45 : 150;
+  const window = fitWindow(today, relevantDates.value, START, END, 3, minSpan);
   // Server-rendered, before any element exists to measure: the fixed rail
   // scale is a far better first paint than the minimum.
   const ppd =
@@ -582,6 +565,11 @@ function onScrollerMove(e: MouseEvent) {
 }
 // Touch: the ghost follows the finger and only the lift commits a date, so a
 // coarse first touch can be corrected while still looking at the label.
+// The window fits the plan, so its ends can reach past the pickable year -
+// every placement lands inside [START, END] whichever gesture made it.
+function place(d: Date) {
+  emit("place", isoOf(d < START ? START : d > END ? END : d));
+}
 function onScrubMove(e: TouchEvent) {
   if (!props.clickable || !trackEl.value || onPin(e)) return;
   const t = e.touches[0];
@@ -602,7 +590,7 @@ function onScrubCancel() {
 function onScrubEnd() {
   if (!props.clickable || !scrubIso) return;
   clearGhost();
-  emit("place", scrubIso);
+  place(toDate(scrubIso));
   scrubIso = null;
 }
 let scrubIso: string | null = null;
@@ -613,7 +601,7 @@ function onScrollerClick(e: MouseEvent) {
   const r = trackEl.value.getBoundingClientRect();
   const d = scale.value.dateAt(e.clientX - r.left);
   clearGhost();
-  emit("place", isoOf(d));
+  place(d);
   nextTick(() => {
     scrollerEl.value?.scrollTo({
       left: Math.max(0, px(d) - 400),
@@ -672,9 +660,7 @@ function onPinKey(e: KeyboardEvent) {
     next = addDays(current, KEY_STEPS[e.key] * (e.shiftKey ? 7 : 1));
   if (!next) return;
   e.preventDefault();
-  if (next < START) next = START;
-  if (next > END) next = END;
-  emit("place", isoOf(next));
+  place(next);
 }
 
 // Dragging the flag: pointer events so mouse, pen and touch share one path.
@@ -695,9 +681,9 @@ function onPinMove(e: PointerEvent) {
 function onPinUp() {
   if (!dragging) return;
   dragging = false;
-  const iso = ghost.value ? isoOf(scale.value.dateAt(ghost.value.x)) : null;
+  const d = ghost.value ? scale.value.dateAt(ghost.value.x) : null;
   clearGhost();
-  if (iso) emit("place", iso);
+  if (d) place(d);
 }
 
 // The nearest task to wherever the strip was clicked, so the whole width is
@@ -745,11 +731,6 @@ function onNodeClick(id: string, e: MouseEvent) {
   --band-up: 1.4rem; /* how far the weekend/past shading reaches above the axis */
   --weekend-band: color-mix(in srgb, var(--ink) 3.5%, transparent);
   --closed-band: color-mix(in srgb, var(--holiday) 28%, transparent);
-  --spent-hatch: repeating-linear-gradient(
-    -45deg,
-    color-mix(in srgb, var(--ink) 6%, transparent) 0 2px,
-    transparent 2px 6px
-  );
   --mlabel-y: 1.5rem;
   --mlabel-size: var(--fs-xs);
   --pin-title: var(--fs-md);
@@ -801,23 +782,18 @@ label.legend-item {
   height: 0.45rem;
   border-radius: 2px;
 }
-.swatch.task {
-  border-radius: 50%;
-  border: 2px solid var(--accent);
-  background: var(--paper-raised);
-}
 .swatch.task.done {
-  border-color: var(--done-color);
+  width: var(--node);
+  height: var(--node);
+  border-radius: 50%;
   background: var(--done-color);
 }
-.swatch.past {
-  background-image: var(--spent-hatch);
-  border: 1px solid var(--line);
-}
+/* Same recipe as the capsule on the rail: a swatch shaped differently from
+  the thing it explains is worse than no swatch. */
 .swatch.span {
-  width: 1.1rem;
-  height: 0.4rem;
-  border-radius: var(--radius-pill);
+  width: 1.6rem;
+  height: var(--node);
+  border-radius: 999px;
   border: 2px solid var(--accent);
   background: var(--paper-raised);
 }
@@ -826,10 +802,6 @@ label.legend-item {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem 1rem;
-}
-.swatch.anchor {
-  background: var(--anchor);
-  clip-path: polygon(0 0, 100% 0, 60% 50%, 100% 100%, 0 100%);
 }
 .swatch.feiertage {
   background: var(--holiday);
@@ -939,13 +911,15 @@ label.legend-item {
   height: calc(var(--band-up) + var(--below));
   pointer-events: none;
 }
+/* The spent part of the axis, not a second bar on top of it: an opaque fill
+  in the same slot, so the rail has exactly one edge and it sits at HEUTE. */
 .spent {
   position: absolute;
   left: 0;
   top: calc(var(--axis-y) - 3px);
   height: 7px;
   border-radius: var(--radius-pill);
-  background-image: var(--spent-hatch);
+  background: color-mix(in srgb, var(--ink) 22%, var(--paper));
   pointer-events: none;
 }
 .band {
@@ -1050,16 +1024,9 @@ label.legend-item {
   color: var(--muted);
   white-space: nowrap;
 }
-.pin :deep(a) {
-  position: absolute;
-  top: calc(var(--pin-title) + var(--pin-sub) + 0.85rem);
-  left: 1.9rem;
-  white-space: nowrap;
-}
 /* Anchor near the right end: same offsets, mirrored. */
 .pin.flip b,
-.pin.flip i,
-.pin.flip :deep(a) {
+.pin.flip i {
   left: auto;
   right: 1.9rem;
   text-align: right;
@@ -1149,16 +1116,6 @@ label.legend-item {
   background: var(--anchor);
   opacity: 0.25;
   pointer-events: none;
-}
-.ghost i {
-  position: absolute;
-  top: calc(var(--fs-xs) + 0.5rem);
-  left: 0.5rem;
-  font-style: normal;
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--muted);
-  white-space: nowrap;
 }
 .ghost b {
   position: absolute;

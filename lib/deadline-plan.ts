@@ -8,6 +8,7 @@
 // module's whole import graph loads with it, so even one fs import here
 // would break client hydration.
 import { z } from "zod";
+import { loadHolidays, rollToLandingDay } from "./business-days";
 import { FACET_IDS } from "./facets";
 import { toDate } from "./format-date";
 import { holidaysFor } from "./holidays";
@@ -48,6 +49,7 @@ export interface ScheduleEntry extends Deadline {
   impossible: boolean; // startByDate before earliestDate: the lead time alone doesn't fit before the deadline is even reachable
   weekend: boolean;
   collision: string | null; // holiday name the date falls on, if any
+  movedFrom?: string; // the closed day a needs_office step was rolled off (§ 193 BGB)
   // Only set for offset_rule-based entries (currently just bgb-573c-notice) -
   // a plain offset deadline has nothing hidden to explain, so this stays
   // undefined rather than a meaningless value.
@@ -77,6 +79,12 @@ function addDays(iso: string, days: number): string {
  * deadline itself once lead time is subtracted. Both default to `date` when
  * the corresponding *_days field is unresearched, so an entry with neither
  * field behaves exactly like a plain point deadline.
+ *
+ * A needs_office step never keeps a day the office is shut on: offsets in the
+ * data are round weeks, so a Sunday anchor would otherwise put every single
+ * one of them on a Sunday. It rolls forward to the next Werktag, which is
+ * also what § 193 BGB does with a deadline landing on a Saturday, Sunday or
+ * public holiday. The day it moved off stays in `movedFrom`.
  */
 function shiftMonth(yyyyMm: string, n: number): string {
   const [y, m] = yyyyMm.split("-").map(Number);
@@ -123,6 +131,23 @@ export function computeSchedule(
     } else {
       date = addDays(anchorDate, d.offset_days);
     }
+    // A step on the anchor day itself happens at the move, closed office or
+    // not, so only the movable ones roll.
+    let movedFrom: string | undefined;
+    if (date !== null && d.needs_office && d.offset_days !== 0) {
+      const set = loadHolidays(
+        toDate(date).getUTCFullYear(),
+        countryCode,
+        regionCode,
+      );
+      const landed = rollToLandingDay(toDate(date), set)
+        .toISOString()
+        .slice(0, 10);
+      if (landed !== date) {
+        movedFrom = date;
+        date = landed;
+      }
+    }
     const earliestDate =
       date === null
         ? null
@@ -143,6 +168,7 @@ export function computeSchedule(
       derivation,
       pastDeadline,
       rescue,
+      movedFrom,
     };
   });
 

@@ -1,34 +1,26 @@
 **Bugs**
 
-- [x] Tooltip still renders over the Umzugstag flag and hides both the label and the date
-- [x] Tooltip has no offset from the hovered dot — position it below the rail or to the side
-- [x] "Wohnung kündigen" on 3 Sep is marked "Frist verstrichen" but sits _after_ today and after the move day — verify the expired comparison
-- [x] The same card says "spätestens am 3. Sep nachholen" while being dated 3 Sep — the rescue date and the card date are identical, so the advice is circular
-- [x] Sorting places the expired Kündigung last, after the move day — an overdue item should not appear at the end of the plan
-- [x] Intro says "Die nächste offene ist am Di., 18.08.2026" but the first card is 21 Juli 2026 and is not struck through, so it reads as open
-- [x] Only one month label ("Sep") visible on the entire rail
+- [x] Every task date is a Sunday (27 Sep, 25 Okt, 1 Nov, 8 Nov) — the offsets are being applied in whole weeks from a Sunday move date, so no task ever lands on a weekday
+- [x] Consequently the "Sa/So, Ämter haben zu" warning fires on almost every card — fix the root cause instead of offering "vorziehen" everywhere
 
-**Timeline**
+**Homepage**
 
-- [x] Two overlapping past-markers remain (hatched block and grey bar) with different extents and no distinction
-- [x] The lower grey bar ends mid-September for no visible reason
-- [x] The blue horizontal bar right of the flag is still unlabelled
-- [x] Toggles sit above the rail now but the rail has no legend at all — the four dot states (open, done, next, move day) are unexplained
+- [x] The numbered "1. Datum wählen · 2. Fristen sehen · 3. Als Kalender exportieren" row still sits at the bottom, after the user has already done step 1 — move it up
+- [x] "ORT" now sits _below_ the timeline and summary, so the plan is computed before the location is chosen — move it next to the date
+- [x] Timeline spans 13 months while all activity is in a 3-month window — clip the range to the plan plus a small margin
+- [x] "Zeitplan öffnen" floats over the rail and covers it; place it below the summary line
+- [x] Summary line "So., 08.11.2026 · 10 Fristen · erste am Do., 03.09.2026" repeats the date already shown in the field and the flag
 
-**Card actions (image 3)**
+**Detail page timeline**
 
-- [x] Four icon-only buttons with no labels or tooltips — calendar, pencil, comment, X are all guessable but none are certain
-- [x] The X reads as "close card" but presumably deletes the task — dangerous ambiguity, needs a label or confirmation
-- [x] "Als Nächstes" is a status badge sitting in the same row as four action buttons, at similar size — separate status from controls
-- [x] Five elements in the top-right corner is more chrome than the card content itself; move actions to a hover state or an overflow menu
+- [x] Legend has grown back to seven items across two visual languages — trim to the toggles plus at most two states
+- [x] "möglich bis Frist" swatch is a pill shape; the same element on the rail is a thin bar — make them match
+- [x] Two past-markers still overlap (grey rail band and the darker bar below), ending at different points
+- [x] Sticky timeline overlaps the top card so its title is cut off — add scroll padding
 
-**Umzugstag row**
+**Cards**
 
-- [x] Still an empty grey bar with a checkbox and one button — a milestone should not be checkable like a task
-- [x] "Termin verschieben" here vs. the calendar icon on task cards are the same gesture in two forms
-
-**Remaining density**
-
-- [x] The expired card is still by far the tallest element on the page; compress it to title, one line, and the Mietende toggle
-- [x] "Spätester Kündigungstermin nach § 573c Abs. 1 BGB" still duplicates the § 573c chip below it
-- [x] Gutter shows "6 Wochen vorher" / "2 Wochen vorher" again on some entries but not others — apply consistently or remove
+- [x] Same-day tasks (25 Okt group) show the date only on the first card, so the following ones look undated
+- [x] "Auf 23. Okt vorziehen" and "Auf 30. Okt vorziehen" appear as primary-weight buttons inside otherwise calm cards
+- [x] "Kündigungsschreiben aufsetzen" appears on two different cards with identical styling but presumably different targets
+- [x] Card borders alternate between plain and blue-outlined with no visible rule — clarify what the outline means

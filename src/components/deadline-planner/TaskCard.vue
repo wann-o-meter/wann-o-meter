@@ -30,7 +30,6 @@ const props = defineProps<{
   cta: TaskCta | null;
   dateEditOpen: boolean;
   isNext: boolean; // the one task to act on now
-  showDate: boolean; // false when the entry above shares this date
   deferred: boolean; // the rule's target month was pushed back by a month
 }>();
 
@@ -46,7 +45,6 @@ const emit = defineEmits<{
   (e: "open-date-edit"): void;
   (e: "close-date-edit"): void;
   (e: "toggle-defer"): void;
-  (e: "shift-to-workday"): void;
   (e: "commit-date-edit", iso: string): void;
 }>();
 
@@ -80,17 +78,6 @@ function shortWhen(iso: string): string {
   return `${d.getUTCDate()}. ${MONTH_NAMES[d.getUTCMonth()].slice(0, 3)}`;
 }
 
-// Nearest weekday at or before the deadline.
-const previousWorkday = computed(() => {
-  let d = toDate(props.entry.date!);
-  // One extra day back for a holiday, then off any weekend it lands on.
-  if (props.entry.collision && !props.entry.weekend)
-    d = new Date(d.getTime() - 86400000);
-  while (d.getUTCDay() === 0 || d.getUTCDay() === 6)
-    d = new Date(d.getTime() - 86400000);
-  return d.toISOString().slice(0, 10);
-});
-
 const isSunday = computed(() => toDate(props.entry.date!).getUTCDay() === 0);
 
 // A <details> menu has no outside-click of its own, so it closes when an item
@@ -103,16 +90,6 @@ function closeMenuOnBlur(e: FocusEvent) {
   const menu = e.currentTarget as HTMLDetailsElement;
   if (!menu.contains(e.relatedTarget as Node)) menu.open = false;
 }
-
-// A step at offset 0 happens on the day itself, so it cannot move.
-const pinnedToAnchor = computed(() => props.entry.offset_days === 0);
-const showOfficeClosed = computed(
-  () =>
-    !props.done &&
-    !hasRange.value &&
-    props.entry.needs_office === true &&
-    (!!props.entry.collision || !!props.entry.weekend),
-);
 
 // True once the deadline is a real window, not just a point.
 const hasRange = computed(
@@ -137,7 +114,7 @@ const hasRange = computed(
     <span class="dot" :data-dot-key="entry.id"></span>
     <!-- Always the entry's own deadline, never the rescue date: a card that
       says "Frist verstrichen" has to be dated on the day that was missed. -->
-    <div v-if="showDate" class="when">
+    <div class="when">
       <b :class="{ overdue: isPast }">{{ whenDate(entry.date!) }}</b>
     </div>
 
@@ -348,17 +325,9 @@ const hasRange = computed(
       <p v-if="!done && entry.impossible" class="flag flag-impossible">
         Bei diesem Termin nicht mehr rechtzeitig möglich - Termin sofort buchen.
       </p>
-      <!-- Only matters for a single pinned day, a range has other days. -->
-      <p v-else-if="showOfficeClosed" class="flag hint">
-        {{ entry.collision ? `${entry.collision}, ` : "Sa/So, " }}Ämter haben
-        zu.
-        <button
-          v-if="!pinnedToAnchor"
-          type="button"
-          @click="$emit('shift-to-workday')"
-        >
-          Auf {{ shortWhen(previousWorkday) }} vorziehen
-        </button>
+      <p v-else-if="entry.movedFrom && !done" class="moved">
+        {{ shortWhen(entry.movedFrom) }} wäre ein geschlossener Tag, deshalb der
+        nächste Werktag.
       </p>
     </div>
   </div>
@@ -521,21 +490,18 @@ const hasRange = computed(
   text-decoration: line-through;
   color: var(--muted);
 }
-/* Spotlight: the card the Timeline is centered on stands out, others recede. */
 .card {
   transition:
     opacity 0.15s,
-    transform 0.15s,
     border-color 0.15s,
     box-shadow 0.15s;
 }
-/* An accent edge and elevation, never a blue glow. */
-.item.current .card {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-lg);
-}
+/* An accent border means one thing only: this is the next task. Scroll
+  position and hover lift the card instead, so nothing else borrows the
+  colour and leaves the reader guessing what it marks. */
+.item.current .card,
 .item.focused .card {
-  border-color: var(--accent);
+  box-shadow: var(--shadow-lg);
 }
 .card-head {
   display: flex;
@@ -800,13 +766,10 @@ const hasRange = computed(
   color: var(--warn) !important;
   font-size: var(--fs-sm) !important;
 }
-/* A closed office is a fact with a fix, not an alarm. */
-.flag.hint {
-  color: var(--muted) !important;
-}
-.flag button {
+/* A shifted day is a fact, not an alarm - it explains the date above it. */
+.card .moved {
+  margin-top: 0.35rem;
   font-size: var(--fs-xs);
-  padding: 0.25rem 0.5rem;
 }
 .flag.rescue {
   font-weight: 600;
