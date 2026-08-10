@@ -35,16 +35,21 @@ const rest = siblings.slice(PREVIEW);
       <nav class="places">
         <h2>{v.label} in deiner Stadt</h2>
         <ul>
-          {preview.map((s) => (
-            <li>
-              <a
-                href={`/${v.slug}/${s.slug}/`}
-                aria-current={s.slug === variant.slug ? "page" : undefined}
-              >
-                {v.label} in {s.label}
-              </a>
-            </li>
-          ))}
+          {preview.map((s) =>
+            s.slug === variant.slug ? (
+              <li>
+                <span class="here" aria-current="page">
+                  {s.label} (aktuell)
+                </span>
+              </li>
+            ) : (
+              <li>
+                <a href={`/${v.slug}/${s.slug}/`}>
+                  {v.label} in {s.label}
+                </a>
+              </li>
+            ),
+          )}
         </ul>
         {rest.length > 0 && (
           <details>
@@ -95,9 +100,15 @@ const rest = siblings.slice(PREVIEW);
     font-size: var(--fs-sm);
     text-decoration: none;
   }
-  .places a[aria-current="page"] {
-    border-color: var(--accent);
-    color: var(--accent);
+  /* The current place is a state, not a destination, so it is not a link. */
+  .places .here {
+    display: inline-block;
+    border: 1px solid var(--accent);
+    border-radius: 100px;
+    padding: 0.4rem 0.9rem;
+    font-size: var(--fs-sm);
+    background: var(--accent);
+    color: var(--accent-ink);
   }
   .places details {
     margin-top: 0.8rem;

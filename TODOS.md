@@ -35,8 +35,8 @@
 - [x] Add more filter chips at once (Haustier, Kinder, Gewerbe, Eigentum) so the row looks like a set of choices rather than one stray checkbox (skipped: a chip only exists where a deadline actually depends on it, so adding four would mean inventing the deadlines behind them)
 - [x] "5 von 7 Fristen sind noch nicht verifiziert" is honest but alarming as the first thing under the timeline — reword toward what is verified, e.g. "2 Fristen gesetzlich belegt, 5 auf Erfahrungswerten"
 - [x] Give the verification notice a way to act on it — link it to the "Quelle vorschlagen" flow instead of leaving it as a dead-end warning
-- [ ] Move the "Umzug in deiner Stadt" city switcher above the timeline: choosing the wrong city invalidates everything below it, so discovering it at the bottom is too late
-- [ ] Make the city chips reflect the current selection more clearly — Rottenburg is outlined but reads as hoverable, not as "you are here"
+- [x] Move the "Umzug in deiner Stadt" city switcher above the timeline: choosing the wrong city invalidates everything below it, so discovering it at the bottom is too late (the live Ort select already sits above the timeline in the planner form. The bottom nav is cross-page linking, moving it would push the tool below the fold)
+- [x] Make the city chips reflect the current selection more clearly — Rottenburg is outlined but reads as hoverable, not as "you are here"
 - [ ] Fix the mini timeline's right edge: "Jan 20…" is clipped, and the Umzugstag label collides with the axis
 - [ ] Add a legend or tooltip for the stacked circles in the mini timeline — they currently look like decoration, not like the tasks below
 - [ ] Make the mini timeline clickable to scroll to the matching task, otherwise it is a picture rather than a control
