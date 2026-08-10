@@ -757,10 +757,15 @@ function onNodeClick(id: string, e: MouseEvent) {
   position: absolute;
   top: 0;
   left: 2px;
-  width: 0.55rem;
-  height: 0.45rem;
+  width: 1.6rem;
+  height: 1.1rem;
   background: var(--accent);
-  clip-path: polygon(0 0, 100% 0, 60% 50%, 100% 100%, 0 100%);
+  clip-path: polygon(0 0, 100% 0, 65% 50%, 100% 100%, 0 100%);
+}
+.pin.flip::before {
+  left: auto;
+  right: 2px;
+  clip-path: polygon(100% 0, 100% 100%, 0 100%, 35% 50%, 0 0);
 }
 /* A width change reads as "hovered" without a glow - a filter: drop-shadow
   here looked fine in light mode but far too bright against a dark background. */
@@ -771,7 +776,7 @@ function onNodeClick(id: string, e: MouseEvent) {
 .pin b {
   position: absolute;
   top: -0.25rem;
-  left: 0.6rem;
+  left: 1.9rem;
   font-weight: 600;
   font-size: var(--pin-title);
   white-space: nowrap;
@@ -780,7 +785,7 @@ function onNodeClick(id: string, e: MouseEvent) {
 .pin i {
   position: absolute;
   top: calc(var(--pin-title) + 0.35rem);
-  left: 0.6rem;
+  left: 1.9rem;
   font-style: normal;
   font-family: var(--font-mono);
   font-size: var(--pin-sub);
@@ -790,7 +795,7 @@ function onNodeClick(id: string, e: MouseEvent) {
 .pin :deep(a) {
   position: absolute;
   top: calc(var(--pin-title) + var(--pin-sub) + 0.85rem);
-  left: 0.6rem;
+  left: 1.9rem;
   white-space: nowrap;
 }
 /* Anchor near the right end: same offsets, mirrored. */
@@ -798,7 +803,7 @@ function onNodeClick(id: string, e: MouseEvent) {
 .pin.flip i,
 .pin.flip :deep(a) {
   left: auto;
-  right: 0.6rem;
+  right: 1.9rem;
   text-align: right;
 }
 .thread {

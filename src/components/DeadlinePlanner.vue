@@ -231,10 +231,6 @@ function onCommitDate(id: string, iso: string) {
   moveEntry(id, days);
 }
 
-const hasNoticeRule = computed(() =>
-  workingDeadlines.value.some((d) => d.offset_rule === "bgb-573c-notice"),
-);
-
 const { timeline, tasks, unscheduled, railNodes, stats } = usePlannerSchedule(
   anchorDate,
   selected,
@@ -243,6 +239,10 @@ const { timeline, tasks, unscheduled, railNodes, stats } = usePlannerSchedule(
   doneIds,
   overlapMonths,
 );
+
+// Only worth offering once the normal notice date is gone: before that it
+// buys nothing but a month of double rent, after it, it is the way out.
+const noticeMissed = computed(() => timeline.value.some((e) => e.pastDeadline));
 
 function isPast(date: string): boolean {
   return date < isoToday();
@@ -552,7 +552,7 @@ function print() {
       </label>
     </fieldset>
 
-    <label v-if="hasNoticeRule" class="overlap">
+    <label v-if="noticeMissed || overlapMonths > 0" class="overlap">
       <input
         type="checkbox"
         :checked="overlapMonths > 0"
@@ -560,7 +560,9 @@ function print() {
           overlapMonths = ($event.target as HTMLInputElement).checked ? 1 : 0
         "
       />
-      <span>Alte Wohnung einen Monat länger behalten</span>
+      <span>
+        Kündigungstermin verpasst? Alte Wohnung einen Monat länger behalten.
+      </span>
     </label>
 
     <template v-if="anchorDate">

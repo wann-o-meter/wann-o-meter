@@ -57,4 +57,6 @@
 - [x] Consider collapsing tasks whose date has passed (deferred by the item itself, "once the plan is in active use") rather than leaving them inline, once the plan is in active use
 - [ ] the main event is already a vertical bar. why not make it a big flag? :)
 - [ ] The code is centers around rent and embedds elements that are only relevant for renting. E.g. isn't leaseEnd something that is something related only to leasing of an appartment.
-- [ ] Doesn't "Alte Wohnung einen Monat länger" only make sense when the deadline has passed?
+- [ ] Doesn't "Alte Wohnung einen Monat länger behalten" only make sense when the deadline has passed?
+- [ ] The progress bar will be hidden behind the widened timeline that gets widened on scroll.
+- [ ] The "Alte Wohnung einen Monat länger" looks out of place
