@@ -581,7 +581,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   --school: color-mix(in srgb, var(--warn) 45%, var(--accent) 55%);
 
   --lane-h: 1.1rem; /* must stay > --node, or stacked lanes touch */
-  --head-pad: 4.2rem; /* clearance above the top lane: pin labels + tooltips */
+  --head-pad: 5.2rem; /* clearance above the top lane: pin stack + tooltips */
   --tick-day: 0.25rem;
   --tick-week: 0.55rem;
   --tick-month: 0.95rem;
@@ -935,7 +935,7 @@ function onNodeClick(id: string, e: MouseEvent) {
 @media (max-width: 36rem) {
   .timeline:not(.compact) {
     --lane-h: 0.9rem;
-    --head-pad: 3.1rem;
+    --head-pad: 4.4rem;
     --tick-day: 0.18rem;
     --tick-week: 0.4rem;
     --tick-month: 0.7rem;

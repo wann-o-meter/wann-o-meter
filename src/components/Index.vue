@@ -367,10 +367,13 @@ h1 {
 
 .btn {
   font-weight: 600;
-  font-size: var(--fs-sm);
-  padding: 0.65rem 1.2rem;
+  font-size: var(--fs-xs);
+  padding: 0.3rem 0.7rem;
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
 }
 .btn.primary {
   background: var(--accent);

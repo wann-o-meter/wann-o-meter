@@ -203,6 +203,11 @@ th {
   color: var(--accent);
 }
 
+a[target="_blank"]:not(:has(svg))::after {
+  content: " \2197";
+  font-size: 0.85em;
+}
+
 .badge {
   display: inline-block;
   font-family: var(--font-mono);
