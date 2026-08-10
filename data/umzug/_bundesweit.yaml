@@ -29,6 +29,7 @@ deadlines:
     source_url: null
   - id: ummeldung-einwohnermeldeamt
     label: Ummeldung beim Einwohnermeldeamt
+    needs_office: true
     note: Braucht die Wohnungsgeberbestätigung des Vermieters und einen Termin beim Bürgeramt.
     offset_days: 14
     earliest_offset_days: 0 # geht erst ab Einzug - kein Rechercheergebnis, sondern per Definition unmöglich davor
@@ -36,6 +37,7 @@ deadlines:
     source_label: § 17 BMG
   - id: kfz-ummeldung
     label: Kfz beim neuen Wohnort ummelden
+    needs_office: true
     applies_if: [auto]
     offset_days: 14
     earliest_offset_days: 0 # Ummeldung am neuen Wohnort geht erst ab Einzug

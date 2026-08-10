@@ -218,7 +218,19 @@ const summary = computed(() => {
   const dated = timeline.value.filter((e) => e.id !== ANCHOR_ID);
   if (dated.length === 0) return "";
   const first = dated.reduce((a, b) => (a.date! <= b.date! ? a : b));
-  return `Aus deinem ${props.anchorLabel} am ${formatDateWithWeekday(anchorDate.value)} ergeben sich ${dated.length} Fristen. Die erste ist am ${formatDateWithWeekday(first.date!)}.`;
+  return `Aus deinem ${props.anchorLabel} am ${formatDateWithWeekday(anchorDate.value)} ergeben sich ${dated.length} Aufgaben. Die erste ist am ${formatDateWithWeekday(first.date!)}.`;
+});
+
+const suppressDate = computed(() => {
+  const ids = new Set<string>();
+  let lastDate: string | null = null;
+  for (const node of railNodes.value) {
+    if (node.kind !== "item") continue;
+    if (node.entry.date !== null && node.entry.date === lastDate)
+      ids.add(node.entry.id);
+    lastDate = node.entry.date;
+  }
+  return ids;
 });
 
 // Ticked-off tasks leave the running plan and collect in a fold at the end.
@@ -241,6 +253,7 @@ const nextUpId = computed(
 // Nothing happens between today and the first task, and saying so beats an
 // unexplained stretch of empty rail.
 const quietUntil = computed(() => {
+  if (stats.value.done > 0) return null;
   const next = tasks.value.find((t) => t.date && !isPast(t.date));
   if (!next) return null;
   const days = Math.round(
@@ -249,11 +262,32 @@ const quietUntil = computed(() => {
   return days >= 21 ? formatDateWithWeekday(next.date!) : null;
 });
 
+// Tasks that need an open office on a day when none is open.
+const blockedTasks = computed(() =>
+  tasks.value.filter(
+    (t) =>
+      t.needs_office === true &&
+      !doneIds[t.id] &&
+      t.date !== null &&
+      t.offset_days !== 0 &&
+      (t.weekend || t.collision),
+  ),
+);
+function shiftAllToWorkday() {
+  for (const t of blockedTasks.value) shiftToWorkday(t);
+}
+
 // Moving a weekend deadline to the Friday before it, through the same
 // moveEntry path a drag uses.
-function shiftToWorkday(entry: { id: string; date: string | null }) {
+function shiftToWorkday(entry: {
+  id: string;
+  date: string | null;
+  collision?: string | null;
+  weekend?: boolean;
+}) {
   if (!entry.date) return;
   let d = toDate(entry.date);
+  if (entry.collision && !entry.weekend) d = new Date(d.getTime() - 86400000);
   while (d.getUTCDay() === 0 || d.getUTCDay() === 6)
     d = new Date(d.getTime() - 86400000);
   onCommitDate(entry.id, d.toISOString().slice(0, 10));
@@ -510,8 +544,8 @@ function print() {
       </label>
     </div>
 
-    <fieldset v-if="facetOptions.length > 0" class="facets">
-      <legend v-if="facetOptions.length > 1">Trifft auf mich zu</legend>
+    <fieldset v-if="facetOptions.length > 1" class="facets">
+      <legend>Trifft auf mich zu</legend>
       <p class="facets-hint">Ergänze deine Situation für weitere Aufgaben.</p>
       <label v-for="id in facetOptions" :key="id" class="facet">
         <input v-model="activeFacets" type="checkbox" :value="id" />
@@ -522,25 +556,41 @@ function print() {
     <template v-if="anchorDate">
       <div class="mini-header">
         <b>{{ anchorLabel }}: {{ formatDateWithWeekday(anchorDate) }}</b>
-        <span v-if="tasks.length > 0"
-          >{{ stats.done }} von {{ tasks.length }} erledigt</span
-        >
+        <span v-if="tasks.length > 0" class="progress">
+          {{ stats.done }} von {{ tasks.length }} erledigt
+          <progress :value="stats.done" :max="tasks.length"></progress>
+        </span>
       </div>
+      <details v-if="doneEntries.length > 0" class="done-group">
+        <summary>{{ doneEntries.length }} erledigt</summary>
+        <ul>
+          <li v-for="entry in doneEntries" :key="entry.id">
+            <button
+              type="button"
+              class="check"
+              aria-pressed="true"
+              aria-label="Wieder öffnen"
+              @click="toggleDone(entry.id)"
+            >
+              <Check :size="11" />
+            </button>
+            <span>{{ entry.label }}</span>
+          </li>
+        </ul>
+      </details>
 
       <p class="summary">{{ summary }}</p>
+      <p v-if="blockedTasks.length > 1" class="quiet grouped-warn">
+        {{ blockedTasks.length }} Aufgaben fallen auf einen Tag mit
+        geschlossenen Ämtern.
+        <button type="button" @click="shiftAllToWorkday">Alle vorziehen</button>
+      </p>
       <p v-if="quietUntil" class="quiet">
         Bis {{ quietUntil }} ist nichts zu tun.
       </p>
 
-      <p v-if="tasks.length > 0" class="progress">
-        <span
-          >Fortschritt: {{ stats.done }} von {{ tasks.length }} erledigt</span
-        >
-        <progress :value="stats.done" :max="tasks.length"></progress>
-      </p>
-
-      <details class="overview-wrap">
-        <summary>Zeitstrahl anzeigen</summary>
+      <details class="overview-wrap" open>
+        <summary>Zeitstrahl</summary>
         <div class="overview">
           <div class="overview-inner">
             <Timeline
@@ -583,8 +633,12 @@ function print() {
               v-if="node.kind === 'gap'"
               class="gap"
               :title="`${node.bufferDays} Tage Puffer`"
+              :class="{ tall: node.bufferDays >= 14 }"
               :style="{ height: `${node.heightPx}px` }"
             >
+              <span v-if="node.bufferDays >= 14" class="gap-label">
+                {{ node.bufferDays }} Tage Puffer
+              </span>
               <button
                 type="button"
                 class="gap-add"
@@ -627,6 +681,7 @@ function print() {
               :done="!!doneIds[node.entry.id]"
               :is-custom="isCustom(node.entry.id)"
               :is-next="node.entry.id === nextUpId"
+              :show-date="!suppressDate.has(node.entry.id)"
               :editing="editingId === node.entry.id"
               :note-open="openNoteId === node.entry.id"
               :note-text="userNotes[node.entry.id]"
@@ -669,23 +724,6 @@ function print() {
             @pick-blank="pickBlankTask"
           />
         </div>
-        <details v-if="doneEntries.length > 0" class="done-group">
-          <summary>{{ doneEntries.length }} erledigt</summary>
-          <ul>
-            <li v-for="entry in doneEntries" :key="entry.id">
-              <button
-                type="button"
-                class="check"
-                aria-pressed="true"
-                aria-label="Wieder öffnen"
-                @click="toggleDone(entry.id)"
-              >
-                <Check :size="11" />
-              </button>
-              <span>{{ entry.label }}</span>
-            </li>
-          </ul>
-        </details>
 
         <p v-if="lastDeleted" class="undo">
           „{{ lastDeleted.label }}" entfernt.
@@ -854,6 +892,16 @@ function print() {
   color: var(--muted);
   font-size: var(--fs-sm);
 }
+.grouped-warn {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.grouped-warn button {
+  font-size: var(--fs-xs);
+  padding: 0.15rem 0.5rem;
+}
 .progress {
   display: flex;
   align-items: center;
@@ -963,6 +1011,17 @@ function print() {
   position: relative;
   margin-left: -11.6rem;
   padding-left: 11.6rem;
+}
+/* Every gap tall enough to notice says how long it is. */
+.gap-label {
+  position: absolute;
+  left: 11.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  pointer-events: none;
 }
 .gap-add {
   position: absolute;

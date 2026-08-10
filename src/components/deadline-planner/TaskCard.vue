@@ -32,6 +32,7 @@ const props = defineProps<{
   cta: TaskCta | null;
   dateEditOpen: boolean;
   isNext: boolean; // the one task to act on now
+  showDate: boolean; // false when the entry above shares this date
   deferred: boolean; // the rule's target month was pushed back by a month
 }>();
 
@@ -98,10 +99,25 @@ function shortWhen(iso: string): string {
 // Nearest weekday at or before the deadline.
 const previousWorkday = computed(() => {
   let d = toDate(props.entry.date!);
+  // One extra day back for a holiday, then off any weekend it lands on.
+  if (props.entry.collision && !props.entry.weekend)
+    d = new Date(d.getTime() - 86400000);
   while (d.getUTCDay() === 0 || d.getUTCDay() === 6)
     d = new Date(d.getTime() - 86400000);
   return d.toISOString().slice(0, 10);
 });
+
+const isSunday = computed(() => toDate(props.entry.date!).getUTCDay() === 0);
+
+// A step at offset 0 happens on the day itself, so it cannot move.
+const pinnedToAnchor = computed(() => props.entry.offset_days === 0);
+const showOfficeClosed = computed(
+  () =>
+    !props.done &&
+    !hasRange.value &&
+    props.entry.needs_office === true &&
+    (!!props.entry.collision || !!props.entry.weekend),
+);
 
 // True once the deadline is a real window, not just a point.
 const hasRange = computed(
@@ -119,7 +135,7 @@ const hasRange = computed(
     :class="{ anchor: isAnchor, past: isPast, done, next: isNext }"
   >
     <span class="dot" :data-dot-key="entry.id"></span>
-    <div class="when">
+    <div v-if="showDate" class="when">
       <b :class="{ 'past-deadline': entry.pastDeadline }">{{
         whenDate(entry.date!)
       }}</b>
@@ -127,8 +143,8 @@ const hasRange = computed(
         ><ArrowRight :size="14" /> {{ whenDate(entry.rescue.date) }}</span
       >
       <span v-if="!entry.rescue" class="rel">
-        <b>{{ offsetLabel(entry, anchorLabel) }}</b>
-        · {{ relativeLabel(entry.date!) }}
+        <b v-if="!entry.offset_rule">{{ offsetLabel(entry, anchorLabel) }}</b>
+        {{ entry.offset_rule ? "" : "· " }}{{ relativeLabel(entry.date!) }}
       </span>
     </div>
 
@@ -143,16 +159,16 @@ const hasRange = computed(
         <Check v-if="done" :size="11" />
       </button>
       <span class="label" :class="{ done }">{{ entry.label }}</span>
-      <span v-if="!done && entry.collision" class="flag-inline"
-        >Fällt auf {{ entry.collision }} - Ämter geschlossen.</span
+      <span v-if="isSunday" class="flag-inline"
+        >Sonntag, Hausordnung und Ruhezeiten beachten, Übergaben sind
+        unüblich.</span
       >
-
       <button
         type="button"
         class="edit-anchor"
         @click="$emit('open-date-edit')"
       >
-        <CalendarClock :size="12" /> Datum ändern
+        <CalendarClock :size="12" /> Termin verschieben
       </button>
       <input
         v-if="dateEditOpen"
@@ -195,6 +211,14 @@ const hasRange = computed(
           >Als Nächstes</span
         >
         <div class="tools">
+          <button
+            type="button"
+            title="Termin verschieben"
+            aria-label="Termin verschieben"
+            @click="$emit('open-date-edit')"
+          >
+            <CalendarClock :size="12" />
+          </button>
           <button
             type="button"
             title="Titel ändern"
@@ -251,7 +275,7 @@ const hasRange = computed(
           }}).
         </p>
       </div>
-      <p v-if="entry.rescue || deferred" class="defer">
+      <p v-if="entry.offset_rule || deferred" class="defer">
         <span class="defer-label">Mietende</span>
         <button
           type="button"
@@ -290,14 +314,7 @@ const hasRange = computed(
       >
       <span v-else-if="isCustom" class="badge custom">Eigene Aufgabe</span>
 
-      <div class="cta-row">
-        <button
-          type="button"
-          class="cta-button"
-          @click="$emit('open-date-edit')"
-        >
-          <CalendarClock :size="13" /> Termin verschieben
-        </button>
+      <div v-if="cta" class="cta-row">
         <a
           v-if="cta?.kind === 'link'"
           class="cta-link"
@@ -369,12 +386,14 @@ const hasRange = computed(
         Bei diesem Termin nicht mehr rechtzeitig möglich - Termin sofort buchen.
       </p>
       <!-- Only matters for a single pinned day, a range has other days. -->
-      <p v-else-if="!done && !hasRange && entry.collision" class="flag">
-        Fällt auf {{ entry.collision }}, Ämter haben zu.
-      </p>
-      <p v-else-if="!done && !hasRange && entry.weekend" class="flag hint">
-        Sa/So, Ämter haben zu.
-        <button type="button" @click="$emit('shift-to-workday')">
+      <p v-else-if="showOfficeClosed" class="flag hint">
+        {{ entry.collision ? `${entry.collision}, ` : "Sa/So, " }}Ämter haben
+        zu.
+        <button
+          v-if="!pinnedToAnchor"
+          type="button"
+          @click="$emit('shift-to-workday')"
+        >
           Auf {{ shortWhen(previousWorkday) }} vorziehen
         </button>
       </p>
@@ -446,6 +465,7 @@ const hasRange = computed(
   color: var(--muted);
   font-size: var(--fs-xs);
   text-align: right;
+  white-space: normal;
 }
 .when .rel b {
   font-weight: 600;
@@ -484,15 +504,17 @@ const hasRange = computed(
 }
 /* Full-width divider, not a card - an empty bordered box read as a stuck
   input field, and blue there implied "click me", not "milestone". */
+/* A slim divider, not a card: nothing happens on this row itself. */
 .anchor-divider {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: 0.6rem;
-  margin: 0.4rem 0 0.8rem;
-  padding: 0.5rem 1rem;
-  border-top: 2px solid var(--anchor);
-  border-bottom: 2px solid var(--anchor);
+  margin: 0.6rem 0 0.9rem;
+  padding: 0.35rem 1rem;
+  border-left: 3px solid var(--anchor);
+  background: color-mix(in srgb, var(--anchor) 8%, transparent);
+  border-radius: var(--radius);
 }
 .anchor-divider .label {
   font-weight: 600;

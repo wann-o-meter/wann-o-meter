@@ -168,23 +168,41 @@
 - [x] Don't encode task state in colour alone — add a shape or text label for filled/ring (four legend entries plus the state in each node's accessible name)
 - [x] Check contrast on grey secondary text ("in gut 4 Monaten", card descriptions) — several are below 4.5:1 (measured: muted 6.75:1, accent 7.19:1, warn 5.87:1 on paper. Holiday and done were 3.2 and 4.37, darkened to 5.22 and 5.21)
 
-- [ ] Move date 08.11.2026 is a Sunday and gets no warning of its own, while every task around it is flagged — moving on a Sunday raises Hausordnung/Ruhezeit issues and landlords rarely do handovers then
-- [ ] "Zählerstände ablesen" offers "Auf 6. Nov vorziehen" — this task must happen on the move day itself, never before; suppress date-shifting for same-day tasks
-- [ ] Same for "Übergabeprotokoll unterschreiben" — it is tied to the handover, not to office hours
-- [ ] "Sa/So, Ämter haben zu" is applied to tasks with no Amt involved (Nachsendeauftrag is online, Zählerstände and Übergabeprotokoll involve the landlord) — gate the warning on whether the task actually requires an authority
-- [ ] Five identical "Sa/So, Ämter haben zu" + "vorziehen" pairs in one plan reads as a template artifact; consider one grouped notice ("4 Aufgaben fallen auf ein Wochenende — alle vorziehen")
-- [ ] Sperrmüll falls on Allerheiligen and gets a red warning but no "vorziehen" button, unlike every weekend case — inconsistent affordance for the more severe collision
-- [ ] Huge unlabeled whitespace between 3 Sep and 25 Okt (~7 weeks) — the "Puffer" label that previously filled this is gone, so it now reads as a layout bug
-- [ ] Gutter label "Frist nach § 573c BGB, abhängig vom Umzugsmonat" overflows the column and breaks the left alignment of every other entry
-- [ ] Progress is stated three times: sticky bar "2 von 10 erledigt", "Fortschritt: 2 von 10 erledigt", and "2 erledigt" at the bottom — keep one
-- [ ] "Bis Do., 03.09.2026 ist nichts zu tun" contradicts two tasks already being marked done
-- [ ] "Umzugstag" repeats as the relative label for four consecutive gutter entries — collapse same-day tasks under one date header
-- [ ] The Zeitstrahl is now collapsed behind "Zeitstrahl anzeigen" — it was the strongest visual differentiator; consider open by default, or at least a thumbnail preview
-- [ ] Umzugstag row is still an empty highlighted bar with only a "Datum ändern" control — either give it content or make it a slim divider
-- [ ] "Datum ändern" on the Umzugstag vs. "Termin verschieben" on tasks are the same gesture with two labels
-- [ ] "Termin verschieben" appears on all ten cards at equal weight — demote to an icon or hover action so it stops competing with the real per-task actions
-- [ ] The "2 erledigt" disclosure sits at the very bottom, far from the progress bar it relates to — move it next to the progress indicator
-- [ ] Intro sentence says "10 Fristen", the verification line says "10 Aufgaben" — pick one noun, since not every entry is a Frist
-- [ ] "Ich habe ein Auto, das ich ummelden muss" is a single lonely checkbox again; either show the full set of situation toggles or hide the group until more exist
-- [ ] The overlap/Mietende decision has disappeared entirely from this version — verify it is still reachable, since it moves the first deadline by a full month
-- [ ] Make t
+- [x] Move date 08.11.2026 is a Sunday and gets no warning of its own, while every task around it is flagged — moving on a Sunday raises Hausordnung/Ruhezeit issues and landlords rarely do handovers then
+- [x] "Zählerstände ablesen" offers "Auf 6. Nov vorziehen" — this task must happen on the move day itself, never before; suppress date-shifting for same-day tasks
+- [x] Same for "Übergabeprotokoll unterschreiben" — it is tied to the handover, not to office hours
+- [x] "Sa/So, Ämter haben zu" is applied to tasks with no Amt involved (Nachsendeauftrag is online, Zählerstände and Übergabeprotokoll involve the landlord) — gate the warning on whether the task actually requires an authority (new needs_office flag in the deadline schema, set on the five steps that actually need an Amt)
+- [x] Five identical "Sa/So, Ämter haben zu" + "vorziehen" pairs in one plan reads as a template artifact; consider one grouped notice ("4 Aufgaben fallen auf ein Wochenende — alle vorziehen")
+- [x] Sperrmüll falls on Allerheiligen and gets a red warning but no "vorziehen" button, unlike every weekend case — inconsistent affordance for the more severe collision
+- [x] Huge unlabeled whitespace between 3 Sep and 25 Okt (~7 weeks) — the "Puffer" label that previously filled this is gone, so it now reads as a layout bug (label back on every gap of 14 days or more, and the max gap height is 72px)
+- [x] Gutter label "Frist nach § 573c BGB, abhängig vom Umzugsmonat" overflows the column and breaks the left alignment of every other entry (a rule name is a sentence, so it no longer goes in the fixed-width date column)
+- [x] Progress is stated three times: sticky bar "2 von 10 erledigt", "Fortschritt: 2 von 10 erledigt", and "2 erledigt" at the bottom — keep one (one statement, in the sticky header, with the done fold beside it)
+- [x] "Bis Do., 03.09.2026 ist nichts zu tun" contradicts two tasks already being marked done
+- [x] "Umzugstag" repeats as the relative label for four consecutive gutter entries — collapse same-day tasks under one date header
+- [x] The Zeitstrahl is now collapsed behind "Zeitstrahl anzeigen" — it was the strongest visual differentiator; consider open by default, or at least a thumbnail preview (open by default, still foldable)
+- [x] Umzugstag row is still an empty highlighted bar with only a "Datum ändern" control — either give it content or make it a slim divider
+- [x] "Datum ändern" on the Umzugstag vs. "Termin verschieben" on tasks are the same gesture with two labels
+- [x] "Termin verschieben" appears on all ten cards at equal weight — demote to an icon or hover action so it stops competing with the real per-task actions (back to an icon in the tool row, reversing the "same action row" change)
+- [x] The "2 erledigt" disclosure sits at the very bottom, far from the progress bar it relates to — move it next to the progress indicator
+- [x] Intro sentence says "10 Fristen", the verification line says "10 Aufgaben" — pick one noun, since not every entry is a Frist
+- [x] "Ich habe ein Auto, das ich ummelden muss" is a single lonely checkbox again; either show the full set of situation toggles or hide the group until more exist
+- [x] The overlap/Mietende decision has disappeared entirely from this version — verify it is still reachable, since it moves the first deadline by a full month (it shows on any card with an offset_rule now, not only once the deadline has passed)
+
+- [ ] Show the timeline by default again — remove the "Zeitstrahl anzeigen" disclosure
+- [ ] Reframe it from "overview of tasks" to "the landscape the tasks sit in", so it stops duplicating the list below
+- [ ] Demote task dots: smaller, lighter, no stacking — they are secondary here
+- [ ] Promote context layers: make Schulferien bands, Feiertag ticks, weekend shading and local closures the dominant visual content
+- [ ] Add weekend shading as a repeating subtle pattern so weekend collisions are visible before reading any card
+- [ ] Keep exactly one prominent marker: the Umzugstag flag
+- [ ] Grey out the region before today so remaining lead time is visible at a glance
+- [ ] Make the Umzugstag marker draggable on the timeline, recomputing the whole chain live
+- [ ] While dragging, show the resulting collision count as a live readout (e.g. "3 Kollisionen" → "0 Kollisionen")
+- [ ] Snap dragging to whole days and show the target date next to the cursor
+- [ ] Make the timeline sticky under the header at ~64px height so it stays visible while scrolling the list
+- [ ] Add a viewport indicator on the sticky timeline showing which time range the user is currently reading
+- [ ] Make clicking a point on the timeline scroll the list to the nearest task
+- [ ] Move the Feiertage/Schulferien toggles into the timeline itself rather than above it
+- [ ] Add a legend or inline labels for the context bands, since they carry the meaning now
+- [ ] Verify the timeline still communicates something when no collisions exist — it should read as "this window is clear", not as empty decoration
+- [ ] Fall back to a static, non-sticky version on mobile with drag replaced by tap-to-select
+- [ ] If the full interactive version is too much for now, ship the reduced variant: context bands plus Umzugstag only, no task dots, always visible

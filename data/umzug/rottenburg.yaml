@@ -5,16 +5,19 @@ state: BW
 deadlines:
   - id: rottenburg-halteverbotszone
     label: Halteverbotszone für den Umzugswagen beim Ordnungsamt beantragen
+    needs_office: true
     offset_days: -14
     source_url: null
     note: Ohne freie Fläche vor der Tür trägt das Möbelteam jeden Karton die halbe Straße entlang.
   - id: rottenburg-anwohnerparkausweis
     label: Anwohnerparkausweis ummelden
+    needs_office: true
     applies_if: [auto] # die Halteverbotszone braucht dagegen jeder Umzugswagen
     offset_days: 14
     source_url: null
   - id: rottenburg-sperrmuell
     label: Sperrmüllabholung für alte Möbel anmelden
+    needs_office: true
     offset_days: -7
     source_url: null
     no_source_needed: true # keine Satzung regelt eine feste Frist, das ist reine Terminvergabe der Stadt

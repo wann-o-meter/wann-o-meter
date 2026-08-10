@@ -81,7 +81,7 @@ export function usePlannerSchedule(
           id: `gap-${prev.id}-${entry.id}`,
           afterOffset: prev.offset_days!,
           beforeOffset: entry.offset_days!,
-          heightPx: Math.min(96, Math.max(28, bufferDays * 2.6)),
+          heightPx: Math.min(72, Math.max(28, bufferDays * 2.6)),
           bufferDays,
         });
       }
