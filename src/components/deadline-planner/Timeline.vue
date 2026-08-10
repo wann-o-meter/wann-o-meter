@@ -98,6 +98,13 @@
           ></div>
         </template>
 
+        <div
+          v-if="viewportBox"
+          class="viewport"
+          :style="viewportBox"
+          aria-hidden="true"
+        ></div>
+
         <div class="today" :style="{ left: todayX + 'px' }">
           <b>HEUTE</b>
         </div>
@@ -222,6 +229,7 @@ const props = withDefaults(
     keyed?: boolean; // tag nodes with data-node-key (only one instance per page)
     compact?: boolean; // smaller strip, for use as an overview above the task list
     highlightDate?: string | null; // task date to mark as current and center on
+    viewRange?: [string, string] | null; // dates currently on screen in the list
     hoverId?: string | null; // task id (or ANCHOR_ID) to mark as hovered, set from outside
     showLegend?: boolean; // Feiertage/Schulferien toggle row
     doneIds?: Record<string, boolean>; // task id (or ANCHOR_ID) -> done, for the green "done" node fill
@@ -232,6 +240,7 @@ const props = withDefaults(
     keyed: false,
     compact: false,
     highlightDate: null,
+    viewRange: null,
     hoverId: null,
     showLegend: true,
     doneIds: () => ({}),
@@ -446,6 +455,15 @@ const threadStyle = computed(() => {
   const left = Math.min(...xs);
   const right = Math.max(...xs);
   return { left: left + "px", width: Math.max(0, right - left) + "px" };
+});
+
+// Which slice of the plan the reader currently has on screen.
+const viewportBox = computed(() => {
+  const r = props.viewRange;
+  if (!r) return null;
+  const left = pxIso(r[0]);
+  const right = pxIso(r[1]);
+  return { left: `${left}px`, width: `${Math.max(6, right - left)}px` };
 });
 
 const pinLabel = computed(() =>
@@ -793,7 +811,7 @@ function onNodeClick(id: string, e: MouseEvent) {
 .scroller {
   overflow-x: auto;
   overflow-y: hidden;
-  padding-bottom: 0.6rem;
+  padding-bottom: 0.5rem;
   cursor: crosshair;
 }
 .movable .grip {
@@ -865,7 +883,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   letter-spacing: 0.04em;
   color: var(--muted);
   white-space: nowrap;
-  padding-left: 0.4rem;
+  padding-left: 0.5rem;
 }
 .htick {
   position: absolute;
@@ -878,6 +896,15 @@ function onNodeClick(id: string, e: MouseEvent) {
   position: absolute;
   top: calc(var(--axis-y) - var(--band-up));
   height: calc(var(--band-up) + var(--below));
+  pointer-events: none;
+}
+.viewport {
+  position: absolute;
+  top: calc(var(--axis-y) - var(--band-up));
+  height: calc(var(--band-up) + var(--below));
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--ink) 35%, transparent);
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
   pointer-events: none;
 }
 .spent {
@@ -1084,7 +1111,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   max-width: 11rem;
   text-align: center;
   z-index: 5;
-  padding: 0.25rem 0.55rem;
+  padding: 0.25rem 0.5rem;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.12s;
@@ -1125,7 +1152,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   --today-top: 2.9rem;
 }
 .compact .scroller {
-  padding-bottom: 0.8rem;
+  padding-bottom: 0.75rem;
   cursor: default;
 }
 .compact .today b {

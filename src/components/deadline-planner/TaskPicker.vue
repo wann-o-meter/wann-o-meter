@@ -55,7 +55,7 @@ defineEmits<{
   background: var(--paper-raised);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-lg);
-  padding: 0.3rem;
+  padding: 0.25rem;
 }
 .task-picker-option {
   display: block;
@@ -65,7 +65,7 @@ defineEmits<{
   background: transparent;
   color: var(--ink);
   font-size: var(--fs-sm);
-  padding: 0.4rem 0.6rem;
+  padding: 0.5rem 0.5rem;
   cursor: pointer;
   border-radius: 2px;
 }
@@ -75,7 +75,7 @@ defineEmits<{
   color: var(--accent);
 }
 .task-picker-blank {
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
   border-top: 1px solid var(--line);
   border-radius: 0;
   color: var(--muted);

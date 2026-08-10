@@ -383,7 +383,7 @@ h1 {
   font-size: var(--fs-sm);
 }
 .chip.small {
-  padding: 0.3rem 0.75rem;
+  padding: 0.25rem 0.75rem;
   font-size: var(--fs-xs);
 }
 .chip[aria-pressed="true"] {
@@ -400,7 +400,7 @@ h1 {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 1.2rem;
+  margin-top: 1rem;
 }
 .place span {
   margin-bottom: 0;
@@ -417,10 +417,10 @@ h1 {
 }
 @media (max-width: 36rem) {
   header {
-    padding: 0 0 0.8rem;
+    padding: 0 0 0.75rem;
   }
   .lede {
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.75rem;
   }
   .stage {
     margin-top: 1rem;
@@ -429,7 +429,7 @@ h1 {
 .hint {
   font-size: var(--fs-sm);
   color: var(--muted);
-  margin: 0 0 0.6rem;
+  margin: 0 0 0.5rem;
 }
 
 .pickers {
@@ -437,7 +437,7 @@ h1 {
   align-items: flex-end;
   flex-wrap: wrap;
   gap: 0.8rem;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1rem;
 }
 .date-field span,
 .place span {
@@ -447,21 +447,21 @@ h1 {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.25rem;
 }
 .date-field input {
   font-size: var(--fs-md);
   font-family: var(--font-mono);
-  padding: 0.45rem 0.7rem;
+  padding: 0.5rem 0.75rem;
 }
 .presets {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  padding-bottom: 0.2rem;
+  padding-bottom: 0.25rem;
 }
 .summary {
-  margin: 0.8rem 0 0;
+  margin: 0.75rem 0 0;
   font-size: var(--fs-sm);
   color: var(--muted);
   min-height: 1.5rem;
@@ -491,7 +491,7 @@ h1 {
   border-radius: var(--radius);
   font-weight: 600;
   font-size: var(--fs-xs);
-  padding: 0.3rem 0.7rem;
+  padding: 0.25rem 0.75rem;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -513,7 +513,7 @@ h1 {
   color: var(--accent);
   font-size: var(--fs-sm);
   padding: 0;
-  margin-bottom: 0.9rem;
+  margin-bottom: 1rem;
   cursor: pointer;
 }
 

@@ -83,7 +83,7 @@
 - [x] Move the progress bar under the timeline and make it sticky so it stays useful once the user scrolls into the list
 - [x] Introduce a more user-friendly design with rounded corners and better shadows, remove blue glowing shadows
 - [x] Add margin in theme toggle between text and icon
-- [ ] Verify that elements have enough margin but not too much
+- [x] Verify that elements have enough margin but not too much (audited: 29 distinct spacing values in the redesigned files, snapped onto a 7-step scale of 0.25/0.5/0.75/1/1.5/2/3rem. Rail gutter constants and the calendar views were left alone)
 
 # Wann-O-Meter — UX/UI Changelist
 
@@ -199,7 +199,7 @@
 - [x] While dragging, show the resulting collision count as a live readout (e.g. "3 Kollisionen" → "0 Kollisionen")
 - [x] Snap dragging to whole days and show the target date next to the cursor
 - [x] Make the timeline sticky under the header at ~64px height so it stays visible while scrolling the list
-- [ ] Add a viewport indicator on the sticky timeline showing which time range the user is currently reading
+- [x] Add a viewport indicator on the sticky timeline showing which time range the user is currently reading
 - [x] Make clicking a point on the timeline scroll the list to the nearest task
 - [x] Move the Feiertage/Schulferien toggles into the timeline itself rather than above it
 - [x] Add a legend or inline labels for the context bands, since they carry the meaning now

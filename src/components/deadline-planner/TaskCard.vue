@@ -482,7 +482,7 @@ const hasRange = computed(
   background: var(--paper-raised);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 0.8rem 1rem;
+  padding: 0.75rem 1rem;
   margin-bottom: 0.5rem;
   box-shadow: var(--shadow-sm);
 }
@@ -510,8 +510,8 @@ const hasRange = computed(
   flex-wrap: wrap;
   align-items: center;
   gap: 0.6rem;
-  margin: 0.6rem 0 0.9rem;
-  padding: 0.35rem 1rem;
+  margin: 0.5rem 0 1rem;
+  padding: 0.25rem 1rem;
   border-left: 3px solid var(--anchor);
   background: color-mix(in srgb, var(--anchor) 8%, transparent);
   border-radius: var(--radius);
@@ -545,7 +545,7 @@ const hasRange = computed(
   align-items: center;
   gap: 0.3rem;
   font-size: var(--fs-xs);
-  padding: 0.2rem 0.5rem;
+  padding: 0.25rem 0.5rem;
   border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
@@ -603,7 +603,7 @@ const hasRange = computed(
   color: inherit;
   border: 1px solid var(--accent);
   border-radius: 2px;
-  padding: 0.15rem 0.4rem;
+  padding: 0.25rem 0.5rem;
   background: var(--paper);
 }
 .check {
@@ -611,7 +611,7 @@ const hasRange = computed(
   flex-shrink: 0;
   width: 1.1rem;
   height: 1.1rem;
-  margin-top: 0.15rem;
+  margin-top: 0.25rem;
   border: 1px solid var(--line);
   background: var(--paper);
   border-radius: 2px;
@@ -661,7 +661,7 @@ const hasRange = computed(
   color: var(--ink);
 }
 .card p {
-  margin: 0.3rem 0 0;
+  margin: 0.25rem 0 0;
   max-width: 68ch;
   color: var(--muted);
   font-size: var(--fs-sm);
@@ -676,7 +676,7 @@ const hasRange = computed(
 }
 /* The proof it wasn't estimated should be one click away, not in every card. */
 .derivation {
-  margin-top: 0.4rem;
+  margin-top: 0.5rem;
   font-size: var(--fs-sm);
   color: var(--muted);
 }
@@ -700,7 +700,7 @@ const hasRange = computed(
 }
 .defer button {
   font-size: var(--fs-xs);
-  padding: 0.2rem 0.5rem;
+  padding: 0.25rem 0.5rem;
 }
 .defer button[aria-pressed="true"] {
   background: var(--accent);
@@ -712,16 +712,16 @@ const hasRange = computed(
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.6rem;
-  padding-top: 0.6rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
   border-top: 1px solid var(--line);
 }
 .derivation ol {
-  margin: 0.4rem 0 0;
-  padding-left: 1.3rem;
+  margin: 0.5rem 0 0;
+  padding-left: 1.5rem;
 }
 .derivation li {
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.25rem;
 }
 .card .badge {
   margin-top: 0.5rem;
@@ -771,7 +771,7 @@ const hasRange = computed(
   color: inherit;
   border: 1px solid var(--line);
   border-radius: 2px;
-  padding: 0.4rem 0.5rem;
+  padding: 0.5rem 0.5rem;
   background: var(--paper);
   resize: vertical;
 }
@@ -782,12 +782,12 @@ const hasRange = computed(
   color: inherit;
   border: 1px solid var(--accent);
   border-radius: 2px;
-  padding: 0.3rem 0.5rem;
+  padding: 0.25rem 0.5rem;
   background: var(--paper);
 }
 .note {
   margin: 0.5rem 0 0;
-  padding: 0.4rem 0.6rem;
+  padding: 0.5rem 0.5rem;
   background: color-mix(in srgb, var(--accent) 6%, var(--paper-raised));
   border-left: 2px solid var(--line);
   font-size: var(--fs-sm);
@@ -810,11 +810,11 @@ const hasRange = computed(
 }
 .flag button {
   font-size: var(--fs-xs);
-  padding: 0.15rem 0.5rem;
+  padding: 0.25rem 0.5rem;
 }
 .past-deadline {
-  margin-top: 0.6rem;
-  padding-left: 0.7rem;
+  margin-top: 0.5rem;
+  padding-left: 0.75rem;
   border-left: 3px solid var(--warn);
 }
 .past-deadline b {
@@ -825,7 +825,7 @@ const hasRange = computed(
   font-size: var(--fs-sm);
 }
 .past-deadline p {
-  margin: 0.15rem 0 0;
+  margin: 0.25rem 0 0;
   font-size: var(--fs-sm);
 }
 .flag-impossible {
@@ -834,7 +834,7 @@ const hasRange = computed(
 }
 @media (max-width: 40rem) {
   .item {
-    margin-bottom: 1.1rem;
+    margin-bottom: 1rem;
   }
   .check::before {
     content: "";
@@ -850,7 +850,7 @@ const hasRange = computed(
     flex-wrap: wrap;
     gap: 0.5rem;
     align-items: baseline;
-    margin: 0 0 0.5rem 1.1rem;
+    margin: 0 0 0.5rem 1rem;
   }
 }
 

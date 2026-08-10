@@ -393,6 +393,7 @@ const noSourceCount = computed(
 
 // Scroll-linked highlight: tracks the page's own scroll (the rail has no inner scrollbox), picks the item closest to a fixed viewport line.
 const highlightedDate = ref<string | null>(null);
+const viewRange = ref<[string, string] | null>(null);
 let scrollRaf = false;
 function updateHighlight() {
   const container = railEl.value;
@@ -401,10 +402,18 @@ function updateHighlight() {
   let closestDate: string | null = null;
   let closestDelta = Number.POSITIVE_INFINITY;
   let lastDate: string | null = null;
+  // Which dates are on screen right now, for the timeline's viewport box.
+  let firstSeen: string | null = null;
+  let lastSeen: string | null = null;
   for (const el of items) {
     const date = el.dataset.entryDate;
     if (!date) continue;
     lastDate = date;
+    const box = el.getBoundingClientRect();
+    if (box.bottom > 0 && box.top < window.innerHeight) {
+      if (!firstSeen) firstSeen = date;
+      lastSeen = date;
+    }
     const delta = Math.abs(
       el.getBoundingClientRect().top - window.innerHeight / 2,
     );
@@ -421,6 +430,7 @@ function updateHighlight() {
     window.innerHeight + window.scrollY >=
     document.documentElement.scrollHeight - 2;
   highlightedDate.value = atBottom ? lastDate : (closestDate ?? lastDate);
+  viewRange.value = firstSeen && lastSeen ? [firstSeen, lastSeen] : null;
 }
 function onPageScroll() {
   if (scrollRaf) return;
@@ -634,6 +644,7 @@ function print() {
               :anchor-name="anchorLabel"
               :region-code="selected?.regionCode"
               :highlight-date="highlightedDate"
+              :view-range="viewRange"
               :hover-id="hoveredId"
               :done-ids="doneIds"
               compact
@@ -829,7 +840,7 @@ function print() {
   background: var(--paper-raised);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 0.9rem 1.1rem;
+  padding: 1rem 1rem;
   box-shadow: var(--shadow-sm);
   transition:
     border-color 0.12s,
@@ -848,7 +859,7 @@ function print() {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.25rem;
 }
 .field input,
 .field select {
@@ -907,8 +918,8 @@ function print() {
   align-items: baseline;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 0.8rem;
-  padding: 0.5rem 0.8rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
   border-radius: var(--radius);
   background: var(--paper-raised);
   border: 1px solid var(--line);
@@ -919,7 +930,7 @@ function print() {
   color: var(--muted);
 }
 .summary {
-  margin: 0 0 0.6rem;
+  margin: 0 0 0.5rem;
   font-size: var(--fs-md);
 }
 .quiet {
@@ -935,13 +946,13 @@ function print() {
 }
 .grouped-warn button {
   font-size: var(--fs-xs);
-  padding: 0.15rem 0.5rem;
+  padding: 0.25rem 0.5rem;
 }
 .progress {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  margin: 0.3rem 0 0;
+  margin: 0.25rem 0 0;
   font-size: var(--fs-xs);
   color: var(--muted);
 }
@@ -971,7 +982,7 @@ function print() {
   align-items: center;
   gap: 0.35rem;
   border: 1px solid var(--line);
-  padding: 0.25rem 0.6rem;
+  padding: 0.25rem 0.5rem;
   background: var(--paper-raised);
   font-size: var(--fs-sm);
   cursor: pointer;
@@ -995,7 +1006,7 @@ function print() {
   top: 0;
   z-index: 6;
   margin-bottom: 1rem;
-  padding-bottom: 0.3rem;
+  padding-bottom: 0.25rem;
   background: var(--paper);
   box-shadow: 0 1px 0 var(--line);
 }
@@ -1006,16 +1017,16 @@ function print() {
   }
 }
 .overview {
-  margin: 0.4rem 0 0;
+  margin: 0.5rem 0 0;
 }
 .scalenote {
   font-size: var(--fs-xs);
   color: var(--muted);
-  margin: 0.9rem 0 0.9rem 11.6rem;
+  margin: 1rem 0 1rem 11.6rem;
 }
 .verify-note {
-  margin: 0 0 0.9rem 11.6rem;
-  padding: 0.5rem 0.8rem;
+  margin: 0 0 1rem 11.6rem;
+  padding: 0.5rem 0.75rem;
   border-left: 2px solid var(--line);
   background: color-mix(in srgb, var(--muted) 8%, transparent);
   color: var(--muted);
@@ -1099,7 +1110,7 @@ function print() {
   display: block;
   width: 100%;
   margin-top: 1rem;
-  padding: 0.7rem 1rem;
+  padding: 0.75rem 1rem;
   border: 1px dashed var(--line);
   background: transparent;
   color: var(--muted);
@@ -1112,7 +1123,7 @@ function print() {
   color: var(--accent);
 }
 .done-group {
-  margin-top: 1.2rem;
+  margin-top: 1rem;
   font-size: var(--fs-sm);
 }
 .done-group summary {
@@ -1162,7 +1173,7 @@ function print() {
   top: calc(100% + 0.4rem);
 }
 .undo {
-  margin-top: 0.9rem;
+  margin-top: 1rem;
   font-size: var(--fs-sm);
   color: var(--muted);
 }
@@ -1177,8 +1188,8 @@ function print() {
 }
 
 .unscheduled {
-  margin-top: 2.5rem;
-  padding-top: 1.25rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
   border-top: 1px solid var(--line);
 }
 .unscheduled ul {
@@ -1210,7 +1221,7 @@ function print() {
     z-index: 7;
     display: block;
     margin: 1rem -1rem 0;
-    padding: 0.6rem 1rem;
+    padding: 0.5rem 1rem;
     background: var(--paper);
     border-top: 1px solid var(--line);
   }
@@ -1226,15 +1237,15 @@ function print() {
   }
 }
 .actions {
-  margin-top: 2.5rem;
-  padding: 1rem 1.2rem;
+  margin-top: 2rem;
+  padding: 1rem 1rem;
   background: var(--paper-raised);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
 }
 .actions h2 {
-  margin: 0 0 0.7rem;
+  margin: 0 0 0.75rem;
   font-size: var(--fs-md);
   border: 0;
   padding: 0;
@@ -1258,11 +1269,11 @@ function print() {
 @media (max-width: 40rem) {
   .rail {
     --rail-gap: 1.2rem;
-    padding-left: 1.4rem;
+    padding-left: 1.5rem;
   }
   .gap {
     margin-left: -1.4rem;
-    padding-left: 1.4rem;
+    padding-left: 1.5rem;
   }
   .rail::before {
     left: 0.2rem;
