@@ -121,7 +121,6 @@ const ogDescription =
     </main>
     <footer>
       <div class:list={["wrap", "footer-bar", { wide }]}>
-        <p>Ohne Quelle steht „Quelle fehlt" da, nicht eine geratene Zahl.</p>
         <p>Angaben ohne Gewähr, keine Rechtsberatung.</p>
         <p>
           <a href="/impressum">Impressum</a> &middot; <a href="/datenschutz"
@@ -265,8 +264,8 @@ const ogDescription =
   }
   .brand {
     font-family: var(--font-mono);
-    font-weight: 500;
-    font-size: 1.05rem;
+    font-weight: 600;
+    font-size: var(--fs-md);
     letter-spacing: 0.02em;
     color: var(--ink);
     text-decoration: none;
@@ -286,7 +285,7 @@ const ogDescription =
     align-items: center;
     flex-wrap: wrap;
     gap: 0.3rem 1.3rem;
-    font-size: 0.9rem;
+    font-size: var(--fs-sm);
   }
   .nav-divider {
     width: 1px;
@@ -329,7 +328,7 @@ const ogDescription =
     padding-top: 1.25rem;
     padding-bottom: 2rem;
     color: var(--muted);
-    font-size: 0.85rem;
+    font-size: var(--fs-sm);
   }
   .footer-bar p {
     margin: 0 0 0.4rem;

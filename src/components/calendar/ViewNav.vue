@@ -4,17 +4,31 @@
 // each view still owns what "prev" means for it.
 import { ChevronLeft, ChevronRight } from "lucide-vue-next";
 
-defineProps<{ title: string; prevDisabled?: boolean; nextDisabled?: boolean }>();
+defineProps<{
+  title: string;
+  prevDisabled?: boolean;
+  nextDisabled?: boolean;
+}>();
 const emit = defineEmits<{ (e: "prev"): void; (e: "next"): void }>();
 </script>
 
 <template>
   <div class="view-nav">
-    <button type="button" :disabled="prevDisabled" aria-label="Zurück" @click="emit('prev')">
+    <button
+      type="button"
+      :disabled="prevDisabled"
+      aria-label="Zurück"
+      @click="emit('prev')"
+    >
       <ChevronLeft :size="18" />
     </button>
     <h2>{{ title }}</h2>
-    <button type="button" :disabled="nextDisabled" aria-label="Weiter" @click="emit('next')">
+    <button
+      type="button"
+      :disabled="nextDisabled"
+      aria-label="Weiter"
+      @click="emit('next')"
+    >
       <ChevronRight :size="18" />
     </button>
   </div>
@@ -30,13 +44,13 @@ const emit = defineEmits<{ (e: "prev"): void; (e: "next"): void }>();
 }
 .view-nav h2 {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 500;
+  font-size: var(--fs-lg);
+  font-weight: 600;
   min-width: 14ch;
   text-align: center;
 }
 /* 24px floor is WCAG 2.5.8 / Lighthouse's touch-target minimum - a 16px icon
-   plus 0.15rem of padding came to 23x23. */
+  plus 0.15rem of padding came to 23x23. */
 .view-nav button {
   cursor: pointer;
   background: none;

@@ -38,7 +38,7 @@ const { crumbs } = Astro.props;
     align-items: baseline;
     gap: 0.4rem;
     margin-bottom: 1rem;
-    font-size: 0.85rem;
+    font-size: var(--fs-sm);
     color: var(--muted);
   }
   .breadcrumbs a {
@@ -52,7 +52,7 @@ const { crumbs } = Astro.props;
     color: var(--line);
   }
   /* The one crumb that isn't a link - kept at full ink so the trail reads as
-     "you are here", not as five equally grey words. */
+    "you are here", not as five equally grey words. */
   .current {
     color: var(--ink);
   }

@@ -63,12 +63,12 @@ const emit = defineEmits<{
   margin: 0 0 0.6rem;
   padding: 0;
   border: 0;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   width: fit-content;
 }
 .month-title button {
   font: inherit;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--muted);

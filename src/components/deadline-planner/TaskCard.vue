@@ -391,7 +391,7 @@ const hasRange = computed(
   font-family: var(--font-mono);
 }
 .when b {
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   line-height: 1.3;
   white-space: nowrap;
 }
@@ -401,17 +401,17 @@ const hasRange = computed(
 }
 .when span {
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   line-height: 1.3;
   white-space: nowrap;
 }
 .when .rel {
   color: var(--accent);
-  font-size: 0.68rem;
+  font-size: var(--fs-xs);
 }
 .when .next-possible {
   color: var(--warn);
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   display: flex;
   gap: 0.1rem;
   align-items: center;
@@ -439,7 +439,7 @@ const hasRange = computed(
 }
 .anchor-divider .label {
   font-weight: 600;
-  font-size: 1rem;
+  font-size: var(--fs-md);
   color: var(--accent);
 }
 .anchor-divider .label.done {
@@ -447,8 +447,7 @@ const hasRange = computed(
   color: var(--muted);
 }
 .anchor-divider .flag-inline {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--warn);
 }
 .item.current .anchor-divider {
@@ -518,12 +517,12 @@ const hasRange = computed(
 }
 .card h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: var(--fs-md);
 }
 .title-input {
   font-family: inherit;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: var(--fs-md);
   color: inherit;
   border: 1px solid var(--accent);
   border-radius: 2px;
@@ -586,11 +585,11 @@ const hasRange = computed(
 .card p {
   margin: 0.3rem 0 0;
   color: var(--muted);
-  font-size: 0.88rem;
+  font-size: var(--fs-sm);
 }
 /* Only the start-by day is bold: it is the decision, the rest is context. */
 .range-line {
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 .range-line b {
   color: var(--ink);
@@ -599,7 +598,7 @@ const hasRange = computed(
 /* The proof it wasn't estimated should be one click away, not in every card. */
 .derivation {
   margin-top: 0.4rem;
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
   color: var(--muted);
 }
 .derivation summary {
@@ -636,7 +635,7 @@ const hasRange = computed(
   color: var(--accent);
   background: transparent;
   font-family: inherit;
-  font-size: 0.88rem;
+  font-size: var(--fs-sm);
   text-decoration: underline;
   text-underline-offset: 0.15em;
   cursor: pointer;
@@ -649,7 +648,7 @@ const hasRange = computed(
   width: 100%;
   margin-top: 0.5rem;
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   color: inherit;
   border: 1px solid var(--line);
   border-radius: 2px;
@@ -660,7 +659,7 @@ const hasRange = computed(
 .date-input {
   display: block;
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   color: inherit;
   border: 1px solid var(--accent);
   border-radius: 2px;
@@ -672,7 +671,7 @@ const hasRange = computed(
   padding: 0.4rem 0.6rem;
   background: color-mix(in srgb, var(--accent) 6%, var(--paper-raised));
   border-left: 2px solid var(--line);
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   color: var(--ink);
   white-space: pre-wrap;
   cursor: text;
@@ -683,7 +682,7 @@ const hasRange = computed(
   border-left: 2px solid var(--warn);
   background: color-mix(in srgb, var(--warn) 12%, transparent);
   color: var(--ink) !important;
-  font-size: 0.85rem !important;
+  font-size: var(--fs-sm) !important;
 }
 .flag-impossible {
   font-weight: 600;

@@ -577,9 +577,9 @@ function onNodeClick(id: string, e: MouseEvent) {
   --ctx-y: 1.2rem; /* Feiertage/Schulferien strip, below the ruler */
   --ctx-h: 0.55rem;
   --mlabel-y: 2.05rem;
-  --mlabel-size: 0.7rem;
-  --pin-title: 0.95rem;
-  --pin-sub: 0.7rem;
+  --mlabel-size: var(--fs-xs);
+  --pin-title: var(--fs-md);
+  --pin-sub: var(--fs-xs);
   --today-top: 2.7rem;
 
   --axis-y: calc(var(--lanes, 1) * var(--lane-h) + var(--head-pad));
@@ -594,7 +594,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   gap: 1rem;
   padding: 0.5rem 0 0.7rem;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
   letter-spacing: 0.02em;
   color: var(--muted);
 }
@@ -721,7 +721,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   top: -1.25rem;
   left: -0.65rem;
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.08em;
   background: var(--paper);
   padding: 0 0.25rem;
@@ -844,7 +844,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   transform: translateX(-50%);
   background: var(--ink);
   color: var(--paper);
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   /* Wraps instead of one unclipped nowrap line - a long label on a narrow
     strip used to blow out sideways into whatever else was nearby (the
     Umzugstag pin, most often). z-index wins it against .pin's own text too,
@@ -874,7 +874,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   top: -0.1rem;
   left: 0.5rem;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   color: var(--accent);
   white-space: nowrap;
 }
@@ -890,9 +890,9 @@ function onNodeClick(id: string, e: MouseEvent) {
   --ctx-y: 1.7rem;
   --ctx-h: 1.1rem;
   --mlabel-y: 2.9rem;
-  --mlabel-size: 0.95rem;
-  --pin-title: 1.3rem;
-  --pin-sub: 1rem;
+  --mlabel-size: var(--fs-md);
+  --pin-title: var(--fs-lg);
+  --pin-sub: var(--fs-md);
   --today-top: 2.9rem;
 }
 .compact .scroller {
@@ -900,7 +900,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   cursor: default;
 }
 .compact .today b {
-  font-size: 0.95rem;
+  font-size: var(--fs-md);
   top: -1.5rem;
   left: -0.75rem;
 }
@@ -909,7 +909,7 @@ function onNodeClick(id: string, e: MouseEvent) {
   cursor: pointer;
 }
 .compact .node::after {
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -932,9 +932,9 @@ function onNodeClick(id: string, e: MouseEvent) {
     --ctx-y: 0.9rem;
     --ctx-h: 0.4rem;
     --mlabel-y: 1.5rem;
-    --mlabel-size: 0.62rem;
-    --pin-title: 0.85rem;
-    --pin-sub: 0.62rem;
+    --mlabel-size: var(--fs-xs);
+    --pin-title: var(--fs-sm);
+    --pin-sub: var(--fs-xs);
     --today-top: 2rem;
   }
   /* --lane-h has to clear --node (24px) by enough to read as separate lanes,
@@ -948,16 +948,16 @@ function onNodeClick(id: string, e: MouseEvent) {
     --ctx-y: 1.15rem;
     --ctx-h: 0.7rem;
     --mlabel-y: 2rem;
-    --mlabel-size: 0.72rem;
-    --pin-title: 1rem;
-    --pin-sub: 0.75rem;
+    --mlabel-size: var(--fs-xs);
+    --pin-title: var(--fs-md);
+    --pin-sub: var(--fs-xs);
     --today-top: 4.2rem;
   }
   .compact .node::after {
-    font-size: 0.75rem;
+    font-size: var(--fs-xs);
   }
   .legend {
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     gap: 0.6rem;
   }
   .node::after {

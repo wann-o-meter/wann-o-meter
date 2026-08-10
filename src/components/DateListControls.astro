@@ -51,7 +51,7 @@ const openAll = currentYear !== undefined && !inIndexWindow(category, currentYea
 
 {
   /* Renders even for a single year: that lone year page is only reachable
-     from here, so a "one year needs no picker" gate would orphan it. */
+    from here, so a "one year needs no picker" gate would orphan it. */
   yearLinks.length > 0 && (
     <div class="year-filter" data-current-year={currentYear} data-open={openAll ? "all" : undefined}>
       <p class="year-pills">
@@ -62,7 +62,7 @@ const openAll = currentYear !== undefined && !inIndexWindow(category, currentYea
           <a class="year-btn" href={allHref} data-astro-prefetch="viewport">Alle</a>
         ) : (
           /* On the evergreen page "Alle" IS this page - the current item, not
-             somewhere to navigate to. */
+            somewhere to navigate to. */
           <span class="year-btn active" aria-current="page">Alle</span>
         )}
         {/* Hidden until a reveal puts enough years in the row to need paging -
@@ -263,7 +263,7 @@ const openAll = currentYear !== undefined && !inIndexWindow(category, currentYea
     }
 
     syncPager();
-    // A page whose own year is outside the window opens complete; otherwise
+    // A page whose own year is outside the window opens complete, otherwise
     // whatever was opened earlier this session. Neither is recorded back into
     // the session: landing on one archive page should not leave every later
     // page unfolded.
@@ -308,23 +308,23 @@ const openAll = currentYear !== undefined && !inIndexWindow(category, currentYea
     align-items: center;
     gap: 0.5rem;
     margin: 0.6rem 0 0;
-    font-size: 0.82rem;
+    font-size: var(--fs-sm);
     color: var(--muted);
   }
   .year-jump select {
-    font-size: 0.82rem;
+    font-size: var(--fs-sm);
   }
   .year-range {
     font-variant-numeric: tabular-nums;
   }
   /* One rule for all three pill elements (<a>, <span>, <button>), so a year
-     pill looks the same whether it links, marks the current page, or pages. */
+    pill looks the same whether it links, marks the current page, or pages. */
   .year-btn {
     display: inline-block;
     text-decoration: none;
     cursor: pointer;
     font: inherit;
-    font-size: 0.82rem;
+    font-size: var(--fs-sm);
     padding: 0.3rem 0.75rem;
     border: 1px solid var(--line);
     border-radius: 999px;
@@ -332,9 +332,9 @@ const openAll = currentYear !== undefined && !inIndexWindow(category, currentYea
     color: var(--muted);
   }
   /* The `display` above is an AUTHOR declaration, so it beats the UA
-     stylesheet's `[hidden] { display: none }` outright - without this rule the
-     pager's `option.hidden = ...` stops hiding anything and a revealed
-     200-year source renders all 200 pills at once. */
+    stylesheet's `[hidden] { display: none }` outright - without this rule the
+    pager's `option.hidden = ...` stops hiding anything and a revealed
+    200-year source renders all 200 pills at once. */
   .year-btn[hidden] {
     display: none;
   }

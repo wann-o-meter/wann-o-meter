@@ -70,19 +70,19 @@ const entries = deadlines.filter((d) => appliesTo(d, [])).sort(byOffset);
   }
   .when {
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--muted);
     margin: 0;
   }
   h3 {
-    font-size: 1rem;
+    font-size: var(--fs-md);
     margin: 0.35rem 0;
   }
   .note,
   .src {
-    font-size: 0.85rem;
+    font-size: var(--fs-sm);
     margin: 0.35rem 0 0;
   }
   .note {

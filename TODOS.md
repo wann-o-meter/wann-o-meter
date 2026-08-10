@@ -9,7 +9,7 @@
 - [x] "Trifft auf mich zu" show the options below the text
 - [x] "Zurück zum Zeitstrahl" -> "Zurück zur Startseite"
 - [x] on mobile fix the date popup when changing the date of a card. it keeps closing.
-- [ ] there is too many font types, sizes, weights, etc., On mobile it really gets messy. Consolidate this ![Messy mobile](mobile.png)
+- [x] there is too many font types, sizes, weights, etc., On mobile it really gets messy. Consolidate this ![Messy mobile](image.png)
 - [ ] "Umzug/Hochzeit/... in deiner Stadt" is nice but it becomes messy if there are lets say 1500 cities
 - [ ] "Umzug" is preselected but you still have to click it to select the date
 - [ ] the checkbox for the main even in the list is looking weird

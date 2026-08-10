@@ -85,13 +85,13 @@ const eventCount = grid.reduce((n, m) => n + m.cells.filter((c) => c.state === "
     position: sticky;
     left: 0;
     background: var(--paper);
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.03em;
   }
   .row.ticks {
-    font-size: 0.6rem;
+    font-size: var(--fs-xs);
     color: var(--muted);
     font-variant-numeric: tabular-nums;
   }
@@ -133,7 +133,7 @@ const eventCount = grid.reduce((n, m) => n + m.cells.filter((c) => c.state === "
     align-items: center;
     gap: 0.4rem;
     margin: 0.6rem 0 0;
-    font-size: 0.8rem;
+    font-size: var(--fs-sm);
     color: var(--muted);
   }
   .swatch {

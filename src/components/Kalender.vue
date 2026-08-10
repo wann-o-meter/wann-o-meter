@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
-import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Search, Trash2, X } from "lucide-vue-next";
+import {
+  CalendarDays,
+  CalendarPlus,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  Trash2,
+  X,
+} from "lucide-vue-next";
 import { MONTH_NAMES } from "../../lib/date-display";
 import { isoFromDate, mondayOf } from "../../lib/date-grid";
 import {
@@ -132,7 +140,9 @@ interface OptionGroup {
 const groupedOptions = computed<OptionGroup[]>(() => {
   const q = layerSearch.value.trim().toLowerCase();
   const matches = q
-    ? availableOptions.value.filter((o) => `${o.group} ${o.label}`.toLowerCase().includes(q))
+    ? availableOptions.value.filter((o) =>
+        `${o.group} ${o.label}`.toLowerCase().includes(q),
+      )
     : availableOptions.value;
 
   const byGroup = new Map<string, CatalogEntry[]>();
@@ -144,7 +154,12 @@ const groupedOptions = computed<OptionGroup[]>(() => {
   return [...byGroup.entries()].map(([group, entries]) => {
     const expanded = q.length > 0 || expandedGroups.value.has(group);
     const visible = expanded ? entries : entries.slice(0, GROUP_DEFAULT_LIMIT);
-    return { group, total: entries.length, visible, more: entries.length - visible.length };
+    return {
+      group,
+      total: entries.length,
+      visible,
+      more: entries.length - visible.length,
+    };
   });
 });
 
@@ -168,7 +183,10 @@ const groupedLayers = computed<LayerGroup[]>(() => {
     if (!byGroup.has(l.group)) byGroup.set(l.group, []);
     byGroup.get(l.group)!.push(l);
   }
-  return [...byGroup.entries()].map(([group, groupLayers]) => ({ group, layers: groupLayers }));
+  return [...byGroup.entries()].map(([group, groupLayers]) => ({
+    group,
+    layers: groupLayers,
+  }));
 });
 
 function groupVisibility(grp: LayerGroup): "all" | "none" | "some" {
@@ -192,7 +210,10 @@ const layerDataCache = new Map<string, Promise<CalendarEntryResponse>>();
 
 function fetchLayerData(id: string): Promise<CalendarEntryResponse> {
   if (!layerDataCache.has(id)) {
-    layerDataCache.set(id, fetch(`/api/v1/calendar/${id}.json`).then((r) => r.json()));
+    layerDataCache.set(
+      id,
+      fetch(`/api/v1/calendar/${id}.json`).then((r) => r.json()),
+    );
   }
   return layerDataCache.get(id)!;
 }
@@ -221,7 +242,12 @@ async function addLayer(entry: CatalogEntry) {
   // would incidentally pick up the already-updated raw data on its next
   // render pass).
   const layer = layers.value.find((l) => l.id === entry.id);
-  if (layer) layer.windows = data.windows.map((w) => ({ start: w.from, end: w.to, description: w.description }));
+  if (layer)
+    layer.windows = data.windows.map((w) => ({
+      start: w.from,
+      end: w.to,
+      description: w.description,
+    }));
 }
 
 function removeLayer(id: string) {
@@ -403,15 +429,20 @@ function goToToday() {
   }
   pushNextUrlWrite = true;
   year.value = today.getFullYear();
-  if (MONTH_NAV_VIEWS.includes(view.value)) activeMonth.value = today.getMonth();
+  if (MONTH_NAV_VIEWS.includes(view.value))
+    activeMonth.value = today.getMonth();
 }
 
 // Hides the "Heute" button once it would be a no-op - same unit goToToday()
 // itself jumps by.
 const isAtToday = computed(() => {
-  if (view.value === "week") return weekStart.value === isoFromDate(mondayOf(today));
+  if (view.value === "week")
+    return weekStart.value === isoFromDate(mondayOf(today));
   if (year.value !== today.getFullYear()) return false;
-  return !MONTH_NAV_VIEWS.includes(view.value) || activeMonth.value === today.getMonth();
+  return (
+    !MONTH_NAV_VIEWS.includes(view.value) ||
+    activeMonth.value === today.getMonth()
+  );
 });
 
 function changeMonth(delta: number) {
@@ -464,7 +495,11 @@ function onKeydown(e: KeyboardEvent) {
   // browser history, a screen reader), never ours.
   if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
   const el = document.activeElement;
-  if (el instanceof HTMLElement && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
+  if (
+    el instanceof HTMLElement &&
+    (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))
+  )
+    return;
   e.preventDefault();
   step(e.key === "ArrowRight" ? 1 : -1);
 }
@@ -510,199 +545,273 @@ onUnmounted(() => {
 <template>
   <div class="calendar">
     <div class="calendar-layout">
-    <div class="main-area">
-      <div v-if="loading" class="skeleton" aria-hidden="true">
-        <div class="skeleton-bar skeleton-breadcrumbs"></div>
-        <div class="skeleton-grid">
-          <div v-for="n in 12" :key="n" class="skeleton-cell">
-            <div class="skeleton-bar skeleton-month-title"></div>
-            <div class="skeleton-bar skeleton-month-body"></div>
+      <div class="main-area">
+        <div v-if="loading" class="skeleton" aria-hidden="true">
+          <div class="skeleton-bar skeleton-breadcrumbs"></div>
+          <div class="skeleton-grid">
+            <div v-for="n in 12" :key="n" class="skeleton-cell">
+              <div class="skeleton-bar skeleton-month-title"></div>
+              <div class="skeleton-bar skeleton-month-body"></div>
+            </div>
           </div>
         </div>
-      </div>
-      <p v-if="loading" class="sr-only">Kalender lädt…</p>
+        <p v-if="loading" class="sr-only">Kalender lädt…</p>
 
-      <template v-else>
-        <nav class="breadcrumbs" aria-label="Brotkrumen">
-          <button type="button" class="crumb" @click="setView('year')">{{ year }}</button>
-          <template v-if="view === 'week' || MONTH_NAV_VIEWS.includes(view)">
-            <ChevronRight :size="14" />
-            <button type="button" class="crumb" @click="setView('month')">{{ MONTH_NAMES[activeMonth] }}</button>
-          </template>
-          <div class="breadcrumb-actions">
-            <button v-if="!isAtToday" type="button" class="action-button" title="Zu heute springen" @click="goToToday">
-              <CalendarDays :size="14" /> Heute
+        <template v-else>
+          <nav class="breadcrumbs" aria-label="Brotkrumen">
+            <button type="button" class="crumb" @click="setView('year')">
+              {{ year }}
             </button>
-            <div class="view-switch" role="group" aria-label="Ansicht">
-              <button
-                v-for="option in VIEW_OPTIONS"
-                :key="option.id"
-                type="button"
-                :class="{ active: view === option.id }"
-                :aria-pressed="view === option.id"
-                @click="selectView(option.id)"
-              >
-                {{ option.label }}
+            <template v-if="view === 'week' || MONTH_NAV_VIEWS.includes(view)">
+              <ChevronRight :size="14" />
+              <button type="button" class="crumb" @click="setView('month')">
+                {{ MONTH_NAMES[activeMonth] }}
               </button>
-            </div>
-          </div>
-        </nav>
-
-        <YearView
-          v-if="view === 'year'"
-          :year="year"
-          :layers="layers"
-          :today-iso="todayIso"
-          @month-click="openMonth"
-          @day-click="openWeekForDay"
-          @week-click="openWeek"
-        />
-
-        <MonthView
-          v-else-if="view === 'month'"
-          :year="year"
-          :month-index0="activeMonth"
-          :layers="layers"
-          :today-iso="todayIso"
-          :prev-disabled="year <= YEAR_MIN && activeMonth === 0"
-          :next-disabled="year >= YEAR_MAX && activeMonth === 11"
-          @prev="changeMonth(-1)"
-          @next="changeMonth(1)"
-          @week-click="openWeek"
-        />
-
-        <WeekView
-          v-else-if="view === 'week'"
-          :week-start="weekStart"
-          :layers="layers"
-          :today-iso="todayIso"
-          :selected-day="selectedDay"
-          :prev-disabled="year <= YEAR_MIN"
-          :next-disabled="year >= YEAR_MAX"
-          @prev="changeWeek(-1)"
-          @next="changeWeek(1)"
-        />
-
-        <PlannerView
-          v-else-if="view === 'planner'"
-          :year="year"
-          :month-index0="activeMonth"
-          :layers="layers"
-          :today-iso="todayIso"
-          :prev-disabled="year <= YEAR_MIN && activeMonth === 0"
-          :next-disabled="year >= YEAR_MAX && activeMonth === 11"
-          @prev="changeMonth(-1)"
-          @next="changeMonth(1)"
-          @remove="removeLayer"
-        />
-
-        <GraphView
-          v-else
-          :year="year"
-          :layers="layers"
-          :prev-disabled="year <= YEAR_MIN"
-          :next-disabled="year >= YEAR_MAX"
-          @prev="year--"
-          @next="year++"
-        />
-      </template>
-    </div>
-
-    <aside class="sidebar">
-      <div v-if="view === 'year'" class="year-nav">
-        <button type="button" aria-label="Vorheriges Jahr" :disabled="year <= YEAR_MIN" @click="year--"><ChevronLeft :size="16" /></button>
-        <input
-          v-if="editingYear"
-          ref="yearInputEl"
-          v-model="yearDraft"
-          type="number"
-          :min="YEAR_MIN"
-          :max="YEAR_MAX"
-          class="year-input"
-          @keydown.enter="commitYear"
-          @blur="commitYear"
-        />
-        <span v-else role="button" tabindex="0" title="Jahr eingeben" @click="startEditYear" @keydown.enter="startEditYear">{{ year }}</span>
-        <button type="button" aria-label="Nächstes Jahr" :disabled="year >= YEAR_MAX" @click="year++"><ChevronRight :size="16" /></button>
-      </div>
-
-      <div v-if="layers.length > 0" class="layer-list-actions">
-        <button type="button" class="reset-layers" @click="resetLayers"><Trash2 :size="14" /> Alle entfernen</button>
-      </div>
-      <ul v-if="layers.length > 0" class="layer-list">
-        <template v-for="grp in groupedLayers" :key="grp.group">
-          <li class="layer-group-header">
-            <label>
-              <input
-                type="checkbox"
-                :checked="groupVisibility(grp) === 'all'"
-                :indeterminate="groupVisibility(grp) === 'some'"
-                @change="toggleGroup(grp)"
-              />
-              <span class="layer-group-title">{{ grp.group }}</span>
-            </label>
-          </li>
-          <li v-for="layer in grp.layers" :key="layer.id">
-            <label :title="layer.label">
-              <input v-model="layer.visible" type="checkbox" />
-              <span class="dot" :style="{ background: layer.color }" />
-              <span class="layer-label-text">{{ layer.label }}</span>
-            </label>
-            <span class="layer-actions">
+            </template>
+            <div class="breadcrumb-actions">
               <button
+                v-if="!isAtToday"
                 type="button"
-                class="feed-toggle"
-                title="Adresse des ICS-Kalenders anzeigen"
-                :aria-expanded="revealedFeed === layer.id"
-                @click="toggleFeed(layer.id)"
+                class="action-button"
+                title="Zu heute springen"
+                @click="goToToday"
               >
-                <CalendarPlus :size="13" aria-hidden="true" /> ICS
+                <CalendarDays :size="14" /> Heute
               </button>
-              <button type="button" title="Ebene entfernen" @click="removeLayer(layer.id)"><X :size="14" /></button>
-            </span>
-            <div v-if="revealedFeed === layer.id" class="feed-panel">
-              <input type="text" readonly :value="absoluteFeedUrl(layer.feedUrl)" aria-label="Adresse des ICS-Kalenders" @click="selectAllOnClick" />
-              <button type="button" @click="copyFeedUrl(layer)">Kopieren</button>
-              <span class="copy-status" role="status" aria-live="polite">{{ copiedFeed === layer.id ? "Kopiert!" : "" }}</span>
-              <p><a :href="layer.feedUrl">.ics-Datei herunterladen</a></p>
+              <div class="view-switch" role="group" aria-label="Ansicht">
+                <button
+                  v-for="option in VIEW_OPTIONS"
+                  :key="option.id"
+                  type="button"
+                  :class="{ active: view === option.id }"
+                  :aria-pressed="view === option.id"
+                  @click="selectView(option.id)"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
             </div>
-          </li>
-        </template>
-      </ul>
+          </nav>
 
-      <div class="add-layer">
-        <div class="layer-search-wrap">
-          <Search :size="14" class="search-icon" aria-hidden="true" />
-          <input
-            v-model="layerSearch"
-            type="search"
-            placeholder='Direkt suchen und hinzufügen ("Bayern", "Sommerferien", "Sonnenfinsternis" …)'
+          <YearView
+            v-if="view === 'year'"
+            :year="year"
+            :layers="layers"
+            :today-iso="todayIso"
+            @month-click="openMonth"
+            @day-click="openWeekForDay"
+            @week-click="openWeek"
           />
-        </div>
-        <div class="search-results">
-          <div v-for="grp in groupedOptions" :key="grp.group" class="search-group-block">
-            <h3 class="search-group-title">{{ grp.group }} <span class="search-group-count">({{ grp.total }})</span></h3>
-            <ul>
-              <li v-for="option in grp.visible" :key="option.id">
-                <button type="button" @click="selectOption(option)">{{ option.label }}</button>
-              </li>
-            </ul>
-            <button v-if="grp.more > 0" type="button" class="show-more-button" @click="expandGroup(grp.group)">
-              +{{ grp.more }} weitere anzeigen
-            </button>
-          </div>
-          <p v-if="groupedOptions.length === 0" class="no-results">Keine Treffer</p>
-        </div>
+
+          <MonthView
+            v-else-if="view === 'month'"
+            :year="year"
+            :month-index0="activeMonth"
+            :layers="layers"
+            :today-iso="todayIso"
+            :prev-disabled="year <= YEAR_MIN && activeMonth === 0"
+            :next-disabled="year >= YEAR_MAX && activeMonth === 11"
+            @prev="changeMonth(-1)"
+            @next="changeMonth(1)"
+            @week-click="openWeek"
+          />
+
+          <WeekView
+            v-else-if="view === 'week'"
+            :week-start="weekStart"
+            :layers="layers"
+            :today-iso="todayIso"
+            :selected-day="selectedDay"
+            :prev-disabled="year <= YEAR_MIN"
+            :next-disabled="year >= YEAR_MAX"
+            @prev="changeWeek(-1)"
+            @next="changeWeek(1)"
+          />
+
+          <PlannerView
+            v-else-if="view === 'planner'"
+            :year="year"
+            :month-index0="activeMonth"
+            :layers="layers"
+            :today-iso="todayIso"
+            :prev-disabled="year <= YEAR_MIN && activeMonth === 0"
+            :next-disabled="year >= YEAR_MAX && activeMonth === 11"
+            @prev="changeMonth(-1)"
+            @next="changeMonth(1)"
+            @remove="removeLayer"
+          />
+
+          <GraphView
+            v-else
+            :year="year"
+            :layers="layers"
+            :prev-disabled="year <= YEAR_MIN"
+            :next-disabled="year >= YEAR_MAX"
+            @prev="year--"
+            @next="year++"
+          />
+        </template>
       </div>
-    </aside>
+
+      <aside class="sidebar">
+        <div v-if="view === 'year'" class="year-nav">
+          <button
+            type="button"
+            aria-label="Vorheriges Jahr"
+            :disabled="year <= YEAR_MIN"
+            @click="year--"
+          >
+            <ChevronLeft :size="16" />
+          </button>
+          <input
+            v-if="editingYear"
+            ref="yearInputEl"
+            v-model="yearDraft"
+            type="number"
+            :min="YEAR_MIN"
+            :max="YEAR_MAX"
+            class="year-input"
+            @keydown.enter="commitYear"
+            @blur="commitYear"
+          />
+          <span
+            v-else
+            role="button"
+            tabindex="0"
+            title="Jahr eingeben"
+            @click="startEditYear"
+            @keydown.enter="startEditYear"
+            >{{ year }}</span
+          >
+          <button
+            type="button"
+            aria-label="Nächstes Jahr"
+            :disabled="year >= YEAR_MAX"
+            @click="year++"
+          >
+            <ChevronRight :size="16" />
+          </button>
+        </div>
+
+        <div v-if="layers.length > 0" class="layer-list-actions">
+          <button type="button" class="reset-layers" @click="resetLayers">
+            <Trash2 :size="14" /> Alle entfernen
+          </button>
+        </div>
+        <ul v-if="layers.length > 0" class="layer-list">
+          <template v-for="grp in groupedLayers" :key="grp.group">
+            <li class="layer-group-header">
+              <label>
+                <input
+                  type="checkbox"
+                  :checked="groupVisibility(grp) === 'all'"
+                  :indeterminate="groupVisibility(grp) === 'some'"
+                  @change="toggleGroup(grp)"
+                />
+                <span class="layer-group-title">{{ grp.group }}</span>
+              </label>
+            </li>
+            <li v-for="layer in grp.layers" :key="layer.id">
+              <label :title="layer.label">
+                <input v-model="layer.visible" type="checkbox" />
+                <span class="dot" :style="{ background: layer.color }" />
+                <span class="layer-label-text">{{ layer.label }}</span>
+              </label>
+              <span class="layer-actions">
+                <button
+                  type="button"
+                  class="feed-toggle"
+                  title="Adresse des ICS-Kalenders anzeigen"
+                  :aria-expanded="revealedFeed === layer.id"
+                  @click="toggleFeed(layer.id)"
+                >
+                  <CalendarPlus :size="13" aria-hidden="true" /> ICS
+                </button>
+                <button
+                  type="button"
+                  title="Ebene entfernen"
+                  @click="removeLayer(layer.id)"
+                >
+                  <X :size="14" />
+                </button>
+              </span>
+              <div v-if="revealedFeed === layer.id" class="feed-panel">
+                <input
+                  type="text"
+                  readonly
+                  :value="absoluteFeedUrl(layer.feedUrl)"
+                  aria-label="Adresse des ICS-Kalenders"
+                  @click="selectAllOnClick"
+                />
+                <button type="button" @click="copyFeedUrl(layer)">
+                  Kopieren
+                </button>
+                <span class="copy-status" role="status" aria-live="polite">{{
+                  copiedFeed === layer.id ? "Kopiert!" : ""
+                }}</span>
+                <p><a :href="layer.feedUrl">.ics-Datei herunterladen</a></p>
+              </div>
+            </li>
+          </template>
+        </ul>
+
+        <div class="add-layer">
+          <div class="layer-search-wrap">
+            <Search :size="14" class="search-icon" aria-hidden="true" />
+            <input
+              v-model="layerSearch"
+              type="search"
+              placeholder='Direkt suchen und hinzufügen ("Bayern", "Sommerferien", "Sonnenfinsternis" …)'
+            />
+          </div>
+          <div class="search-results">
+            <div
+              v-for="grp in groupedOptions"
+              :key="grp.group"
+              class="search-group-block"
+            >
+              <h3 class="search-group-title">
+                {{ grp.group }}
+                <span class="search-group-count">({{ grp.total }})</span>
+              </h3>
+              <ul>
+                <li v-for="option in grp.visible" :key="option.id">
+                  <button type="button" @click="selectOption(option)">
+                    {{ option.label }}
+                  </button>
+                </li>
+              </ul>
+              <button
+                v-if="grp.more > 0"
+                type="button"
+                class="show-more-button"
+                @click="expandGroup(grp.group)"
+              >
+                +{{ grp.more }} weitere anzeigen
+              </button>
+            </div>
+            <p v-if="groupedOptions.length === 0" class="no-results">
+              Keine Treffer
+            </p>
+          </div>
+        </div>
+      </aside>
     </div>
 
     <div v-if="!props.embed" class="embed-bar">
       <button type="button" @click="toggleEmbedPanel">Einbetten</button>
       <div v-if="showEmbed" class="embed-panel">
         <label for="embed-url">Link zum Einbetten</label>
-        <input id="embed-url" type="text" readonly :value="embedUrl" @click="selectAllOnClick" />
-        <button type="button" @click="copyEmbedUrl">{{ copied ? "Kopiert!" : "Kopieren" }}</button>
+        <input
+          id="embed-url"
+          type="text"
+          readonly
+          :value="embedUrl"
+          @click="selectAllOnClick"
+        />
+        <button type="button" @click="copyEmbedUrl">
+          {{ copied ? "Kopiert!" : "Kopieren" }}
+        </button>
       </div>
     </div>
   </div>
@@ -710,7 +819,7 @@ onUnmounted(() => {
 
 <style scoped>
 .calendar {
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 
 .calendar-layout {
@@ -747,7 +856,7 @@ onUnmounted(() => {
   margin-bottom: 1rem;
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 .breadcrumbs .crumb {
   cursor: pointer;
@@ -777,7 +886,7 @@ onUnmounted(() => {
   gap: 0.3rem;
   padding: 0.3rem 0.6rem;
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   color: var(--ink);
 }
 .action-button:hover {
@@ -791,7 +900,7 @@ onUnmounted(() => {
 }
 .view-switch button {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   padding: 0.3rem 0.6rem;
 }
 .view-switch button:not(.active):hover {
@@ -869,7 +978,7 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   padding: 0.2rem 0.5rem;
   color: var(--muted);
 }
@@ -909,7 +1018,7 @@ onUnmounted(() => {
   margin-top: 0.2rem;
 }
 .layer-group-title {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -925,7 +1034,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   flex-shrink: 0;
 }
 .layer-actions a {
@@ -946,7 +1055,7 @@ onUnmounted(() => {
 /* Was an <a>, now a disclosure button - keep it looking exactly the same. */
 .layer-actions .feed-toggle {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   color: var(--accent);
   align-items: center;
   gap: 0.25rem;
@@ -963,21 +1072,21 @@ onUnmounted(() => {
 .feed-panel p {
   width: 100%;
   margin: 0;
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 .feed-panel input {
   flex: 1;
   min-width: 10rem;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
 }
 .feed-panel > button {
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
 }
 .copy-status {
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--accent);
 }
 .dot {
@@ -1030,7 +1139,7 @@ onUnmounted(() => {
 .search-group-title {
   margin: 0;
   padding: 0.2rem 0.6rem 0.35rem;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -1072,7 +1181,7 @@ onUnmounted(() => {
 .no-results {
   color: var(--muted);
   padding: 0.4rem 0.6rem;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   margin: 0;
 }
 
@@ -1147,14 +1256,14 @@ onUnmounted(() => {
 }
 .embed-panel label {
   width: 100%;
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   color: var(--muted);
 }
 .embed-panel input {
   flex: 1;
   min-width: 14rem;
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
 }
 
 @media (max-width: 60rem) {

@@ -166,7 +166,7 @@ function isWeekend(dayIso: string): boolean {
 .weekdays span {
   text-align: center;
   color: var(--muted);
-  font-size: 0.68rem;
+  font-size: var(--fs-xs);
 }
 .week-col-header {
   font-family: var(--font-mono);
@@ -229,7 +229,7 @@ function isWeekend(dayIso: string): boolean {
 .month-grid-header span {
   text-align: center;
   color: var(--muted);
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
 }
 .week-number-header {
   font-family: var(--font-mono);
@@ -247,7 +247,7 @@ function isWeekend(dayIso: string): boolean {
   cursor: pointer;
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
 }
 .week-number:hover {
   color: var(--accent);
@@ -256,7 +256,7 @@ function isWeekend(dayIso: string): boolean {
 .week-number.mini {
   background: none;
   border: none;
-  font-size: 0.62rem;
+  font-size: var(--fs-xs);
   padding: 0;
 }
 .day-cell {

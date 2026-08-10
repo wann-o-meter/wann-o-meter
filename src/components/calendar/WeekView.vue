@@ -3,7 +3,11 @@
 // (the only template that shows titles rather than colour marks).
 import { computed } from "vue";
 import { WEEKDAY_NAMES_LONG, isoWeekNumber } from "../../../lib/date-display";
-import { type DayLayer, isoFromDate, matchesForDay } from "../../../lib/date-grid";
+import {
+  type DayLayer,
+  isoFromDate,
+  matchesForDay,
+} from "../../../lib/date-grid";
 import ViewNav from "./ViewNav.vue";
 
 const props = defineProps<{
@@ -25,7 +29,9 @@ const days = computed(() => {
   });
 });
 
-const weekNumber = computed(() => isoWeekNumber(new Date(`${props.weekStart}T00:00:00`)));
+const weekNumber = computed(() =>
+  isoWeekNumber(new Date(`${props.weekStart}T00:00:00`)),
+);
 
 function formatShort(iso: string): string {
   const [, m, d] = iso.split("-");
@@ -58,13 +64,17 @@ function matches(dayIso: string) {
         v-for="(dayIso, i) in days"
         :key="dayIso"
         class="day-column"
-        :class="{ today: dayIso === todayIso, selected: dayIso === selectedDay }"
+        :class="{
+          today: dayIso === todayIso,
+          selected: dayIso === selectedDay,
+        }"
       >
         <!-- h2, not h4: the seven days are this view's top-level sections and
-             the only heading above them is the page's h1, so h4 skipped two
-             levels (axe heading-order). -->
+            the only heading above them is the page's h1, so h4 skipped two
+            levels (axe heading-order). -->
         <h2>
-          {{ WEEKDAY_NAMES_LONG[i] }} <span class="day-number">{{ Number(dayIso.slice(8)) }}</span>
+          {{ WEEKDAY_NAMES_LONG[i] }}
+          <span class="day-number">{{ Number(dayIso.slice(8)) }}</span>
         </h2>
         <ul class="event-list">
           <li v-for="(match, j) in matches(dayIso)" :key="j">
@@ -106,13 +116,13 @@ function matches(dayIso: string) {
   outline-offset: -2px;
 }
 /* border/padding reset: global.css underlines every h2, and these are column
-   captions rather than page sections. */
+  captions rather than page sections. */
 .day-column h2 {
   margin: 0 0 0.6rem;
   padding: 0;
   border: 0;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--fs-xs);
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--muted);
@@ -129,7 +139,7 @@ function matches(dayIso: string) {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
 }
 .event-link {
   display: flex;

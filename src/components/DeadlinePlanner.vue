@@ -692,7 +692,7 @@ function print() {
 .field span {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
@@ -705,13 +705,13 @@ function print() {
   border: 0;
   background: transparent;
   padding: 0;
-  font-size: 1.05rem;
-  font-weight: 500;
+  font-size: var(--fs-md);
+  font-weight: 600;
 }
 .field strong {
   display: block;
-  font-size: 1.05rem;
-  font-weight: 500;
+  font-size: var(--fs-md);
+  font-weight: 600;
 }
 .field input:focus-visible,
 .field select:focus-visible {
@@ -739,7 +739,7 @@ function print() {
 .facets legend {
   /* Not a flex item, so it sits on its own line above the options. */
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
@@ -752,7 +752,7 @@ function print() {
   border: 1px solid var(--line);
   padding: 0.25rem 0.6rem;
   background: var(--paper-raised);
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   cursor: pointer;
 }
 .facet:has(input:checked) {
@@ -791,8 +791,7 @@ function print() {
   will-change: transform;
 }
 .scalenote {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--muted);
   margin: 0.9rem 0 0.9rem 12.5rem;
 }
@@ -802,7 +801,7 @@ function print() {
   border-left: 2px solid var(--line);
   background: color-mix(in srgb, var(--muted) 8%, transparent);
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 .rail-column {
   min-width: 0;
@@ -867,7 +866,7 @@ function print() {
   top: 50%;
   transform: translateY(-50%);
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
@@ -905,7 +904,7 @@ function print() {
 }
 .undo {
   margin-top: 0.9rem;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   color: var(--muted);
 }
 .undo button {
@@ -950,7 +949,7 @@ function print() {
 .actions p {
   margin: 0.5rem 0 0;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
 }
 .actions-buttons {
   display: flex;

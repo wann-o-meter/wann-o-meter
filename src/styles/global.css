@@ -1,5 +1,4 @@
 @import "@fontsource/ibm-plex-sans/400.css";
-@import "@fontsource/ibm-plex-sans/500.css";
 @import "@fontsource/ibm-plex-sans/600.css";
 @import "@fontsource/ibm-plex-mono/400.css";
 @import "@fontsource/ibm-plex-mono/500.css";
@@ -26,6 +25,14 @@
     "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono:
     "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  /* One type scale for the whole site. A size off this list reads as another
+    font and is what made narrow screens look unsorted. Weights are 400 and
+    600, nothing between. */
+  --fs-xs: 0.72rem;
+  --fs-sm: 0.85rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.4rem;
+  --fs-xl: 2rem;
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
@@ -50,7 +57,7 @@ html {
 body {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: 1rem;
+  font-size: var(--fs-md);
   line-height: 1.6;
   color: var(--ink);
   background: var(--paper);
@@ -64,10 +71,10 @@ h3 {
   margin: 1.75rem 0 0.75rem;
 }
 h1 {
-  font-size: 2rem;
+  font-size: var(--fs-xl);
 }
 h2 {
-  font-size: 1.4rem;
+  font-size: var(--fs-lg);
   padding-bottom: 0.35rem;
   border-bottom: 1px solid var(--line);
 }
@@ -116,7 +123,7 @@ table {
   border-collapse: collapse;
   font-variant-numeric: tabular-nums;
   font-family: var(--font-mono);
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 th,
 td {
@@ -126,9 +133,9 @@ td {
   white-space: nowrap;
 }
 th {
-  font-weight: 500;
+  font-weight: 600;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -160,7 +167,7 @@ th {
 .source-item .label {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--accent);
@@ -172,23 +179,23 @@ th {
 .source-item .note {
   margin: 0.3rem 0 0;
   color: var(--muted);
-  font-size: 0.88rem;
+  font-size: var(--fs-sm);
 }
 .source-item .retrieved {
   font-family: var(--font-mono);
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 .source-item .contributed-by {
   font-family: var(--font-mono);
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 .source-item .report-link {
   display: block;
   margin-top: 0.3rem;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
 }
 .source-item .report-link:hover {
   color: var(--accent);
@@ -197,7 +204,7 @@ th {
 .badge {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 0.1rem 0.4rem;
@@ -283,7 +290,7 @@ th {
   border: 1px solid var(--ink);
   color: var(--ink);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
 }
 .cta:hover {
   border-color: var(--accent);
@@ -298,7 +305,7 @@ th {
   border: 1px solid var(--line);
   color: var(--ink);
   text-decoration: none;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
 }
 .link-button:hover {
   border-color: var(--accent);
@@ -307,7 +314,7 @@ th {
 
 /* Back-to-category link at the top of every subject/page detail view. */
 .back {
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 
 @view-transition {

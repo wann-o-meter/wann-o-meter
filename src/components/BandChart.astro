@@ -108,8 +108,8 @@ function longDate(iso: string): string {
     background: var(--paper);
     text-align: left;
     padding: 0.15rem 0.6rem 0.15rem 0;
-    font-weight: 500;
-    font-size: 0.78rem;
+    font-weight: 600;
+    font-size: var(--fs-sm);
     color: var(--ink);
     text-transform: none;
     letter-spacing: normal;
@@ -124,7 +124,7 @@ function longDate(iso: string): string {
   .month-header {
     text-align: left;
     color: var(--muted);
-    font-size: 0.72rem;
+    font-size: var(--fs-xs);
     padding: 0 0 0.2rem 0.1rem;
   }
   .day-header {
@@ -133,13 +133,13 @@ function longDate(iso: string): string {
     text-align: center;
     color: var(--muted);
     font-weight: 400;
-    font-size: 0.6rem;
+    font-size: var(--fs-xs);
     font-variant-numeric: tabular-nums;
     line-height: 1.1;
   }
   .day-header .dow {
     display: block;
-    font-size: 0.55rem;
+    font-size: var(--fs-xs);
   }
   .day-header .dom {
     display: block;
@@ -195,7 +195,7 @@ function longDate(iso: string): string {
     align-items: center;
     gap: 0.4rem;
     margin: 0.6rem 0 2rem;
-    font-size: 0.8rem;
+    font-size: var(--fs-sm);
     color: var(--muted);
   }
   .swatch {

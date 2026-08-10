@@ -64,7 +64,7 @@ defineEmits<{
   border: 0;
   background: transparent;
   color: var(--ink);
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   padding: 0.4rem 0.6rem;
   cursor: pointer;
   border-radius: 2px;
@@ -80,7 +80,7 @@ defineEmits<{
   border-radius: 0;
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }

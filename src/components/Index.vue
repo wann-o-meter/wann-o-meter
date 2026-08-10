@@ -314,7 +314,7 @@ h1 {
 .chip {
   border-radius: 100px;
   padding: 0.5rem 1rem;
-  font-size: 0.94rem;
+  font-size: var(--fs-md);
 }
 .chip[aria-pressed="true"] {
   background: var(--accent);
@@ -334,13 +334,13 @@ h1 {
 }
 .place span {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
 }
 .place select {
-  font-size: 0.94rem;
+  font-size: var(--fs-md);
   padding: 0.35rem 0.6rem;
   background: var(--paper-raised);
   border: 1px solid var(--line);
@@ -352,7 +352,7 @@ h1 {
 }
 .hint {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
@@ -365,7 +365,7 @@ h1 {
 
 .btn {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   padding: 0.65rem 1.2rem;
   text-decoration: none;
   display: inline-block;
@@ -383,7 +383,7 @@ h1 {
   background: none;
   border: 0;
   color: var(--accent);
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   padding: 0;
   margin-bottom: 0.9rem;
   cursor: pointer;

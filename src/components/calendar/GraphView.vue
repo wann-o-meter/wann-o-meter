@@ -16,7 +16,13 @@
 // dropped; week is the finest granularity worth looking at.
 import { computed, ref } from "vue";
 import { MONTH_NAMES, isoWeekNumber } from "../../../lib/date-display";
-import { type DayLayer, daysInMonth, isoDate, isoFromDate, mondayOf } from "../../../lib/date-grid";
+import {
+  type DayLayer,
+  daysInMonth,
+  isoDate,
+  isoFromDate,
+  mondayOf,
+} from "../../../lib/date-grid";
 import ViewNav from "./ViewNav.vue";
 
 type GraphLayer = DayLayer & { id: string };
@@ -73,7 +79,10 @@ const weekGroups = computed(() => {
     if (!byMonday.has(monday)) byMonday.set(monday, []);
     byMonday.get(monday)!.push(iso);
   }
-  return [...byMonday.entries()].map(([mondayIso, days]) => ({ mondayIso, days }));
+  return [...byMonday.entries()].map(([mondayIso, days]) => ({
+    mondayIso,
+    days,
+  }));
 });
 
 // A week's "month" is the month of its first in-year day, not of its Monday -
@@ -118,13 +127,16 @@ const rows = computed(() =>
 // slivers (the container scrolls horizontally instead).
 const barsColumns = computed(() => {
   const n = rows.value[0]?.buckets.length ?? 12;
-  return granularity.value === "week" ? `repeat(${n}, minmax(5px, 1fr))` : `repeat(${n}, 1fr)`;
+  return granularity.value === "week"
+    ? `repeat(${n}, minmax(5px, 1fr))`
+    : `repeat(${n}, 1fr)`;
 });
 
 // One label per month, each spanning however many grid columns belong to it -
 // 1 each for month granularity, a run-length-encoded span of weeks for week.
 const axisGroups = computed(() => {
-  if (granularity.value === "month") return MONTH_NAMES.map((name) => ({ label: name.slice(0, 3), span: 1 }));
+  if (granularity.value === "month")
+    return MONTH_NAMES.map((name) => ({ label: name.slice(0, 3), span: 1 }));
   const groups: { label: string; span: number }[] = [];
   for (const w of weekGroups.value) {
     const label = MONTH_NAMES[weekMonthIndex0(w.days)].slice(0, 3);
@@ -146,10 +158,24 @@ const axisGroups = computed(() => {
       @next="emit('next')"
     />
     <div class="granularity-toggle">
-      <button type="button" :class="{ active: granularity === 'month' }" @click="granularity = 'month'">Monat</button>
-      <button type="button" :class="{ active: granularity === 'week' }" @click="granularity = 'week'">Woche</button>
+      <button
+        type="button"
+        :class="{ active: granularity === 'month' }"
+        @click="granularity = 'month'"
+      >
+        Monat
+      </button>
+      <button
+        type="button"
+        :class="{ active: granularity === 'week' }"
+        @click="granularity = 'week'"
+      >
+        Woche
+      </button>
     </div>
-    <p v-if="rows.length === 0" class="no-layers">Keine sichtbaren Ebenen ausgewählt.</p>
+    <p v-if="rows.length === 0" class="no-layers">
+      Keine sichtbaren Ebenen ausgewählt.
+    </p>
     <template v-else>
       <div class="graph-rows">
         <div v-for="row in rows" :key="row.layer.id" class="graph-row">
@@ -166,7 +192,10 @@ const axisGroups = computed(() => {
             >
               <div
                 class="graph-bar"
-                :style="{ height: `${(bucket.count / bucket.total) * 100}%`, background: row.layer.color }"
+                :style="{
+                  height: `${(bucket.count / bucket.total) * 100}%`,
+                  background: row.layer.color,
+                }"
               />
             </div>
           </div>
@@ -175,7 +204,11 @@ const axisGroups = computed(() => {
       <div class="graph-months-row">
         <span class="graph-row-label-spacer" />
         <div class="graph-months" :style="{ gridTemplateColumns: barsColumns }">
-          <span v-for="(group, i) in axisGroups" :key="i" :style="{ gridColumn: `span ${group.span}` }">
+          <span
+            v-for="(group, i) in axisGroups"
+            :key="i"
+            :style="{ gridColumn: `span ${group.span}` }"
+          >
             {{ group.label }}
           </span>
         </div>
@@ -192,7 +225,7 @@ const axisGroups = computed(() => {
   margin-bottom: 1rem;
 }
 .granularity-toggle button {
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
   padding: 0.25rem 0.7rem;
 }
 .granularity-toggle button.active {
@@ -202,7 +235,7 @@ const axisGroups = computed(() => {
 }
 .no-layers {
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   padding: 0.5rem 0.1rem;
 }
 .graph-rows {
@@ -225,7 +258,7 @@ const axisGroups = computed(() => {
   align-items: center;
   gap: 0.5rem;
   min-width: 0;
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
 }
 .dot {
   width: 0.65rem;
@@ -270,7 +303,7 @@ const axisGroups = computed(() => {
 }
 .graph-months span {
   text-align: center;
-  font-size: 0.65rem;
+  font-size: var(--fs-xs);
   color: var(--muted);
   overflow: hidden;
   text-overflow: ellipsis;
