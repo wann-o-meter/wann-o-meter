@@ -17,7 +17,8 @@ import {
   facetLabel,
   facetsUsedBy,
 } from "../../lib/facets";
-import { formatDateWithWeekday, toDate } from "../../lib/format-date";
+import { shortDate } from "../../lib/date-display";
+import { toDate } from "../../lib/format-date";
 import { generateIcs } from "../../lib/ics";
 import type { IcsEvent } from "../../lib/ics";
 import { taskCtaFor } from "./deadline-planner/task-cta";
@@ -220,26 +221,38 @@ function isPast(date: string): boolean {
   return date < isoToday();
 }
 
-// The plan in one sentence, so the list below has a frame.
-const nextOpen = computed(() => {
-  const open = timeline.value.filter(
-    (e) => e.id !== ANCHOR_ID && !doneIds[e.id],
-  );
-  // An expired entry's actionable day is its rescue date, not the day that
-  // already went by, so the sentence can never name a past date.
-  const upcoming = open.filter((e) => !isPast(e.rescue?.date ?? e.date!));
-  const pool = upcoming.length > 0 ? upcoming : open;
-  if (pool.length === 0) return null;
-  const pick = (e: (typeof pool)[number]) => e.rescue?.date ?? e.date!;
-  const next = pool.reduce((a, b) => (pick(a) <= pick(b) ? a : b));
-  return { id: next.id, label: next.label, date: pick(next) };
-});
-const openCount = computed(
-  () => tasks.value.filter((t) => !doneIds[t.id]).length,
+// The plan in one sentence, so the list below has a frame. Verstrichen and
+// offen are counted apart: a missed deadline is the only state that demands
+// something today, and folding it into "offen" is what made the old sentence
+// quote a recovery date as if it were the deadline.
+const openEntries = computed(() =>
+  timeline.value.filter((e) => e.id !== ANCHOR_ID && !doneIds[e.id]),
 );
-function jumpToNext() {
-  if (nextOpen.value) onTimelineSelect(nextOpen.value.id);
-}
+const overdueEntries = computed(() =>
+  openEntries.value.filter((e) => isPast(e.date!)),
+);
+const openCount = computed(
+  () => openEntries.value.length - overdueEntries.value.length,
+);
+
+const nextOpen = computed(() => {
+  const upcoming = openEntries.value.filter((e) => !isPast(e.date!));
+  if (upcoming.length === 0) return null;
+  const next = upcoming.reduce((a, b) => (a.date! <= b.date! ? a : b));
+  return { id: next.id, label: next.label, date: next.date! };
+});
+
+// Only a rule that can name an alternative day has one, so a plain missed
+// offset leaves the sentence without a Nachholen clause rather than with a
+// made-up date.
+const catchUp = computed(() => {
+  const withRescue = overdueEntries.value.filter((e) => e.rescue);
+  if (withRescue.length === 0) return null;
+  const first = withRescue.reduce((a, b) =>
+    a.rescue!.date <= b.rescue!.date ? a : b,
+  );
+  return { id: first.id, date: first.rescue!.date };
+});
 
 const anchorIsSunday = computed(
   () => toDate(anchorDate.value).getUTCDay() === 0,
@@ -480,12 +493,27 @@ function print() {
 
       <template v-if="anchorDate">
         <p class="summary">
-          {{ tasks.length }} Aufgaben, {{ openCount }} noch offen.
-          <template v-if="nextOpen">
-            Die nächste Frist ist am
-            <a :href="`#task-${nextOpen.id}`" @click.prevent="jumpToNext">{{
-              formatDateWithWeekday(nextOpen.date)
-            }}</a
+          <template v-if="overdueEntries.length > 0">
+            <strong class="late">Du bist spät dran.</strong>
+            {{ overdueEntries.length }}
+            {{ overdueEntries.length === 1 ? "Frist" : "Fristen" }}
+            verstrichen, {{ openCount }} offen.
+            <template v-if="catchUp">
+              Nachholen bis
+              <a
+                :href="`#task-${catchUp.id}`"
+                @click.prevent="onTimelineSelect(catchUp.id)"
+                >{{ shortDate(catchUp.date) }}</a
+              >.
+            </template>
+          </template>
+          <template v-else-if="nextOpen">
+            {{ tasks.length }} Aufgaben, {{ openCount }} noch offen. Die nächste
+            Frist ist am
+            <a
+              :href="`#task-${nextOpen.id}`"
+              @click.prevent="onTimelineSelect(nextOpen.id)"
+              >{{ shortDate(nextOpen.date) }}</a
             >: {{ nextOpen.label }}.
           </template>
           <template v-else>Alle Aufgaben sind erledigt.</template>
@@ -798,6 +826,9 @@ function print() {
 }
 .summary a {
   color: var(--accent);
+}
+.summary .late {
+  color: var(--warn);
 }
 .compact .summary {
   margin: 0.3rem 0 0.2rem;

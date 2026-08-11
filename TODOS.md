@@ -1,26 +1,45 @@
-**Bugs**
+## Correctness
 
-- [x] Every task date is a Sunday (27 Sep, 25 Okt, 1 Nov, 8 Nov) — the offsets are being applied in whole weeks from a Sunday move date, so no task ever lands on a weekday
-- [x] Consequently the "Sa/So, Ämter haben zu" warning fires on almost every card — fix the root cause instead of offering "vorziehen" everywhere
+- [x] Summary says _„Die nächste Frist ist am Do., 03.09.2026: Wohnung kündigen"_ but that task's Frist is 04.08.2026 and has passed. The summary is quoting the recovery date as if it were the deadline. Split the two: _„1 Frist verstrichen, 9 offen. Nachholen bis Do., 03.09.2026."_
+- [x] Summary says _„10 Aufgaben, 10 noch offen"_ while one is overdue. Overdue is not the same state as open — it needs its own count, since it's the only state that requires action today.
+- [ ] Kündigung by 03.09 gives Mietende 30.11.2026 against a move on 16.10.2026 — six weeks of double rent. The plan computes both numbers and doesn't say this. That overlap is exactly the kind of derived insight a generic checklist can't produce.
+- [ ] Timeline shows „möglich ab" capsules for some tasks; the cards never show a start date. Same data, two views, one of them silently dropping it.
 
-**Homepage**
+## Consistency
 
-- [x] The numbered "1. Datum wählen · 2. Fristen sehen · 3. Als Kalender exportieren" row still sits at the bottom, after the user has already done step 1 — move it up
-- [x] "ORT" now sits _below_ the timeline and summary, so the plan is computed before the location is chosen — move it next to the date
-- [x] Timeline spans 13 months while all activity is in a 3-month window — clip the range to the plan plus a small margin
-- [x] "Zeitplan öffnen" floats over the rail and covers it; place it below the summary line
-- [x] Summary line "So., 08.11.2026 · 10 Fristen · erste am Do., 03.09.2026" repeats the date already shown in the field and the flag
+- [ ] Three date formats on one screen: `Do., 03.09.2026` (summary), `Di, 04.08.2026` (card), `Fr, 16. Oktober 2026` (flag). Pick one long form and one short form and define where each is used.
+- [ ] The card rail (vertical line with hollow dots, left of the cards) reuses the timeline's exact visual vocabulary — hollow circle on a line — but its dots are evenly spaced by list order, not by date. Same glyph, different meaning. Either space the rail proportionally to date or change the glyph.
+- [ ] Only two of ten markers have a „möglich ab" capsule. Verify this is real data and not a rendering condition that fails for tasks without an explicit start.
+- [ ] Werktag and Wochenende cells in the day band are nearly the same value. The band's whole job is making weekday structure visible; widen the gap between those two fills.
+- [ ] Month labels sit under the tick rather than centred in the month span, so „Aug" appears roughly above 20 August.
+- [ ] The VORHABEN field is styled as a card like UMZUGSTAG and ORT but isn't interactive. Either make it a select (it's the natural place to switch Vorhaben) or demote it to a plain line of text.
+- [ ] The page title already says _Umzug_, and the VORHABEN field repeats _Umzug innerhalb Deutschlands_. One of them can go.
+- [ ] Card 1 has no eyebrow; card 2 has _ALS NÄCHSTES_. An overdue card deserves the stronger eyebrow, not none.
+- [ ] Rail dot vertical alignment differs between the two cards (card 1 aligns to card top, card 2 to the eyebrow).
 
-**Detail page timeline**
+## Hierarchy
 
-- [x] Legend has grown back to seven items across two visual languages — trim to the toggles plus at most two states
-- [x] "möglich bis Frist" swatch is a pill shape; the same element on the rail is a thin bar — make them match
-- [x] Two past-markers still overlap (grey rail band and the darker bar below), ending at different points
-- [x] Sticky timeline overlaps the top card so its title is cut off — add scroll padding
+- [ ] Inside card 1 the _Mietende_ segmented control is filled navy while the actual action _„Kündigung der Wohnung aufsetzen"_ is outlined. The setting looks more actionable than the action. Invert: segmented control as quiet toggle, one filled button.
+- [ ] Card 1 carries two provenance affordances — _▶ Wie berechnet?_ and _Grundlage: § 573c BGB ↗_. Fold the paragraph reference into the disclosure, or drop the disclosure and link the paragraph.
+- [x] The headline asks _„wann muss ich anfangen?"_ and the page never answers it in those terms. With an overdue task the answer is _„Du bist spät dran"_ — that belongs above the timeline, not inferred from a red card further down.
+- [ ] The legend row mixes two unrelated things: state keys (offen / erledigt / möglich ab) and band filters (Feiertage / Schulferien checkboxes). Separate them; filters are controls, keys are not.
+- [ ] Overdue red appears in the timeline and on the rail but has no legend entry, despite being the most consequential state on this particular screen.
+- [ ] Markers stack three deep at one x while long stretches sit empty. Worth checking whether lane packing is using the full occupied width including capsules, or only marker radius.
 
-**Cards**
+## Copy
 
-- [x] Same-day tasks (25 Okt group) show the date only on the first card, so the following ones look undated
-- [x] "Auf 23. Okt vorziehen" and "Auf 30. Okt vorziehen" appear as primary-weight buttons inside otherwise calm cards
-- [x] "Kündigungsschreiben aufsetzen" appears on two different cards with identical styling but presumably different targets
-- [x] Card borders alternate between plain and blue-outlined with no visible rule — clarify what the outline means
+- [ ] _„möglich ab - Frist"_ and _„Frist verstrichen - bis 3. Sep nachholen"_ use hyphens where en dashes belong (– / —).
+- [ ] _„bis 3. Sep nachholen"_ abbreviates the month while every other date on the page is written out or numeric. Same fix as the date-format item.
+- [ ] _„Wie berechnet?"_ is missing a word. _„Wie wird das berechnet?"_ or just _„Berechnung"_.
+- [ ] The strikethrough on _Frist: Di, 04.08.2026_ implies the date is void, but it's the date that still governs the legal outcome. Consider keeping it upright and marking it _verstrichen_ instead.
+
+## Accessibility and interaction
+
+- [ ] The round checkboxes next to task titles need visible labels or `aria-label`; as bare grey circles they also collide with the timeline's „offen" glyph.
+- [ ] The _Mietende_ control needs `role="radiogroup"` with proper checked state — segmented controls built from buttons are unreadable to screen readers.
+- [ ] `▶` as a disclosure marker should be a real `<details>`/`<summary>` (or a button with `aria-expanded`), not a glyph.
+- [ ] The Umzugstag label _„Fr, 16. Oktober 2026"_ runs to the container edge and will clip at narrower widths — needs the flip-to-`text-anchor: end` clamp.
+- [ ] Check contrast of the grey month labels and legend text against the light blue background; they look under 4.5:1.
+- [ ] If the header is sticky, confirm the _AUFGABEN_ section and each card have `scroll-margin-top` so marker → card jumps don't land underneath it.
+
+The two I'd fix first are the summary sentence (it currently states something false) and the double-rent gap (it's the strongest demonstration on the page that this isn't a checklist).
