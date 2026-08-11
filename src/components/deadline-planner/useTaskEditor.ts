@@ -1,18 +1,11 @@
-import {
-  type ComputedRef,
-  computed,
-  nextTick,
-  reactive,
-  ref,
-  watch,
-} from "vue";
+import { type ComputedRef, computed, nextTick, reactive, ref, watch } from "vue";
 import type { Deadline, ScheduleEntry } from "../../../lib/deadline-plan";
 import type { PlanVariant } from "./types";
 import { LETTER_TEMPLATE } from "./task-cta";
 
 const CUSTOM_PREFIX = "custom-";
 
-export function isCustomTask(id: string): boolean {
+function isCustomTask(id: string): boolean {
   return id.startsWith(CUSTOM_PREFIX);
 }
 
@@ -22,10 +15,6 @@ interface CustomTask {
   offsetDays: number;
 }
 
-// Client-only editing layer - exists so the plan can be worked FROM, not just
-// read. `rootEl` is the component root, used to focus a task's input right
-// after it's created or opened. `storageKey` scopes what is kept in
-// localStorage, so two plans never see each other's progress.
 export function useTaskEditor(
   selected: ComputedRef<PlanVariant | undefined>,
   rootEl: { value: HTMLElement | null },
@@ -36,15 +25,10 @@ export function useTaskEditor(
   const doneIds = reactive<Record<string, boolean>>({});
   const deletedIds = reactive<Record<string, boolean>>({});
   const userNotes = reactive<Record<string, string>>({});
-  // A renamed read-only deadline. Custom tasks own their label instead.
   const labelOverrides = reactive<Record<string, string>>({});
-  // Rescheduling a real (read-only) deadline via moveEntry() - a custom
-  // task mutates its own offsetDays instead, see moveEntry() below.
   const offsetOverrides = reactive<Record<string, number>>({});
   const editingId = ref<string | null>(null);
   const openNoteId = ref<string | null>(null);
-  // Separate from userNotes on purpose - a note is free-form text, an
-  // attachment is the letter CTA's own content (link CTAs are stateless).
   const attachments = reactive<Record<string, string>>({});
   const openAttachmentId = ref<string | null>(null);
   const lastDeleted = ref<{ id: string; label: string } | null>(null);
@@ -117,8 +101,6 @@ export function useTaskEditor(
     openNoteId.value = null;
   }
 
-  // Letter CTA only (link CTA is a plain <a>, stateless). First open seeds
-  // the template, later opens reuse whatever was written.
   function openAttachment(id: string) {
     if (!(id in attachments)) attachments[id] = LETTER_TEMPLATE;
     openAttachmentId.value = id;
@@ -166,8 +148,6 @@ export function useTaskEditor(
     if (!label) startEditingLabel(id);
   }
 
-  // Persistence. Everything below is derived state, so one snapshot of these
-  // seven fields restores a plan exactly.
   const maps = {
     done: doneIds,
     deleted: deletedIds,
@@ -223,7 +203,6 @@ export function useTaskEditor(
             JSON.stringify({ ...snapshot, custom: customTasks.value }),
           );
         } catch {
-          // quota or private mode - the plan still works, it just won't persist
         }
       },
       { deep: true },

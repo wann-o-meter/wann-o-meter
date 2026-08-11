@@ -6,7 +6,7 @@ import { isPast } from "../../../lib/today";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
 
 const props = defineProps<{
-  entries: ScheduleEntry[]; // the timeline, anchor already removed
+  entries: ScheduleEntry[];
   taskCount: number;
   doneIds: Record<string, boolean>;
   anchorDate: string;
@@ -15,9 +15,6 @@ const props = defineProps<{
 
 defineEmits<{ (e: "select", id: string): void }>();
 
-// Verstrichen and offen are counted apart: a missed deadline is the only
-// state that demands something today, and folding it into "offen" is what made
-// the old sentence quote a recovery date as if it were the deadline.
 const open = computed(() => props.entries.filter((e) => !props.doneIds[e.id]));
 const overdue = computed(() => open.value.filter((e) => isPast(e.date!)));
 const openCount = computed(() => open.value.length - overdue.value.length);
@@ -29,9 +26,6 @@ const nextOpen = computed(() => {
   return { id: next.id, label: next.label, date: next.date! };
 });
 
-// Only a rule that can name an alternative day has one, so a plain missed
-// offset leaves the sentence without a Nachholen clause rather than with a
-// made-up date.
 const catchUp = computed(() => {
   const withRescue = overdue.value.filter((e) => e.rescue);
   if (withRescue.length === 0) return null;
@@ -103,7 +97,6 @@ const anchorIsSunday = computed(
     max-height 0.22s,
     opacity 0.22s;
 }
-/* .compact is set on the planner root while the header is stuck. */
 .compact .summary {
   margin: 0.3rem 0 0.2rem;
   font-size: var(--fs-sm);

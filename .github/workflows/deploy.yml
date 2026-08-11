@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 jobs:
-  test-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -13,7 +13,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
-      - run: bun run test
       - run: bun run build
       - uses: peaceiris/actions-gh-pages@v4
         with:

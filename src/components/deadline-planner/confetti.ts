@@ -1,11 +1,6 @@
 const COLORS = ["var(--accent)", "var(--warn)", "var(--ink)"];
 const PIECES = 12;
 
-/**
- * A 12 piece burst from the centre of an element. Drawn on body, so no card
- * and no overflow: hidden can clip it. Styling lives with the planner as
- * :global(.wom-confetti).
- */
 export function burst(el: Element | null | undefined) {
   if (!el || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const box = el.getBoundingClientRect();

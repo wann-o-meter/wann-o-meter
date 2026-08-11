@@ -5,11 +5,9 @@ import { formatDate, toDate } from "../../../lib/format-date";
 import type { PlanVariant } from "./types";
 
 export const ANCHOR_ID = "__anchor";
-export const COUNTRY_CODE = "DE"; // hardcoded: a German-market product end to end, no caller needs another
+export const COUNTRY_CODE = "DE";
 
-// Interleaves gap markers between rows so the proportional spacing is a real
-// node to hang a hover-revealed insert button on, not just margin.
-export type RailNode =
+type RailNode =
   | { kind: "item"; entry: ScheduleEntry }
   | {
       kind: "gap";
@@ -17,13 +15,9 @@ export type RailNode =
       afterOffset: number;
       beforeOffset: number;
       heightPx: number;
-      bufferDays: number; // days of real dead time between the previous deadline and the next task's earliest-possible day, clamped to >= 0 - a bar that already starts earlier isn't a negative gap, it's none at all
+      bufferDays: number;
     };
 
-// Resolves the working deadline list to real dates, plus everything the rail
-// and summary stats derive from it. The anchor day is UI chrome, not a
-// researched fact - injected here rather than stored as data, and can't be
-// checked off/noted/deleted like a task.
 export function usePlannerSchedule(
   anchorDate: Ref<string>,
   selected: ComputedRef<PlanVariant | undefined>,

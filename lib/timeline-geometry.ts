@@ -1,9 +1,4 @@
-// Pure geometry for the timeline rail, testable without a DOM. Browser-safe
-// by construction, nothing here imports anything (see lib/deadline-plan.ts).
-// A day is an integer day number in UTC, never a Date, so no daylight saving
-// change can shift a column by an hour.
-
-export const DAY_MS = 86400000;
+const DAY_MS = 86400000;
 
 export function utcDay(d: Date): Date {
   return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -21,12 +16,10 @@ export function daysBetween(from: Date, to: Date): number {
   return Math.round((to.getTime() - from.getTime()) / DAY_MS);
 }
 
-/** ISO day string to day number. */
 export function dayNum(isoDate: string): number {
   return Math.round(Date.parse(`${isoDate}T00:00:00Z`) / DAY_MS);
 }
 
-/** Day number back to an ISO day string. */
 export function isoOfDay(n: number): string {
   return new Date(n * DAY_MS).toISOString().slice(0, 10);
 }
@@ -35,7 +28,6 @@ export function dateOfDay(n: number): Date {
   return new Date(n * DAY_MS);
 }
 
-/** 0 = Sunday, matching Date.getUTCDay. 1970-01-01 was a Thursday. */
 export function dow(n: number): number {
   return (((n + 4) % 7) + 7) % 7;
 }
@@ -44,11 +36,6 @@ export function isWeekend(n: number): boolean {
   return dow(n) === 0 || dow(n) === 6;
 }
 
-/**
- * The day window the rail shows: everything relevant, widened to whole
- * months so month labels always have their full column and the ends of the
- * strip never cut a month in half.
- */
 export function monthWindow(days: number[]): { from: number; to: number } {
   const lo = new Date(Math.min(...days) * DAY_MS);
   const hi = new Date(Math.max(...days) * DAY_MS);
@@ -57,7 +44,6 @@ export function monthWindow(days: number[]): { from: number; to: number } {
   return { from: Math.round(from / DAY_MS), to: Math.round(to / DAY_MS) };
 }
 
-/** First day of every month in [from, to], as day numbers. */
 export function monthFirsts(from: number, to: number): number[] {
   const out: number[] = [];
   const d = new Date(from * DAY_MS);
@@ -71,16 +57,11 @@ export function monthFirsts(from: number, to: number): number[] {
   return out;
 }
 
-export interface LaneItem {
-  left: number; // leftmost occupied pixel, capsule included
-  right: number; // rightmost occupied pixel, marker included
+interface LaneItem {
+  left: number;
+  right: number;
 }
 
-/**
- * Greedy packing over the full occupied width, so two markers can never sit
- * on top of each other. Items must already be sorted by their left edge.
- * Returns one lane index per item, in the order they were passed.
- */
 export function packLanes(items: LaneItem[], minGap: number): number[] {
   const laneEnd: number[] = [];
   return items.map((item) => {

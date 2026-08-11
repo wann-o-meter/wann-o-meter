@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// Popover at both "+" triggers: presets not already in data/umzug/*.yaml,
-// plus a free-text fallthrough to the blank-task flow. A picked preset is a
-// plain custom task, just pre-filled - no offset/date claim beyond the usual
-// gap-midpoint placement.
 const PRESET_TASKS = [
   "Bank- und Versicherungsadresse ändern",
   "Arbeitgeber über neue Adresse informieren",

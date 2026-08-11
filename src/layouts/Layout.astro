@@ -12,12 +12,7 @@ interface Props {
   title: string;
   description?: string;
   wide?: boolean;
-  // Pre-built JSON-LD document from lib/structured-data.ts's graph() - kept
-  // as a plain prop instead of a named slot so every page can pass it
-  // without needing to know about <script> placement.
   structuredData?: object;
-  // "follow", not "none": the page stays out of the index but its links still
-  // pass through to the year pages that ARE indexable (lib/year-pages.ts).
   noindex?: boolean;
 }
 const {
@@ -39,11 +34,6 @@ const ogDescription =
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script is:inline>
-      // Applies a saved light/dark override before first paint, so there's
-      // no flash of the wrong theme - runs synchronously as the very first
-      // thing in <head>. No override stored (or "system") means the
-      // prefers-color-scheme media query in global.css decides, same as
-      // before this toggle existed.
       const t = localStorage.getItem("theme");
       if (t === "light" || t === "dark")
         document.documentElement.dataset.theme = t;
@@ -88,14 +78,6 @@ const ogDescription =
       )
     }
 
-    {
-      /* Swaps the document instead of reloading it, so the year pills in
-        DateListControls navigate without a full-page flash - they change the
-        URL (each year is its own static page) but feel like an in-place
-        filter. Consequence for every script below: a module script runs ONCE,
-        so anything that binds to per-page DOM has to re-run on
-        astro:page-load or it silently stops working after the first swap. */
-    }
     <ClientRouter />
   </head>
   <body>
@@ -138,29 +120,7 @@ const ogDescription =
     </footer>
 
     <script>
-      // Client-side, not Astro frontmatter: this is a static build, so a
-      // date computed at build time would freeze at whenever the site was
-      // last built, not update as real days/weeks pass for a visitor.
-      import { formatTodayLabel } from "../../lib/date-display";
-
-      // Everything that touches elements INSIDE <body> runs per navigation:
-      // <ClientRouter /> swaps the body, so the nodes this found on first load
-      // are gone afterwards and any listener on them went with it.
-      // astro:page-load also fires on the initial load, so this is not a
-      // behaviour change for a normal page visit.
       document.addEventListener("astro:page-load", () => {
-        const el = document.getElementById("today-indicator");
-        if (el instanceof HTMLAnchorElement) {
-          el.textContent = formatTodayLabel();
-          // Kalender.vue reads ?day= to jump straight to that day's week view.
-          const d = new Date();
-          const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-          el.href = `/kalender/?day=${iso}`;
-        }
-
-        // Light/dark/system toggle. "system" is the implicit default (no
-        // localStorage entry, no data-theme attribute) - global.css's
-        // prefers-color-scheme media query decides otherwise.
         const THEME_LABELS = {
           system: "System",
           light: "Hell",
@@ -173,17 +133,9 @@ const ogDescription =
         }
         function renderThemeToggle() {
           const t = currentTheme();
-          // Re-applied every navigation: a view transition's raw <html> never
-          // carries data-theme, only client JS ever sets it.
           if (t === "system") delete document.documentElement.dataset.theme;
           else document.documentElement.dataset.theme = t;
           if (!themeToggle) return;
-          // Icon-only now (see the 3 <Monitor|Sun|Moon> in the template above) -
-          // toggle which one is visible instead of swapping text, and carry the
-          // same state in aria-label since there's no visible text left for it.
-          // A CSS class instead of the `hidden` attribute/IDL property - that
-          // property's reflection onto SVG elements is inconsistent enough
-          // across browsers that it silently left all three icons visible.
           themeToggle.setAttribute(
             "aria-label",
             `Farbschema: ${THEME_LABELS[t]}`,
@@ -204,8 +156,6 @@ const ogDescription =
           const order = ["system", "light", "dark"];
           const next =
             order[(order.indexOf(currentTheme()) + 1) % order.length];
-          // renderThemeToggle() below applies data-theme itself now - only the
-          // persisted preference is this handler's own job.
           if (next === "system") localStorage.removeItem("theme");
           else localStorage.setItem("theme", next);
           renderThemeToggle();
@@ -255,36 +205,6 @@ const ogDescription =
   .brand .brand-accent {
     color: var(--accent);
   }
-  /* Everything else (size, weight, colour, padding, hover) comes from the
-  `nav a` rule below - it sits in the nav now and should read like the two
-  links beside it. Mono only because it's a date. */
-  .today-indicator {
-    font-variant-numeric: tabular-nums;
-    min-width: 4.6rem;
-  }
-  nav {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.3rem 1.3rem;
-    font-size: var(--fs-sm);
-  }
-  .nav-divider {
-    width: 1px;
-    height: 1em;
-    background: var(--line);
-  }
-  nav a {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    color: var(--ink);
-    text-decoration: none;
-    padding: 0.25rem 0;
-  }
-  nav a:hover {
-    color: var(--accent);
-  }
   .theme-toggle span {
     font-size: var(--fs-xs);
   }
@@ -305,7 +225,6 @@ const ogDescription =
     padding-top: 2rem;
     padding-bottom: 3rem;
   }
-  /* Phones have no screen to spare above the fold. */
   @media (max-width: 36rem) {
     .header-bar {
       padding-top: 0.5rem;

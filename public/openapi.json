@@ -57,7 +57,7 @@
             "required": true,
             "schema": { "type": "string" },
             "description": "Full \"{category}/{slug}\" path, slashes included",
-            "example": "saisonkalender/erdbeere"
+            "example": "schulferien/bw"
           }
         ],
         "responses": {
@@ -179,7 +179,7 @@
               "source": { "type": "array", "items": { "$ref": "#/components/schemas/Source" } },
               "windows": {
                 "type": "array",
-                "description": "Curated/computed calendar-style facts (Feiertage, Urlaubsfenster, Schulferien, Saisonkalender). Empty for scraped content pages, which populate raw_data instead.",
+                "description": "Curated/computed calendar-style facts (Feiertage, Urlaubsfenster, Schulferien). Empty for scraped content pages, which populate raw_data instead.",
                 "items": { "type": "object" }
               },
               "raw_data": {

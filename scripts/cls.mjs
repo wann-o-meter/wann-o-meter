@@ -1,13 +1,3 @@
-// Measures CLS + per-element shift attribution on a Lighthouse-mobile-ish
-// emulation (Moto G Power viewport, 4x CPU throttle, slow 4G), and prints the
-// before/after rect of every element that moved - which is what tells you
-// *what* shifted, not just that something did.
-//
-// Puppeteer is deliberately NOT a dependency of this project - this is a
-// one-off diagnostic, not part of the build:
-//
-//   bun add -d puppeteer && bun run build && bun run preview &
-//   node scripts/cls.mjs [url]        # default http://localhost:4321/
 import puppeteer from "puppeteer";
 
 const url = process.argv[2] ?? "http://localhost:4321/";

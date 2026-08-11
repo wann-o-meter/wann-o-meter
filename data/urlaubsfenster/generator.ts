@@ -1,7 +1,3 @@
-// Urlaubsfenster is a pure computed layer, same shape as Feiertage: no
-// facts on disk (school holidays live in their own data/schulferien/
-// category now), just bridge-day windows computed per German state from
-// date-holidays. Registered in lib/pages.ts's GENERATORS map.
 import { formatDate } from "../../lib/format-date";
 import { holidaysFor } from "../../lib/holidays";
 import { holidaySource, rollingYears } from "../../lib/materialization";

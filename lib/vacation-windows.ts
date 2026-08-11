@@ -1,11 +1,11 @@
 import type { Holiday } from "./holidays";
 
-export interface OptimalWindow {
-  from: string; // ISO date, first day off in the block
-  to: string; // ISO date, last day off in the block
+interface OptimalWindow {
+  from: string;
+  to: string;
   requiredVacationDays: number;
   totalDaysOff: number;
-  efficiency: number; // totalDaysOff / requiredVacationDays
+  efficiency: number;
 }
 
 function isOff(dateIso: string, holidaySet: Set<string>): boolean {
@@ -24,15 +24,6 @@ function daysBetween(fromIso: string, toIso: string): number {
   return (Date.parse(toIso) - Date.parse(fromIso)) / 86_400_000 + 1;
 }
 
-/**
- * Finds bridges: short workday blocks (up to maxVacationDays) flanked on
- * both sides by days off (weekend/holiday). Own derivation, ported and
- * generalized (1 day -> N days) from Buerotoolbox's vacation-planner
- * suggestion logic.
- * ponytail: bridges spanning a year boundary aren't detected (only days
- * within `year` are considered) - known ceiling, pass in the previous/next
- * year's holidays too if needed.
- */
 export function calculateOptimalWindows(
   year: number,
   holidays: Holiday[],
@@ -66,8 +57,6 @@ export function calculateOptimalWindows(
         to = addDays(to, 1);
       }
 
-      // Only real bridges: days off must connect on both ends (excludes
-      // year-boundary cases with no known neighboring days)
       if (from < cursor && to > blockEnd) {
         const totalDaysOff = daysBetween(from, to);
         results.push({
@@ -85,10 +74,3 @@ export function calculateOptimalWindows(
   return results.sort((a, b) => b.efficiency - a.efficiency);
 }
 
-export function overlapsRange(
-  from: string,
-  to: string,
-  range: { from: string; to: string },
-): boolean {
-  return from <= range.to && to >= range.from;
-}

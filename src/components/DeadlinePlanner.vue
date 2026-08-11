@@ -29,9 +29,9 @@ import type { ScheduleEntry } from "../../lib/deadline-plan";
 export type { PlanVariant };
 
 const props = defineProps<{
-  vorhaben: string; // "Vorhaben" field's option text, e.g. "Umzug innerhalb Deutschlands"
-  anchorLabel: string; // e.g. "Umzugstag" - date field label, aria-label, anchor deadline label
-  variantLabel: string; // e.g. "Ort" - the variant field's label text
+  vorhaben: string;
+  anchorLabel: string;
+  variantLabel: string;
   variants: PlanVariant[];
   defaultSlug?: string;
 }>();
@@ -97,9 +97,6 @@ const picker = useTaskPicker({
     ),
 });
 
-/* ---------- what the rail reads and writes ---------- */
-
-// One inline editor open across the whole plan at a time.
 const editor = ref<{ id: string; kind: EditorKind } | null>(null);
 
 function onCommitDate(id: string, iso: string) {
@@ -126,15 +123,12 @@ const store = computed<TaskStore>(() => ({
   },
 }));
 
-// Ticking a task off earns a burst from its own checkbox.
 function onToggleDone(id: string) {
   const wasDone = doneIds[id];
   toggleDone(id);
   if (!wasDone)
     burst(rootEl.value?.querySelector(`[data-entry-id="${id}"] .check`));
 }
-
-/* ---------- derived views of the schedule ---------- */
 
 const planEntries = computed(() =>
   timeline.value.filter((e) => e.id !== ANCHOR_ID),
@@ -143,8 +137,6 @@ const doneEntries = computed(() =>
   planEntries.value.filter((e) => doneIds[e.id]),
 );
 
-// The anchor day is the header's date field and the flag on the timeline, not
-// a task, so it gets no card of its own.
 const openNodes = computed(() => {
   const out: typeof railNodes.value = [];
   for (const node of railNodes.value) {
@@ -156,15 +148,12 @@ const openNodes = computed(() => {
   return out;
 });
 
-// The first task still open and not in the past: the one to act on.
 const nextUpId = computed(
   () =>
     tasks.value.find((t) => t.date && !isPast(t.date) && !doneIds[t.id])?.id ??
     null,
 );
 
-// Hover is shared both ways: a hovered marker highlights its card, a hovered
-// card highlights its marker, and a click on either selects.
 const hoveredId = ref<string | null>(null);
 let flashTimer: ReturnType<typeof setTimeout> | undefined;
 function onTimelineSelect(id: string) {
@@ -179,9 +168,6 @@ function onTimelineSelect(id: string) {
 }
 
 onMounted(() => {
-  // The statically rendered plan (StaticPlan.astro) shows the same deadlines
-  // relative to the anchor day, for crawlers and for a failed hydration. Once
-  // this island is up it shows them with real dates, so the static copy goes.
   document.getElementById("static-plan")?.remove();
 });
 </script>
@@ -195,8 +181,6 @@ onMounted(() => {
       class="planner-header"
       :style="{ marginBottom: headerGap + 'px' }"
     >
-      <!-- No Vorhaben field: the page title already names it, and a card that
-        looks like the other two but cannot be changed is a false promise. -->
       <div class="form">
         <label class="field">
           <span>{{ anchorLabel }}</span>
@@ -317,10 +301,6 @@ onMounted(() => {
   height: 1.5rem;
 }
 
-/* Everything that answers "when is it" stays on screen: the fields, the one
-  sentence and the timeline. Stuck, it swaps to the compact metrics. A header
-  taller than the window pins its bottom edge instead of its top, so it can
-  never own the whole viewport and leave nothing to scroll to. */
 .planner-header {
   position: sticky;
   top: min(0px, calc(100vh - var(--tl-header-h, 0px) - 2rem));
@@ -393,9 +373,6 @@ onMounted(() => {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
-/* Stuck, the boxes shed their chrome and their labels and become one slim
-  row of facts. Every step of that is a transition, never a swap: a layout
-  that changes shape mid-scroll reads as a glitch. */
 .compact .field {
   border-color: transparent;
   background: transparent;
@@ -537,13 +514,11 @@ onMounted(() => {
   .undo {
     display: none;
   }
-  /* The header keeps printing: a checklist without the move date is useless. */
   .planner-header {
     position: static;
   }
 }
 
-/* Confetti lives on document.body, so scoped selectors can never match it. */
 :global(.wom-confetti) {
   position: fixed;
   width: 6px;

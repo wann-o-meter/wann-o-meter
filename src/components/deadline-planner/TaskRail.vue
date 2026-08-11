@@ -8,7 +8,6 @@ import type { TaskStore } from "./task-store";
 import type { TaskPicker as Picker } from "./useTaskPicker";
 
 defineProps<{
-  // usePlannerSchedule's railNodes, anchor and trailing gaps already removed
   nodes: { kind: string; [key: string]: any }[];
   anchorDate: string;
   nextUpId: string | null;
@@ -95,7 +94,6 @@ defineEmits<{
 
 <style scoped>
 .rail {
-  /* Distance from a card's left edge to the spine, read by TaskCard's dot. */
   --rail-gap: 1.4rem;
   position: relative;
   padding-left: 2.2rem;
@@ -109,9 +107,6 @@ defineEmits<{
   width: 1px;
   background: var(--line);
 }
-/* The buffer between two deadlines, kept as real height so the list breathes
-  in proportion to the plan, plus the place a new task is inserted. The
-  negative margin lets its "+" sit on the spine, in the rail's own padding. */
 .gap {
   position: relative;
   margin-left: -2.2rem;

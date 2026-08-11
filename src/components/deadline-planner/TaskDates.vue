@@ -6,14 +6,11 @@ defineProps<{
   entry: ScheduleEntry;
   isPast: boolean;
   done: boolean;
-  /** A rescue label is redundant next to the double-rent line on the card. */
   showRescueLabel: boolean;
 }>();
 </script>
 
 <template>
-  <!-- A missed deadline gets one instruction in ink and the dates behind it
-    in grey. Everything else on the card ranks below that line. -->
   <p v-if="isPast && !done && entry.rescue" class="dates">
     <span class="lead">Bis {{ longDate(entry.rescue.date) }} nachholen.</span>
     <br />
@@ -38,9 +35,6 @@ defineProps<{
 </template>
 
 <style scoped>
-/* Three levels and no more: the instruction, the consequence, the record.
-  Mono is for the fact row only, a date set in mono inside a sentence is the
-  thing that made these cards read as noise. */
 .dates {
   margin: 0.35rem 0 0;
   font-family: var(--font-mono);
@@ -51,8 +45,6 @@ defineProps<{
   color: var(--ink);
   font-weight: 600;
 }
-/* Not struck through: the day still governs the legal outcome, it is only
-  behind us. */
 .overdue {
   color: var(--warn);
 }

@@ -1,10 +1,7 @@
-// Per-task CTAs, presentation-layer only (not a Deadline field, stays out of
-// data/umzug/*.yaml). "letter" = editable generic template, never presented
-// as legally reviewed. "link" = a real official self-service portal.
 export interface TaskCta {
   kind: "letter" | "link";
   label: string;
-  url?: string; // link kind only
+  url?: string;
 }
 
 const LINK_CTAS: Record<string, TaskCta> = {
@@ -20,8 +17,6 @@ const LINK_CTAS: Record<string, TaskCta> = {
   },
 };
 
-// Two tasks in a plan can both be a cancellation, so the letter says which
-// one it is - "Kündigungsschreiben" twice on one page names neither.
 const LETTER_CTAS: Record<string, string> = {
   "wohnung-kuendigen": "Kündigung der Wohnung",
   "internetanbieter-kuendigen-ummelden": "Kündigung beim Internetanbieter",
@@ -33,8 +28,6 @@ export function taskCtaFor(id: string): TaskCta | null {
   return null;
 }
 
-// Generic boilerplate only, placeholders stay bracketed and vague - same
-// "never fabricate a specific fact" rule the deadline data itself follows.
 export const LETTER_TEMPLATE = `[Ihr Name]
 [Ihre Straße, Hausnummer]
 [PLZ, Ort]

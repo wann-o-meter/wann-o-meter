@@ -1,16 +1,5 @@
 import { computed, onBeforeUnmount, onMounted, ref, type Ref } from "vue";
 
-/**
- * A sentinel above the header decides when it is stuck, and the timeline then
- * shrinks instead of being clipped. The measured height is published as
- * --tl-header-h on the root, so a card scrolled into view stops below the
- * header, never behind it.
- *
- * Scroll anchoring has to go while this is on screen: the header changing
- * height above the reader's position makes the browser correct the scroll
- * back, which unsticks the header, which grows it again, and the page then
- * refuses to move until you push past the whole loop.
- */
 export function useStickyHeader(
   rootEl: Ref<HTMLElement | null>,
   headerEl: Ref<HTMLElement | null>,
@@ -18,11 +7,8 @@ export function useStickyHeader(
 ) {
   const stuck = ref(false);
   const headerH = ref(0);
-  const looseHeaderH = ref(0); // its height before it ever shrank
+  const looseHeaderH = ref(0);
 
-  // Shrinking costs the list its place, so the header hands the freed height
-  // back as margin, frame by frame while the strip morphs: the compact bar
-  // pins at the top and nothing below it moves at all.
   const headerGap = computed(() =>
     Math.max(0, looseHeaderH.value - headerH.value),
   );

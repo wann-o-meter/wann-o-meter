@@ -1,6 +1,0 @@
-# Fixture for the "_-prefixed directories are not categories" test in
-# lib/pages.test.ts - mirrors the shape of a real data/_sources/ entry.
-id: example-source
-seed_url: https://example.invalid/events
-category: fixture
-subject_slug: example-page

@@ -4,7 +4,6 @@
     :class="{ armed: clickable }"
     :style="{ '--tl-t': shrink }"
   >
-    <!-- Keys read, filters act, so they are not one row of look-alikes. -->
     <div v-if="showLegend" class="legend">
       <div class="keys">
         <span class="item"><span class="capsule"></span> möglich ab – Frist</span>
@@ -40,7 +39,6 @@
         @pointerup="onPointerUp"
         @pointercancel="onPointerCancel"
       >
-        <!-- One row, every day the same height, one type per day. -->
         <g>
           <rect
             v-for="r in L.bandRuns"
@@ -269,14 +267,14 @@ import { ANCHOR_ID, COUNTRY_CODE } from "./usePlannerSchedule";
 
 const props = withDefaults(
   defineProps<{
-    tasks: ScheduleEntry[]; // schedule entries, anchor excluded, date may be null
-    anchorDate: string; // ISO day, "" until placed
-    anchorName: string; // flag label, e.g. "Umzugstag"
+    tasks: ScheduleEntry[];
+    anchorDate: string;
+    anchorName: string;
     regionCode?: string;
-    clickable?: boolean; // click the strip to place a new anchor date
-    draggable?: boolean; // drag the flag, clicks still select tasks
-    keyed?: boolean; // tag markers with data-node-key (one instance per page)
-    compact?: boolean; // shorter metrics, for the stuck header
+    clickable?: boolean;
+    draggable?: boolean;
+    keyed?: boolean;
+    compact?: boolean;
     hoverId?: string | null;
     dragHint?: string;
     showLegend?: boolean;
@@ -301,8 +299,6 @@ const emit = defineEmits<{
   preview: [iso: string | null];
 }>();
 
-// The only place vertical sizes are defined. Compact is the same layout with
-// smaller numbers, so the stuck header shrinks instead of being clipped.
 const FULL = {
   padX: 14,
   headTop: 22,
@@ -337,9 +333,6 @@ const STATE_WORD = {
 } as const;
 type Status = keyof typeof STATE_WORD;
 
-// The compact metrics are a destination, not a second layout: everything
-// between them is a valid frame, so sticking the header morphs the strip
-// instead of cutting to a smaller one.
 const shrink = ref(0);
 let tween = 0;
 watch(
@@ -347,7 +340,6 @@ watch(
   (to) => {
     const from = shrink.value;
     const target = to ? 1 : 0;
-    // No rAF on the server, where this watcher still fires immediately.
     if (typeof requestAnimationFrame === "undefined") {
       shrink.value = target;
       return;
@@ -407,7 +399,6 @@ const anchorDay = computed(() =>
 );
 const movable = computed(() => props.clickable || props.draggable);
 
-// The strip works in day numbers, the two shared forms in ISO days.
 function dayShort(n: number): string {
   return shortDate(isoOfDay(n));
 }
@@ -415,7 +406,6 @@ function dayLong(n: number): string {
   return longDate(isoOfDay(n));
 }
 
-// One marker vocabulary: state is a colour, never a size or a shape.
 const dated = computed(() =>
   props.tasks
     .filter((t): t is ScheduleEntry & { date: string } => t.date !== null)
@@ -479,13 +469,11 @@ watch(
         }),
       );
     } catch {
-      // best effort, the band then shows no school holidays
     }
   },
   { immediate: true },
 );
 
-// One day, one type: Feiertag beats Ferien beats Wochenende beats Werktag.
 function dayType(d: number): string {
   if (showFeiertage.value && holidayDays.value.has(d)) return "feiertag";
   if (
@@ -497,7 +485,6 @@ function dayType(d: number): string {
   return "werktag";
 }
 
-// Every layer is positioned from this one scale, nothing computes its own.
 const L = computed(() => {
   const m = metrics.value;
   const { from, to } = span.value;
@@ -616,8 +603,6 @@ function onMove(e: MouseEvent) {
   setGhost(dayAt(e.clientX));
 }
 
-// Press, look at the ghost date, lift to commit. A tap is the same gesture in
-// no time at all, so touch never commits a day the finger did not confirm.
 let dragging = false;
 function onPointerDown(e: PointerEvent) {
   const onGrip = !!(e.target as Element).closest?.(".grip");
@@ -638,8 +623,6 @@ function onPointerUp(e: PointerEvent) {
   clearGhost();
   place(d);
 }
-// A vertical swipe hands the gesture back to the page, and that must not
-// leave a date behind.
 function onPointerCancel() {
   dragging = false;
   clearGhost();
@@ -692,8 +675,6 @@ function onMarkerLeave() {
 <style scoped>
 .timeline {
   --d-werktag: var(--paper-raised);
-  /* Far enough from Werktag that the week's shape is readable at a glance,
-    which is the only reason the band is there. */
   --d-wochenende: color-mix(in srgb, var(--ink) 22%, var(--paper-raised));
   --d-ferien: color-mix(in srgb, var(--accent) 22%, var(--paper-raised));
   --d-feiertag: color-mix(in srgb, var(--holiday) 45%, var(--paper-raised));
@@ -706,7 +687,6 @@ function onMarkerLeave() {
   gap: 0.4rem 1.1rem;
   font-size: var(--fs-xs);
   color: var(--muted);
-  /* Folds away with the same number the strip shrinks by. */
   overflow: hidden;
   max-height: calc((1 - var(--tl-t, 0)) * 2.2rem);
   opacity: calc(1 - var(--tl-t, 0) * 1.6);
@@ -719,8 +699,6 @@ function onMarkerLeave() {
   align-items: center;
   gap: 0.4rem 1.1rem;
 }
-/* The controls carry a frame the keys do not, so a checkbox never reads as
-  another state to look up. */
 .filters {
   gap: 0.4rem 0.9rem;
   padding: 0.15rem 0.5rem;

@@ -1,9 +1,7 @@
-// Zod schema for the data model (PLAN.md section 5). One source for types
-// AND runtime validation - no separate JSON schema.
 import { z } from "zod";
 import { resolution } from "./date";
 
-export const licenseSchema = z.enum([
+const licenseSchema = z.enum([
   "official_par5",
   "dl_de_by",
   "cc_by",
@@ -12,13 +10,7 @@ export const licenseSchema = z.enum([
   "own_derivation",
 ]);
 
-// manual: a human typed/curated it. llm: a model extracted it from free text/PDF
-// (use the confidence field, PR review is the quality layer). parser:
-// deterministic code read it from structured data (CSV, JSON API, directory
-// listing, ...) or computed it (holiday formula) - no model needed at
-// runtime. Sourcing strategy: homogeneity x volume decides, see PLAN.md
-// section 7.
-export const extractionSchema = z.enum(["manual", "llm", "parser"]);
+const extractionSchema = z.enum(["manual", "llm", "parser"]);
 
 export const sourceSchema = z.object({
   url: z.url(),
@@ -42,11 +34,8 @@ const datePartSchema = z.string().refine(
   { message: 'Invalid ISO 8601 partial date format (expected "--MM", "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM")' },
 );
 
-export const precisionSchema = z.enum(["exact", "approximate"]);
+const precisionSchema = z.enum(["exact", "approximate"]);
 
-// Second axis alongside plain presence (from/to): a numeric reading per
-// window (temperature, traffic, waiting time, ...). Optional and only valid
-// together - a value without a unit is meaningless.
 function withValueUnitCheck<T extends z.ZodType<{ value?: number; unit?: string }>>(schema: T) {
   return schema.refine((f) => (f.value === undefined) === (f.unit === undefined), {
     message: "value and unit must be set together or both omitted",
@@ -54,24 +43,6 @@ function withValueUnitCheck<T extends z.ZodType<{ value?: number; unit?: string 
   });
 }
 
-// Definition layer: one row in the YAML source file (PLAN.md 5.3).
-//
-// source_urls links a window back to the specific entries in the file's
-// `sources[]` that reported it (matched by Source.url) - without this, every
-// window in a file was materialized with the file's ENTIRE source list
-// attached, whether or not that source actually said anything about that
-// date (see the two-source urlaubsfenster/*.yaml files, where one source
-// covers only one of the two years present in the file).
-//
-// Optional rather than required: existing committed data/**/*.yaml files
-// predate this field entirely (verified against the repo's data/ directory),
-// and there's no reliable way to infer after the fact which of a file's
-// (possibly several) sources produced a given legacy window - guessing would
-// risk misattribution, which is worse than the status quo. Absent
-// source_urls falls back to today's behavior (attach the file's full source
-// list) at materialization time - see materializeRawWindow in
-// lib/materialization.ts. New/re-run pipeline windows populate it going
-// forward (pipeline/core/types.py stamps it from the adapter's Quelle).
 export const rawWindowSchema = withValueUnitCheck(
   z.object({
     type: z.string(),
@@ -84,28 +55,16 @@ export const rawWindowSchema = withValueUnitCheck(
     value: z.number().optional(),
     unit: z.string().optional(),
     source_urls: z.array(z.url()).min(1).optional(),
-    // Stamped by the pipeline's review-state diff (core/review_state.py) when
-    // a later crawl re-confirms an already-approved window is unchanged -
-    // not surfaced anywhere yet, purely a pipeline-side freshness record.
     last_verified: z.iso.date().optional(),
-    // Raw RFC 5545 RRULE string, captured verbatim from an ICS VEVENT
-    // (core/ics.py). Not expanded here or in materializeRawWindow - stored
-    // for a future generator.ts step to expand into concrete windows.
     rrule: z.string().optional(),
-    // Free-text LOCATION/DESCRIPTION/URL from an ICS VEVENT (core/ics.py),
-    // combined into one field rather than three - deliberately unstructured
-    // (not surfaced on a page yet), just captured so it isn't lost.
     notes: z.string().optional(),
   }),
 );
 
-export type License = z.infer<typeof licenseSchema>;
 export type Source = z.infer<typeof sourceSchema>;
 export type RawWindow = z.infer<typeof rawWindowSchema>;
 
-// Materialized layer: what pages/JSON/ICS actually consume (PLAN.md 5.1) -
-// concrete years, resolved day-level dates, source per window.
-export const materializedWindowSchema = withValueUnitCheck(
+const materializedWindowSchema = withValueUnitCheck(
   z.object({
     subject_id: z.string(),
     year: z.number().int(),
@@ -125,19 +84,3 @@ export const materializedWindowSchema = withValueUnitCheck(
 
 export type MaterializedWindow = z.infer<typeof materializedWindowSchema>;
 
-// Presets (PLAN.md 5.3 / 4.3): saved calendar URLs, curated as YAML, turned
-// into static landing pages + pre-filled calendar parameters.
-export const presetSchema = z.object({
-  slug: z.string(),
-  name: z.string(),
-  description: z.string(),
-  layers: z.array(z.enum(["holiday", "school_holidays", "produce"])).min(1),
-  region: z.string(),
-  mode: z.literal("overlay"), // window mode is explicitly not V1 (PLAN.md 4.2)
-});
-
-export type Preset = z.infer<typeof presetSchema>;
-
-export function parsePreset(doc: unknown): Preset {
-  return presetSchema.parse(doc);
-}

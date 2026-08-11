@@ -3,9 +3,6 @@ import { appliesTo } from "../../lib/facets";
 import { byOffset, offsetLabel, sourceLabel } from "../../lib/offset-label";
 import { vorhabenRoutes } from "../../lib/vorhaben-routes";
 
-// Markdown twin of every /vorhaben/ page. Same data, no HTML chrome and no
-// JS - what an answer engine actually wants to read. Deadlines stay relative
-// to the anchor day, so the file never goes stale.
 export function getStaticPaths() {
   return vorhabenRoutes().map((r) => ({ params: { slug: r.path }, props: r }));
 }

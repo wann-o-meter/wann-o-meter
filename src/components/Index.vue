@@ -123,7 +123,6 @@ import DeadlinePlanner from "./DeadlinePlanner.vue";
 import Timeline from "./deadline-planner/Timeline.vue";
 import { usePlannerSchedule } from "./deadline-planner/usePlannerSchedule";
 import { ArrowRight } from "lucide-vue-next";
-// Type-only, and it has to stay that way: lib/vorhaben-data.ts reads node:fs.
 import type { VorhabenData } from "../../lib/vorhaben-data";
 
 const props = defineProps<{
@@ -145,12 +144,10 @@ function pick(slug: string) {
   variantSlug.value = defaultVariantSlug();
 }
 
-// Pre-positioned: the handle is visible and the plan real from first paint.
 const TODAY = utcDay(new Date());
 const minDate = isoOf(addDays(TODAY, -14));
 const maxDate = isoOf(addDays(TODAY, 365));
 const anchorDate = ref(isoOf(addDays(TODAY, 90)));
-// The date under the cursor while dragging, so the summary reads live.
 const previewIso = ref<string | null>(null);
 
 function endOfMonth(n: number): string {
@@ -168,10 +165,7 @@ const presets = [
   { label: "Zum Monatsende", iso: () => endOfMonth(0) },
   { label: "Nächster Monatserste", iso: () => firstOfMonth(1) },
 ];
-// usePlannerSchedule's stats need a doneIds map, but this teaser has no
-// checkboxes - nothing ever writes to it, so stats.done stays 0.
 const doneIds = reactive<Record<string, boolean>>({});
-// True once the real DeadlinePlanner is mounted in place of the rail.
 const showPlanner = ref(false);
 
 function defaultVariantSlug() {
@@ -187,7 +181,6 @@ const previewVariant = computed(
     selected.value.variants.find((v) => v.slug === variantSlug.value) ??
     selected.value.variants[0],
 );
-// No facet chips here, so it shows what the planner shows with none ticked.
 const workingDeadlines = computed(() =>
   (previewVariant.value?.deadlines ?? []).filter((d) => appliesTo(d, [])),
 );
@@ -204,8 +197,6 @@ function onPlace(iso: string) {
   anchorDate.value = iso;
 }
 
-// Feeds the mounted DeadlinePlanner's own ?date=/?variant= handling (see
-// usePlannerSchedule), and keeps the address bar honest with no real nav.
 const planHref = computed(() => {
   const params = new URLSearchParams();
   if (anchorDate.value) params.set("date", anchorDate.value);
@@ -216,7 +207,6 @@ const planHref = computed(() => {
 const hintText =
   "Zieh den Griff, tippe auf den Zeitstrahl oder nutz die Pfeiltasten.";
 
-// Reads the dragged date first, so a move shows before the finger lifts.
 const summaryText = computed(() => {
   const iso = previewIso.value ?? anchorDate.value;
   const dated = tasks.value.filter((t) => t.date !== null);
@@ -224,9 +214,7 @@ const summaryText = computed(() => {
     (min, t) => (min === null || t.date! < min ? t.date! : min),
     null,
   );
-  // No date here: it is already on the field and on the flag.
   if (!first) return `${dated.length} Fristen`;
-  // Tasks shift rigidly with the anchor, so the preview shifts with it.
   const shift = daysBetween(toDate(anchorDate.value), toDate(iso));
   const firstShown = isoOf(addDays(toDate(first), shift));
   return `${dated.length} Fristen · erste am ${formatDateWithWeekday(firstShown)}`;
@@ -241,8 +229,6 @@ function measureKeyed(attr: string): Map<string, DOMRect> {
   return map;
 }
 
-// Flies a clone of each `[toAttr]` element from its `first`-measured position
-// to where it landed after the swap. Callers already filter reduced-motion.
 function flyDots(first: Map<string, DOMRect>, toAttr: string, dy: number) {
   const targets = rootEl.value?.querySelectorAll<HTMLElement>(`[${toAttr}]`);
   if (!targets) return;
@@ -292,8 +278,6 @@ function flyDots(first: Map<string, DOMRect>, toAttr: string, dy: number) {
   });
 }
 
-// Vue's DOM patch (nextTick) isn't always enough for DeadlinePlanner's own
-// onMounted-driven layout to have run - double rAF waits for a real paint.
 async function settle() {
   await nextTick();
   await new Promise<void>((resolve) =>
@@ -342,8 +326,6 @@ async function collapseToRail() {
   flyDots(first, "data-node-key", dy);
 }
 
-// Both the in-page "back" button and the browser's own Back button route
-// through popstate, so they can't drift out of sync with each other.
 function onPopState() {
   if (showPlanner.value) collapseToRail();
 }
@@ -507,8 +489,6 @@ h1 {
   cursor: pointer;
 }
 
-/* Flug-Klone: created outside the component root (document.body), so scoped
-  selectors can never match them. */
 :global(.wom-flier) {
   position: fixed;
   width: 0.8rem;

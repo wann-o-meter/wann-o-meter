@@ -3,40 +3,30 @@
 @import "@fontsource/ibm-plex-mono/400.css";
 @import "@fontsource/ibm-plex-mono/500.css";
 
-/*
-  Leitidee: amtlicher Fahrplan/Aktenordner, nicht Tech-Startup. Kuehles
-  Amtsblau als Akzentfarbe, Mono-Ziffern fuer alles Datierte. Flaechen werden
-  durch Hoehe getrennt, nicht durch Haarlinien: getoenter Grund, weisse
-  Karten, weiche Schatten. Hell ist der Standard, Dunkel eine bewusste Wahl
-  ueber den Theme-Toggle, nicht das System.
-*/
 :root {
   color-scheme: light;
-  --paper: #eef1f5; /* tinted ground, so a card can be lighter than it */
+  --paper: #eef1f5;
   --paper-raised: #ffffff;
   --ink: #14161a;
   --muted: #4d545e;
   --line: #d5dae2;
-  --accent: #1d4f91; /* links and primary actions */
+  --accent: #1d4f91;
   --accent-ink: #f8fafc;
-  --anchor: #7a3fa8; /* the Vorhaben's own day, not an action */
-  --today: #14161a; /* now, a fact rather than an accent */
-  --warn: #a8331f; /* something needs a decision */
+  --anchor: #7a3fa8;
+  --today: #14161a;
+  --warn: #a8331f;
   --warn-ink: #fff8f5;
-  --holiday: #8a5a12; /* Ämter closed, calendar context only */
+  --holiday: #8a5a12;
   --done-color: #377043;
-  --radius: 8px; /* cards, inputs, buttons */
-  --radius-sm: 6px; /* chips and badges */
-  --radius-pill: 999px; /* category pills only */
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-pill: 999px;
   --shadow-sm: 0 1px 2px rgb(20 22 26 / 0.06), 0 1px 3px rgb(20 22 26 / 0.08);
   --shadow-md: 0 2px 4px rgb(20 22 26 / 0.06), 0 6px 16px rgb(20 22 26 / 0.1);
   --font-sans:
     "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono:
     "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  /* One type scale for the whole site. A size off this list reads as another
-    font and is what made narrow screens look unsorted. Weights are 400 and
-    600, nothing between. */
   --fs-xs: 0.72rem;
   --fs-sm: 0.85rem;
   --fs-md: 1rem;
@@ -324,7 +314,6 @@ a[target="_blank"]:not(:has(svg))::after {
 .rows li[hidden] {
   display: none;
 }
-/* Arrival via a #date fragment (e.g. from the calendar) - briefly highlight. */
 .rows li:target {
   background: var(--paper-raised);
   outline: 2px solid var(--accent);
@@ -366,7 +355,6 @@ a[target="_blank"]:not(:has(svg))::after {
   color: var(--accent);
 }
 
-/* Back-to-category link at the top of every subject/page detail view. */
 .back {
   font-size: var(--fs-sm);
 }

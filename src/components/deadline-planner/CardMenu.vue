@@ -7,8 +7,6 @@ defineProps<{ items: MenuItem[] }>();
 
 const root = ref<HTMLDetailsElement | null>(null);
 
-// A <details> menu has no outside-click of its own, so it closes when an item
-// is used or when focus leaves it.
 function select(item: MenuItem) {
   if (root.value) root.value.open = false;
   item.onSelect();

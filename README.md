@@ -1,19 +1,19 @@
 # Wann-O-Meter
 
-Simple web-based platform that allows you to visualize time windows as layers in a calendar.
+Deadline planner: it works backwards from your date and tells you when to start.
 
 ## Architecture
 
-- Time windows live in `data/`.
-- Each one is either a plain YAML file or a `generator.ts` that computes it.
-- Full data flow, file formats, and invariants: [docs/architecture.md](./docs/architecture.md).
+- Vorhaben and their deadlines live in `data/vorhaben.yaml` and `data/{vorhaben}/`.
+- Time windows live in `data/`, as plain YAML or a `generator.ts` that computes them.
 
 ```text
-/lib                  Zod schema, holiday/bridge-day rules, materialization, ICS generator
+/lib                  Zod schema, holiday rules, deadline math, ICS generator
+/data/vorhaben.yaml   Vorhaben definitions, deadlines per variant
 /data/_sources        One YAML per upstream source
-/data/{category}/...  Decreed facts: data.yaml + page.yaml + meta.toml per subject
-/data/{category}/generator.ts  Derived categories (feiertage, urlaubsfenster) — no YAML
-/src/components       Kalender.vue — the one Vue island
+/data/{category}/...  data.yaml + page.yaml + meta.toml per subject
+/data/{category}/generator.ts  Derived categories (feiertage, urlaubsfenster)
+/src/components       DeadlinePlanner.vue and Index.vue, the Vue islands
 /src/pages            Astro pages, /api/v1/ JSON, /feeds/ ICS
 ```
 
@@ -24,7 +24,6 @@ Simple web-based platform that allows you to visualize time windows as layers in
 | `bun install`   | Install dependencies           |
 | `bun run dev`   | Dev server on `localhost:4321` |
 | `bun run build` | Production build to `./dist/`  |
-| `bun run test`  | Vitest suite for `/lib`        |
 
 ## Deploy
 

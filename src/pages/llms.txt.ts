@@ -2,22 +2,10 @@ import type { APIRoute } from "astro";
 import { capitalizeCategory, getAllCategories, getPagesInCategory } from "../../lib/pages";
 import { vorhabenRoutes } from "../../lib/vorhaben-routes";
 
-// llms.txt (llmstxt.org convention): a machine-readable summary for LLMs and
-// answer engines, pointing straight at the structured JSON/ICS data instead
-// of leaving them to scrape rendered HTML. Absolute URLs throughout - unlike
-// an HTML page, a plain-text file has no implicit base URL for a relative
-// link to resolve against.
 export const GET: APIRoute = ({ site }) => {
   const url = (path: string) => new URL(path, site).href;
-  // `new URL()` percent-encodes "{" and "}", which would turn a literal
-  // placeholder segment like "{slug}" into "%7Bslug%7D" - build the real
-  // (encodable) prefix through URL, then append the placeholder as a plain
-  // string so it stays human/LLM-readable.
   const withPlaceholder = (prefix: string, placeholder: string) => `${url(prefix)}${placeholder}`;
 
-  // Deadline verticals aren't part of getAllCategories() (they're reserved,
-  // see lib/pages.ts) and have no JSON endpoint yet - the .md twin is the
-  // machine-readable form, so it goes first on each line.
   const vorhabenLines = vorhabenRoutes().map(
     (r) => `- [${r.title}](${url(`/${r.path}/`)}): ${r.description} Markdown: \`${url(`/${r.path}.md`)}\`.`,
   );

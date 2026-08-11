@@ -1,7 +1,3 @@
-// Materialization step (PLAN.md section 5.1 / 7): resolves a RawWindow
-// (YAML facts, or a synthetic one built by a category's generator.ts - see
-// lib/pages.ts) into concrete per-year MaterializedWindow entries, rolling
-// over the current year + 2. Pages/JSON/ICS consume only this result.
 import { resolution, resolveMonthWindow } from "./date";
 import type { MaterializedWindow, RawWindow, Source } from "./schema";
 
@@ -14,7 +10,7 @@ export function holidaySource(): Source {
     license: "own_derivation",
     license_note:
       "Eigene Ableitung aus den gesetzlichen Feiertagen der Bundesländer (Bibliothek date-holidays, basierend auf den jeweiligen Feiertagsgesetzen).",
-    extraction: "parser", // code computes this, no human types it
+    extraction: "parser",
   };
 }
 
@@ -25,15 +21,6 @@ export function rollingYears(
   return Array.from({ length: additionalCount + 1 }, (_, i) => startYear + i);
 }
 
-/**
- * Resolves a single raw window's source_urls against the file's full
- * sources[] list, keeping only the sources that actually reported that
- * window instead of blind-attaching every source the file has ever
- * recorded. Falls back to the full list when source_urls is absent (legacy
- * windows predating this field, see rawWindowSchema in lib/schema.ts) or
- * when none of it resolves (defensive - schema validation already rejects
- * unresolvable references, so this should not normally trigger).
- */
 function resolveWindowSources(raw: RawWindow, sources: Source[]): Source[] {
   if (!raw.source_urls || raw.source_urls.length === 0) return sources;
   const matched = sources.filter((s) => raw.source_urls!.includes(s.url));
@@ -71,4 +58,3 @@ export function materializeRawWindow(
       };
     });
 }
-

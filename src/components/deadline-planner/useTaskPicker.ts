@@ -1,7 +1,6 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 
-/** Which "+" is open: a gap between two tasks, or the end-of-list button. */
-export type TaskPickerTarget =
+type TaskPickerTarget =
   | { kind: "gap"; id: string; afterOffset: number; beforeOffset: number }
   | { kind: "end" };
 
@@ -38,10 +37,6 @@ export function useTaskPicker(handlers: {
     close();
   }
 
-  // No backdrop, so these close it on outside click / Escape. Escape is
-  // document-level, not @keydown.esc on the popover: focus sits on the trigger
-  // button, a sibling, not an ancestor, so the popover would never see the
-  // bubbled key.
   function onClick(event: MouseEvent) {
     if (!target.value) return;
     const el = event.target as HTMLElement | null;

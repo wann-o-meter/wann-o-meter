@@ -1,10 +1,3 @@
-// WCAG contrast of every calendar day cell, light and dark, accounting for
-// element opacity and for backgrounds that come from color-mix(). Same
-// throwaway-diagnostic status as scripts/cls.mjs - puppeteer is not a project
-// dependency:
-//
-//   bun add -d puppeteer && bun run build && bun run preview &
-//   node scripts/contrast.mjs [url]      # default http://localhost:4321/
 import puppeteer from "puppeteer";
 
 const url = process.argv[2] ?? "http://localhost:4321/";
@@ -35,7 +28,6 @@ for (const scheme of ["light", "dark"]) {
       const cs = getComputedStyle(el);
       const alpha = Number(cs.opacity);
       const own = parse(cs.backgroundColor);
-      // element background over the page, then the element's own opacity
       const bgOpaque = own.length === 4 ? over(own.slice(0, 3), pageBg, own[3]) : own.slice(0, 3);
       const bg = over(bgOpaque, pageBg, alpha);
       const fgRaw = parse(cs.color);

@@ -18,8 +18,6 @@ const fallbackLabel = () =>
 </script>
 
 <template>
-  <!-- Below the hairline: what the card assumes and where it got it from.
-    Never the action, so the eye can stop at the button above. -->
   <div class="footer">
     <div
       v-if="entry.offset_rule || deferred"
@@ -46,8 +44,6 @@ const fallbackLabel = () =>
       </button>
     </div>
 
-    <!-- One provenance affordance: the paragraph lives inside the derivation
-      it is the basis for, not next to it as a second offer. -->
     <details v-if="entry.derivation?.length" class="derivation">
       <summary>Wie wird das berechnet?</summary>
       <ol>
@@ -96,8 +92,6 @@ const fallbackLabel = () =>
   display: none;
 }
 
-/* Wraps rather than truncates: an option nobody can finish reading is worse
-  than one on a second line. */
 .defer {
   display: flex;
   align-items: center;
@@ -113,8 +107,6 @@ const fallbackLabel = () =>
   padding: 0.15rem 0.5rem;
   white-space: nowrap;
 }
-/* A setting, so it never outweighs the action above it: the chosen side is
-  marked by ink and a border, not by a fill. */
 .defer button[aria-checked="true"] {
   border-color: var(--accent);
   color: var(--accent);

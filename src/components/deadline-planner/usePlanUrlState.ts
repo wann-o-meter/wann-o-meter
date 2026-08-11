@@ -5,8 +5,6 @@ import type { PlanVariant } from "./types";
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 
-// Picks a default anchor date so the earliest known deadline is due today,
-// instead of an empty plan. Only computed once at setup.
 function defaultAnchorDate(deadlines: PlanVariant["deadlines"]): string {
   const offsets = deadlines
     .map((d) => d.offset_days)
@@ -17,11 +15,6 @@ function defaultAnchorDate(deadlines: PlanVariant["deadlines"]): string {
   return d.toISOString().slice(0, 10);
 }
 
-/**
- * The four things the URL carries: date, variant, facets, Mietende. Reading
- * them at setup and writing them back on change is one concern, so it lives
- * in one place rather than in four scattered refs and a watcher.
- */
 export function usePlanUrlState(
   variants: PlanVariant[],
   defaultSlug: string | undefined,
@@ -54,8 +47,6 @@ export function usePlanUrlState(
       ),
   );
 
-  // Which optional circumstances the user ticked. Off by default: a plan
-  // should open with what applies to everyone, not every special case at once.
   const activeFacets = ref<string[]>(
     (params?.get("facets") ?? "").split(",").filter((f) => f in FACET_LABELS),
   );
@@ -63,17 +54,10 @@ export function usePlanUrlState(
     facetsUsedBy(selected.value?.deadlines ?? []),
   );
 
-  // The single most consequential assumption in the plan: whether the old flat
-  // ends with the moving month or a month later. Worth a control, not a
-  // footnote.
   const overlapMonths = ref(params?.get("overlap") === "1" ? 1 : 0);
   const deferred = computed(() => overlapMonths.value > 0);
   const toggleDefer = () => (overlapMonths.value = deferred.value ? 0 : 1);
 
-  // Filtering here, upstream of the editing layer, is what makes every
-  // consumer agree: cards, timeline and ICS export all read from this.
-  // Per-task state stays keyed by id, so unticking a chip and ticking it again
-  // brings a task back exactly as it was.
   const selectedForPlan = computed(() =>
     selected.value
       ? {
@@ -85,7 +69,6 @@ export function usePlanUrlState(
       : undefined,
   );
 
-  // replaceState, not pushState, so picking a date doesn't spam history.
   watch(
     [anchorDate, selectedSlug, activeFacets, overlapMonths],
     () => {

@@ -1,7 +1,7 @@
 # AI Coding Guidelines
 
 How AI agents (Claude Code, Mistral Vibe, etc.) should approach this project. For the
-project's structure, see [docs/architecture.md](./docs/architecture.md).
+project's structure, see [README.md](./README.md).
 
 - Keep code simple and maintainable.
 - Comment only what isn't self-explanatory. Never restate what the code does or describe

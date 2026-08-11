@@ -9,10 +9,7 @@ export function getStaticPaths() {
 }
 
 const { v, variant, title, description } = Astro.props;
-// Only worth linking where there is more than one place to go.
 const siblings = v.variants.length > 1 ? v.variants : [];
-// A pill per Kommune stops being a nav once there are hundreds of them. The
-// rest stay in the HTML inside a <details>, so they are still crawlable.
 const PREVIEW = 12;
 const preview = siblings.slice(0, PREVIEW);
 const rest = siblings.slice(PREVIEW);
@@ -100,7 +97,6 @@ const rest = siblings.slice(PREVIEW);
     font-size: var(--fs-sm);
     text-decoration: none;
   }
-  /* The current place is a state, not a destination, so it is not a link. */
   .places .here {
     display: inline-block;
     border: 1px solid var(--accent);

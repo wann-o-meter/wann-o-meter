@@ -1,9 +1,4 @@
 ---
-// The whole plan as plain HTML, with relative deadlines instead of dates.
-// This is what a crawler that runs no JS sees, and it is deliberately the
-// complete list, not a teaser - DeadlinePlanner.vue removes #static-plan on
-// mount and renders the same deadlines with real dates over it. A relative
-// deadline also never goes stale, a concrete date does.
 import { appliesTo } from "../../lib/facets";
 import { byOffset, offsetLabel, sourceLabel } from "../../lib/offset-label";
 import type { Deadline } from "../../lib/deadline-plan";
@@ -14,8 +9,6 @@ interface Props {
 }
 const { deadlines, anchorLabel } = Astro.props;
 
-// Same filter the planner applies on mount (no facet ticked), so hydration
-// swaps the rendering, not the content.
 const entries = deadlines.filter((d) => appliesTo(d, [])).sort(byOffset);
 ---
 

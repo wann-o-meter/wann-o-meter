@@ -19,17 +19,15 @@ import type { TaskCta } from "./task-cta";
 
 const props = defineProps<{
   entry: ScheduleEntry;
-  anchorDate: string; // the plan's own day, needed to size the tenancy overlap
+  anchorDate: string;
   isPast: boolean;
   done: boolean;
   isCustom: boolean;
-  isNext: boolean; // the one task to act on now
-  deferred: boolean; // the rule's target month was pushed back by a month
+  isNext: boolean;
+  deferred: boolean;
   cta: TaskCta | null;
   note?: string;
   attachment?: string;
-  /** Which inline editor is open, if any. Owned by the parent so only one
-    card in the list can be editing at a time; v-model:editor. */
   editor: EditorKind | null;
 }>();
 
@@ -40,8 +38,6 @@ const emit = defineEmits<{
   (e: "toggle-defer"): void;
   (e: "delete"): void;
 }>();
-
-/* ---------- editors: one open/close path, one commit path ---------- */
 
 function open(kind: EditorKind) {
   emit("update:editor", kind);
@@ -60,8 +56,6 @@ function commit(field: EditorKind, value: string) {
   close();
 }
 
-// Only one editor is mounted at a time, so a single ref covers all four and
-// the parent no longer has to reach into the DOM to focus them.
 const editorEl = ref<HTMLElement | null>(null);
 watch(
   () => props.editor,
@@ -72,7 +66,6 @@ watch(
   },
 );
 
-// note and attachment are the same textarea with different copy.
 const textEditor = computed(() => {
   if (props.editor === "note")
     return {
@@ -91,13 +84,10 @@ const textEditor = computed(() => {
   return null;
 });
 
-// A touch date wheel fires change on every spin, and committing re-renders the
-// rail under the open picker. So the date is parked and applied on close.
 const pendingDate = ref("");
 function parkDate(e: Event) {
   const el = e.target as HTMLInputElement;
   pendingDate.value = el.value;
-  // A pointer picker closes on selection, so it can commit at once.
   if (matchMedia("(hover: hover)").matches) el.blur();
 }
 function closeDateEdit() {
@@ -107,16 +97,10 @@ function closeDateEdit() {
   else close();
 }
 
-/* ---------- derived state ---------- */
-
-// Same three states the markers on the timeline use, same colours.
 const status = computed(() =>
   props.done ? "erledigt" : props.isPast ? "ueberfaellig" : "offen",
 );
 
-// Both dates are already on the card, the gap between them is not. Only worth
-// a line when the tenancy outlives the moving month itself, otherwise every
-// mid-month move would report the remainder of its own month as a finding.
 const doubleRent = computed(() => {
   const lease = props.entry.leaseEnd;
   if (!lease || lease.overlapDays <= 0) return null;
@@ -212,7 +196,6 @@ const menuItems = computed<MenuItem[]>(() => [
       nächste Werktag.
     </p>
 
-    <!-- An expired card keeps only the line that says what to do now. -->
     <p v-if="entry.note && !entry.rescue" class="hint">{{ entry.note }}</p>
 
     <textarea
@@ -280,11 +263,6 @@ const menuItems = computed<MenuItem[]>(() => [
     border-color 0.2s,
     box-shadow 0.2s;
 }
-/* The dot sits on the rail line to the left of the card, anchored to the
-  title row so an eyebrow above it cannot push the two out of line. Filled and
-  small on purpose: the hollow ring is the timeline's state glyph, and the rail
-  is spaced by list order, not by date. Card padding is part of the offset,
-  since the row it hangs on starts inside it. */
 .dot {
   position: absolute;
   left: calc(-1 * var(--rail-gap, 1.4rem) - 1.1rem - 0.25rem);
@@ -327,7 +305,6 @@ const menuItems = computed<MenuItem[]>(() => [
   color: var(--muted);
 }
 
-/* State rides along with the title instead of costing a line above it. */
 .badge {
   display: inline-block;
   vertical-align: 0.1em;
@@ -375,8 +352,6 @@ const menuItems = computed<MenuItem[]>(() => [
   margin-top: 0.15rem;
   border: 1px solid var(--line);
   background: var(--paper);
-  /* A rounded square, not a circle: circles on this page mean timeline state,
-    and a bare grey one next to a title read as one of them. */
   border-radius: 4px;
   cursor: pointer;
   padding: 0;
@@ -397,7 +372,6 @@ const menuItems = computed<MenuItem[]>(() => [
   }
 }
 
-/* The menu is quiet until the card is under the pointer. */
 :deep(.tools) {
   opacity: 0;
 }
@@ -422,8 +396,6 @@ const menuItems = computed<MenuItem[]>(() => [
   font-size: var(--fs-xs);
   color: var(--muted);
 }
-/* A consequence of the plan, not a warning about it, so it carries no colour
-  and no bar of its own. */
 .overlap {
   margin: 0.4rem 0 0;
   max-width: 60ch;
@@ -456,7 +428,6 @@ const menuItems = computed<MenuItem[]>(() => [
   text-decoration: underline;
   text-underline-offset: 0.15em;
 }
-/* The one thing the card asks you to do, so it is the one filled control. */
 .cta-button {
   display: inline-flex;
   align-items: center;

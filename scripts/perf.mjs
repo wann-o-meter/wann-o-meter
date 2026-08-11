@@ -1,9 +1,3 @@
-// FCP / LCP / font-request timings under Lighthouse-ish mobile throttling,
-// median of N runs (single runs swing far too much to compare against).
-// Same throwaway-diagnostic status as scripts/cls.mjs:
-//
-//   bun add -d puppeteer && bun run build && bun run preview &
-//   node scripts/perf.mjs [path] [runs]
 import puppeteer from "puppeteer";
 
 const path = process.argv[2] ?? "/";
@@ -27,8 +21,6 @@ for (let i = 0; i < runs; i++) {
     uploadThroughput: (750 * 1024) / 8,
   });
 
-  // LCP entries are only delivered through a buffered observer - they are not
-  // in performance.getEntriesByType() by the time we ask.
   await page.evaluateOnNewDocument(() => {
     window.__lcp = 0;
     window.__tbt = 0;

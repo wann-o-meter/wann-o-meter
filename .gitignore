@@ -28,8 +28,6 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# Claude Code agent worktrees - ephemeral, and their presence under the repo
-# root was making vitest double-count every test file it happened to contain
 .claude/
 
 PLAN.md

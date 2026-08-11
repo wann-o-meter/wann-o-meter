@@ -1,20 +1,13 @@
-// ICS generator (RFC 5545), platform-neutral. Uses only all-day events
-// (VALUE=DATE), because time windows are always full days.
 
 export interface IcsEvent {
   uid: string;
-  from: string; // ISO date YYYY-MM-DD, inclusive
-  to: string; // ISO date YYYY-MM-DD, inclusive (last full day)
+  from: string;
+  to: string;
   title: string;
   description?: string;
   url?: string;
 }
 
-// ponytail: a minute-resolution window ("YYYY-MM-DDTHH:MM", see lib/date.ts)
-// is truncated to its day here - VALUE=DATE all-day events, as the header
-// says. Passing the clock time through would emit "VALUE=DATE:20260501T0630",
-// which is malformed RFC 5545. Emit a timed VEVENT instead once a source
-// actually needs the time in the feed.
 function toIcsDate(iso: string): string {
   return iso.slice(0, 10).replaceAll("-", "");
 }
@@ -29,9 +22,6 @@ function escapeText(s: string): string {
   return s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
 }
 
-// ponytail: folds by character count instead of exact UTF-8 octet count
-// (RFC 5545) - fine for the short German texts here, a very long
-// description with many umlauts could push a line past 75 octets.
 function foldLine(line: string): string {
   const limit = 74;
   if (line.length <= limit) return line;

@@ -1,18 +1,18 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import IndexTimeline from "../components/Index.vue";
-import { graph, websiteNode } from "../../lib/structured-data";
 import { loadAllVorhaben } from "../../lib/vorhaben-data";
 
 const homeDescription =
   "Wann muss ich anfangen? Fristen rückwärts vom Termin geplant, mit Quelle - Umzug, Geburt, Hochzeit und Jobwechsel.";
-const structuredData = graph([
-  websiteNode({ name: "Wann-O-Meter", url: new URL("/", Astro.site).href, description: homeDescription }),
-]);
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Wann-O-Meter",
+  url: new URL("/", Astro.site).href,
+  description: homeDescription,
+};
 
-// Same lists the per-Vorhaben pages use - the homepage mounts that same
-// DeadlinePlanner in place once a date is picked, not a second data source
-// or a second planner UI.
 const vorhaben = loadAllVorhaben();
 ---
 

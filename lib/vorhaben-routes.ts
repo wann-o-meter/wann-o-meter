@@ -1,10 +1,8 @@
-// One list of routes for both the HTML page and the .md endpoint, so the two
-// can never enumerate different pages. Server-only (loads vorhaben-data).
 import { loadAllVorhaben } from "./vorhaben-data";
 import type { VorhabenData, VorhabenVariant } from "./vorhaben-data";
 
-export interface VorhabenRoute {
-  path: string; // "umzug" or "umzug/rottenburg"
+interface VorhabenRoute {
+  path: string;
   v: VorhabenData;
   variant: VorhabenVariant;
   title: string;
@@ -24,7 +22,6 @@ export function vorhabenRoutes(): VorhabenRoute[] {
       title: v.title,
       description: v.description,
     };
-    // A single synthetic bundesweit variant is not a place - no /geburt/bundesweit/.
     if (v.variants.length < 2) return [base];
     return [
       base,

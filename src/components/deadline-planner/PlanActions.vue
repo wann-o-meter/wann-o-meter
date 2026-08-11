@@ -8,12 +8,10 @@ import type { ScheduleEntry } from "../../../lib/deadline-plan";
 const props = defineProps<{
   entries: ScheduleEntry[];
   anchorDate: string;
-  calendarName: string; // e.g. "Umzug innerhalb Deutschlands - Berlin"
+  calendarName: string;
   fileSlug: string;
 }>();
 
-// The URL already carries date, Ort, facets and the Mietende choice. It does
-// NOT carry ticks, notes or custom tasks, so the label must not promise them.
 const linkCopied = ref(false);
 async function copyPlanLink() {
   try {
@@ -21,7 +19,6 @@ async function copyPlanLink() {
     linkCopied.value = true;
     setTimeout(() => (linkCopied.value = false), 2000);
   } catch {
-    // no clipboard permission - the address bar still has the same link
   }
 }
 
@@ -47,7 +44,6 @@ function exportIcs() {
   URL.revokeObjectURL(url);
 }
 
-// `window` is not in template scope.
 const print = () => window.print();
 </script>
 
@@ -97,8 +93,6 @@ const print = () => window.print();
   align-items: center;
   gap: 0.4rem;
 }
-/* Local copy of the shared section heading; see the note about promoting
-  .section to the app stylesheet. */
 .section {
   margin: 0 0 0.75rem;
   font-size: var(--fs-sm);

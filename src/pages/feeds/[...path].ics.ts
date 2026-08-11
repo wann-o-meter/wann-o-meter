@@ -3,12 +3,6 @@ import { getAllPages, getPageEvents } from "../../../lib/pages";
 import type { Page, PageEvent } from "../../../lib/pages";
 import { generateIcs } from "../../../lib/ics";
 
-// Replaces feeds/[category]/[slug].ics.ts - a rest param is required once a
-// category can nest (see src/pages/[...path].astro's docstring for why).
-// Only pages with at least one event get a feed - nothing else to put in a
-// calendar. Rows are either single dates (LLM-labeled/regex-found scraped
-// content) or date ranges (materialized calendar windows - see
-// getPageEvents()'s `to` field), not necessarily curated/verified.
 export function getStaticPaths() {
   return getAllPages()
     .map((p) => ({ page: p, events: getPageEvents(p) }))

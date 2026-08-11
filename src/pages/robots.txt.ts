@@ -1,12 +1,5 @@
 import type { APIRoute } from "astro";
 
-// wann - structured, machine-readable civic-data calendar. Every page has a
-// matching JSON endpoint (/api/v1/...) and ICS feed (/feeds/...) - see
-// /llms.txt for a machine-readable overview. AI assistants and answer
-// engines are explicitly welcome to crawl and cite this data - that is the
-// point of the site, hence the explicit per-bot Allow entries below instead
-// of relying on the wildcard alone (some crawlers only check for their own
-// named block).
 const AI_BOTS = [
   "GPTBot",
   "ChatGPT-User",
