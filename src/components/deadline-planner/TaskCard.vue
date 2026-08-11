@@ -11,7 +11,7 @@ import {
   TriangleAlert,
 } from "lucide-vue-next";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
-import { shortDate } from "../../../lib/date-display";
+import { longDate, shortDate } from "../../../lib/date-display";
 import { sourceLabel } from "../../../lib/offset-label";
 import type { TaskCta } from "./task-cta";
 
@@ -101,9 +101,6 @@ function closeMenuOnBlur(e: FocusEvent) {
     :data-entry-date="entry.date"
     :data-status="status"
   >
-    <p v-if="isPast && !done" class="eyebrow late">Überfällig</p>
-    <p v-else-if="isNext && !done" class="eyebrow">Als Nächstes</p>
-
     <div class="head">
       <span class="dot" :data-dot-key="entry.id"></span>
       <button
@@ -126,7 +123,11 @@ function closeMenuOnBlur(e: FocusEvent) {
         "
         @blur="$emit('commit-label', ($event.target as HTMLInputElement).value)"
       />
-      <h3 v-else>{{ entry.label }}</h3>
+      <h3 v-else>
+        {{ entry.label }}
+        <span v-if="isPast && !done" class="badge late">Überfällig</span>
+        <span v-else-if="isNext && !done" class="badge">Als Nächstes</span>
+      </h3>
       <details class="tools" @click="closeMenu" @focusout="closeMenuOnBlur">
         <summary aria-label="Aktionen" title="Aktionen">
           <Ellipsis :size="14" />
@@ -148,16 +149,26 @@ function closeMenuOnBlur(e: FocusEvent) {
       </details>
     </div>
 
-    <p class="dates">
+    <!-- A missed deadline gets one instruction in ink and the dates behind it
+      in grey. Everything else on the card ranks below that line. -->
+    <template v-if="isPast && !done && entry.rescue">
+      <p class="lead">Bis {{ longDate(entry.rescue.date) }} nachholen.</p>
+      <p class="meta">
+        Frist war {{ longDate(entry.date!) }}.
+        <template v-if="!doubleRent">{{ entry.rescue.label }}.</template>
+      </p>
+    </template>
+    <p v-else class="dates">
       <span :class="{ overdue: isPast }"
-        >Frist: {{ shortDate(entry.date!)
+        >Frist: {{ longDate(entry.date!)
         }}<template v-if="isPast"> (verstrichen)</template></span
       >
       <template v-if="entry.earliestDate !== entry.date">
-        &nbsp;·&nbsp; möglich ab: {{ shortDate(entry.earliestDate!) }}</template
+        &nbsp;·&nbsp; möglich ab: {{ longDate(entry.earliestDate!) }}</template
       >
       <template v-if="entry.startByDate !== entry.date">
-        &nbsp;·&nbsp; <b>Termin buchen bis: {{ shortDate(entry.startByDate!) }}</b>
+        &nbsp;·&nbsp;
+        <b>Termin buchen bis: {{ longDate(entry.startByDate!) }}</b>
       </template>
     </p>
 
@@ -177,12 +188,9 @@ function closeMenuOnBlur(e: FocusEvent) {
       lange läuft die Miete für beide Wohnungen.
     </p>
 
-    <p v-if="entry.rescue" class="flag rescue">
-      <TriangleAlert :size="14" /> Frist verstrichen – bis
-      {{ shortDate(entry.rescue.date) }} nachholen, {{ entry.rescue.label }}.
-    </p>
     <p v-if="!done && entry.impossible" class="flag">
-      Bei diesem Termin nicht mehr rechtzeitig möglich – Termin sofort buchen.
+      <TriangleAlert :size="14" /> Bei diesem Termin nicht mehr rechtzeitig
+      möglich – Termin sofort buchen.
     </p>
     <p v-else-if="entry.movedFrom && !done" class="moved">
       {{ shortDate(entry.movedFrom) }} wäre ein geschlossener Tag, deshalb der
@@ -191,53 +199,6 @@ function closeMenuOnBlur(e: FocusEvent) {
 
     <!-- An expired card keeps only the line that says what to do now. -->
     <p v-if="entry.note && !entry.rescue" class="hint">{{ entry.note }}</p>
-
-    <div
-      v-if="entry.offset_rule || deferred"
-      class="defer"
-      role="radiogroup"
-      aria-label="Mietende"
-    >
-      <span class="defer-label">Mietende</span>
-      <button
-        type="button"
-        role="radio"
-        :aria-checked="!deferred"
-        @click="deferred && $emit('toggle-defer')"
-      >
-        Ende des Umzugsmonats
-      </button>
-      <button
-        type="button"
-        role="radio"
-        :aria-checked="deferred"
-        @click="!deferred && $emit('toggle-defer')"
-      >
-        Einen Monat später (Überlappung)
-      </button>
-    </div>
-
-    <!-- One provenance affordance: the paragraph lives inside the derivation
-      it is the basis for, so the card is not making the same offer twice. -->
-    <details v-if="entry.derivation?.length" class="derivation">
-      <summary>Wie wird das berechnet?</summary>
-      <ol>
-        <li v-for="step in entry.derivation" :key="step.step">
-          {{ step.label }}
-        </li>
-      </ol>
-      <p class="src">
-        Grundlage:
-        <a
-          v-if="entry.source_url"
-          :href="entry.source_url"
-          target="_blank"
-          rel="noopener"
-          >{{ entry.source_label ?? "Quelle" }} <ArrowUpRight :size="12"
-        /></a>
-        <span v-else>{{ sourceLabel(entry) }}</span>
-      </p>
-    </details>
 
     <textarea
       v-if="attachmentOpen"
@@ -297,17 +258,70 @@ function closeMenuOnBlur(e: FocusEvent) {
       </button>
     </div>
 
-    <p v-if="!entry.derivation?.length" class="src">
-      Grundlage:
-      <a
-        v-if="entry.source_url"
-        :href="entry.source_url"
-        target="_blank"
-        rel="noopener"
-        >{{ entry.source_label ?? "Quelle" }}</a
+    <!-- Below the hairline: what the card assumes and where it got it from.
+      Never the action, so the eye can stop at the button above. -->
+    <div class="footer">
+      <div
+        v-if="entry.offset_rule || deferred"
+        class="defer"
+        role="radiogroup"
+        aria-label="Mietende"
       >
-      <span v-else>{{ isCustom ? "Eigene Aufgabe" : sourceLabel(entry) }}</span>
-    </p>
+        <span class="defer-label">Mietende</span>
+        <button
+          type="button"
+          role="radio"
+          :aria-checked="!deferred"
+          @click="deferred && $emit('toggle-defer')"
+        >
+          Ende des Umzugsmonats
+        </button>
+        <button
+          type="button"
+          role="radio"
+          :aria-checked="deferred"
+          @click="!deferred && $emit('toggle-defer')"
+        >
+          Einen Monat später
+        </button>
+      </div>
+
+      <!-- One provenance affordance: the paragraph lives inside the derivation
+        it is the basis for, not next to it as a second offer. -->
+      <details v-if="entry.derivation?.length" class="derivation">
+        <summary>Wie wird das berechnet?</summary>
+        <ol>
+          <li v-for="step in entry.derivation" :key="step.step">
+            {{ step.label }}
+          </li>
+        </ol>
+        <p class="src">
+          Grundlage:
+          <a
+            v-if="entry.source_url"
+            :href="entry.source_url"
+            target="_blank"
+            rel="noopener"
+            >{{ entry.source_label ?? "Quelle" }} <ArrowUpRight :size="12"
+          /></a>
+          <span v-else>{{ sourceLabel(entry) }}</span>
+        </p>
+      </details>
+
+      <p v-else class="src">
+        Grundlage:
+        <a
+          v-if="entry.source_url"
+          :href="entry.source_url"
+          target="_blank"
+          rel="noopener"
+          >{{ entry.source_label ?? "Quelle" }}</a
+        >
+        <span v-else>{{
+          isCustom ? "Eigene Aufgabe" : sourceLabel(entry)
+        }}</span>
+      </p>
+    </div>
   </article>
 </template>
 
@@ -365,10 +379,8 @@ function closeMenuOnBlur(e: FocusEvent) {
   opacity: 0.7;
 }
 .card[data-status="erledigt"] .hint,
-.card[data-status="erledigt"] .defer,
-.card[data-status="erledigt"] .derivation,
 .card[data-status="erledigt"] .cta-row,
-.card[data-status="erledigt"] .src {
+.card[data-status="erledigt"] .footer {
   display: none;
 }
 .card[data-status="erledigt"] h3 {
@@ -376,15 +388,21 @@ function closeMenuOnBlur(e: FocusEvent) {
   color: var(--muted);
 }
 
-.eyebrow {
-  margin: 0 0 0.15rem;
+/* State rides along with the title instead of costing a line above it. */
+.badge {
+  display: inline-block;
+  vertical-align: 0.1em;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--paper-raised));
+  color: var(--accent);
   font-size: var(--fs-xs);
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--accent);
+  white-space: nowrap;
 }
-.eyebrow.late {
+.badge.late {
+  background: color-mix(in srgb, var(--warn) 12%, var(--paper-raised));
   color: var(--warn);
 }
 .head {
@@ -510,6 +528,19 @@ function closeMenuOnBlur(e: FocusEvent) {
   color: var(--warn);
 }
 
+/* Three levels and no more: the instruction, the consequence, the record.
+  Mono is for the fact row only, a date set in mono inside a sentence is the
+  thing that made these cards read as noise. */
+.lead {
+  margin: 0.5rem 0 0;
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+.meta {
+  margin: 0.2rem 0 0;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
 .dates {
   margin: 0.35rem 0 0;
   font-family: var(--font-mono);
@@ -531,9 +562,12 @@ function closeMenuOnBlur(e: FocusEvent) {
   font-size: var(--fs-sm);
 }
 .src {
-  margin: 0.5rem 0 0;
+  margin: 0;
   font-size: var(--fs-xs);
   color: var(--muted);
+}
+.derivation .src {
+  margin-top: 0.5rem;
 }
 .src a {
   color: var(--accent);
@@ -543,11 +577,11 @@ function closeMenuOnBlur(e: FocusEvent) {
   font-size: var(--fs-xs);
   color: var(--muted);
 }
-/* A consequence of the plan, not a warning about it. */
+/* A consequence of the plan, not a warning about it, so it carries no colour
+  and no bar of its own. */
 .overlap {
-  margin: 0.5rem 0 0;
-  padding-left: 0.6rem;
-  border-left: 2px solid var(--anchor);
+  margin: 0.4rem 0 0;
+  max-width: 60ch;
   font-size: var(--fs-sm);
 }
 .flag {
@@ -561,28 +595,39 @@ function closeMenuOnBlur(e: FocusEvent) {
   font-weight: 600;
 }
 
+/* Assumptions and provenance, below a hairline and in the small size, so the
+  eye stops at the button above instead of shopping the whole card. */
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 1.2rem;
+  margin-top: 0.8rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--line);
+}
+.footer:empty {
+  display: none;
+}
+
+/* Wraps rather than truncates: an option nobody can finish reading is worse
+  than one on a second line. */
 .defer {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
-  gap: 0.25rem;
-  margin: 0.5rem 0 0;
+  flex-wrap: wrap;
+  gap: 0.3rem;
 }
 .defer-label {
-  flex-shrink: 0;
   font-size: var(--fs-xs);
   color: var(--muted);
 }
 .defer button {
-  flex: 0 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   font-size: var(--fs-xs);
-  padding: 0.25rem 0.5rem;
+  padding: 0.15rem 0.5rem;
+  white-space: nowrap;
 }
-/* A setting, so it never outweighs the action below it: the chosen side is
+/* A setting, so it never outweighs the action above it: the chosen side is
   marked by ink and a border, not by a fill. */
 .defer button[aria-checked="true"] {
   border-color: var(--accent);
@@ -593,12 +638,14 @@ function closeMenuOnBlur(e: FocusEvent) {
   color: var(--muted);
 }
 .derivation {
-  margin-top: 0.5rem;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 .derivation summary {
   cursor: pointer;
+  color: var(--muted);
+}
+.derivation summary:hover {
   color: var(--accent);
 }
 .derivation ol {

@@ -472,11 +472,9 @@ function print() {
       class="planner-header"
       :style="{ marginBottom: headerGap + 'px' }"
     >
+      <!-- No Vorhaben field: the page title already names it, and a card that
+        looks like the other two but cannot be changed is a false promise. -->
       <div class="form">
-        <div class="field static">
-          <span>Vorhaben</span>
-          <strong>{{ vorhaben }}</strong>
-        </div>
         <label class="field">
           <span>{{ anchorLabel }}</span>
           <input v-model="anchorDate" type="date" :aria-label="anchorLabel" />
@@ -732,7 +730,7 @@ function print() {
 
 .form {
   display: grid;
-  grid-template-columns: 1.3fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 0.6rem;
 }
 .field {
@@ -781,19 +779,6 @@ function print() {
 .field input {
   font-family: var(--font-mono);
 }
-.field strong {
-  display: block;
-  transition: font-size 0.22s;
-  font-size: var(--fs-md);
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.field.static {
-  background: transparent;
-  border-color: transparent;
-}
 .field input:focus-visible,
 .field select:focus-visible {
   outline: 2px solid var(--accent);
@@ -812,7 +797,6 @@ function print() {
   opacity: 0;
   margin-bottom: 0;
 }
-.compact .field strong,
 .compact .field input,
 .compact .field select {
   font-size: var(--fs-sm);
@@ -891,6 +875,7 @@ function print() {
 }
 
 .section {
+  scroll-margin-top: calc(var(--tl-header-h, 0px) + 1rem);
   font-size: var(--fs-sm);
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -1094,9 +1079,6 @@ function print() {
   .form {
     grid-template-columns: 1fr;
     gap: 0.4rem;
-  }
-  .field.static {
-    display: none;
   }
   .planner-header {
     padding-top: 0.4rem;

@@ -4,18 +4,26 @@
     :class="{ armed: clickable }"
     :style="{ '--tl-t': shrink }"
   >
+    <!-- Keys read, filters act, so they are not one row of look-alikes. -->
     <div v-if="showLegend" class="legend">
-      <span class="item"><span class="capsule"></span> möglich ab - Frist</span>
-      <span class="item"><span class="ring"></span> offen</span>
-      <span class="item"><span class="dot"></span> erledigt</span>
-      <label class="item">
-        <input v-model="showFeiertage" type="checkbox" />
-        <span class="swatch feiertag"></span> Feiertage
-      </label>
-      <label class="item">
-        <input v-model="showSchulferien" type="checkbox" />
-        <span class="swatch ferien"></span> Schulferien
-      </label>
+      <div class="keys">
+        <span class="item"><span class="capsule"></span> möglich ab – Frist</span>
+        <span class="item"><span class="ring"></span> offen</span>
+        <span class="item"
+          ><span class="ring late"></span> überfällig</span
+        >
+        <span class="item"><span class="dot"></span> erledigt</span>
+      </div>
+      <div class="filters" role="group" aria-label="Bänder einblenden">
+        <label class="item">
+          <input v-model="showFeiertage" type="checkbox" />
+          <span class="swatch feiertag"></span> Feiertage
+        </label>
+        <label class="item">
+          <input v-model="showSchulferien" type="checkbox" />
+          <span class="swatch ferien"></span> Schulferien
+        </label>
+      </div>
     </div>
 
     <figure ref="figureEl" class="figure">
@@ -140,7 +148,7 @@
             :y="L.m.labelY + 16"
             :opacity="Math.max(0, 1 - shrink * 2)"
           >
-            {{ shortDate(today) }}
+            {{ dayShort(today) }}
           </text>
           <text
             class="anchor-label event"
@@ -157,7 +165,7 @@
             :text-anchor="L.eventFlip ? 'end' : 'start'"
             :opacity="Math.max(0, 1 - shrink * 2)"
           >
-            {{ longDate(anchorDay) }}
+            {{ dayLong(anchorDay) }}
           </text>
           <text
             v-if="ghost"
@@ -177,7 +185,7 @@
             tabindex="0"
             role="button"
             :data-node-key="keyed ? it.id : null"
-            :aria-label="`${it.label}. Frist ${shortDate(it.deadline)}. ${STATE_WORD[it.status]}.`"
+            :aria-label="`${it.label}. Frist ${dayShort(it.deadline)}. ${STATE_WORD[it.status]}.`"
             @click.stop="emit('select', it.id)"
             @keydown.enter.prevent="emit('select', it.id)"
             @keydown.space.prevent="emit('select', it.id)"
@@ -214,7 +222,7 @@
           :aria-valuemin="MIN_DAY"
           :aria-valuemax="MAX_DAY"
           :aria-valuenow="anchorDay"
-          :aria-valuetext="longDate(anchorDay)"
+          :aria-valuetext="dayLong(anchorDay)"
           :data-node-key="keyed ? ANCHOR_ID : null"
           @keydown="onKey"
         >
@@ -245,7 +253,7 @@ import {
   watch,
 } from "vue";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
-import { MONTH_NAMES, WEEKDAY_NAMES_SHORT } from "../../../lib/date-display";
+import { MONTH_NAMES, longDate, shortDate } from "../../../lib/date-display";
 import { holidaysFor } from "../../../lib/holidays";
 import {
   dateOfDay,
@@ -399,13 +407,12 @@ const anchorDay = computed(() =>
 );
 const movable = computed(() => props.clickable || props.draggable);
 
-function shortDate(n: number): string {
-  const d = dateOfDay(n);
-  return `${WEEKDAY_NAMES_SHORT[(d.getUTCDay() + 6) % 7]}, ${String(d.getUTCDate()).padStart(2, "0")}.${String(d.getUTCMonth() + 1).padStart(2, "0")}.${d.getUTCFullYear()}`;
+// The strip works in day numbers, the two shared forms in ISO days.
+function dayShort(n: number): string {
+  return shortDate(isoOfDay(n));
 }
-function longDate(n: number): string {
-  const d = dateOfDay(n);
-  return `${WEEKDAY_NAMES_SHORT[(d.getUTCDay() + 6) % 7]}, ${d.getUTCDate()}. ${MONTH_NAMES[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+function dayLong(n: number): string {
+  return longDate(isoOfDay(n));
 }
 
 // One marker vocabulary: state is a colour, never a size or a shape.
@@ -596,7 +603,7 @@ function place(d: number) {
   emit("place", isoOfDay(Math.min(MAX_DAY, Math.max(MIN_DAY, d))));
 }
 function setGhost(d: number) {
-  ghost.value = { x: L.value.xLeft(d), label: shortDate(d) };
+  ghost.value = { x: L.value.xLeft(d), label: dayShort(d) };
   emit("preview", isoOfDay(d));
 }
 function clearGhost() {
@@ -672,8 +679,8 @@ function onMarkerEnter(it: {
     y: it.cy - L.value.m.markerR - 8,
     title: it.label,
     sub:
-      `Frist: ${shortDate(it.deadline)}` +
-      (it.start === null ? "" : ` · möglich ab ${shortDate(it.start)}`),
+      `Frist: ${dayShort(it.deadline)}` +
+      (it.start === null ? "" : ` · möglich ab ${dayShort(it.start)}`),
   };
 }
 function onMarkerLeave() {
@@ -685,7 +692,9 @@ function onMarkerLeave() {
 <style scoped>
 .timeline {
   --d-werktag: var(--paper-raised);
-  --d-wochenende: color-mix(in srgb, var(--ink) 10%, var(--paper-raised));
+  /* Far enough from Werktag that the week's shape is readable at a glance,
+    which is the only reason the band is there. */
+  --d-wochenende: color-mix(in srgb, var(--ink) 22%, var(--paper-raised));
   --d-ferien: color-mix(in srgb, var(--accent) 22%, var(--paper-raised));
   --d-feiertag: color-mix(in srgb, var(--holiday) 45%, var(--paper-raised));
 }
@@ -693,6 +702,7 @@ function onMarkerLeave() {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 0.4rem 1.1rem;
   font-size: var(--fs-xs);
   color: var(--muted);
@@ -701,6 +711,21 @@ function onMarkerLeave() {
   max-height: calc((1 - var(--tl-t, 0)) * 2.2rem);
   opacity: calc(1 - var(--tl-t, 0) * 1.6);
   margin-bottom: calc((1 - var(--tl-t, 0)) * 0.25rem);
+}
+.keys,
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1.1rem;
+}
+/* The controls carry a frame the keys do not, so a checkbox never reads as
+  another state to look up. */
+.filters {
+  gap: 0.4rem 0.9rem;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
 }
 .legend .item {
   display: inline-flex;
@@ -735,6 +760,9 @@ function onMarkerLeave() {
 .ring {
   border: 2.5px solid var(--accent);
   background: var(--paper-raised);
+}
+.ring.late {
+  border-color: var(--warn);
 }
 .dot {
   background: var(--done-color);
