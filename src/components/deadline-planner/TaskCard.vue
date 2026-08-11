@@ -11,8 +11,7 @@ import {
   TriangleAlert,
 } from "lucide-vue-next";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
-import { MONTH_NAMES, shortDate } from "../../../lib/date-display";
-import { toDate } from "../../../lib/format-date";
+import { shortDate } from "../../../lib/date-display";
 import { sourceLabel } from "../../../lib/offset-label";
 import type { TaskCta } from "./task-cta";
 
@@ -65,15 +64,6 @@ function closeDateEdit() {
   else emit("close-date-edit");
 }
 
-function when(iso: string): string {
-  const d = toDate(iso);
-  return `${WEEKDAY_NAMES_SHORT[(d.getUTCDay() + 6) % 7]}, ${String(d.getUTCDate()).padStart(2, "0")}.${String(d.getUTCMonth() + 1).padStart(2, "0")}.${d.getUTCFullYear()}`;
-}
-function shortWhen(iso: string): string {
-  const d = toDate(iso);
-  return `${d.getUTCDate()}. ${MONTH_NAMES[d.getUTCMonth()].slice(0, 3)}`;
-}
-
 // Both dates are already on the card, the gap between them is not. Only worth
 // a line when the tenancy outlives the moving month itself, otherwise every
 // mid-month move would report the remainder of its own month as a finding.
@@ -111,15 +101,16 @@ function closeMenuOnBlur(e: FocusEvent) {
     :data-entry-date="entry.date"
     :data-status="status"
   >
-    <span class="dot" :data-dot-key="entry.id"></span>
-    <p v-if="isNext && !done" class="eyebrow">Als Nächstes</p>
+    <p v-if="isPast && !done" class="eyebrow late">Überfällig</p>
+    <p v-else-if="isNext && !done" class="eyebrow">Als Nächstes</p>
 
     <div class="head">
+      <span class="dot" :data-dot-key="entry.id"></span>
       <button
         type="button"
         class="check"
         :aria-pressed="done"
-        aria-label="Als erledigt markieren"
+        :aria-label="`${entry.label} als erledigt markieren`"
         @click="$emit('toggle-done')"
       >
         <Check v-if="done" :size="11" />
@@ -158,12 +149,15 @@ function closeMenuOnBlur(e: FocusEvent) {
     </div>
 
     <p class="dates">
-      <span :class="{ overdue: isPast }">Frist: {{ when(entry.date!) }}</span>
+      <span :class="{ overdue: isPast }"
+        >Frist: {{ shortDate(entry.date!)
+        }}<template v-if="isPast"> (verstrichen)</template></span
+      >
       <template v-if="entry.earliestDate !== entry.date">
-        &nbsp;·&nbsp; möglich ab: {{ when(entry.earliestDate!) }}</template
+        &nbsp;·&nbsp; möglich ab: {{ shortDate(entry.earliestDate!) }}</template
       >
       <template v-if="entry.startByDate !== entry.date">
-        &nbsp;·&nbsp; <b>Termin buchen bis: {{ when(entry.startByDate!) }}</b>
+        &nbsp;·&nbsp; <b>Termin buchen bis: {{ shortDate(entry.startByDate!) }}</b>
       </template>
     </p>
 
@@ -184,38 +178,47 @@ function closeMenuOnBlur(e: FocusEvent) {
     </p>
 
     <p v-if="entry.rescue" class="flag rescue">
-      <TriangleAlert :size="14" /> Frist verstrichen - bis
-      {{ shortWhen(entry.rescue.date) }} nachholen, {{ entry.rescue.label }}.
+      <TriangleAlert :size="14" /> Frist verstrichen – bis
+      {{ shortDate(entry.rescue.date) }} nachholen, {{ entry.rescue.label }}.
     </p>
     <p v-if="!done && entry.impossible" class="flag">
-      Bei diesem Termin nicht mehr rechtzeitig möglich - Termin sofort buchen.
+      Bei diesem Termin nicht mehr rechtzeitig möglich – Termin sofort buchen.
     </p>
     <p v-else-if="entry.movedFrom && !done" class="moved">
-      {{ shortWhen(entry.movedFrom) }} wäre ein geschlossener Tag, deshalb der
+      {{ shortDate(entry.movedFrom) }} wäre ein geschlossener Tag, deshalb der
       nächste Werktag.
     </p>
 
     <!-- An expired card keeps only the line that says what to do now. -->
     <p v-if="entry.note && !entry.rescue" class="hint">{{ entry.note }}</p>
 
-    <p v-if="entry.offset_rule || deferred" class="defer">
+    <div
+      v-if="entry.offset_rule || deferred"
+      class="defer"
+      role="radiogroup"
+      aria-label="Mietende"
+    >
       <span class="defer-label">Mietende</span>
       <button
         type="button"
-        :aria-pressed="!deferred"
+        role="radio"
+        :aria-checked="!deferred"
         @click="deferred && $emit('toggle-defer')"
       >
         Ende des Umzugsmonats
       </button>
       <button
         type="button"
-        :aria-pressed="deferred"
+        role="radio"
+        :aria-checked="deferred"
         @click="!deferred && $emit('toggle-defer')"
       >
         Einen Monat später (Überlappung)
       </button>
-    </p>
+    </div>
 
+    <!-- One provenance affordance: the paragraph lives inside the derivation
+      it is the basis for, so the card is not making the same offer twice. -->
     <details v-if="entry.derivation?.length" class="derivation">
       <summary>Wie wird das berechnet?</summary>
       <ol>
@@ -223,6 +226,17 @@ function closeMenuOnBlur(e: FocusEvent) {
           {{ step.label }}
         </li>
       </ol>
+      <p class="src">
+        Grundlage:
+        <a
+          v-if="entry.source_url"
+          :href="entry.source_url"
+          target="_blank"
+          rel="noopener"
+          >{{ entry.source_label ?? "Quelle" }} <ArrowUpRight :size="12"
+        /></a>
+        <span v-else>{{ sourceLabel(entry) }}</span>
+      </p>
     </details>
 
     <textarea
@@ -283,7 +297,7 @@ function closeMenuOnBlur(e: FocusEvent) {
       </button>
     </div>
 
-    <p class="src">
+    <p v-if="!entry.derivation?.length" class="src">
       Grundlage:
       <a
         v-if="entry.source_url"
@@ -311,24 +325,26 @@ function closeMenuOnBlur(e: FocusEvent) {
     border-color 0.2s,
     box-shadow 0.2s;
 }
-/* The dot sits on the rail line to the left of the card, and both it and the
-  card edge carry the same three states as the markers on the timeline. */
+/* The dot sits on the rail line to the left of the card, anchored to the
+  title row so an eyebrow above it cannot push the two out of line. Filled and
+  small on purpose: the hollow ring is the timeline's state glyph, and the rail
+  is spaced by list order, not by date. Card padding is part of the offset,
+  since the row it hangs on starts inside it. */
 .dot {
   position: absolute;
-  left: calc(-1 * var(--rail-gap, 1.4rem) - 0.6rem);
-  top: 1.05rem;
-  width: 0.6rem;
-  height: 0.6rem;
+  left: calc(-1 * var(--rail-gap, 1.4rem) - 1.1rem - 0.25rem);
+  top: 0.5rem;
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: 50%;
-  background: var(--paper);
-  border: 2px solid var(--accent);
+  background: var(--line);
+  border: 0;
 }
 .card[data-status="erledigt"] .dot {
   background: var(--done-color);
-  border-color: var(--done-color);
 }
 .card[data-status="ueberfaellig"] .dot {
-  border-color: var(--warn);
+  background: var(--warn);
 }
 
 .card[data-status="offen"] {
@@ -368,7 +384,11 @@ function closeMenuOnBlur(e: FocusEvent) {
   text-transform: uppercase;
   color: var(--accent);
 }
+.eyebrow.late {
+  color: var(--warn);
+}
 .head {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
@@ -397,7 +417,9 @@ function closeMenuOnBlur(e: FocusEvent) {
   margin-top: 0.15rem;
   border: 1px solid var(--line);
   background: var(--paper);
-  border-radius: 50%;
+  /* A rounded square, not a circle: circles on this page mean timeline state,
+    and a bare grey one next to a title read as one of them. */
+  border-radius: 4px;
   cursor: pointer;
   padding: 0;
   display: flex;
@@ -498,8 +520,10 @@ function closeMenuOnBlur(e: FocusEvent) {
   color: var(--ink);
   font-weight: 600;
 }
+/* Not struck through: the day still governs the legal outcome, it is only
+  behind us. */
 .dates .overdue {
-  text-decoration: line-through;
+  color: var(--warn);
 }
 .hint {
   margin: 0.5rem 0 0;
@@ -558,10 +582,15 @@ function closeMenuOnBlur(e: FocusEvent) {
   font-size: var(--fs-xs);
   padding: 0.25rem 0.5rem;
 }
-.defer button[aria-pressed="true"] {
-  background: var(--accent);
+/* A setting, so it never outweighs the action below it: the chosen side is
+  marked by ink and a border, not by a fill. */
+.defer button[aria-checked="true"] {
   border-color: var(--accent);
-  color: var(--accent-ink);
+  color: var(--accent);
+  font-weight: 600;
+}
+.defer button[aria-checked="false"] {
+  color: var(--muted);
 }
 .derivation {
   margin-top: 0.5rem;
@@ -579,6 +608,11 @@ function closeMenuOnBlur(e: FocusEvent) {
 .derivation li {
   margin-bottom: 0.25rem;
 }
+.derivation .src a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
 .cta-row {
   display: flex;
   flex-wrap: wrap;
@@ -595,13 +629,15 @@ function closeMenuOnBlur(e: FocusEvent) {
   text-decoration: underline;
   text-underline-offset: 0.15em;
 }
+/* The one thing the card asks you to do, so it is the one filled control. */
 .cta-button {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: var(--fs-xs);
-  color: var(--accent);
+  font-size: var(--fs-sm);
+  background: var(--accent);
   border-color: var(--accent);
+  color: var(--accent-ink);
 }
 .note-input {
   display: block;
