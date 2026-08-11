@@ -191,6 +191,42 @@ describe("computeSchedule", () => {
     expect(result[0].rescue?.date).toBe("2024-02-05");
   });
 
+  it("reports the tenancy end the rescue month brings, and its overlap", () => {
+    // Same expired case: the notice now only works for an end of April, so
+    // the old flat runs 46 days past the 15 March move.
+    const [entry] = computeSchedule(
+      "2024-03-15",
+      [
+        deadline({
+          id: "kuendigen",
+          offset_days: -90,
+          offset_rule: "bgb-573c-notice",
+        }),
+      ],
+      "DE",
+      undefined,
+      "2024-02-01",
+    );
+    expect(entry.leaseEnd).toEqual({ date: "2024-04-30", overlapDays: 46 });
+  });
+
+  it("ends the tenancy with the anchor month when the notice is still in time", () => {
+    const [entry] = computeSchedule(
+      "2024-03-15",
+      [
+        deadline({
+          id: "kuendigen",
+          offset_days: -90,
+          offset_rule: "bgb-573c-notice",
+        }),
+      ],
+      "DE",
+      undefined,
+      "2023-12-01",
+    );
+    expect(entry.leaseEnd).toEqual({ date: "2024-03-31", overlapDays: 16 });
+  });
+
   it("rolls a needs_office step off a closed day and remembers the day it left", () => {
     // 2027-06-13 is a Sunday. Only the office step moves.
     const result = computeSchedule(

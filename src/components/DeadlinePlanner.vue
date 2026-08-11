@@ -594,6 +594,7 @@ function print() {
             v-else
             :class="{ focused: hoveredId === node.entry.id }"
             :entry="node.entry"
+            :anchor-date="anchorDate"
             :is-past="isPast(node.entry.date!)"
             :done="!!doneIds[node.entry.id]"
             :is-custom="isCustom(node.entry.id)"

@@ -2,7 +2,7 @@
 
 - [x] Summary says _„Die nächste Frist ist am Do., 03.09.2026: Wohnung kündigen"_ but that task's Frist is 04.08.2026 and has passed. The summary is quoting the recovery date as if it were the deadline. Split the two: _„1 Frist verstrichen, 9 offen. Nachholen bis Do., 03.09.2026."_
 - [x] Summary says _„10 Aufgaben, 10 noch offen"_ while one is overdue. Overdue is not the same state as open — it needs its own count, since it's the only state that requires action today.
-- [ ] Kündigung by 03.09 gives Mietende 30.11.2026 against a move on 16.10.2026 — six weeks of double rent. The plan computes both numbers and doesn't say this. That overlap is exactly the kind of derived insight a generic checklist can't produce.
+- [x] Kündigung by 03.09 gives Mietende 30.11.2026 against a move on 16.10.2026 — six weeks of double rent. The plan computes both numbers and doesn't say this. That overlap is exactly the kind of derived insight a generic checklist can't produce.
 - [ ] Timeline shows „möglich ab" capsules for some tasks; the cards never show a start date. Same data, two views, one of them silently dropping it.
 
 ## Consistency

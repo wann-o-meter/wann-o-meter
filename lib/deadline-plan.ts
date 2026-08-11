@@ -56,6 +56,11 @@ export interface ScheduleEntry extends Deadline {
   derivation?: DerivationStep[];
   pastDeadline?: boolean;
   rescue?: { date: string; label: string } | null;
+  // The day the old tenancy actually ends, once the rescue month is taken
+  // into account, and how far that runs past the anchor day. Both numbers
+  // already existed inside the rule, and the overlap between them is the one
+  // thing a generic checklist cannot derive.
+  leaseEnd?: { date: string; overlapDays: number };
 }
 
 function addDays(iso: string, days: number): string {
@@ -86,6 +91,11 @@ function addDays(iso: string, days: number): string {
  * also what § 193 BGB does with a deadline landing on a Saturday, Sunday or
  * public holiday. The day it moved off stays in `movedFrom`.
  */
+function endOfMonth(yyyyMm: string): string {
+  const [y, m] = yyyyMm.split("-").map(Number);
+  return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
+}
+
 function shiftMonth(yyyyMm: string, n: number): string {
   const [y, m] = yyyyMm.split("-").map(Number);
   const total = m - 1 + n;
@@ -106,6 +116,7 @@ export function computeSchedule(
     let derivation: DerivationStep[] | undefined;
     let pastDeadline: boolean | undefined;
     let rescue: { date: string; label: string } | null | undefined;
+    let leaseEnd: { date: string; overlapDays: number } | undefined;
     let date: string | null;
     if (d.offset_days === null) {
       date = null;
@@ -128,6 +139,17 @@ export function computeSchedule(
       rescue = result.rescue
         ? { date: result.rescue.date, label: result.rescue.label }
         : null;
+      // Missing the notice window pushes the tenancy a month on, so the end
+      // that counts is the rescue's, not the one that was aimed for.
+      const lastDay = endOfMonth(
+        result.rescue?.leaseEndMonth ?? result.leaseEndMonth,
+      );
+      leaseEnd = {
+        date: lastDay,
+        overlapDays: Math.round(
+          (toDate(lastDay).getTime() - toDate(anchorDate).getTime()) / 86400000,
+        ),
+      };
     } else {
       date = addDays(anchorDate, d.offset_days);
     }
@@ -168,6 +190,7 @@ export function computeSchedule(
       derivation,
       pastDeadline,
       rescue,
+      leaseEnd,
       movedFrom,
     };
   });

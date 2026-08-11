@@ -11,13 +11,14 @@ import {
   TriangleAlert,
 } from "lucide-vue-next";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
-import { MONTH_NAMES, WEEKDAY_NAMES_SHORT } from "../../../lib/date-display";
+import { MONTH_NAMES, shortDate } from "../../../lib/date-display";
 import { toDate } from "../../../lib/format-date";
 import { sourceLabel } from "../../../lib/offset-label";
 import type { TaskCta } from "./task-cta";
 
 const props = defineProps<{
   entry: ScheduleEntry;
+  anchorDate: string; // the plan's own day, needed to size the tenancy overlap
   isPast: boolean;
   done: boolean;
   isCustom: boolean;
@@ -72,6 +73,19 @@ function shortWhen(iso: string): string {
   const d = toDate(iso);
   return `${d.getUTCDate()}. ${MONTH_NAMES[d.getUTCMonth()].slice(0, 3)}`;
 }
+
+// Both dates are already on the card, the gap between them is not. Only worth
+// a line when the tenancy outlives the moving month itself, otherwise every
+// mid-month move would report the remainder of its own month as a finding.
+const doubleRent = computed(() => {
+  const lease = props.entry.leaseEnd;
+  if (!lease || lease.overlapDays <= 0) return null;
+  if (lease.date.slice(0, 7) === props.anchorDate.slice(0, 7)) return null;
+  const weeks = Math.round(lease.overlapDays / 7);
+  const span =
+    lease.overlapDays < 14 ? `${lease.overlapDays} Tage` : `${weeks} Wochen`;
+  return { end: shortDate(lease.date), span };
+});
 
 // Same three states the markers on the timeline use, same colours.
 const status = computed(() =>
@@ -164,6 +178,11 @@ function closeMenuOnBlur(e: FocusEvent) {
       @keydown.enter="($event.target as HTMLInputElement).blur()"
     />
 
+    <p v-if="doubleRent && !done" class="overlap">
+      Mietende {{ doubleRent.end }}, {{ doubleRent.span }} nach dem Umzug. So
+      lange läuft die Miete für beide Wohnungen.
+    </p>
+
     <p v-if="entry.rescue" class="flag rescue">
       <TriangleAlert :size="14" /> Frist verstrichen - bis
       {{ shortWhen(entry.rescue.date) }} nachholen, {{ entry.rescue.label }}.
@@ -198,7 +217,7 @@ function closeMenuOnBlur(e: FocusEvent) {
     </p>
 
     <details v-if="entry.derivation?.length" class="derivation">
-      <summary>Wie berechnet?</summary>
+      <summary>Wie wird das berechnet?</summary>
       <ol>
         <li v-for="step in entry.derivation" :key="step.step">
           {{ step.label }}
@@ -499,6 +518,13 @@ function closeMenuOnBlur(e: FocusEvent) {
   margin: 0.35rem 0 0;
   font-size: var(--fs-xs);
   color: var(--muted);
+}
+/* A consequence of the plan, not a warning about it. */
+.overlap {
+  margin: 0.5rem 0 0;
+  padding-left: 0.6rem;
+  border-left: 2px solid var(--anchor);
+  font-size: var(--fs-sm);
 }
 .flag {
   display: flex;
