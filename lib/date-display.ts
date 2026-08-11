@@ -21,6 +21,7 @@ function utcParts(iso: string) {
   const d = new Date(`${iso.slice(0, 10)}T00:00:00Z`);
   return {
     weekday: WEEKDAY_NAMES_SHORT[(d.getUTCDay() + 6) % 7],
+    weekdayLong: WEEKDAY_NAMES_LONG[(d.getUTCDay() + 6) % 7],
     day: d.getUTCDate(),
     month0: d.getUTCMonth(),
     year: d.getUTCFullYear(),
@@ -38,7 +39,7 @@ export function shortDate(iso: string): string {
 /** "Fr, 16. Oktober 2026" */
 export function longDate(iso: string): string {
   const p = utcParts(iso);
-  return `${p.weekday}, ${p.day}. ${MONTH_NAMES[p.month0]} ${p.year}`;
+  return `${p.weekdayLong}, ${p.day}. ${MONTH_NAMES[p.month0]} ${p.year}`;
 }
 
 // ISO-8601 week number (Thursday rule).

@@ -1,0 +1,122 @@
+import { computed, ref, watch } from "vue";
+import { FACET_LABELS, appliesTo, facetsUsedBy } from "../../../lib/facets";
+import { isoToday } from "../../../lib/today";
+import type { PlanVariant } from "./types";
+
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+// Picks a default anchor date so the earliest known deadline is due today,
+// instead of an empty plan. Only computed once at setup.
+function defaultAnchorDate(deadlines: PlanVariant["deadlines"]): string {
+  const offsets = deadlines
+    .map((d) => d.offset_days)
+    .filter((o): o is number => o !== null);
+  if (offsets.length === 0) return isoToday();
+  const d = new Date(`${isoToday()}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - Math.min(...offsets));
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * The four things the URL carries: date, variant, facets, Mietende. Reading
+ * them at setup and writing them back on change is one concern, so it lives
+ * in one place rather than in four scattered refs and a watcher.
+ */
+export function usePlanUrlState(
+  variants: PlanVariant[],
+  defaultSlug: string | undefined,
+) {
+  const params =
+    typeof window === "undefined"
+      ? null
+      : new URLSearchParams(window.location.search);
+  const has = (slug: string | null | undefined) =>
+    !!slug && variants.some((v) => v.slug === slug);
+
+  const urlVariant = params?.get("variant");
+  const selectedSlug = ref(
+    has(urlVariant)
+      ? urlVariant!
+      : has(defaultSlug)
+        ? defaultSlug!
+        : variants[0]?.slug,
+  );
+  const selected = computed(
+    () => variants.find((v) => v.slug === selectedSlug.value) ?? variants[0],
+  );
+
+  const urlDate = params?.get("date");
+  const anchorDate = ref(
+    urlDate && ISO_DAY.test(urlDate)
+      ? urlDate
+      : defaultAnchorDate(
+        variants.find((v) => v.slug === selectedSlug.value)?.deadlines ?? [],
+      ),
+  );
+
+  // Which optional circumstances the user ticked. Off by default: a plan
+  // should open with what applies to everyone, not every special case at once.
+  const activeFacets = ref<string[]>(
+    (params?.get("facets") ?? "").split(",").filter((f) => f in FACET_LABELS),
+  );
+  const facetOptions = computed(() =>
+    facetsUsedBy(selected.value?.deadlines ?? []),
+  );
+
+  // The single most consequential assumption in the plan: whether the old flat
+  // ends with the moving month or a month later. Worth a control, not a
+  // footnote.
+  const overlapMonths = ref(params?.get("overlap") === "1" ? 1 : 0);
+  const deferred = computed(() => overlapMonths.value > 0);
+  const toggleDefer = () => (overlapMonths.value = deferred.value ? 0 : 1);
+
+  // Filtering here, upstream of the editing layer, is what makes every
+  // consumer agree: cards, timeline and ICS export all read from this.
+  // Per-task state stays keyed by id, so unticking a chip and ticking it again
+  // brings a task back exactly as it was.
+  const selectedForPlan = computed(() =>
+    selected.value
+      ? {
+        ...selected.value,
+        deadlines: selected.value.deadlines.filter((d) =>
+          appliesTo(d, activeFacets.value),
+        ),
+      }
+      : undefined,
+  );
+
+  // replaceState, not pushState, so picking a date doesn't spam history.
+  watch(
+    [anchorDate, selectedSlug, activeFacets, overlapMonths],
+    () => {
+      if (typeof window === "undefined") return;
+      const next = new URLSearchParams(window.location.search);
+      if (anchorDate.value) next.set("date", anchorDate.value);
+      if (selected.value) next.set("variant", selected.value.slug);
+      if (activeFacets.value.length > 0)
+        next.set("facets", activeFacets.value.join(","));
+      else next.delete("facets");
+      if (deferred.value) next.set("overlap", "1");
+      else next.delete("overlap");
+      const query = next.toString();
+      history.replaceState(
+        null,
+        "",
+        query ? `?${query}` : window.location.pathname,
+      );
+    },
+    { immediate: true },
+  );
+
+  return {
+    selectedSlug,
+    selected,
+    selectedForPlan,
+    anchorDate,
+    activeFacets,
+    facetOptions,
+    overlapMonths,
+    deferred,
+    toggleDefer,
+  };
+}

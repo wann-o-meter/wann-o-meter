@@ -1,18 +1,20 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import {
   ArrowUpRight,
   CalendarClock,
   Check,
-  Ellipsis,
   MessageSquarePlus,
   Pencil,
   Trash2,
   TriangleAlert,
 } from "lucide-vue-next";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
-import { longDate, shortDate } from "../../../lib/date-display";
-import { sourceLabel } from "../../../lib/offset-label";
+import { shortDate } from "../../../lib/date-display";
+import CardMenu from "./CardMenu.vue";
+import TaskDates from "./TaskDates.vue";
+import TaskFooter from "./TaskFooter.vue";
+import type { EditorKind, MenuItem, TaskPatch } from "./task-card";
 import type { TaskCta } from "./task-cta";
 
 const props = defineProps<{
@@ -21,32 +23,73 @@ const props = defineProps<{
   isPast: boolean;
   done: boolean;
   isCustom: boolean;
-  editing: boolean; // title input open
-  noteOpen: boolean;
-  noteText?: string;
-  attachmentOpen: boolean;
-  attachmentText?: string;
-  hasAttachment: boolean;
-  cta: TaskCta | null;
-  dateEditOpen: boolean;
   isNext: boolean; // the one task to act on now
   deferred: boolean; // the rule's target month was pushed back by a month
+  cta: TaskCta | null;
+  note?: string;
+  attachment?: string;
+  /** Which inline editor is open, if any. Owned by the parent so only one
+    card in the list can be editing at a time; v-model:editor. */
+  editor: EditorKind | null;
 }>();
 
 const emit = defineEmits<{
+  (e: "update:editor", value: EditorKind | null): void;
+  (e: "update", patch: TaskPatch): void;
   (e: "toggle-done"): void;
-  (e: "commit-label", value: string): void;
-  (e: "open-label-edit"): void;
-  (e: "open-note"): void;
-  (e: "commit-note", value: string): void;
-  (e: "open-attachment"): void;
-  (e: "commit-attachment", value: string): void;
-  (e: "delete"): void;
-  (e: "open-date-edit"): void;
-  (e: "close-date-edit"): void;
   (e: "toggle-defer"): void;
-  (e: "commit-date-edit", iso: string): void;
+  (e: "delete"): void;
 }>();
+
+/* ---------- editors: one open/close path, one commit path ---------- */
+
+function open(kind: EditorKind) {
+  emit("update:editor", kind);
+}
+function close() {
+  emit("update:editor", null);
+}
+function currentValue(field: EditorKind) {
+  if (field === "label") return props.entry.label ?? "";
+  if (field === "date") return props.entry.date ?? "";
+  if (field === "note") return props.note ?? "";
+  return props.attachment ?? "";
+}
+function commit(field: EditorKind, value: string) {
+  if (value !== currentValue(field)) emit("update", { [field]: value });
+  close();
+}
+
+// Only one editor is mounted at a time, so a single ref covers all four and
+// the parent no longer has to reach into the DOM to focus them.
+const editorEl = ref<HTMLElement | null>(null);
+watch(
+  () => props.editor,
+  async (kind) => {
+    if (!kind) return;
+    await nextTick();
+    editorEl.value?.focus();
+  },
+);
+
+// note and attachment are the same textarea with different copy.
+const textEditor = computed(() => {
+  if (props.editor === "note")
+    return {
+      field: "note" as const,
+      value: props.note ?? "",
+      rows: 2,
+      placeholder: "Notiz - z. B. Aktenzeichen, Ansprechpartner, Telefonnummer",
+    };
+  if (props.editor === "attachment")
+    return {
+      field: "attachment" as const,
+      value: props.attachment ?? "",
+      rows: 10,
+      placeholder: "",
+    };
+  return null;
+});
 
 // A touch date wheel fires change on every spin, and committing re-renders the
 // rail under the open picker. So the date is parked and applied on close.
@@ -60,9 +103,16 @@ function parkDate(e: Event) {
 function closeDateEdit() {
   const iso = pendingDate.value;
   pendingDate.value = "";
-  if (iso) emit("commit-date-edit", iso);
-  else emit("close-date-edit");
+  if (iso) commit("date", iso);
+  else close();
 }
+
+/* ---------- derived state ---------- */
+
+// Same three states the markers on the timeline use, same colours.
+const status = computed(() =>
+  props.done ? "erledigt" : props.isPast ? "ueberfaellig" : "offen",
+);
 
 // Both dates are already on the card, the gap between them is not. Only worth
 // a line when the tenancy outlives the moving month itself, otherwise every
@@ -77,21 +127,21 @@ const doubleRent = computed(() => {
   return { end: shortDate(lease.date), span };
 });
 
-// Same three states the markers on the timeline use, same colours.
-const status = computed(() =>
-  props.done ? "erledigt" : props.isPast ? "ueberfaellig" : "offen",
-);
-
-// A <details> menu has no outside-click of its own, so it closes when an item
-// is used or when focus leaves it.
-function closeMenu(e: Event) {
-  const menu = e.currentTarget as HTMLDetailsElement;
-  if ((e.target as HTMLElement).closest("button")) menu.open = false;
-}
-function closeMenuOnBlur(e: FocusEvent) {
-  const menu = e.currentTarget as HTMLDetailsElement;
-  if (!menu.contains(e.relatedTarget as Node)) menu.open = false;
-}
+const menuItems = computed<MenuItem[]>(() => [
+  {
+    label: "Termin verschieben",
+    icon: CalendarClock,
+    onSelect: () => open("date"),
+  },
+  { label: "Titel ändern", icon: Pencil, onSelect: () => open("label") },
+  { label: "Notiz", icon: MessageSquarePlus, onSelect: () => open("note") },
+  {
+    label: "Aufgabe entfernen",
+    icon: Trash2,
+    danger: true,
+    onSelect: () => emit("delete"),
+  },
+]);
 </script>
 
 <template>
@@ -113,67 +163,32 @@ function closeMenuOnBlur(e: FocusEvent) {
         <Check v-if="done" :size="11" />
       </button>
       <input
-        v-if="editing"
+        v-if="editor === 'label'"
+        ref="editorEl"
         class="title-input"
-        :data-title-input="entry.id"
         :value="entry.label"
         placeholder="Was ist zu tun?"
-        @keydown.enter="
-          $emit('commit-label', ($event.target as HTMLInputElement).value)
-        "
-        @blur="$emit('commit-label', ($event.target as HTMLInputElement).value)"
+        @keydown.enter="($event.target as HTMLInputElement).blur()"
+        @blur="commit('label', ($event.target as HTMLInputElement).value)"
       />
       <h3 v-else>
         {{ entry.label }}
         <span v-if="isPast && !done" class="badge late">Überfällig</span>
         <span v-else-if="isNext && !done" class="badge">Als Nächstes</span>
       </h3>
-      <details class="tools" @click="closeMenu" @focusout="closeMenuOnBlur">
-        <summary aria-label="Aktionen" title="Aktionen">
-          <Ellipsis :size="14" />
-        </summary>
-        <div class="tool-menu">
-          <button type="button" @click="$emit('open-date-edit')">
-            <CalendarClock :size="12" /> Termin verschieben
-          </button>
-          <button type="button" @click="$emit('open-label-edit')">
-            <Pencil :size="12" /> Titel ändern
-          </button>
-          <button type="button" @click="$emit('open-note')">
-            <MessageSquarePlus :size="12" /> Notiz
-          </button>
-          <button type="button" class="danger" @click="$emit('delete')">
-            <Trash2 :size="12" /> Aufgabe entfernen
-          </button>
-        </div>
-      </details>
+      <CardMenu :items="menuItems" />
     </div>
 
-    <!-- A missed deadline gets one instruction in ink and the dates behind it
-      in grey. Everything else on the card ranks below that line. -->
-    <template v-if="isPast && !done && entry.rescue">
-      <p class="lead">Bis {{ longDate(entry.rescue.date) }} nachholen.</p>
-      <p class="meta">
-        Frist war {{ longDate(entry.date!) }}.
-        <template v-if="!doubleRent">{{ entry.rescue.label }}.</template>
-      </p>
-    </template>
-    <p v-else class="dates">
-      <span :class="{ overdue: isPast }"
-        >Frist: {{ longDate(entry.date!)
-        }}<template v-if="isPast"> (verstrichen)</template></span
-      >
-      <template v-if="entry.earliestDate !== entry.date">
-        &nbsp;·&nbsp; möglich ab: {{ longDate(entry.earliestDate!) }}</template
-      >
-      <template v-if="entry.startByDate !== entry.date">
-        &nbsp;·&nbsp;
-        <b>Termin buchen bis: {{ longDate(entry.startByDate!) }}</b>
-      </template>
-    </p>
+    <TaskDates
+      :entry="entry"
+      :is-past="isPast"
+      :done="done"
+      :show-rescue-label="!doubleRent"
+    />
 
     <input
-      v-if="dateEditOpen"
+      v-if="editor === 'date'"
+      ref="editorEl"
       type="date"
       class="date-input"
       :value="entry.date"
@@ -201,40 +216,26 @@ function closeMenuOnBlur(e: FocusEvent) {
     <p v-if="entry.note && !entry.rescue" class="hint">{{ entry.note }}</p>
 
     <textarea
-      v-if="attachmentOpen"
+      v-if="textEditor"
+      ref="editorEl"
       class="note-input"
-      :data-attachment-input="entry.id"
-      :value="attachmentText ?? ''"
-      rows="10"
-      @keydown.esc="
-        $emit('commit-attachment', ($event.target as HTMLTextAreaElement).value)
-      "
+      :value="textEditor.value"
+      :rows="textEditor.rows"
+      :placeholder="textEditor.placeholder"
+      @keydown.esc="($event.target as HTMLTextAreaElement).blur()"
       @blur="
-        $emit('commit-attachment', ($event.target as HTMLTextAreaElement).value)
+        commit(textEditor.field, ($event.target as HTMLTextAreaElement).value)
       "
-    ></textarea>
-
-    <textarea
-      v-if="noteOpen"
-      class="note-input"
-      :data-note-input="entry.id"
-      :value="noteText ?? ''"
-      rows="2"
-      placeholder="Notiz - z. B. Aktenzeichen, Ansprechpartner, Telefonnummer"
-      @keydown.esc="
-        $emit('commit-note', ($event.target as HTMLTextAreaElement).value)
-      "
-      @blur="$emit('commit-note', ($event.target as HTMLTextAreaElement).value)"
     ></textarea>
     <p
-      v-else-if="noteText"
+      v-else-if="note"
       class="note"
       tabindex="0"
       role="button"
-      @click="$emit('open-note')"
-      @keydown.enter="$emit('open-note')"
+      @click="open('note')"
+      @keydown.enter="open('note')"
     >
-      {{ noteText }}
+      {{ note }}
     </p>
 
     <div v-if="cta" class="cta-row">
@@ -250,78 +251,18 @@ function closeMenuOnBlur(e: FocusEvent) {
         v-else
         type="button"
         class="cta-button"
-        @click="$emit('open-attachment')"
+        @click="open('attachment')"
       >
-        {{
-          hasAttachment ? `${cta.label} bearbeiten` : `${cta.label} aufsetzen`
-        }}
+        {{ attachment ? `${cta.label} bearbeiten` : `${cta.label} aufsetzen` }}
       </button>
     </div>
 
-    <!-- Below the hairline: what the card assumes and where it got it from.
-      Never the action, so the eye can stop at the button above. -->
-    <div class="footer">
-      <div
-        v-if="entry.offset_rule || deferred"
-        class="defer"
-        role="radiogroup"
-        aria-label="Mietende"
-      >
-        <span class="defer-label">Mietende</span>
-        <button
-          type="button"
-          role="radio"
-          :aria-checked="!deferred"
-          @click="deferred && $emit('toggle-defer')"
-        >
-          Ende des Umzugsmonats
-        </button>
-        <button
-          type="button"
-          role="radio"
-          :aria-checked="deferred"
-          @click="!deferred && $emit('toggle-defer')"
-        >
-          Einen Monat später
-        </button>
-      </div>
-
-      <!-- One provenance affordance: the paragraph lives inside the derivation
-        it is the basis for, not next to it as a second offer. -->
-      <details v-if="entry.derivation?.length" class="derivation">
-        <summary>Wie wird das berechnet?</summary>
-        <ol>
-          <li v-for="step in entry.derivation" :key="step.step">
-            {{ step.label }}
-          </li>
-        </ol>
-        <p class="src">
-          Grundlage:
-          <a
-            v-if="entry.source_url"
-            :href="entry.source_url"
-            target="_blank"
-            rel="noopener"
-            >{{ entry.source_label ?? "Quelle" }} <ArrowUpRight :size="12"
-          /></a>
-          <span v-else>{{ sourceLabel(entry) }}</span>
-        </p>
-      </details>
-
-      <p v-else class="src">
-        Grundlage:
-        <a
-          v-if="entry.source_url"
-          :href="entry.source_url"
-          target="_blank"
-          rel="noopener"
-          >{{ entry.source_label ?? "Quelle" }}</a
-        >
-        <span v-else>{{
-          isCustom ? "Eigene Aufgabe" : sourceLabel(entry)
-        }}</span>
-      </p>
-    </div>
+    <TaskFooter
+      :entry="entry"
+      :is-custom="isCustom"
+      :deferred="deferred"
+      @toggle-defer="$emit('toggle-defer')"
+    />
   </article>
 </template>
 
@@ -366,6 +307,7 @@ function closeMenuOnBlur(e: FocusEvent) {
 }
 .card[data-status="erledigt"] {
   border-left-color: var(--done-color);
+  opacity: 0.7;
 }
 .card[data-status="ueberfaellig"] {
   border-left-color: var(--warn);
@@ -375,12 +317,9 @@ function closeMenuOnBlur(e: FocusEvent) {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
 }
-.card[data-status="erledigt"] {
-  opacity: 0.7;
-}
 .card[data-status="erledigt"] .hint,
 .card[data-status="erledigt"] .cta-row,
-.card[data-status="erledigt"] .footer {
+.card[data-status="erledigt"] :deep(.footer) {
   display: none;
 }
 .card[data-status="erledigt"] h3 {
@@ -405,6 +344,7 @@ function closeMenuOnBlur(e: FocusEvent) {
   background: color-mix(in srgb, var(--warn) 12%, var(--paper-raised));
   color: var(--warn);
 }
+
 .head {
   position: relative;
   display: flex;
@@ -457,120 +397,25 @@ function closeMenuOnBlur(e: FocusEvent) {
   }
 }
 
-.tools {
-  position: relative;
-  flex-shrink: 0;
+/* The menu is quiet until the card is under the pointer. */
+:deep(.tools) {
   opacity: 0;
-  transition: opacity 0.12s;
 }
-.card:hover .tools,
-.tools[open],
-.tools:focus-within {
+.card:hover :deep(.tools),
+:deep(.tools[open]),
+:deep(.tools:focus-within) {
   opacity: 1;
 }
 @media (hover: none) {
-  .tools {
+  :deep(.tools) {
     opacity: 1;
   }
 }
-.tools summary {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border: 1px solid transparent;
-  border-radius: 2px;
-  cursor: pointer;
-  color: var(--muted);
-  list-style: none;
-}
-.tools summary::-webkit-details-marker {
-  display: none;
-}
-.tools summary:hover,
-.tools[open] summary {
-  background: var(--paper);
-  border-color: var(--line);
-  color: var(--ink);
-}
-.tool-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 0.25rem);
-  z-index: 4;
-  display: flex;
-  flex-direction: column;
-  min-width: 12rem;
-  padding: 0.25rem;
-  background: var(--paper-raised);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-md);
-}
-.tool-menu button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  border: 0;
-  background: transparent;
-  color: var(--ink);
-  font-size: var(--fs-sm);
-  text-align: left;
-  padding: 0.4rem 0.5rem;
-  cursor: pointer;
-}
-.tool-menu button:hover {
-  background: var(--paper);
-}
-.tool-menu .danger {
-  color: var(--warn);
-}
 
-/* Three levels and no more: the instruction, the consequence, the record.
-  Mono is for the fact row only, a date set in mono inside a sentence is the
-  thing that made these cards read as noise. */
-.lead {
-  margin: 0.5rem 0 0;
-  font-size: var(--fs-md);
-  font-weight: 600;
-}
-.meta {
-  margin: 0.2rem 0 0;
-  font-size: var(--fs-sm);
-  color: var(--muted);
-}
-.dates {
-  margin: 0.35rem 0 0;
-  font-family: var(--font-mono);
-  font-size: var(--fs-sm);
-  color: var(--muted);
-}
-.dates b {
-  color: var(--ink);
-  font-weight: 600;
-}
-/* Not struck through: the day still governs the legal outcome, it is only
-  behind us. */
-.dates .overdue {
-  color: var(--warn);
-}
 .hint {
   margin: 0.5rem 0 0;
   max-width: 68ch;
   font-size: var(--fs-sm);
-}
-.src {
-  margin: 0;
-  font-size: var(--fs-xs);
-  color: var(--muted);
-}
-.derivation .src {
-  margin-top: 0.5rem;
-}
-.src a {
-  color: var(--accent);
 }
 .moved {
   margin: 0.35rem 0 0;
@@ -595,71 +440,6 @@ function closeMenuOnBlur(e: FocusEvent) {
   font-weight: 600;
 }
 
-/* Assumptions and provenance, below a hairline and in the small size, so the
-  eye stops at the button above instead of shopping the whole card. */
-.footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.35rem 1.2rem;
-  margin-top: 0.8rem;
-  padding-top: 0.6rem;
-  border-top: 1px solid var(--line);
-}
-.footer:empty {
-  display: none;
-}
-
-/* Wraps rather than truncates: an option nobody can finish reading is worse
-  than one on a second line. */
-.defer {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-}
-.defer-label {
-  font-size: var(--fs-xs);
-  color: var(--muted);
-}
-.defer button {
-  font-size: var(--fs-xs);
-  padding: 0.15rem 0.5rem;
-  white-space: nowrap;
-}
-/* A setting, so it never outweighs the action above it: the chosen side is
-  marked by ink and a border, not by a fill. */
-.defer button[aria-checked="true"] {
-  border-color: var(--accent);
-  color: var(--accent);
-  font-weight: 600;
-}
-.defer button[aria-checked="false"] {
-  color: var(--muted);
-}
-.derivation {
-  font-size: var(--fs-xs);
-  color: var(--muted);
-}
-.derivation summary {
-  cursor: pointer;
-  color: var(--muted);
-}
-.derivation summary:hover {
-  color: var(--accent);
-}
-.derivation ol {
-  margin: 0.5rem 0 0;
-  padding-left: 1.5rem;
-}
-.derivation li {
-  margin-bottom: 0.25rem;
-}
-.derivation .src a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-}
 .cta-row {
   display: flex;
   flex-wrap: wrap;
@@ -686,29 +466,28 @@ function closeMenuOnBlur(e: FocusEvent) {
   border-color: var(--accent);
   color: var(--accent-ink);
 }
+
+.note-input,
+.date-input {
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  color: inherit;
+  border-radius: 2px;
+  background: var(--paper);
+}
 .note-input {
   display: block;
   width: 100%;
   margin-top: 0.5rem;
-  font-family: inherit;
-  font-size: var(--fs-sm);
-  color: inherit;
   border: 1px solid var(--line);
-  border-radius: 2px;
   padding: 0.5rem;
-  background: var(--paper);
   resize: vertical;
 }
 .date-input {
   display: block;
   margin-top: 0.5rem;
-  font-family: inherit;
-  font-size: var(--fs-sm);
-  color: inherit;
   border: 1px solid var(--accent);
-  border-radius: 2px;
   padding: 0.25rem 0.5rem;
-  background: var(--paper);
 }
 .note {
   margin: 0.5rem 0 0;
@@ -721,7 +500,6 @@ function closeMenuOnBlur(e: FocusEvent) {
 }
 
 @media print {
-  .tools,
   .cta-row {
     display: none;
   }
