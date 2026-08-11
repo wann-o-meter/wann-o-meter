@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import {
   computed,
-  nextTick,
   onBeforeUnmount,
   onMounted,
   ref,
   useTemplateRef,
   watch,
 } from "vue";
-import { Check, Download, Info, Link2, Plus, Printer } from "lucide-vue-next";
+import { Check, Download, Link2, Plus, Printer } from "lucide-vue-next";
 import TaskCard from "./deadline-planner/TaskCard.vue";
 import TaskPicker from "./deadline-planner/TaskPicker.vue";
 import Timeline from "./deadline-planner/Timeline.vue";
@@ -19,7 +18,6 @@ import {
   facetsUsedBy,
 } from "../../lib/facets";
 import { formatDateWithWeekday, toDate } from "../../lib/format-date";
-import { newSourceIssueUrl } from "../../lib/github-issue";
 import { generateIcs } from "../../lib/ics";
 import type { IcsEvent } from "../../lib/ics";
 import { taskCtaFor } from "./deadline-planner/task-cta";
@@ -44,6 +42,8 @@ const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 const rootEl = useTemplateRef<HTMLElement>("rootEl");
 const railEl = useTemplateRef<HTMLElement>("railEl");
+const headerEl = useTemplateRef<HTMLElement>("headerEl");
+const sentinelEl = useTemplateRef<HTMLElement>("sentinelEl");
 
 function isoToday(): string {
   return new Date().toISOString().slice(0, 10);
@@ -128,9 +128,9 @@ watch(
 );
 
 // Filtering here, upstream of the editing layer, is what makes every consumer
-// agree: rail, compact timeline, ICS export and the unverified count all read
-// from workingDeadlines. Per-task state stays keyed by id, so unticking a chip
-// and ticking it again brings a task back exactly as it was.
+// agree: cards, timeline and ICS export all read from workingDeadlines.
+// Per-task state stays keyed by id, so unticking a chip and ticking it again
+// brings a task back exactly as it was.
 const selectedForPlan = computed(() =>
   selected.value
     ? {
@@ -170,12 +170,6 @@ const {
   computed(() => `wann:plan:${props.vorhaben}:${selectedSlug.value}`),
 );
 
-// Editing a date directly, instead of dragging a card to a different gap -
-// same underlying moveEntry(id, offsetDays), just fed from a native date
-// input rather than a drop target. The anchor is a special case: it's not
-// in workingDeadlines at all (usePlannerSchedule injects it separately with
-// a fixed offset_days: 0), so moveEntry has nothing to move - editing its
-// date means moving the anchor itself, the same as the form's date field.
 // Ticking a task off earns a 12 piece burst. Drawn on body, so no card and no
 // overflow: hidden can clip it.
 function onToggleDone(id: string) {
@@ -213,7 +207,20 @@ function onToggleDone(id: string) {
   }
 }
 
-// The plan in one sentence, so the numbers below have a frame.
+const { timeline, tasks, unscheduled, railNodes } = usePlannerSchedule(
+  anchorDate,
+  selected,
+  workingDeadlines,
+  () => props.anchorLabel,
+  doneIds,
+  overlapMonths,
+);
+
+function isPast(date: string): boolean {
+  return date < isoToday();
+}
+
+// The plan in one sentence, so the list below has a frame.
 const nextOpen = computed(() => {
   const open = timeline.value.filter(
     (e) => e.id !== ANCHOR_ID && !doneIds[e.id],
@@ -227,19 +234,28 @@ const nextOpen = computed(() => {
   const next = pool.reduce((a, b) => (pick(a) <= pick(b) ? a : b));
   return { id: next.id, label: next.label, date: pick(next) };
 });
-const summaryHead = computed(
-  () => `${tasks.value.length} Aufgaben. Die nächste offene ist am `,
+const openCount = computed(
+  () => tasks.value.filter((t) => !doneIds[t.id]).length,
 );
 function jumpToNext() {
   if (nextOpen.value) onTimelineSelect(nextOpen.value.id);
 }
 
-// Ticked-off tasks leave the running plan and collect in a fold at the end.
+const anchorIsSunday = computed(
+  () => toDate(anchorDate.value).getUTCDay() === 0,
+);
+
+// The anchor day is the header's date field and the flag on the timeline, not
+// a task, so it gets no card of its own.
 const openNodes = computed(() => {
-  const kept = [...railNodes.value];
-  // A buffer before the plan starts measures nothing.
-  while (kept.length > 0 && kept[0].kind === "gap") kept.shift();
-  return kept;
+  const out: typeof railNodes.value = [];
+  for (const node of railNodes.value) {
+    if (node.kind === "item" && node.entry.id === ANCHOR_ID) continue;
+    if (node.kind === "gap" && out[out.length - 1]?.kind !== "item") continue;
+    out.push(node);
+  }
+  while (out.length > 0 && out[out.length - 1].kind === "gap") out.pop();
+  return out;
 });
 const doneEntries = computed(() =>
   timeline.value.filter((e) => e.id !== ANCHOR_ID && doneIds[e.id]),
@@ -265,113 +281,75 @@ async function copyPlanLink() {
   }
 }
 
-const sourceIssueUrl = newSourceIssueUrl();
 const editingDateId = ref<string | null>(null);
 function onCommitDate(id: string, iso: string) {
   editingDateId.value = null;
-  if (id === ANCHOR_ID) {
-    anchorDate.value = iso;
-    return;
-  }
   const days = Math.round(
     (toDate(iso).getTime() - toDate(anchorDate.value).getTime()) / 86400000,
   );
   moveEntry(id, days);
 }
 
-const { timeline, tasks, unscheduled, railNodes, stats } = usePlannerSchedule(
-  anchorDate,
-  selected,
-  workingDeadlines,
-  () => props.anchorLabel,
-  doneIds,
-  overlapMonths,
-);
-
-function isPast(date: string): boolean {
-  return date < isoToday();
-}
-
-// One line ("6 von 10 Fristen noch nicht verifiziert") instead of a
-// "Quelle fehlt" badge repeated on every unsourced card - the per-card badge
-// read as ten separate apologies for the same gap. Tasks marked
-// no_source_needed (e.g. Sperrmüllabholung - no Satzung governs a deadline
-// for it at all) don't count toward either side of the fraction.
-const verifiableTasks = computed(() =>
-  tasks.value.filter((t) => !t.no_source_needed),
-);
-const unverifiedCount = computed(
-  () => verifiableTasks.value.filter((t) => t.source_url === null).length,
-);
-
-// Scroll-linked highlight: tracks the page's own scroll (the rail has no inner scrollbox), picks the item closest to a fixed viewport line.
-const highlightedDate = ref<string | null>(null);
-let scrollRaf = false;
-function updateHighlight() {
-  const container = railEl.value;
-  if (!container) return;
-  const items = container.querySelectorAll<HTMLElement>("[data-entry-date]");
-  let closestDate: string | null = null;
-  let closestDelta = Number.POSITIVE_INFINITY;
-  let lastDate: string | null = null;
-  for (const el of items) {
-    const date = el.dataset.entryDate;
-    if (!date) continue;
-    lastDate = date;
-    const delta = Math.abs(
-      el.getBoundingClientRect().top - window.innerHeight / 2,
-    );
-    if (delta < closestDelta) {
-      closestDelta = delta;
-      closestDate = date;
-    }
-  }
-  // At the very bottom of the page the last item's top can never reach the
-  // highlight line (there's nothing left to scroll it down to) - the
-  // line-proximity search alone would then highlight whatever's closest,
-  // never the last item, however far the user scrolls.
-  const atBottom =
-    window.innerHeight + window.scrollY >=
-    document.documentElement.scrollHeight - 2;
-  highlightedDate.value = atBottom ? lastDate : (closestDate ?? lastDate);
-}
-function onPageScroll() {
-  if (scrollRaf) return;
-  scrollRaf = true;
-  requestAnimationFrame(() => {
-    scrollRaf = false;
-    updateHighlight();
-  });
-}
-onMounted(() => {
-  window.addEventListener("scroll", onPageScroll, { passive: true });
-  nextTick(updateHighlight);
-});
-onBeforeUnmount(() => {
-  window.removeEventListener("scroll", onPageScroll);
-});
-watch(railNodes, () => nextTick(updateHighlight));
-
-// Hover state is shared both ways: hovering a Timeline node sets it (via
-// @hover below), which highlights the matching card. Hovering a card sets it
-// too (via @mouseenter/@mouseleave on TaskCard), which highlights the
-// matching node - same ref, two sources.
+// Hover is shared both ways: a hovered marker highlights its card, a hovered
+// card highlights its marker, and a click on either selects.
 const hoveredId = ref<string | null>(null);
 let flashTimer: ReturnType<typeof setTimeout> | undefined;
-
-// Reverse direction of the highlight sync above: clicking a node/pin on the
-// compact Timeline scrolls the rail to that task and briefly flashes it via
-// the same hover styling, so the jump is easy to follow.
 function onTimelineSelect(id: string) {
   railEl.value
     ?.querySelector(`[data-entry-id="${id}"]`)
-    ?.scrollIntoView({ block: "center", behavior: "smooth" });
+    ?.scrollIntoView({ block: "start", behavior: "smooth" });
   hoveredId.value = id;
   clearTimeout(flashTimer);
   flashTimer = setTimeout(() => {
     if (hoveredId.value === id) hoveredId.value = null;
-  }, 900);
+  }, 1600);
 }
+
+// Sticky header: a sentinel above it decides when it is stuck, and the
+// timeline then shrinks instead of being clipped. Its measured height is
+// published so a card scrolled into view stops below it, never behind it.
+// Scroll anchoring has to go while this is on screen: the header changing
+// height above the reader's position makes the browser correct the scroll
+// back, which unsticks the header, which grows it again, and the page then
+// refuses to move until you push past the whole loop.
+const stuck = ref(false);
+const headerH = ref(0);
+const looseHeaderH = ref(0); // its height before it ever shrank
+// Shrinking costs the list its place, so the header hands the freed height
+// back as margin, frame by frame while the strip morphs: the compact bar
+// pins at the top and nothing below it moves at all.
+const headerGap = computed(() =>
+  Math.max(0, looseHeaderH.value - headerH.value),
+);
+const observers: (IntersectionObserver | ResizeObserver)[] = [];
+onMounted(() => {
+  document.documentElement.style.overflowAnchor = "none";
+  if (sentinelEl.value) {
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) looseHeaderH.value = headerH.value;
+        stuck.value = !entry.isIntersecting;
+      },
+      { threshold: 0 },
+    );
+    io.observe(sentinelEl.value);
+    observers.push(io);
+  }
+  if (headerEl.value && rootEl.value) {
+    const ro = new ResizeObserver(() => {
+      const h = headerEl.value?.offsetHeight ?? 0;
+      headerH.value = h;
+      if (!stuck.value && h >= looseHeaderH.value) looseHeaderH.value = h;
+      rootEl.value?.style.setProperty("--tl-header-h", `${h}px`);
+    });
+    ro.observe(headerEl.value);
+    observers.push(ro);
+  }
+});
+onBeforeUnmount(() => {
+  document.documentElement.style.removeProperty("overflow-anchor");
+  observers.forEach((o) => o.disconnect());
+});
 
 // Popover at both "+" triggers - which gap (or the end-of-list button) is currently open.
 type TaskPickerTarget =
@@ -473,196 +451,192 @@ function print() {
 </script>
 
 <template>
-  <div ref="rootEl" class="deadline-planner">
-    <div class="form">
-      <div class="field static">
-        <span>Vorhaben</span>
-        <strong>{{ vorhaben }}</strong>
-      </div>
-      <label class="field">
-        <span>{{ anchorLabel }}</span>
-        <input v-model="anchorDate" type="date" :aria-label="anchorLabel" />
-      </label>
-      <label v-if="variants.length > 1" class="field">
-        <span>{{ variantLabel }}</span>
-        <select v-model="selectedSlug">
-          <option v-for="v in variants" :key="v.slug" :value="v.slug">
-            {{ v.label }}
-          </option>
-        </select>
-      </label>
-    </div>
+  <div ref="rootEl" class="deadline-planner" :class="{ compact: stuck }">
+    <div ref="sentinelEl" class="sentinel"></div>
 
-    <fieldset v-if="facetOptions.length > 1" class="facets">
-      <legend>Trifft auf mich zu</legend>
-      <p class="facets-hint">Ergänze deine Situation für weitere Aufgaben.</p>
-      <label v-for="id in facetOptions" :key="id" class="facet">
-        <input v-model="activeFacets" type="checkbox" :value="id" />
-        <span>{{ facetLabel(id) }}</span>
-      </label>
-    </fieldset>
+    <header
+      ref="headerEl"
+      class="planner-header"
+      :style="{ marginBottom: headerGap + 'px' }"
+    >
+      <div class="form">
+        <div class="field static">
+          <span>Vorhaben</span>
+          <strong>{{ vorhaben }}</strong>
+        </div>
+        <label class="field">
+          <span>{{ anchorLabel }}</span>
+          <input v-model="anchorDate" type="date" :aria-label="anchorLabel" />
+        </label>
+        <label v-if="variants.length > 1" class="field">
+          <span>{{ variantLabel }}</span>
+          <select v-model="selectedSlug">
+            <option v-for="v in variants" :key="v.slug" :value="v.slug">
+              {{ v.label }}
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <template v-if="anchorDate">
+        <p class="summary">
+          {{ tasks.length }} Aufgaben, {{ openCount }} noch offen.
+          <template v-if="nextOpen">
+            Die nächste Frist ist am
+            <a :href="`#task-${nextOpen.id}`" @click.prevent="jumpToNext">{{
+              formatDateWithWeekday(nextOpen.date)
+            }}</a
+            >: {{ nextOpen.label }}.
+          </template>
+          <template v-else>Alle Aufgaben sind erledigt.</template>
+          <span v-if="anchorIsSunday" class="sunday">
+            {{ anchorLabel }} ist ein Sonntag - Ämter und Übergaben brauchen
+            einen Werktag.
+          </span>
+        </p>
+
+        <Timeline
+          :tasks="tasks"
+          :anchor-date="anchorDate"
+          :anchor-name="anchorLabel"
+          :region-code="selected?.regionCode"
+          :hover-id="hoveredId"
+          :done-ids="doneIds"
+          :compact="stuck"
+          draggable
+          drag-hint="Griff ziehen, um den Termin zu verschieben"
+          @select="onTimelineSelect"
+          @place="anchorDate = $event"
+          @hover="hoveredId = $event"
+        />
+      </template>
+    </header>
 
     <template v-if="anchorDate">
-      <div v-if="nextOpen" class="sticky-next">
-        <button type="button" @click="jumpToNext">
-          Nächste Aufgabe: {{ nextOpen.label }}
-        </button>
-      </div>
+      <fieldset v-if="facetOptions.length > 1" class="facets">
+        <legend>Trifft auf mich zu</legend>
+        <label v-for="id in facetOptions" :key="id" class="facet">
+          <input v-model="activeFacets" type="checkbox" :value="id" />
+          <span>{{ facetLabel(id) }}</span>
+        </label>
+      </fieldset>
 
-      <p class="summary">
-        {{ summaryHead }}
-        <template v-if="nextOpen">
-          <a :href="`#task-${nextOpen.id}`" @click.prevent="jumpToNext">{{
-            formatDateWithWeekday(nextOpen.date!)
-          }}</a
-          >.
-        </template>
-        <template v-else>Alle Aufgaben sind erledigt.</template>
-      </p>
-
-      <div class="overview-wrap">
-        <div class="overview">
-          <div class="overview-inner">
-            <Timeline
-              :tasks="tasks"
-              :anchor-date="anchorDate"
-              :anchor-name="anchorLabel"
-              :region-code="selected?.regionCode"
-              :highlight-date="highlightedDate"
-              :hover-id="hoveredId"
-              :done-ids="doneIds"
-              compact
-              draggable
-              @select="onTimelineSelect"
-              @place="anchorDate = $event"
-              drag-hint="Flagge ziehen, um den Termin zu verschieben"
-              @hover="hoveredId = $event"
+      <h2 class="section">Aufgaben</h2>
+      <div ref="railEl" class="rail">
+        <template
+          v-for="node in openNodes"
+          :key="node.kind === 'gap' ? node.id : node.entry.id"
+        >
+          <div
+            v-if="node.kind === 'gap'"
+            class="gap"
+            :title="`${node.bufferDays} Tage Puffer`"
+            :style="{ height: `${node.heightPx}px` }"
+          >
+            <button
+              type="button"
+              class="gap-add"
+              title="Aufgabe hier einfügen"
+              aria-label="Aufgabe hier einfügen"
+              @click="
+                toggleTaskPicker({
+                  kind: 'gap',
+                  id: node.id,
+                  afterOffset: node.afterOffset,
+                  beforeOffset: node.beforeOffset,
+                })
+              "
+            >
+              <Plus :size="12" />
+            </button>
+            <TaskPicker
+              v-if="
+                isTaskPickerOpen({
+                  kind: 'gap',
+                  id: node.id,
+                  afterOffset: node.afterOffset,
+                  beforeOffset: node.beforeOffset,
+                })
+              "
+              @pick-preset="pickPresetTask"
+              @pick-blank="pickBlankTask"
             />
           </div>
-        </div>
-      </div>
-      <div class="rail-column">
-        <div ref="railEl" class="rail">
-          <template
-            v-for="node in openNodes"
-            :key="node.kind === 'gap' ? node.id : node.entry.id"
-          >
-            <div
-              v-if="node.kind === 'gap'"
-              class="gap"
-              :title="`${node.bufferDays} Tage Puffer`"
-              :class="{ tall: node.bufferDays >= 14 }"
-              :style="{ height: `${node.heightPx}px` }"
-            >
-              <button
-                type="button"
-                class="gap-add"
-                title="Aufgabe hier einfügen"
-                aria-label="Aufgabe hier einfügen"
-                @click="
-                  toggleTaskPicker({
-                    kind: 'gap',
-                    id: node.id,
-                    afterOffset: node.afterOffset,
-                    beforeOffset: node.beforeOffset,
-                  })
-                "
-              >
-                <Plus :size="12" />
-              </button>
-              <TaskPicker
-                v-if="
-                  isTaskPickerOpen({
-                    kind: 'gap',
-                    id: node.id,
-                    afterOffset: node.afterOffset,
-                    beforeOffset: node.beforeOffset,
-                  })
-                "
-                @pick-preset="pickPresetTask"
-                @pick-blank="pickBlankTask"
-              />
-            </div>
-            <TaskCard
-              v-else
-              :class="{
-                current: node.entry.date === highlightedDate,
-                focused: hoveredId === node.entry.id,
-              }"
-              :entry="node.entry"
-              :is-anchor="node.entry.id === ANCHOR_ID"
-              :is-past="isPast(node.entry.date!)"
-              :done="!!doneIds[node.entry.id]"
-              :is-custom="isCustom(node.entry.id)"
-              :is-next="node.entry.id === nextUpId"
-              :editing="editingId === node.entry.id"
-              :note-open="openNoteId === node.entry.id"
-              :note-text="userNotes[node.entry.id]"
-              :attachment-open="openAttachmentId === node.entry.id"
-              :attachment-text="attachments[node.entry.id]"
-              :has-attachment="node.entry.id in attachments"
-              :cta="taskCtaFor(node.entry.id)"
-              :date-edit-open="editingDateId === node.entry.id"
-              :deferred="overlapMonths > 0"
-              @toggle-done="onToggleDone(node.entry.id)"
-              @commit-label="commitLabel(node.entry.id, $event)"
-              @open-label-edit="startEditingLabel(node.entry.id)"
-              @open-note="openNote(node.entry.id)"
-              @commit-note="commitNote(node.entry.id, $event)"
-              @open-attachment="openAttachment(node.entry.id)"
-              @commit-attachment="commitAttachment(node.entry.id, $event)"
-              @delete="deleteEntry(node.entry)"
-              @open-date-edit="editingDateId = node.entry.id"
-              @close-date-edit="editingDateId = null"
-              @toggle-defer="overlapMonths = overlapMonths > 0 ? 0 : 1"
-              @commit-date-edit="onCommitDate(node.entry.id, $event)"
-              @mouseenter="hoveredId = node.entry.id"
-              @mouseleave="hoveredId = null"
-            />
-          </template>
-        </div>
-
-        <div class="add-end-wrap">
-          <button
-            type="button"
-            class="add-end"
-            @click="toggleTaskPicker({ kind: 'end' })"
-          >
-            + Eigene Aufgabe hinzufügen
-          </button>
-          <TaskPicker
-            v-if="isTaskPickerOpen({ kind: 'end' })"
-            @pick-preset="pickPresetTask"
-            @pick-blank="pickBlankTask"
+          <TaskCard
+            v-else
+            :class="{ focused: hoveredId === node.entry.id }"
+            :entry="node.entry"
+            :is-past="isPast(node.entry.date!)"
+            :done="!!doneIds[node.entry.id]"
+            :is-custom="isCustom(node.entry.id)"
+            :is-next="node.entry.id === nextUpId"
+            :editing="editingId === node.entry.id"
+            :note-open="openNoteId === node.entry.id"
+            :note-text="userNotes[node.entry.id]"
+            :attachment-open="openAttachmentId === node.entry.id"
+            :attachment-text="attachments[node.entry.id]"
+            :has-attachment="node.entry.id in attachments"
+            :cta="taskCtaFor(node.entry.id)"
+            :date-edit-open="editingDateId === node.entry.id"
+            :deferred="overlapMonths > 0"
+            @toggle-done="onToggleDone(node.entry.id)"
+            @commit-label="commitLabel(node.entry.id, $event)"
+            @open-label-edit="startEditingLabel(node.entry.id)"
+            @open-note="openNote(node.entry.id)"
+            @commit-note="commitNote(node.entry.id, $event)"
+            @open-attachment="openAttachment(node.entry.id)"
+            @commit-attachment="commitAttachment(node.entry.id, $event)"
+            @delete="deleteEntry(node.entry)"
+            @open-date-edit="editingDateId = node.entry.id"
+            @close-date-edit="editingDateId = null"
+            @toggle-defer="overlapMonths = overlapMonths > 0 ? 0 : 1"
+            @commit-date-edit="onCommitDate(node.entry.id, $event)"
+            @mouseenter="hoveredId = node.entry.id"
+            @mouseleave="hoveredId = null"
           />
-        </div>
-
-        <details v-if="doneEntries.length > 0" class="done-group">
-          <summary>Erledigte Aufgaben</summary>
-          <ul>
-            <li v-for="entry in doneEntries" :key="entry.id">
-              <button
-                type="button"
-                class="check"
-                aria-pressed="true"
-                aria-label="Wieder öffnen"
-                @click="toggleDone(entry.id)"
-              >
-                <Check :size="11" />
-              </button>
-              <span>{{ entry.label }}</span>
-            </li>
-          </ul>
-        </details>
-
-        <p v-if="lastDeleted" class="undo">
-          „{{ lastDeleted.label }}" entfernt.
-          <button type="button" @click="undoDelete">Rückgängig</button>
-        </p>
+        </template>
       </div>
+
+      <div class="add-end-wrap">
+        <button
+          type="button"
+          class="add-end"
+          @click="toggleTaskPicker({ kind: 'end' })"
+        >
+          + Eigene Aufgabe hinzufügen
+        </button>
+        <TaskPicker
+          v-if="isTaskPickerOpen({ kind: 'end' })"
+          @pick-preset="pickPresetTask"
+          @pick-blank="pickBlankTask"
+        />
+      </div>
+
+      <details v-if="doneEntries.length > 0" class="done-group">
+        <summary>Erledigte Aufgaben</summary>
+        <ul>
+          <li v-for="entry in doneEntries" :key="entry.id">
+            <button
+              type="button"
+              class="check"
+              aria-pressed="true"
+              aria-label="Wieder öffnen"
+              @click="toggleDone(entry.id)"
+            >
+              <Check :size="11" />
+            </button>
+            <span>{{ entry.label }}</span>
+          </li>
+        </ul>
+      </details>
+
+      <p v-if="lastDeleted" class="undo">
+        „{{ lastDeleted.label }}" entfernt.
+        <button type="button" @click="undoDelete">Rückgängig</button>
+      </p>
 
       <div v-if="unscheduled.length > 0" class="unscheduled">
-        <h2>Noch nicht terminiert</h2>
+        <h2 class="section">Noch nicht terminiert</h2>
         <ul>
           <li v-for="entry in unscheduled" :key="entry.id">
             <span class="label">{{ entry.label }}</span>
@@ -672,7 +646,7 @@ function print() {
       </div>
 
       <div class="actions">
-        <h2>Plan mitnehmen</h2>
+        <h2 class="section">Plan mitnehmen</h2>
         <div class="actions-buttons">
           <button type="button" @click="copyPlanLink">
             <Link2 :size="14" />
@@ -700,14 +674,33 @@ function print() {
 
 <style scoped>
 .deadline-planner {
-  /* A single content column does not need the old two-column width. */
-  max-width: 58rem;
-  /* The elevation scale and the palette are sitewide now (see global.css),
-    only these two are this component's own. */
-  --shadow-lg: 0 6px 24px color-mix(in srgb, var(--ink) 18%, transparent);
+  max-width: 62rem;
   --tint-accent: color-mix(in srgb, var(--accent) 10%, transparent);
 }
-/* Separate elevated fields, not one hairline-divided grid. */
+.sentinel {
+  height: 1.5rem;
+}
+
+/* Everything that answers "when is it" stays on screen: the fields, the one
+  sentence and the timeline. Stuck, it swaps to the compact metrics. A header
+  taller than the window pins its bottom edge instead of its top, so it can
+  never own the whole viewport and leave nothing to scroll to. */
+.planner-header {
+  position: sticky;
+  top: min(0px, calc(100vh - var(--tl-header-h, 0px) - 2rem));
+  z-index: 40;
+  background: var(--paper);
+  padding: 0 0 0.5rem;
+  transition:
+    padding 0.18s,
+    box-shadow 0.18s;
+}
+.compact .planner-header {
+  padding: 0.4rem 0 0.3rem;
+  box-shadow: 0 10px 24px -18px color-mix(in srgb, var(--ink) 55%, transparent);
+  border-bottom: 1px solid var(--line);
+}
+
 .form {
   display: grid;
   grid-template-columns: 1.3fr 1fr 1fr;
@@ -718,26 +711,31 @@ function print() {
   background: var(--paper-raised);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 1rem 1rem;
-  box-shadow: var(--shadow-sm);
+  padding: 0.7rem 1rem;
+  min-width: 0;
   transition:
-    border-color 0.12s,
-    box-shadow 0.12s;
+    padding 0.22s,
+    border-color 0.22s,
+    background-color 0.22s;
 }
-/* Every field is editable, so every field reacts to a cursor. */
 .field:hover,
 .field:focus-within {
   border-color: var(--accent);
-  box-shadow: var(--shadow-md);
 }
 .field span {
   display: block;
+  overflow: hidden;
+  max-height: 1.5rem;
   font-size: var(--fs-xs);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 0.25rem;
+  transition:
+    max-height 0.22s,
+    opacity 0.22s,
+    margin-bottom 0.22s;
 }
 .field input,
 .field select {
@@ -749,32 +747,75 @@ function print() {
   font-size: var(--fs-md);
   font-weight: 600;
   cursor: pointer;
+  transition: font-size 0.22s;
+}
+.field input {
+  font-family: var(--font-mono);
 }
 .field strong {
   display: block;
+  transition: font-size 0.22s;
   font-size: var(--fs-md);
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-/* Not editable, so it does not pretend to react to a cursor. */
 .field.static {
-  box-shadow: none;
   background: transparent;
-}
-.field.static:hover {
-  border-color: var(--line);
-  box-shadow: none;
+  border-color: transparent;
 }
 .field input:focus-visible,
 .field select:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
-/* Two columns left a dead cell showing the container's line color, and both
-  selects truncated their text. */
-@media (max-width: 40rem) {
-  .form {
-    grid-template-columns: 1fr;
-  }
+/* Stuck, the boxes shed their chrome and their labels and become one slim
+  row of facts. Every step of that is a transition, never a swap: a layout
+  that changes shape mid-scroll reads as a glitch. */
+.compact .field {
+  border-color: transparent;
+  background: transparent;
+  padding: 0.1rem 0.4rem;
+}
+.compact .field span {
+  max-height: 0;
+  opacity: 0;
+  margin-bottom: 0;
+}
+.compact .field strong,
+.compact .field input,
+.compact .field select {
+  font-size: var(--fs-sm);
+}
+
+.summary {
+  margin: 0.6rem 0 0.4rem;
+  font-size: var(--fs-md);
+  transition:
+    font-size 0.22s,
+    margin 0.22s;
+}
+.summary a {
+  color: var(--accent);
+}
+.compact .summary {
+  margin: 0.3rem 0 0.2rem;
+  font-size: var(--fs-sm);
+}
+.sunday {
+  display: block;
+  overflow: hidden;
+  max-height: 3rem;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  transition:
+    max-height 0.22s,
+    opacity 0.22s;
+}
+.compact .sunday {
+  max-height: 0;
+  opacity: 0;
 }
 
 .facets {
@@ -784,50 +825,9 @@ function print() {
   gap: 0.4rem;
   border: 0;
   padding: 0;
-  /* No side indent - it has to line up with the form above and the rail below. */
-  margin: 1rem 0;
-}
-.mini-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 1rem;
-  margin-bottom: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--radius);
-  background: var(--paper-raised);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow-sm);
-  font-size: var(--fs-sm);
-}
-.mini-header progress {
-  flex: 1 1 8rem;
-  max-width: 14rem;
-  height: 0.25rem;
-  accent-color: var(--done-color);
-}
-.summary {
-  margin: 0 0 0.5rem;
-  font-size: var(--fs-md);
-}
-.lead-warn {
-  display: block;
-  margin-top: 0.25rem;
-  font-size: var(--fs-sm);
-  color: var(--muted);
-}
-.lead-warn button {
-  font-size: var(--fs-xs);
-  padding: 0.25rem 0.5rem;
-}
-.facets-hint {
-  flex-basis: 100%;
-  margin: 0 0 0.5rem;
-  color: var(--muted);
-  font-size: var(--fs-xs);
+  margin: 1rem 0 0;
 }
 .facets legend {
-  /* Not a flex item, so it sits on its own line above the options. */
   font-size: var(--fs-xs);
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -858,86 +858,45 @@ function print() {
   margin: 0;
 }
 
-/* The landscape stays on screen while the list scrolls past it. */
-.overview-wrap {
-  position: sticky;
-  top: 0;
-  z-index: 6;
-  margin-bottom: 1rem;
-  padding-bottom: 0.25rem;
-  background: var(--paper);
-  box-shadow: 0 1px 0 var(--line);
-}
-/* The sticky strip floats over the list, so a card scrolled into view stops
-  below it instead of behind it. */
-.rail :deep(.item) {
-  scroll-margin-top: 13rem;
-}
-@media (max-width: 40rem) {
-  .overview-wrap {
-    position: static;
-    box-shadow: none;
-  }
-  .rail :deep(.item) {
-    scroll-margin-top: 4rem;
-  }
-}
-.overview {
-  margin: 0.5rem 0 0;
-}
-.scalenote {
-  font-size: var(--fs-xs);
+.section {
+  font-size: var(--fs-sm);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   color: var(--muted);
-  margin: 1rem 0 1rem 11.6rem;
+  font-weight: 600;
+  border: 0;
+  padding: 0;
+  margin: 1.75rem 0 0.75rem;
 }
-.verify-note {
-  margin: 0 0 1rem 11.6rem;
-  padding: 0.5rem 0.75rem;
-  border-left: 2px solid var(--line);
-  background: color-mix(in srgb, var(--muted) 8%, transparent);
-  color: var(--muted);
-  font-size: var(--fs-xs);
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-.rail-column {
-  min-width: 0;
-}
+
 .rail {
-  /* Distance from a card's left edge to the rail line. TaskCard's dots read
-    it so they stay centred on the line at every breakpoint. */
-  --rail-gap: 0.9rem;
+  /* Distance from a card's left edge to the spine, read by TaskCard's dot. */
+  --rail-gap: 1.4rem;
   position: relative;
-  margin: 0;
-  padding: 0.5rem 0 0.5rem 11.6rem;
+  padding-left: 2.2rem;
 }
 .rail::before {
   content: "";
   position: absolute;
-  left: 10.7rem;
-  top: 0.4rem;
-  bottom: 0.4rem;
+  left: 0.5rem;
+  top: 0.6rem;
+  bottom: 0.6rem;
   width: 1px;
   background: var(--line);
 }
-/* .gap cancels the rail's indent (negative margin) and reapplies it as its
-  own padding, so its hoverable box spans the full rail width including the
-  line's gutter - hovering the line itself would otherwise do nothing.
-  Padding doesn't move an absolute child's containing block (always the
-  border-box edge), so .gap-add's `left` below is a positive rail-relative
-  offset, unlike the negative item-relative one TaskCard's .dot/.when use. */
+/* The buffer between two deadlines, kept as real height so the list breathes
+  in proportion to the plan, plus the place a new task is inserted. The
+  negative margin lets its "+" sit on the spine, in the rail's own padding. */
 .gap {
   position: relative;
-  margin-left: -11.6rem;
-  padding-left: 11.6rem;
+  margin-left: -2.2rem;
+  padding-left: 2.2rem;
 }
 .gap-add {
   position: absolute;
-  /* Centered on .rail::before's line. */
-  left: 10.05rem;
+  left: 0.5rem;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%);
   width: 1.3rem;
   height: 1.3rem;
   border-radius: 50%;
@@ -961,10 +920,18 @@ function print() {
   border-color: var(--accent);
   color: var(--accent);
 }
+.gap :deep(.task-picker) {
+  left: 1.5rem;
+  top: calc(50% + 0.5rem);
+}
+
+.add-end-wrap {
+  position: relative;
+}
 .add-end {
   display: block;
   width: 100%;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   padding: 0.75rem 1rem;
   border: 1px dashed var(--line);
   background: transparent;
@@ -977,6 +944,11 @@ function print() {
   border-color: var(--accent);
   color: var(--accent);
 }
+.add-end-wrap :deep(.task-picker) {
+  left: 0;
+  top: calc(100% + 0.4rem);
+}
+
 .done-group {
   margin-top: 1rem;
   font-size: var(--fs-sm);
@@ -1008,24 +980,10 @@ function print() {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
   border: 1px solid var(--done-color);
   background: var(--done-color);
   color: var(--paper-raised);
-}
-.add-end-wrap {
-  position: relative;
-}
-/* Positioned against whichever ancestor is already relative (.gap or
-  .add-end-wrap) - TaskPicker's root element inherits this scope's CSS too
-  (Vue scoped styles reach a child's root node), no new wrapper needed. */
-.gap :deep(.task-picker) {
-  left: 10.35rem;
-  top: calc(50% + 1rem);
-}
-.add-end-wrap :deep(.task-picker) {
-  left: 0;
-  top: calc(100% + 0.4rem);
 }
 .undo {
   margin-top: 1rem;
@@ -1042,11 +1000,6 @@ function print() {
   font-size: inherit;
 }
 
-.unscheduled {
-  margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--line);
-}
 .unscheduled ul {
   list-style: none;
   margin: 0;
@@ -1065,51 +1018,15 @@ function print() {
   color: var(--muted);
 }
 
-/* Phones only, and it points into the plan rather than out of it. */
-.sticky-next {
-  display: none;
-}
-@media (max-width: 40rem) {
-  .sticky-next {
-    position: sticky;
-    top: 0;
-    z-index: 7;
-    display: block;
-    margin: 0 -1rem 0.75rem;
-    padding: 0.5rem 1rem;
-    background: var(--paper);
-    border-bottom: 1px solid var(--line);
-  }
-  .sticky-next button {
-    width: 100%;
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--accent-ink);
-    font-size: var(--fs-sm);
-    text-align: left;
-  }
-  /* Three boxes for one editable value is not worth a phone screen. */
-  .form {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-  .field.static {
-    display: none;
-  }
-}
 .actions {
-  margin-top: 2rem;
-  padding: 1rem 1rem;
+  margin-top: 1rem;
+  padding: 1rem;
   background: var(--paper-raised);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
 }
-.actions h2 {
-  margin: 0 0 0.75rem;
-  font-size: var(--fs-md);
-  border: 0;
-  padding: 0;
+.actions .section {
+  margin-top: 0;
 }
 .actions p {
   margin: 0.5rem 0 0;
@@ -1129,41 +1046,43 @@ function print() {
 
 @media (max-width: 40rem) {
   .rail {
-    --rail-gap: 1.2rem;
+    --rail-gap: 0.95rem;
     padding-left: 1.5rem;
   }
   .gap {
-    margin-left: -1.4rem;
+    margin-left: -1.5rem;
     padding-left: 1.5rem;
   }
   .rail::before {
-    left: 0.2rem;
+    left: 0.25rem;
   }
   .gap-add {
-    left: 0.05rem;
+    left: 0.25rem;
   }
-  .scalenote,
-  .verify-note {
-    margin-left: 0;
+  .form {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
   }
-  .gap :deep(.task-picker) {
-    left: 0;
-    top: calc(100% + 0.3rem);
-    max-width: calc(100vw - 3rem);
+  .field.static {
+    display: none;
+  }
+  .planner-header {
+    padding-top: 0.4rem;
   }
 }
 
 @media print {
+  .planner-header :deep(.timeline),
   .facets,
-  .form,
-  .overview-wrap,
-  .mini-header,
-  .sticky-next,
   .gap-add,
   .add-end,
   .undo,
   .actions {
     display: none;
+  }
+  /* The header keeps printing: a checklist without the move date is useless. */
+  .planner-header {
+    position: static;
   }
 }
 

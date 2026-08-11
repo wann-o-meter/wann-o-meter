@@ -1,8 +1,7 @@
-// Pure geometry for the timeline rail: the day/pixel scale, the window that
-// has to stay on screen, and the lane packer. Lives outside Timeline.vue so
-// the math can be tested without a DOM, and so the component is left with
-// rendering and events only. Browser-safe by construction, nothing here
-// imports anything (see lib/deadline-plan.ts on why that matters).
+// Pure geometry for the timeline rail, testable without a DOM. Browser-safe
+// by construction, nothing here imports anything (see lib/deadline-plan.ts).
+// A day is an integer day number in UTC, never a Date, so no daylight saving
+// change can shift a column by an hour.
 
 export const DAY_MS = 86400000;
 
@@ -22,172 +21,72 @@ export function daysBetween(from: Date, to: Date): number {
   return Math.round((to.getTime() - from.getTime()) / DAY_MS);
 }
 
-export interface Scale {
-  start: Date;
-  end: Date;
-  ppd: number; // pixels per day
-  edge: number; // px reserved left and right for caps and labels
-  width: number; // total track width in px
-  x(d: Date): number;
-  dateAt(x: number): Date;
+/** ISO day string to day number. */
+export function dayNum(isoDate: string): number {
+  return Math.round(Date.parse(`${isoDate}T00:00:00Z`) / DAY_MS);
 }
 
-export function makeScale(
-  start: Date,
-  end: Date,
-  ppd: number,
-  edge = 0,
-): Scale {
-  const days = Math.max(1, daysBetween(start, end));
-  return {
-    start,
-    end,
-    ppd,
-    edge,
-    width: Math.round(days * ppd) + edge * 2,
-    x: (d) => Math.round(edge + ((d.getTime() - start.getTime()) / DAY_MS) * ppd),
-    dateAt: (x) => addDays(start, Math.round((x - edge) / ppd)),
-  };
+/** Day number back to an ISO day string. */
+export function isoOfDay(n: number): string {
+  return new Date(n * DAY_MS).toISOString().slice(0, 10);
+}
+
+export function dateOfDay(n: number): Date {
+  return new Date(n * DAY_MS);
+}
+
+/** 0 = Sunday, matching Date.getUTCDay. 1970-01-01 was a Thursday. */
+export function dow(n: number): number {
+  return (((n + 4) % 7) + 7) % 7;
+}
+
+export function isWeekend(n: number): boolean {
+  return dow(n) === 0 || dow(n) === 6;
 }
 
 /**
- * The day window the rail must show: today plus every relevant date, with a
- * little air on both sides. Dates outside [hardStart, hardEnd] are ignored
- * (a +1400 day Rundfunkbeitrag would otherwise flatten the whole scale), and
- * today is always inside the result, which is what keeps the "HEUTE" marker
- * on screen no matter which task is in focus.
+ * The day window the rail shows: everything relevant, widened to whole
+ * months so month labels always have their full column and the ends of the
+ * strip never cut a month in half.
  */
-export function fitWindow(
-  today: Date,
-  dates: Date[],
-  hardStart: Date,
-  hardEnd: Date,
-  padDays = 3,
-  minSpanDays = 0,
-): { start: Date; end: Date } {
-  let lo = today.getTime();
-  let hi = today.getTime();
-  for (const d of dates) {
-    const t = d.getTime();
-    if (t < hardStart.getTime() || t > hardEnd.getTime()) continue;
-    if (t < lo) lo = t;
-    if (t > hi) hi = t;
+export function monthWindow(days: number[]): { from: number; to: number } {
+  const lo = new Date(Math.min(...days) * DAY_MS);
+  const hi = new Date(Math.max(...days) * DAY_MS);
+  const from = Date.UTC(lo.getUTCFullYear(), lo.getUTCMonth(), 1);
+  const to = Date.UTC(hi.getUTCFullYear(), hi.getUTCMonth() + 1, 0);
+  return { from: Math.round(from / DAY_MS), to: Math.round(to / DAY_MS) };
+}
+
+/** First day of every month in [from, to], as day numbers. */
+export function monthFirsts(from: number, to: number): number[] {
+  const out: number[] = [];
+  const d = new Date(from * DAY_MS);
+  let m = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
+  while (Math.round(m / DAY_MS) <= to) {
+    const n = Math.round(m / DAY_MS);
+    if (n >= from) out.push(n);
+    const c = new Date(m);
+    m = Date.UTC(c.getUTCFullYear(), c.getUTCMonth() + 1, 1);
   }
-  const span = Math.max(1, Math.round((hi - lo) / DAY_MS));
-  // The minimum is what stops a two-task plan from spreading a single week
-  // across a whole screen, so the scale below needs no upper clamp of its own.
-  const pad = Math.ceil(
-    Math.max(padDays, span * 0.06, (minSpanDays - span) / 2),
-  );
-  return { start: addDays(new Date(lo), -pad), end: addDays(new Date(hi), pad) };
-}
-
-/**
- * Pixels per day that makes `spanDays` fill `width`, minus the `edge` px the
- * first and last node need for their caps and labels. Only clamped from
- * below: under `min` a dense plan is unreadable, so it scrolls instead. There
- * is no upper clamp on purpose, the window's own minimum span (see fitWindow
- * and zoomWindow) is what keeps a short plan from spreading, and a clamp here
- * would leave the strip narrower than its container.
- */
-export function fitPpd(
-  spanDays: number,
-  width: number,
-  min: number,
-  edge = 0,
-): number {
-  const usable = width - edge * 2;
-  if (!(usable > 0) || !(spanDays > 0)) return min;
-  return Math.max(min, usable / spanDays);
-}
-
-/**
- * Horizontal scroll offset that centres `focusX` while keeping `todayX` on
- * screen. Only needed when the rail does not fit its container (see fitPpd's
- * min clamp) - when both cannot be centred, today wins, so the HEUTE marker
- * never leaves the strip.
- */
-export function scrollTargetFor(
-  focusX: number,
-  todayX: number,
-  viewportW: number,
-  trackW: number,
-  margin = 24,
-): number {
-  const centred = focusX - viewportW / 2;
-  const earliest = todayX + margin - viewportW; // today at the right edge
-  const latest = todayX - margin; // today at the left edge
-  const keptVisible = Math.min(Math.max(centred, earliest), latest);
-  return Math.min(Math.max(keptVisible, 0), Math.max(0, trackW - viewportW));
+  return out;
 }
 
 export interface LaneItem {
-  id: string;
-  left: number;
-  width: number;
+  left: number; // leftmost occupied pixel, capsule included
+  right: number; // rightmost occupied pixel, marker included
 }
 
 /**
- * Greedy first-fit interval packing on rendered pixel spans, so two capsules
- * share a lane exactly when they do not touch on screen. First fit keeps the
- * strip hugging the axis, only real collisions climb. Ties break widest-first
- * so long bars claim the low lanes and short dots stack above them rather
- * than fragmenting a lane.
+ * Greedy packing over the full occupied width, so two markers can never sit
+ * on top of each other. Items must already be sorted by their left edge.
+ * Returns one lane index per item, in the order they were passed.
  */
-export function packLanes(
-  items: LaneItem[],
-  maxLanes: number,
-  pad = 6,
-): Map<string, number> {
+export function packLanes(items: LaneItem[], minGap: number): number[] {
   const laneEnd: number[] = [];
-  const lanes = new Map<string, number>();
-  const sorted = [...items].sort(
-    (a, b) => a.left - b.left || b.width - a.width || a.id.localeCompare(b.id),
-  );
-  for (const item of sorted) {
-    const right = item.left + item.width;
-    let lane = laneEnd.findIndex((end) => end + pad <= item.left);
-    if (lane === -1) {
-      if (laneEnd.length < maxLanes) {
-        lane = laneEnd.length;
-        laneEnd.push(-Infinity);
-      } else {
-        // Cap reached: drop into the lane that frees up soonest, the one
-        // where the unavoidable overlap is smallest.
-        lane = laneEnd.indexOf(Math.min(...laneEnd));
-      }
-    }
-    // max(), never plain assignment - a narrow capsule dropped into an
-    // occupied lane must not shorten that lane's occupancy and let the next
-    // one land on top of the wide bar underneath.
-    laneEnd[lane] = Math.max(laneEnd[lane] ?? -Infinity, right);
-    lanes.set(item.id, lane);
-  }
-  return lanes;
-}
-
-export function laneCount(lanes: Map<string, number>): number {
-  let max = 0;
-  for (const lane of lanes.values()) max = Math.max(max, lane);
-  return max + 1;
-}
-
-/** Mondays inside [start, end], as Dates. */
-export function mondays(start: Date, end: Date): Date[] {
-  const out: Date[] = [];
-  const d = new Date(start);
-  d.setUTCDate(d.getUTCDate() + ((7 - ((d.getUTCDay() + 6) % 7)) % 7));
-  for (; d <= end; d.setUTCDate(d.getUTCDate() + 7)) out.push(new Date(d));
-  return out;
-}
-
-/** First of every month inside [start, end], as Dates. */
-export function monthStarts(start: Date, end: Date): Date[] {
-  const out: Date[] = [];
-  let m = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1));
-  while (m < end) {
-    if (m >= start) out.push(m);
-    m = new Date(Date.UTC(m.getUTCFullYear(), m.getUTCMonth() + 1, 1));
-  }
-  return out;
+  return items.map((item) => {
+    let lane = laneEnd.findIndex((end) => item.left - end >= minGap);
+    if (lane === -1) lane = laneEnd.push(-Infinity) - 1;
+    laneEnd[lane] = item.right;
+    return lane;
+  });
 }

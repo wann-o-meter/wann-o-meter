@@ -1,188 +1,243 @@
 <template>
   <div
     class="timeline"
-    :class="{ armed: clickable, movable, compact }"
-    :style="rootVars"
+    :class="{ armed: clickable }"
+    :style="{ '--tl-t': shrink }"
   >
-    <div v-if="showLegend" class="legend below">
-      <span class="legend-keys">
-        <span class="legend-item"
-          ><span class="swatch span"></span>möglich bis Frist</span
-        >
-        <span class="legend-item"
-          ><span class="swatch task done"></span>erledigt</span
-        >
-      </span>
-      <span class="legend-keys">
-        <label class="legend-item">
-          <input type="checkbox" v-model="showFeiertage" />
-          <span class="swatch feiertage"></span>
-          Feiertage
-        </label>
-        <label class="legend-item">
-          <input type="checkbox" v-model="showSchulferien" />
-          <span class="swatch schulferien"></span>
-          Schulferien
-        </label>
-      </span>
+    <div v-if="showLegend" class="legend">
+      <span class="item"><span class="capsule"></span> möglich ab - Frist</span>
+      <span class="item"><span class="ring"></span> offen</span>
+      <span class="item"><span class="dot"></span> erledigt</span>
+      <label class="item">
+        <input v-model="showFeiertage" type="checkbox" />
+        <span class="swatch feiertag"></span> Feiertage
+      </label>
+      <label class="item">
+        <input v-model="showSchulferien" type="checkbox" />
+        <span class="swatch ferien"></span> Schulferien
+      </label>
     </div>
 
-    <div
-      class="scroller"
-      ref="scrollerEl"
-      @mousemove="onScrollerMove"
-      @mouseleave="clearGhost"
-      @click="onScrollerClick"
-      @touchstart="onScrubMove"
-      @touchmove="onScrubMove"
-      @touchend="onScrubEnd"
-      @touchcancel="onScrubCancel"
-    >
-      <div class="track" ref="trackEl" :style="{ width: trackWidth + 'px' }">
-        <div class="axis"></div>
+    <figure ref="figureEl" class="figure">
+      <svg
+        :viewBox="`0 0 ${L.w} ${L.height}`"
+        :width="L.w"
+        :height="L.height"
+        role="img"
+        :aria-label="`Zeitstrahl mit allen Fristen bis zum ${anchorName}`"
+        @mousemove="onMove"
+        @mouseleave="clearGhost"
+        @pointerdown="onPointerDown"
+        @pointermove="onPointerMove"
+        @pointerup="onPointerUp"
+        @pointercancel="onPointerCancel"
+      >
+        <!-- One row, every day the same height, one type per day. -->
+        <g>
+          <rect
+            v-for="r in L.bandRuns"
+            :key="'b' + r.x"
+            :x="r.x"
+            :y="L.bandTop"
+            :width="r.width"
+            :height="L.m.bandH"
+            :class="'band ' + r.type"
+          />
+          <rect
+            class="band-frame"
+            :x="L.xLeft(L.from)"
+            :y="L.bandTop"
+            :width="L.xLeft(L.to + 1) - L.xLeft(L.from)"
+            :height="L.m.bandH"
+          />
+        </g>
 
-        <!-- Day ruler as a single repeating gradient instead of ~470 divs.
-          Dropped once the scale is tight enough that the lines would read as
-          moire rather than as days. -->
-        <div v-if="showDayTicks" class="days"></div>
-        <div class="weekends" :style="weekendStyle"></div>
-        <div class="spent" :style="{ width: todayX + 'px' }"></div>
+        <g class="ticks">
+          <line
+            v-for="x in L.weekTicks"
+            :key="'w' + x"
+            :x1="x"
+            :y1="L.axisY"
+            :x2="x"
+            :y2="L.axisY + L.m.tickH"
+          />
+          <line
+            v-for="m in L.months.slice(1)"
+            :key="'mt' + m.x"
+            :x1="m.x"
+            :y1="L.axisY - 5"
+            :x2="m.x"
+            :y2="L.bandTop + L.m.bandH"
+          />
+        </g>
 
-        <div
-          v-for="x in weekTicks"
-          :key="'wt' + x"
-          class="wtick"
-          :style="{ left: x + 'px' }"
-        ></div>
-        <div
-          v-for="t in monthTicks"
-          :key="'mt' + t.x"
-          class="mtick"
-          :style="{ left: t.x + 'px' }"
-        ></div>
-        <div
-          v-for="t in monthLabels"
-          :key="'ml' + t.x"
-          class="mlabel"
-          :class="{ flush: t.flush }"
-          :style="{ left: t.x + 'px' }"
+        <line
+          class="axis"
+          :x1="L.m.padX"
+          :y1="L.axisY"
+          :x2="L.w - L.m.padX"
+          :y2="L.axisY"
+        />
+
+        <g>
+          <template v-for="it in L.items" :key="'c' + it.id">
+            <rect
+              v-if="it.x0 !== null"
+              class="window"
+              :class="it.status"
+              :x="it.x0"
+              :y="it.cy - L.m.markerR"
+              :width="Math.max(L.m.markerR * 2, it.cx - it.x0)"
+              :height="L.m.markerR * 2"
+              :rx="L.m.markerR"
+            />
+          </template>
+        </g>
+
+        <g class="anchors">
+          <line
+            class="rule today"
+            :x1="L.todayX"
+            :y1="L.m.headTop"
+            :x2="L.todayX"
+            :y2="L.bandTop + L.m.bandH"
+          />
+          <line
+            class="rule event"
+            :x1="L.eventX"
+            :y1="L.m.headTop"
+            :x2="L.eventX"
+            :y2="L.bandTop + L.m.bandH"
+          />
+          <path class="flag" :d="flagPath(L.eventX)" />
+          <line
+            v-if="ghost"
+            class="rule ghost"
+            :x1="ghost.x"
+            :y1="L.m.headTop"
+            :x2="ghost.x"
+            :y2="L.bandTop + L.m.bandH"
+          />
+        </g>
+
+        <g class="labels">
+          <text
+            v-for="m in L.months"
+            :key="'ml' + m.x"
+            class="axis-label"
+            :x="m.mid"
+            :y="L.monthTop + 18 - 5 * shrink"
+            text-anchor="middle"
+          >
+            {{ m.label }}
+          </text>
+          <text class="anchor-label today" :x="L.todayX + 8" :y="L.m.labelY">
+            HEUTE
+          </text>
+          <text
+            class="axis-label today"
+            :x="L.todayX + 8"
+            :y="L.m.labelY + 16"
+            :opacity="Math.max(0, 1 - shrink * 2)"
+          >
+            {{ shortDate(today) }}
+          </text>
+          <text
+            class="anchor-label event"
+            :x="L.eventFlip ? L.eventX - 8 : L.eventX + 32"
+            :y="L.m.labelY"
+            :text-anchor="L.eventFlip ? 'end' : 'start'"
+          >
+            {{ anchorName.toUpperCase() }}
+          </text>
+          <text
+            class="axis-label event"
+            :x="L.eventFlip ? L.eventX - 8 : L.eventX + 32"
+            :y="L.m.labelY + 16"
+            :text-anchor="L.eventFlip ? 'end' : 'start'"
+            :opacity="Math.max(0, 1 - shrink * 2)"
+          >
+            {{ longDate(anchorDay) }}
+          </text>
+          <text
+            v-if="ghost"
+            class="anchor-label ghost"
+            :x="ghost.x + 8"
+            :y="L.m.labelY + 32"
+          >
+            {{ ghost.label }}
+          </text>
+        </g>
+
+        <g class="markers">
+          <g
+            v-for="it in L.items"
+            :key="'m' + it.id"
+            class="marker"
+            tabindex="0"
+            role="button"
+            :data-node-key="keyed ? it.id : null"
+            :aria-label="`${it.label}. Frist ${shortDate(it.deadline)}. ${STATE_WORD[it.status]}.`"
+            @click.stop="emit('select', it.id)"
+            @keydown.enter.prevent="emit('select', it.id)"
+            @keydown.space.prevent="emit('select', it.id)"
+            @mouseenter="onMarkerEnter(it)"
+            @focus="onMarkerEnter(it)"
+            @mouseleave="onMarkerLeave"
+            @blur="onMarkerLeave"
+          >
+            <circle class="hit" :cx="it.cx" :cy="it.cy" :r="L.m.markerR + 9" />
+            <circle
+              v-if="it.id === hoverId"
+              class="halo"
+              :class="it.status"
+              :cx="it.cx"
+              :cy="it.cy"
+              :r="L.m.markerR + 4"
+            />
+            <circle
+              class="marker-dot"
+              :class="it.status"
+              :cx="it.cx"
+              :cy="it.cy"
+              :r="L.m.markerR"
+            />
+          </g>
+        </g>
+
+        <g
+          v-if="movable"
+          class="grip"
+          tabindex="0"
+          role="slider"
+          :aria-label="`${anchorName} wählen`"
+          :aria-valuemin="MIN_DAY"
+          :aria-valuemax="MAX_DAY"
+          :aria-valuenow="anchorDay"
+          :aria-valuetext="longDate(anchorDay)"
+          :data-node-key="keyed ? ANCHOR_ID : null"
+          @keydown="onKey"
         >
-          {{ t.label }}
-        </div>
+          <title>{{ dragHint }}</title>
+          <circle :cx="L.eventX" :cy="L.axisY" :r="L.m.markerR + 2" />
+        </g>
+      </svg>
 
-        <!-- Feiertage/Schulferien live in their own strip below the ruler, so
-          calendar context can never be mistaken for a ruler tick and the
-          area above the axis belongs entirely to the task nodes. -->
-        <template v-if="showSchulferien">
-          <div
-            v-for="w in schulferienBands"
-            :key="'sf' + w.from"
-            class="band schulferien"
-            :title="w.description"
-            :style="{ left: w.x + 'px', width: w.width + 'px' }"
-          ></div>
-        </template>
-        <template v-if="showFeiertage">
-          <div
-            v-for="h in holidayTicks"
-            :key="h.date"
-            class="htick"
-            :title="h.name"
-            :style="{ left: h.x + 'px' }"
-          ></div>
-          <div
-            v-for="h in holidayTicks"
-            :key="'hb' + h.date"
-            class="closed-day"
-            :title="h.name"
-            :style="{ left: h.x + 'px', width: Math.max(2, scale.ppd) + 'px' }"
-          ></div>
-        </template>
-
-        <div class="today" :style="{ left: todayX + 'px' }">
-          <b>HEUTE</b>
-        </div>
-
-        <div v-if="ghost" class="ghost" :style="{ left: ghost.x + 'px' }">
-          <b>{{ ghost.label }}</b>
-        </div>
-
-        <template v-if="placed">
-          <button
-            v-for="t in visibleTasks"
-            :key="t.id"
-            type="button"
-            class="node"
-            :class="{
-              warn: t.impossible,
-              current: t.date === highlightDate,
-              hovered: t.id === hoverId,
-              impossible: t.impossible,
-              done: doneIds[t.id],
-              span: barWidth(t) > 0,
-            }"
-            :style="{
-              left: nodeLeft(t) + 'px',
-              width: nodeWidth(t) + 'px',
-              '--lane': taskLane.get(t.id) ?? 0,
-            }"
-            :data-node-key="keyed ? t.id : null"
-            :data-label="nodeLabel(t)"
-            :aria-label="`${nodeLabel(t)} (${nodeState(t)})`"
-            @click="onNodeClick(t.id, $event)"
-            @mouseenter="emit('hover', t.id)"
-            @mouseleave="emit('hover', null)"
-          >
-            <span
-              v-if="t.startByDate !== t.date"
-              class="start-by"
-              :style="{ left: pxIso(t.startByDate!) - nodeLeft(t) + 'px' }"
-            ></span>
-          </button>
-          <div
-            class="pin"
-            :class="{ hovered: hoverId === ANCHOR_ID, flip: pinFlipped }"
-            :style="{ left: pxIso(anchorDate) + 'px' }"
-            :data-node-key="keyed ? ANCHOR_ID : null"
-            :title="
-              draggable
-                ? dragHint
-                : compact
-                  ? 'Zur Aufgabe springen'
-                  : undefined
-            "
-            :tabindex="movable ? 0 : undefined"
-            :role="movable ? 'slider' : undefined"
-            :aria-label="movable ? `${anchorName} wählen` : undefined"
-            :aria-valuemin="movable ? 0 : undefined"
-            :aria-valuemax="movable ? daysBetween(START, END) : undefined"
-            :aria-valuenow="
-              movable ? daysBetween(START, toDate(anchorDate)) : undefined
-            "
-            :aria-valuetext="movable ? pinLabel : undefined"
-            @keydown="onPinKey"
-            @pointerdown="onPinDown"
-            @pointermove="onPinMove"
-            @pointerup="onPinUp"
-            @pointercancel="onPinUp"
-            @click="onNodeClick(ANCHOR_ID, $event)"
-            @mouseenter="emit('hover', ANCHOR_ID)"
-            @mouseleave="emit('hover', null)"
-          >
-            <span v-if="movable" class="grip"></span>
-            <b>{{ anchorName }}</b
-            ><i>{{ pinLabel }}</i>
-          </div>
-        </template>
+      <div
+        v-if="tip"
+        class="tip"
+        :style="{ left: tip.x + 'px', top: tip.y + 'px' }"
+      >
+        <strong>{{ tip.title }}</strong>
+        <span class="tip-date">{{ tip.sub }}</span>
       </div>
-    </div>
+    </figure>
   </div>
 </template>
 
 <script setup lang="ts">
 import {
   computed,
-  nextTick,
   onBeforeUnmount,
   onMounted,
   ref,
@@ -191,21 +246,16 @@ import {
 } from "vue";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
 import { MONTH_NAMES, WEEKDAY_NAMES_SHORT } from "../../../lib/date-display";
-import { toDate } from "../../../lib/format-date";
 import { holidaysFor } from "../../../lib/holidays";
 import {
-  addDays,
-  daysBetween,
-  fitPpd,
-  fitWindow,
-  isoOf,
-  laneCount,
-  makeScale,
-  mondays,
-  monthStarts,
+  dateOfDay,
+  dayNum,
+  dow,
+  isWeekend,
+  isoOfDay,
+  monthFirsts,
+  monthWindow,
   packLanes,
-  scrollTargetFor,
-  utcDay,
 } from "../../../lib/timeline-geometry";
 import { ANCHOR_ID, COUNTRY_CODE } from "./usePlannerSchedule";
 
@@ -213,26 +263,24 @@ const props = withDefaults(
   defineProps<{
     tasks: ScheduleEntry[]; // schedule entries, anchor excluded, date may be null
     anchorDate: string; // ISO day, "" until placed
-    anchorName: string; // bold pin label, e.g. "Umzug"
+    anchorName: string; // flag label, e.g. "Umzugstag"
     regionCode?: string;
-    clickable?: boolean; // click-to-place a new anchor date
-    draggable?: boolean; // drag the flag only, clicks still select tasks
-    keyed?: boolean; // tag nodes with data-node-key (only one instance per page)
-    compact?: boolean; // smaller strip, for use as an overview above the task list
-    highlightDate?: string | null; // task date to mark as current and center on
-    dragHint?: string; // title on the flag, instead of a caption under the strip
-    hoverId?: string | null; // task id (or ANCHOR_ID) to mark as hovered, set from outside
-    showLegend?: boolean; // Feiertage/Schulferien toggle row
-    doneIds?: Record<string, boolean>; // task id (or ANCHOR_ID) -> done, for the green "done" node fill
+    clickable?: boolean; // click the strip to place a new anchor date
+    draggable?: boolean; // drag the flag, clicks still select tasks
+    keyed?: boolean; // tag markers with data-node-key (one instance per page)
+    compact?: boolean; // shorter metrics, for the stuck header
+    hoverId?: string | null;
+    dragHint?: string;
+    showLegend?: boolean;
+    doneIds?: Record<string, boolean>;
   }>(),
   {
     clickable: false,
     draggable: false,
     keyed: false,
     compact: false,
-    highlightDate: null,
-    dragHint: "",
     hoverId: null,
+    dragHint: "",
     showLegend: true,
     doneIds: () => ({}),
   },
@@ -245,280 +293,171 @@ const emit = defineEmits<{
   preview: [iso: string | null];
 }>();
 
-// Both scales fit their container. The rail spans a fixed year, the compact
-// strip spans only the days the plan occupies.
-const RAIL_PPD = 6;
-const FIT_MIN_PPD = 2.2; // under this a dense plan is unreadable, so it scrolls instead
-const EDGE_PX = 30; // px kept free at both ends for the first and last cap
+// The only place vertical sizes are defined. Compact is the same layout with
+// smaller numbers, so the stuck header shrinks instead of being clipped.
+const FULL = {
+  padX: 14,
+  headTop: 22,
+  labelY: 16,
+  headroom: 44,
+  laneH: 30,
+  markerR: 7,
+  axisGap: 12,
+  bandH: 16,
+  monthH: 26,
+  minGap: 8,
+  tickH: 6,
+};
+const COMPACT = {
+  ...FULL,
+  headTop: 14,
+  labelY: 11,
+  headroom: 26,
+  laneH: 22,
+  markerR: 5.5,
+  axisGap: 8,
+  bandH: 11,
+  monthH: 18,
+  minGap: 6,
+  tickH: 4,
+};
 
-// Node diameter lives here, not in CSS, because the lane packer needs the
-// exact rendered geometry - it is handed to CSS as --node so the two can't
-// drift apart.
-const NODE_PX = computed(() => (props.compact ? 11 : 13));
+const STATE_WORD = {
+  offen: "offen",
+  erledigt: "erledigt",
+  ueberfaellig: "überfällig",
+} as const;
+type Status = keyof typeof STATE_WORD;
 
-const scrollerEl = useTemplateRef<HTMLElement>("scrollerEl");
-const trackEl = useTemplateRef<HTMLElement>("trackEl");
+// The compact metrics are a destination, not a second layout: everything
+// between them is a valid frame, so sticking the header morphs the strip
+// instead of cutting to a smaller one.
+const shrink = ref(0);
+let tween = 0;
+watch(
+  () => props.compact,
+  (to) => {
+    const from = shrink.value;
+    const target = to ? 1 : 0;
+    // No rAF on the server, where this watcher still fires immediately.
+    if (typeof requestAnimationFrame === "undefined") {
+      shrink.value = target;
+      return;
+    }
+    cancelAnimationFrame(tween);
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      shrink.value = target;
+      return;
+    }
+    const t0 = performance.now();
+    const step = (now: number) => {
+      const p = Math.min(1, (now - t0) / 220);
+      const eased = p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
+      shrink.value = from + (target - from) * eased;
+      if (p < 1) tween = requestAnimationFrame(step);
+    };
+    tween = requestAnimationFrame(step);
+  },
+  { immediate: true },
+);
+onBeforeUnmount(() => cancelAnimationFrame(tween));
 
-const ghost = ref<{ x: number; label: string } | null>(null);
-const showFeiertage = ref(true);
-const showSchulferien = ref(true);
+const metrics = computed(() => {
+  const out = { ...FULL };
+  for (const key of Object.keys(FULL) as (keyof typeof FULL)[])
+    out[key] = FULL[key] + (COMPACT[key] - FULL[key]) * shrink.value;
+  return out;
+});
 
-const placed = computed(() => props.anchorDate !== "");
-// Either interaction model puts the flag under the user's control.
-const movable = computed(() => props.clickable || props.draggable);
+const today = dayNum(new Date().toISOString().slice(0, 10));
+const MIN_DAY = today - 14;
+const MAX_DAY = today + 365;
 
-// All internal days are UTC midnight (see lib/timeline-geometry). Mixing in
-// locally-constructed dates made isoOf() and every ghost/pin label fall a day
-// short of the clicked day in CET/CEST.
-const today = utcDay(new Date());
-const START = addDays(today, -14);
-// A fixed year-long range, so the rail always fits its container and a drag
-// scrubs the date instead of fighting a horizontal scroll.
-const END = addDays(today, 365);
-
-// Measured, not guessed: the compact scale is a function of it.
-const containerWidth = ref(0);
+const figureEl = useTemplateRef<HTMLElement>("figureEl");
+const width = ref(900);
 let resizeObserver: ResizeObserver | undefined;
 onMounted(() => {
-  const el = scrollerEl.value;
+  const el = figureEl.value;
   if (!el) return;
-  containerWidth.value = el.clientWidth;
+  width.value = el.clientWidth || 900;
   resizeObserver = new ResizeObserver(() => {
-    containerWidth.value = el.clientWidth;
+    width.value = el.clientWidth || width.value;
   });
   resizeObserver.observe(el);
 });
 onBeforeUnmount(() => resizeObserver?.disconnect());
 
-// Both scales show the days the plan occupies and drop the empty months at
-// the ends of the year-long canvas - a rail spanning 13 months to hold three
-// months of activity is mostly nothing. The window follows the anchor, and
-// only a committed anchor moves it, so it never rescales mid-drag. The bigger
-// minimum span on the rail keeps it usable as a date picker: there is always
-// room either side of the plan to drop a new day on. relevantDates is
-// declared further down, which is fine, a computed only reads it once it is
-// asked for a value.
-const scale = computed(() => {
-  const minSpan = props.compact ? 45 : 150;
-  const window = fitWindow(today, relevantDates.value, START, END, 3, minSpan);
-  // Server-rendered, before any element exists to measure: the fixed rail
-  // scale is a far better first paint than the minimum.
-  const ppd =
-    containerWidth.value > 0
-      ? fitPpd(
-          daysBetween(window.start, window.end),
-          containerWidth.value,
-          FIT_MIN_PPD,
-          EDGE_PX,
-        )
-      : RAIL_PPD;
-  return makeScale(window.start, window.end, ppd, EDGE_PX);
-});
-
-function px(d: Date): number {
-  return scale.value.x(d);
-}
-function pxIso(iso: string): number {
-  return px(toDate(iso));
-}
-const trackWidth = computed(() => scale.value.width);
-
-// Weekends as one repeating gradient rather than 104 elements: the stripe
-// starts on the window's first Saturday and repeats every seven days.
-const weekendStyle = computed(() => {
-  const start = scale.value.start;
-  const toSaturday = (5 - ((start.getUTCDay() + 6) % 7) + 7) % 7;
-  const ppd = scale.value.ppd;
-  return {
-    left: `${scale.value.edge + toSaturday * ppd}px`,
-    width: `${Math.max(0, scale.value.width - scale.value.edge - toSaturday * ppd)}px`,
-    backgroundSize: `${ppd * 7}px 100%`,
-    backgroundImage: `linear-gradient(90deg, var(--weekend-band) 0 ${ppd * 2}px, transparent ${ppd * 2}px 100%)`,
-  };
-});
-const todayX = computed(() => px(today));
-// Day lines closer together than this read as moire, not as days.
-const showDayTicks = computed(() => scale.value.ppd >= 4);
-
-function shortDate(d: Date): string {
-  return `${d.getUTCDate()}. ${MONTH_NAMES[d.getUTCMonth()].slice(0, 3)}`;
-}
-function langDate(d: Date): string {
-  return `${d.getUTCDate()}. ${MONTH_NAMES[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
-}
-function weekdayShort(d: Date): string {
-  return WEEKDAY_NAMES_SHORT[(d.getUTCDay() + 6) % 7];
-}
-// Colour alone never carries the state: the accessible name says it too.
-function nodeState(t: ScheduleEntry & { date: string }): string {
-  if (props.doneIds[t.id]) return "erledigt";
-  if (t.impossible) return "nicht mehr rechtzeitig";
-  if (t.weekend || t.collision) return "Amt hat zu";
-  return "offen";
-}
-function nodeLabel(t: ScheduleEntry & { date: string }): string {
-  return `${shortDate(toDate(t.date))} · ${t.label}`;
-}
-
-// A node is a capsule from earliest-possible to the deadline. Both caps are
-// centred on their day, so a task with no researched earliest day collapses
-// to a single dot centred on its deadline - same formula, no min-width and
-// no negative margin, which is what used to make wide bars start half a node
-// too early and the lane packer disagree with what was on screen.
-function barLeft(t: ScheduleEntry & { date: string }): number {
-  return pxIso(t.earliestDate ?? t.date);
-}
-function barWidth(t: ScheduleEntry & { date: string }): number {
-  return Math.max(0, pxIso(t.date) - barLeft(t));
-}
-function nodeLeft(t: ScheduleEntry & { date: string }): number {
-  return barLeft(t) - NODE_PX.value / 2;
-}
-function nodeWidth(t: ScheduleEntry & { date: string }): number {
-  return barWidth(t) + NODE_PX.value;
-}
-
-const datedTasks = computed(() =>
-  props.tasks.filter(
-    (t): t is ScheduleEntry & { date: string } => t.date !== null,
-  ),
-);
-// Only tasks inside the printed [START, END] window get a dot on the rail -
-// far-out ones (e.g. Rundfunkbeitrag, +1400 days) still count in the totals.
-const visibleTasks = computed(() =>
-  datedTasks.value.filter((t) => {
-    const d = toDate(t.date);
-    return d >= START && d <= END;
-  }),
+const showFeiertage = ref(true);
+const showSchulferien = ref(true);
+const ghost = ref<{ x: number; label: string } | null>(null);
+const tip = ref<{ x: number; y: number; title: string; sub: string } | null>(
+  null,
 );
 
-// Both ends of every task window plus the anchor - what the compact scale has
-// to keep on screen. today is added by fitWindow itself.
-const relevantDates = computed(() => {
-  const out: Date[] = [];
-  for (const t of visibleTasks.value) {
-    out.push(toDate(t.date));
-    if (t.earliestDate) out.push(toDate(t.earliestDate));
-  }
-  if (placed.value) out.push(toDate(props.anchorDate));
-  return out;
-});
-
-// Waterfall packing on the rendered pixel spans, so two capsules share a lane
-// exactly when they don't touch on screen (see lib/timeline-geometry).
-const taskLane = computed(() =>
-  packLanes(
-    visibleTasks.value.map((t) => ({
-      id: t.id,
-      left: nodeLeft(t),
-      width: nodeWidth(t),
-    })),
-    props.compact ? 1 : 4,
-  ),
+const anchorDay = computed(() =>
+  props.anchorDate ? dayNum(props.anchorDate) : today,
 );
-// The strip is only as tall as the deepest cluster actually needs. A plan
-// with no overlaps gets a single-lane rail instead of always reserving room
-// for three.
-const usedLanes = computed(() => laneCount(taskLane.value));
+const movable = computed(() => props.clickable || props.draggable);
 
-// One source of truth for node size and lane count. Every vertical offset in
-// the stylesheet is derived from these two plus the tokens in .timeline.
-const rootVars = computed(() => ({
-  "--node": NODE_PX.value + "px",
-  "--edge": scale.value.edge + "px",
-  "--ppd": scale.value.ppd + "px",
-  "--lanes": String(usedLanes.value),
-}));
-
-const pinLabel = computed(() =>
-  placed.value
-    ? `${weekdayShort(toDate(props.anchorDate))}, ${langDate(toDate(props.anchorDate))}`
-    : "",
-);
-// The pin label reads to the right of its line. On the fitted strip an anchor
-// near the end would push it past the track and clip it, so it mirrors.
-const pinFlipped = computed(
-  () =>
-    props.compact &&
-    placed.value &&
-    trackWidth.value - pxIso(props.anchorDate) < 240,
-);
-
-// Week ticks (Monday-aligned) stay real elements so they keep their hover
-// affordance. Days are the gradient in .days.
-const weekTicks = computed(() =>
-  mondays(scale.value.start, scale.value.end).map(px),
-);
-
-// Room one month name needs: a label nearer the right edge than this is
-// pulled back inside the track rather than dropped.
-const LABEL_PX = 60;
-
-const monthTicks = computed(() => {
-  // A label needs roughly 3rem of clear space, so on a tight scale only every
-  // nth month gets one. The ticks themselves always stay.
-  const step = Math.max(1, Math.ceil(48 / (scale.value.ppd * 30.4)));
-  return monthStarts(scale.value.start, scale.value.end).map((m, i) => ({
-    x: px(m),
-    labelled: i % step === 0,
-    flush: px(m) + LABEL_PX > scale.value.width,
-    label: monthName(m),
-  }));
-});
-
-function monthName(d: Date): string {
-  return (
-    MONTH_NAMES[d.getUTCMonth()].slice(0, 3) +
-    (d.getUTCMonth() === 0 ? " " + d.getUTCFullYear() : "")
-  );
+function shortDate(n: number): string {
+  const d = dateOfDay(n);
+  return `${WEEKDAY_NAMES_SHORT[(d.getUTCDay() + 6) % 7]}, ${String(d.getUTCDate()).padStart(2, "0")}.${String(d.getUTCMonth() + 1).padStart(2, "0")}.${d.getUTCFullYear()}`;
+}
+function longDate(n: number): string {
+  const d = dateOfDay(n);
+  return `${WEEKDAY_NAMES_SHORT[(d.getUTCDay() + 6) % 7]}, ${d.getUTCDate()}. ${MONTH_NAMES[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
-// A window almost never opens on the 1st, so the month it starts in has no
-// tick of its own - without this the strip can show a single month name for
-// weeks of rail.
-const monthLabels = computed(() => {
-  const labels = monthTicks.value.filter((t) => t.labelled);
-  const start = scale.value.start;
-  const clear =
-    labels.length === 0 || labels[0].x - scale.value.edge > LABEL_PX;
-  if (start.getUTCDate() !== 1 && clear)
-    labels.unshift({
-      x: scale.value.edge,
-      labelled: true,
-      flush: false,
-      label: monthName(start),
-    });
-  return labels;
-});
+// One marker vocabulary: state is a colour, never a size or a shape.
+const dated = computed(() =>
+  props.tasks
+    .filter((t): t is ScheduleEntry & { date: string } => t.date !== null)
+    .map((t) => {
+      const deadline = dayNum(t.date);
+      const earliest = t.earliestDate ? dayNum(t.earliestDate) : deadline;
+      const status: Status = props.doneIds[t.id]
+        ? "erledigt"
+        : deadline < today
+          ? "ueberfaellig"
+          : "offen";
+      return {
+        id: t.id,
+        label: t.label,
+        deadline,
+        start: earliest < deadline ? earliest : null,
+        status,
+      };
+    })
+    .filter((t) => t.deadline >= MIN_DAY - 60 && t.deadline <= MAX_DAY + 60)
+    .sort((a, b) => a.deadline - b.deadline),
+);
 
-const holidayTicks = computed(() => {
-  // Every year the window touches, not just its first and last - a 15-month
-  // window starting in December spans three calendar years and used to drop
-  // the middle one entirely.
-  const years: number[] = [];
+const span = computed(() =>
+  monthWindow([
+    today,
+    anchorDay.value,
+    ...dated.value.map((t) => t.deadline),
+    ...dated.value.flatMap((t) => (t.start === null ? [] : [t.start])),
+  ]),
+);
+
+const holidayDays = computed(() => {
+  const map = new Map<number, string>();
   for (
-    let y = scale.value.start.getUTCFullYear();
-    y <= scale.value.end.getUTCFullYear();
+    let y = dateOfDay(span.value.from).getUTCFullYear();
+    y <= dateOfDay(span.value.to).getUTCFullYear();
     y++
-  ) {
-    years.push(y);
-  }
-  return years
-    .flatMap((y) => holidaysFor(y, COUNTRY_CODE, props.regionCode))
-    .map((h) => ({ ...h, x: px(toDate(h.date)) }))
-    .filter((h) => h.x >= 0 && h.x <= trackWidth.value);
+  )
+    for (const h of holidaysFor(y, COUNTRY_CODE, props.regionCode))
+      map.set(dayNum(h.date), h.name);
+  return map;
 });
 
-// Schulferien has no npm package like date-holidays - it's fetched from the
-// prebuilt /api/v1/calendar/schulferien--<code>.json (same static endpoint
-// the sitewide Kalender uses), keyed by Bundesland and refetched on change.
-const schulferienWindows = ref<
-  { from: string; to: string; description: string }[]
->([]);
+const ferien = ref<{ from: number; to: number }[]>([]);
 watch(
   () => props.regionCode,
   async (code) => {
-    schulferienWindows.value = [];
+    ferien.value = [];
     if (!code) return;
     try {
       const res = await fetch(
@@ -526,702 +465,451 @@ watch(
       );
       if (!res.ok) return;
       const entry = await res.json();
-      schulferienWindows.value = Array.isArray(entry?.windows)
-        ? entry.windows
-        : [];
+      ferien.value = (entry?.windows ?? []).map(
+        (w: { from: string; to: string }) => ({
+          from: dayNum(w.from),
+          to: dayNum(w.to),
+        }),
+      );
     } catch {
-      // best-effort - the strip just shows no school-holiday bands
+      // best effort, the band then shows no school holidays
     }
   },
   { immediate: true },
 );
-const schulferienBands = computed(() =>
-  schulferienWindows.value
-    .map((w) => ({
-      ...w,
-      x: px(toDate(w.from)),
-      width: Math.max(2, px(toDate(w.to)) - px(toDate(w.from))),
-    }))
-    .filter((w) => w.x + w.width >= 0 && w.x <= trackWidth.value),
-);
 
-// The pin carries its own controls (the "Zeitplan öffnen" link), so a click
-// that starts there must not also drop a new date underneath it.
-function onPin(e: Event): boolean {
-  return !!(e.target as HTMLElement).closest?.(".pin");
+// One day, one type: Feiertag beats Ferien beats Wochenende beats Werktag.
+function dayType(d: number): string {
+  if (showFeiertage.value && holidayDays.value.has(d)) return "feiertag";
+  if (
+    showSchulferien.value &&
+    ferien.value.some((f) => d >= f.from && d <= f.to)
+  )
+    return "ferien";
+  if (isWeekend(d)) return "wochenende";
+  return "werktag";
 }
 
+// Every layer is positioned from this one scale, nothing computes its own.
+const L = computed(() => {
+  const m = metrics.value;
+  const { from, to } = span.value;
+  const w = width.value;
+  const unit = (w - m.padX * 2) / (to - from + 1);
+  const xLeft = (d: number) => m.padX + (d - from) * unit;
+  const xCenter = (d: number) => xLeft(d) + unit / 2;
+
+  const placed = dated.value
+    .map((t) => {
+      const cx = xCenter(t.deadline);
+      const x0 = t.start === null ? null : xLeft(t.start);
+      return {
+        ...t,
+        cx,
+        x0,
+        left: (x0 ?? cx) - m.markerR,
+        right: cx + m.markerR,
+      };
+    })
+    .sort((a, b) => a.left - b.left);
+  const lanes = packLanes(placed, m.minGap);
+  const laneCount = Math.max(1, ...lanes.map((l) => l + 1));
+  const items = placed.map((p, i) => ({
+    ...p,
+    cy: m.headroom + lanes[i] * m.laneH + m.laneH / 2,
+  }));
+
+  const axisY = m.headroom + laneCount * m.laneH + m.axisGap;
+  const bandTop = axisY + m.axisGap;
+  const monthTop = bandTop + m.bandH;
+
+  const bandRuns: { x: number; width: number; type: string }[] = [];
+  let runStart = from;
+  let runType = dayType(from);
+  for (let d = from + 1; d <= to + 1; d++) {
+    const t = d <= to ? dayType(d) : "";
+    if (t === runType) continue;
+    const x = Math.round(xLeft(runStart));
+    bandRuns.push({
+      x,
+      width: Math.max(1, Math.round(xLeft(d)) - x),
+      type: runType,
+    });
+    runStart = d;
+    runType = t;
+  }
+
+  const weekTicks: number[] = [];
+  for (let d = from; d <= to; d++)
+    if (dow(d) === 1) weekTicks.push(Math.round(xLeft(d)) + 0.5);
+
+  const months = monthFirsts(from, to).map((first) => {
+    const d = dateOfDay(first);
+    const next = dayNum(
+      new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))
+        .toISOString()
+        .slice(0, 10),
+    );
+    return {
+      x: Math.round(xLeft(first)) + 0.5,
+      mid: (xLeft(Math.max(first, from)) + xLeft(Math.min(next, to + 1))) / 2,
+      label: MONTH_NAMES[d.getUTCMonth()].slice(0, 3),
+    };
+  });
+
+  const eventX = Math.round(xCenter(anchorDay.value)) + 0.5;
+  return {
+    m,
+    w,
+    from,
+    to,
+    unit,
+    xLeft,
+    items,
+    axisY,
+    bandTop,
+    monthTop,
+    height: monthTop + m.monthH,
+    bandRuns,
+    weekTicks,
+    months,
+    todayX: Math.round(xCenter(today)) + 0.5,
+    eventX,
+    eventFlip: eventX > w - 170,
+  };
+});
+
+function flagPath(x: number): string {
+  const top = L.value.m.headTop - (14 - 4 * shrink.value);
+  return `M ${x} ${top} h 26 l -6 7 l 6 7 h -26 z`;
+}
+
+function dayAt(clientX: number): number {
+  const box = figureEl.value?.getBoundingClientRect();
+  if (!box) return anchorDay.value;
+  const d =
+    L.value.from +
+    Math.floor((clientX - box.left - L.value.m.padX) / L.value.unit);
+  return Math.min(MAX_DAY, Math.max(MIN_DAY, d));
+}
+function place(d: number) {
+  emit("place", isoOfDay(Math.min(MAX_DAY, Math.max(MIN_DAY, d))));
+}
+function setGhost(d: number) {
+  ghost.value = { x: L.value.xLeft(d), label: shortDate(d) };
+  emit("preview", isoOfDay(d));
+}
 function clearGhost() {
   ghost.value = null;
   emit("preview", null);
 }
 
-function onScrollerMove(e: MouseEvent) {
-  if (!props.clickable || !trackEl.value) return;
-  const r = trackEl.value.getBoundingClientRect();
-  const x = e.clientX - r.left;
-  const d = scale.value.dateAt(x);
-  ghost.value = { x, label: `${weekdayShort(d)}, ${langDate(d)}` };
+function onMove(e: MouseEvent) {
+  if (!props.clickable || dragging) return;
+  setGhost(dayAt(e.clientX));
 }
-// Touch: the ghost follows the finger and only the lift commits a date, so a
-// coarse first touch can be corrected while still looking at the label.
-// The window fits the plan, so its ends can reach past the pickable year -
-// every placement lands inside [START, END] whichever gesture made it.
-function place(d: Date) {
-  emit("place", isoOf(d < START ? START : d > END ? END : d));
-}
-function onScrubMove(e: TouchEvent) {
-  if (!props.clickable || !trackEl.value || onPin(e)) return;
-  const t = e.touches[0];
-  if (!t) return;
-  const r = trackEl.value.getBoundingClientRect();
-  const x = t.clientX - r.left;
-  const d = scale.value.dateAt(x);
-  scrubIso = isoOf(d);
-  ghost.value = { x, label: `${weekdayShort(d)}, ${langDate(d)}` };
-  emit("preview", scrubIso);
-}
-// pan-y hands vertical gestures back to the browser, which cancels the touch
-// instead of ending it. Without this the ghost sticks and the date is stale.
-function onScrubCancel() {
-  clearGhost();
-  scrubIso = null;
-}
-function onScrubEnd() {
-  if (!props.clickable || !scrubIso) return;
-  clearGhost();
-  place(toDate(scrubIso));
-  scrubIso = null;
-}
-let scrubIso: string | null = null;
 
-function onScrollerClick(e: MouseEvent) {
-  if (props.compact) return onLandscapeClick(e);
-  if (!props.clickable || !trackEl.value || onPin(e)) return;
-  const r = trackEl.value.getBoundingClientRect();
-  const d = scale.value.dateAt(e.clientX - r.left);
+// Press, look at the ghost date, lift to commit. A tap is the same gesture in
+// no time at all, so touch never commits a day the finger did not confirm.
+let dragging = false;
+function onPointerDown(e: PointerEvent) {
+  const onGrip = !!(e.target as Element).closest?.(".grip");
+  if (!movable.value || (!props.clickable && !onGrip)) return;
+  dragging = true;
+  (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+  setGhost(dayAt(e.clientX));
+  e.preventDefault();
+}
+function onPointerMove(e: PointerEvent) {
+  if (!dragging) return;
+  setGhost(dayAt(e.clientX));
+}
+function onPointerUp(e: PointerEvent) {
+  if (!dragging) return;
+  dragging = false;
+  const d = dayAt(e.clientX);
   clearGhost();
   place(d);
-  nextTick(() => {
-    scrollerEl.value?.scrollTo({
-      left: Math.max(0, px(d) - 400),
-      behavior: "smooth",
-    });
-  });
+}
+// A vertical swipe hands the gesture back to the page, and that must not
+// leave a date behind.
+function onPointerCancel() {
+  dragging = false;
+  clearGhost();
 }
 
-// The compact strip normally fits, so there is nothing to centre. Only a plan
-// too dense for FIT_MIN_PPD scrolls, and then the current task is brought
-// into view without pushing today off the strip. Debounced: while the page is
-// actively scrolling, highlightDate can change every frame, and centering on
-// each of those would make the strip visibly fight itself.
-function centerOn(iso: string) {
-  const el = scrollerEl.value;
-  if (!el || trackWidth.value <= el.clientWidth) return;
-  const target = scrollTargetFor(
-    pxIso(iso),
-    todayX.value,
-    el.clientWidth,
-    trackWidth.value,
-  );
-  if (Math.abs(el.scrollLeft - target) < 4) return;
-  el.scrollTo({ left: target, behavior: "smooth" });
-}
-let centerTimer: ReturnType<typeof setTimeout> | undefined;
-watch(
-  () => props.highlightDate,
-  (d) => {
-    if (!d) return;
-    clearTimeout(centerTimer);
-    centerTimer = setTimeout(() => centerOn(d), 120);
-  },
-);
-onBeforeUnmount(() => clearTimeout(centerTimer));
-
-// The reverse direction: clicking a node/pin jumps the task list to it - a
-// deliberate click rather than a live scroll-position mirror, so it can't
-// fight the page's own scrolling the way a scroll-linked sync would. Keyed by
-// task id, not date - several tasks can share the same day.
 const KEY_STEPS: Record<string, number> = {
   ArrowLeft: -1,
-  ArrowRight: 1,
   ArrowDown: -1,
+  ArrowRight: 1,
   ArrowUp: 1,
 };
-function onPinKey(e: KeyboardEvent) {
+function onKey(e: KeyboardEvent) {
   if (!movable.value) return;
-  const current = toDate(props.anchorDate);
-  let next: Date | null = null;
-  if (e.key === "Home") next = START;
-  else if (e.key === "End") next = END;
-  else if (e.key === "PageDown") next = addDays(current, -30);
-  else if (e.key === "PageUp") next = addDays(current, 30);
+  let next: number | null = null;
+  if (e.key === "Home") next = MIN_DAY;
+  else if (e.key === "End") next = MAX_DAY;
+  else if (e.key === "PageDown") next = anchorDay.value - 30;
+  else if (e.key === "PageUp") next = anchorDay.value + 30;
   else if (e.key in KEY_STEPS)
-    next = addDays(current, KEY_STEPS[e.key] * (e.shiftKey ? 7 : 1));
-  if (!next) return;
+    next = anchorDay.value + KEY_STEPS[e.key] * (e.shiftKey ? 7 : 1);
+  if (next === null) return;
   e.preventDefault();
   place(next);
 }
 
-// Dragging the flag: pointer events so mouse, pen and touch share one path.
-let dragging = false;
-function onPinDown(e: PointerEvent) {
-  if (!props.draggable || !trackEl.value) return;
-  dragging = true;
-  (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-  e.preventDefault();
+function onMarkerEnter(it: {
+  id: string;
+  cx: number;
+  cy: number;
+  label: string;
+  deadline: number;
+  start: number | null;
+}) {
+  emit("hover", it.id);
+  tip.value = {
+    x: Math.min(Math.max(it.cx, 90), L.value.w - 90),
+    y: it.cy - L.value.m.markerR - 8,
+    title: it.label,
+    sub:
+      `Frist: ${shortDate(it.deadline)}` +
+      (it.start === null ? "" : ` · möglich ab ${shortDate(it.start)}`),
+  };
 }
-function onPinMove(e: PointerEvent) {
-  if (!dragging || !trackEl.value) return;
-  const r = trackEl.value.getBoundingClientRect();
-  const d = scale.value.dateAt(e.clientX - r.left);
-  ghost.value = { x: px(d), label: `${weekdayShort(d)}, ${langDate(d)}` };
-  emit("preview", isoOf(d));
-}
-function onPinUp() {
-  if (!dragging) return;
-  dragging = false;
-  const d = ghost.value ? scale.value.dateAt(ghost.value.x) : null;
-  clearGhost();
-  if (d) place(d);
-}
-
-// The nearest task to wherever the strip was clicked, so the whole width is
-// a control rather than only the dots on it.
-function onLandscapeClick(e: MouseEvent) {
-  if (!trackEl.value || onPin(e)) return;
-  const r = trackEl.value.getBoundingClientRect();
-  const x = e.clientX - r.left;
-  let best: { id: string; d: number } | null = null;
-  for (const t of visibleTasks.value) {
-    const d = Math.abs(pxIso(t.date) - x);
-    if (!best || d < best.d) best = { id: t.id, d };
-  }
-  if (best) emit("select", best.id);
-}
-
-function onNodeClick(id: string, e: MouseEvent) {
-  if (props.clickable) return; // let it bubble to onScrollerClick (place a new date)
-  e.stopPropagation();
-  emit("select", id);
+function onMarkerLeave() {
+  emit("hover", null);
+  tip.value = null;
 }
 </script>
 
 <style scoped>
-/* Vertical rhythm is a token set, not a table of hand-tuned offsets: the axis
-  sits at --axis-y and everything else is expressed as a distance from it, so
-  .compact only overrides sizes and the whole stack re-flows. --lanes comes
-  from the packer, which is why the strip grows exactly as much as the
-  densest cluster demands and no more. */
 .timeline {
-  display: flex;
-  flex-direction: column;
-  /* Schulferien has no sitewide color of its own - blended from the two
-    tokens that already exist rather than inventing a new raw hex, so it
-    still flips correctly in dark mode. */
-  --school: color-mix(in srgb, var(--holiday) 40%, var(--accent) 60%);
-
-  --lane-h: 1.1rem; /* must stay > --node, or stacked lanes touch */
-  --head-pad: 5.2rem; /* clearance above the top lane: pin stack + tooltips */
-  --tick-day: 0.25rem;
-  --tick-week: 0.55rem;
-  --tick-month: 0.95rem;
-  --ctx-y: 1.2rem; /* Feiertage/Schulferien strip, below the ruler */
-  --ctx-h: 0.55rem;
-  --band-up: 1.4rem; /* how far the weekend/past shading reaches above the axis */
-  --weekend-band: color-mix(in srgb, var(--ink) 3.5%, transparent);
-  --closed-band: color-mix(in srgb, var(--holiday) 28%, transparent);
-  --mlabel-y: 1.5rem;
-  --mlabel-size: var(--fs-xs);
-  --pin-title: var(--fs-md);
-  --pin-sub: var(--fs-xs);
-  --today-top: 2.7rem;
-
-  --axis-y: calc(var(--lanes, 1) * var(--lane-h) + var(--head-pad));
-  --below: calc(
-    var(--ctx-y) + var(--ctx-h)
-  ); /* rail bottom, above the labels */
-  /* Month labels plus the room a hovered node's tooltip needs under them. */
-  --foot: calc(var(--mlabel-y) + 2.5rem);
+  --d-werktag: var(--paper-raised);
+  --d-wochenende: color-mix(in srgb, var(--ink) 10%, var(--paper-raised));
+  --d-ferien: color-mix(in srgb, var(--accent) 22%, var(--paper-raised));
+  --d-feiertag: color-mix(in srgb, var(--holiday) 45%, var(--paper-raised));
 }
 .legend {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 1rem;
+  gap: 0.4rem 1.1rem;
   font-size: var(--fs-xs);
   color: var(--muted);
+  /* Folds away with the same number the strip shrinks by. */
+  overflow: hidden;
+  max-height: calc((1 - var(--tl-t, 0)) * 2.2rem);
+  opacity: calc(1 - var(--tl-t, 0) * 1.6);
+  margin-bottom: calc((1 - var(--tl-t, 0)) * 0.25rem);
 }
-/* Under the bands it explains, not floating above the whole component. */
-.legend.below {
-  order: 0;
-  padding: 0 0 0.5rem;
-}
-.legend-item {
-  display: flex;
+.legend .item {
+  display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
 }
-label.legend-item {
+.legend label {
   cursor: pointer;
 }
-.legend-item input {
+.legend input {
+  accent-color: var(--accent);
   margin: 0;
-  cursor: pointer;
-}
-/* Touch: a checkbox is a ~13px box, a finger is not. */
-@media (hover: none) {
-  .legend-item {
-    position: relative;
-    padding: 0.5rem 0;
-  }
 }
 .swatch {
-  display: inline-block;
-  width: 0.45rem;
-  height: 0.45rem;
+  width: 0.7rem;
+  height: 0.7rem;
   border-radius: 2px;
+  border: 1px solid var(--line);
 }
-.swatch.task.done {
-  width: var(--node);
-  height: var(--node);
+.swatch.feiertag {
+  background: var(--d-feiertag);
+}
+.swatch.ferien {
+  background: var(--d-ferien);
+}
+.ring,
+.dot {
+  width: 0.75rem;
+  height: 0.75rem;
   border-radius: 50%;
+}
+.ring {
+  border: 2.5px solid var(--accent);
+  background: var(--paper-raised);
+}
+.dot {
   background: var(--done-color);
 }
-/* Same recipe as the capsule on the rail: a swatch shaped differently from
-  the thing it explains is worse than no swatch. */
-.swatch.span {
-  width: 1.6rem;
-  height: var(--node);
+.capsule {
+  width: 1.9rem;
+  height: 0.75rem;
   border-radius: 999px;
   border: 2px solid var(--accent);
   background: var(--paper-raised);
 }
-.legend-keys {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 1rem;
+
+.figure {
+  position: relative;
+  margin: 0;
 }
-.swatch.feiertage {
-  background: var(--holiday);
+.figure svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
 }
-.swatch.schulferien {
-  background: var(--school);
-}
-.scroller {
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-bottom: 0.5rem;
-  cursor: crosshair;
-}
-.movable .grip {
-  touch-action: none;
-}
-.armed .scroller {
-  cursor: copy;
-  /* Sideways drags scrub the date, up and down still scrolls the page. */
+.figure svg {
   touch-action: pan-y;
 }
-.track {
-  position: relative;
-  height: calc(var(--axis-y) + var(--foot));
+.armed .figure svg {
+  cursor: copy;
+}
+
+.band.werktag {
+  fill: var(--d-werktag);
+}
+.band.wochenende {
+  fill: var(--d-wochenende);
+}
+.band.ferien {
+  fill: var(--d-ferien);
+}
+.band.feiertag {
+  fill: var(--d-feiertag);
+}
+.band-frame {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.ticks line {
+  stroke: var(--line);
+  stroke-width: 1;
 }
 .axis {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: calc(var(--axis-y) - 3px);
-  height: 7px;
-  border-radius: var(--radius-pill);
-  background: var(--line);
+  stroke: var(--line);
+  stroke-width: 2;
+  stroke-linecap: round;
 }
-.days {
-  position: absolute;
-  left: var(--edge);
-  right: 0;
-  top: var(--axis-y);
-  height: var(--tick-day);
-  background-image: linear-gradient(
-    90deg,
-    var(--line) 0 1px,
-    transparent 1px 100%
-  );
-  background-size: var(--ppd) 100%;
+
+.window {
+  fill: var(--paper-raised);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.window.erledigt {
+  fill: none;
+  stroke: var(--done-color);
   opacity: 0.5;
-  pointer-events: none;
 }
-.wtick {
-  position: absolute;
-  top: var(--axis-y);
-  width: 1px;
-  height: var(--tick-week);
-  background: var(--muted);
-  opacity: 0.6;
-  transition:
-    transform 0.1s,
-    opacity 0.1s,
-    background-color 0.1s;
-  transform-origin: top;
+.window.ueberfaellig {
+  stroke: var(--warn);
 }
-.wtick:hover {
-  transform: scaleY(1.6);
-  opacity: 1;
-  background: var(--accent);
-}
-.mtick {
-  position: absolute;
-  top: calc(var(--axis-y) - var(--band-up));
-  width: 1px;
-  height: calc(var(--band-up) + var(--below));
-  background: color-mix(in srgb, var(--line) 60%, transparent);
-}
-.mlabel.flush {
-  transform: translateX(-100%);
-  padding: 0 0.5rem 0 0;
-}
-.mlabel {
-  position: absolute;
-  top: calc(var(--axis-y) + var(--mlabel-y));
-  font-family: var(--font-mono);
-  font-size: var(--mlabel-size);
-  letter-spacing: 0.04em;
-  color: var(--muted);
-  white-space: nowrap;
-  padding-left: 0.5rem;
-}
-/* The day is closed, not the task that lands on it. */
-.closed-day {
-  position: absolute;
-  top: calc(var(--axis-y) - var(--band-up));
-  height: calc(var(--band-up) + var(--below));
-  background: var(--closed-band);
-  pointer-events: none;
-}
-.htick {
-  position: absolute;
-  top: calc(var(--axis-y) + var(--ctx-y));
-  width: 2px;
-  height: var(--ctx-h);
-  background: var(--holiday);
-}
-.weekends {
-  position: absolute;
-  top: calc(var(--axis-y) - var(--band-up));
-  height: calc(var(--band-up) + var(--below));
-  pointer-events: none;
-}
-/* The spent part of the axis, not a second bar on top of it: an opaque fill
-  in the same slot, so the rail has exactly one edge and it sits at HEUTE. */
-.spent {
-  position: absolute;
-  left: 0;
-  top: calc(var(--axis-y) - 3px);
-  height: 7px;
-  border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--ink) 22%, var(--paper));
-  pointer-events: none;
-}
-.band {
-  position: absolute;
-  top: calc(var(--axis-y) + var(--ctx-y));
-  height: var(--ctx-h);
-  border-radius: var(--radius-sm);
-}
-.band.schulferien {
-  background: color-mix(in srgb, var(--school) 30%, transparent);
-  border-top: 2px solid var(--school);
-}
-.today {
-  position: absolute;
-  top: var(--today-top);
-  height: calc(var(--axis-y) + var(--below) - var(--today-top));
-  width: 1px;
-  background: var(--today);
-}
-.today b {
-  position: absolute;
-  top: -1.25rem;
-  left: -0.65rem;
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  letter-spacing: 0.03em;
-  background: var(--paper);
-  padding: 0 0.25rem;
-}
-.pin,
-.ghost {
-  position: absolute;
-  top: 0.2rem;
-  height: calc(var(--axis-y) + var(--below) - 0.2rem);
-  width: 2px;
-}
-.pin {
-  background: var(--anchor);
+
+.marker {
   cursor: pointer;
 }
-/* A pennant on the mast, so the anchor day reads as a marker planted on the
-  rail rather than as one more vertical rule. */
-.pin::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 2px;
-  width: 1.6rem;
-  height: 1.1rem;
-  background: var(--anchor);
-  clip-path: polygon(0 0, 100% 0, 65% 50%, 100% 100%, 0 100%);
-}
-.pin.flip::before {
-  left: auto;
-  right: 2px;
-  clip-path: polygon(100% 0, 100% 100%, 0 100%, 35% 50%, 0 0);
-}
-/* A width change reads as "hovered" without a glow - a filter: drop-shadow
-  here looked fine in light mode but far too bright against a dark background. */
-.grip {
-  position: absolute;
-  top: calc(var(--axis-y) - 0.55rem);
-  left: -0.45rem;
-  width: 1.1rem;
-  height: 1.1rem;
-  border-radius: 50%;
-  background: var(--paper-raised);
-  border: 3px solid var(--anchor);
-  box-shadow: var(--shadow-md);
-  cursor: grab;
-}
-.pin:active .grip {
-  cursor: grabbing;
-}
-.pin:focus-visible {
+.marker:focus {
   outline: none;
 }
-.pin:focus-visible .grip {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
+.hit {
+  fill: transparent;
 }
-.pin.hovered {
-  width: 4px;
-  margin-left: -1px;
+.marker:focus-visible .hit {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
 }
-.pin b {
-  position: absolute;
-  top: -0.25rem;
-  left: 1.9rem;
-  font-weight: 600;
-  font-size: var(--pin-title);
-  white-space: nowrap;
-  color: var(--anchor);
+.marker-dot {
+  fill: var(--paper-raised);
+  stroke: var(--accent);
+  stroke-width: 2.5;
 }
-.pin i {
-  position: absolute;
-  top: calc(var(--pin-title) + 0.35rem);
-  left: 1.9rem;
-  font-style: normal;
-  font-family: var(--font-mono);
-  font-size: var(--pin-sub);
-  color: var(--muted);
-  white-space: nowrap;
+.marker-dot.erledigt {
+  fill: var(--done-color);
+  stroke: var(--done-color);
 }
-/* Anchor near the right end: same offsets, mirrored. */
-.pin.flip b,
-.pin.flip i {
-  left: auto;
-  right: 1.9rem;
-  text-align: right;
+.marker-dot.ueberfaellig {
+  stroke: var(--warn);
+}
+.halo {
+  fill: var(--accent);
+  opacity: 0.18;
+}
+.halo.erledigt {
+  fill: var(--done-color);
+}
+.halo.ueberfaellig {
+  fill: var(--warn);
 }
 
-.node {
+.rule {
+  stroke-width: 1.5;
+}
+.rule.today {
+  stroke: var(--today);
+  stroke-dasharray: 3 3;
+}
+.rule.event {
+  stroke: var(--anchor);
+  stroke-width: 2;
+}
+.rule.ghost {
+  stroke: var(--anchor);
+  opacity: 0.45;
+}
+.flag {
+  fill: var(--anchor);
+}
+.grip circle {
+  fill: var(--paper-raised);
+  stroke: var(--anchor);
+  stroke-width: 3;
+  cursor: grab;
+  touch-action: none;
+}
+.grip:focus-visible circle {
+  stroke: var(--accent);
+}
+
+.axis-label {
+  font-family: var(--font-mono);
+  font-size: calc(13px - 2px * var(--tl-t, 0));
+  fill: var(--muted);
+}
+.axis-label.event {
+  fill: var(--anchor);
+  opacity: 0.85;
+}
+.anchor-label {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: calc(13px - 2px * var(--tl-t, 0));
+  letter-spacing: 0.04em;
+}
+.anchor-label.today {
+  fill: var(--today);
+}
+.anchor-label.event,
+.anchor-label.ghost {
+  fill: var(--anchor);
+}
+
+.tip {
   position: absolute;
-  /* --lane (set inline, see taskLane) staggers capsules whose spans touch on
-    screen into separate rows. Upward, not downward - below the axis is the
-    ruler and the Feiertage strip, lanes stacking into those would just move
-    the collision instead of fixing it. Lane 0 is centred on the axis. */
-  top: calc(var(--axis-y) - var(--node) / 2 - var(--lane, 0) * var(--lane-h));
-  /* left/width come from the template and already include the caps - no
-    min-width, no negative margin, so what the packer measured is what the
-    browser draws. */
-  height: var(--node);
-  border-radius: 999px;
-  background: var(--paper-raised);
-  border: 2px solid var(--accent);
-  padding: 0;
-  transition:
-    box-shadow 0.12s,
-    background-color 0.12s,
-    border-color 0.12s;
-}
-.node.warn {
-  border-color: var(--warn);
-}
-.node.current,
-.node.hovered {
-  border-color: var(--accent);
-  background: var(--accent);
-  /* A ring, not a scale() - scaling a multi-week capsule stretched it
-    sideways and made it point at the wrong days. */
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
-}
-.node.impossible {
-  border-color: var(--warn);
-  background: var(--warn);
-}
-.node.done {
-  border-color: var(--done-color);
-  background: var(--done-color);
-}
-.node:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-}
-.node .start-by {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--ink);
-}
-.node::after {
-  content: attr(data-label);
-  position: absolute;
-  /* Below the axis, never above it: above is where the Umzugstag flag keeps
-    its name and date, and a tooltip there covered exactly that. The lane
-    offset is added back, so every tooltip hangs off the axis at the same
-    height whatever lane its node sits in. */
-  top: calc(var(--lane, 0) * var(--lane-h) + var(--node) + 0.5rem);
-  left: 50%;
-  transform: translateX(-50%);
+  z-index: 5;
+  pointer-events: none;
+  transform: translate(-50%, -100%);
   background: var(--ink);
   color: var(--paper);
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--radius-sm);
   font-size: var(--fs-xs);
-  /* Wraps instead of one unclipped nowrap line - a long label on a narrow
-    strip used to blow out sideways into whatever else was nearby. --foot
-    guarantees the room it needs below the axis, so overflow-y: hidden can't
-    clip it. */
-  white-space: normal;
-  max-width: 16rem;
-  text-align: center;
-  z-index: 5;
-  padding: 0.25rem 0.5rem;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.12s;
+  line-height: 1.35;
+  max-width: 17rem;
 }
-.node:hover::after,
-.node:focus-visible::after {
-  opacity: 1;
-}
-.ghost {
-  background: var(--anchor);
-  opacity: 0.25;
-  pointer-events: none;
-}
-.ghost b {
-  position: absolute;
-  top: -0.1rem;
-  left: 0.5rem;
+.tip-date {
+  display: block;
+  margin-top: 2px;
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--anchor);
-  white-space: nowrap;
-}
-
-/* Compact: same layout, larger type and ticks, one lane fewer. Nothing here
-  repositions anything - it only retunes the tokens. */
-.compact {
-  --lane-h: 1.5rem;
-  --head-pad: 3.2rem;
-  --tick-day: 0.5rem;
-  --tick-week: 1.1rem;
-  --tick-month: 1.45rem;
-  --ctx-y: 1.7rem;
-  --ctx-h: 1.1rem;
-  --mlabel-y: 2.9rem;
-  --mlabel-size: var(--fs-md);
-  --pin-title: var(--fs-lg);
-  --pin-sub: var(--fs-md);
-  --today-top: 2.9rem;
-}
-.compact .scroller {
-  padding-bottom: 0.75rem;
-  cursor: default;
-}
-.compact .today b {
-  font-size: var(--fs-md);
-  top: -1.5rem;
-  left: -0.75rem;
-}
-.compact .node {
-  border-width: 1.5px;
-  cursor: pointer;
-}
-.compact .pin {
-  cursor: pointer;
-}
-.compact .node::after {
-  font-size: var(--fs-sm);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wtick,
-  .node,
-  .node::after {
-    transition: none;
-  }
-}
-
-/* Phones: only type and tick sizes shrink. The scale itself already adapts
-  to the width, so the strip needs no separate mobile layout. */
-@media (max-width: 36rem) {
-  .timeline:not(.compact) {
-    --lane-h: 0.9rem;
-    --head-pad: 4.4rem;
-    --tick-day: 0.18rem;
-    --tick-week: 0.4rem;
-    --tick-month: 0.7rem;
-    --ctx-y: 0.9rem;
-    --ctx-h: 0.4rem;
-    --mlabel-y: 1.5rem;
-    --mlabel-size: var(--fs-xs);
-    --pin-title: var(--fs-sm);
-    --pin-sub: var(--fs-xs);
-    --today-top: 2rem;
-  }
-  /* --lane-h has to clear --node (24px) by enough to read as separate lanes,
-    and --today-top sits below the pin's two label lines so HEUTE gets a row. */
-  .compact {
-    --lane-h: 1.5rem;
-    --head-pad: 3.2rem;
-    --tick-day: 0.35rem;
-    --tick-week: 0.75rem;
-    --tick-month: 1.05rem;
-    --ctx-y: 1.15rem;
-    --ctx-h: 0.7rem;
-    --mlabel-y: 2rem;
-    --mlabel-size: var(--fs-xs);
-    --pin-title: var(--fs-md);
-    --pin-sub: var(--fs-xs);
-    --today-top: 4.2rem;
-  }
-  .compact .node::after {
-    font-size: var(--fs-xs);
-  }
-  .legend {
-    font-size: var(--fs-xs);
-    gap: 0.6rem;
-  }
-  .node::after {
-    max-width: min(11rem, 70vw);
-  }
-}
-/* Dots are hard to tap - grow the hit area, not the dot, via a transparent
-  pseudo-element, so the lane packing math is untouched. */
-@media (hover: none) {
-  .node::before {
-    content: "";
-    position: absolute;
-    inset: -8px;
-  }
+  opacity: 0.75;
 }
 </style>
