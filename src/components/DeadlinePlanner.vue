@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
-import { ChevronDown, ChevronUp, Pencil } from "lucide-vue-next";
+import { ChevronDown, ChevronUp } from "lucide-vue-next";
 import Timeline from "./deadline-planner/Timeline.vue";
 import TaskRail from "./deadline-planner/TaskRail.vue";
 import TaskPicker from "./deadline-planner/TaskPicker.vue";
@@ -8,8 +8,7 @@ import PlanSummary from "./deadline-planner/PlanSummary.vue";
 import PlanActions from "./deadline-planner/PlanActions.vue";
 import DoneGroup from "./deadline-planner/DoneGroup.vue";
 import { facetLabel } from "../../lib/facets";
-import { shortDate } from "../../lib/date-display";
-import { toDate } from "../../lib/format-date";
+import { formatDate, toDate } from "../../lib/format-date";
 import { burst } from "./deadline-planner/confetti";
 import { useTaskEditor } from "./deadline-planner/useTaskEditor";
 import { usePlanUrlState } from "./deadline-planner/usePlanUrlState";
@@ -32,7 +31,9 @@ export type { PlanVariant };
 const props = defineProps<{
   vorhaben: string;
   anchorLabel: string;
+  anchorName: string;
   variantLabel: string;
+  variantPreposition?: string;
   variants: PlanVariant[];
   defaultSlug?: string;
 }>();
@@ -162,15 +163,6 @@ function onTimelineSelect(id: string) {
   }, 1600);
 }
 
-const digest = computed(() =>
-  [
-    anchorDate.value ? shortDate(anchorDate.value) : "",
-    props.variants.length > 1 ? selected.value?.label : "",
-  ]
-    .filter(Boolean)
-    .join(" · "),
-);
-
 const timelineHidden = ref(false);
 
 const scrollActiveId = ref<string | null>(null);
@@ -199,12 +191,9 @@ function trackActiveCard() {
   });
 }
 
-function editSetup() {
-  rootEl.value?.scrollIntoView({ block: "start", behavior: "smooth" });
-}
-
 onMounted(() => {
   document.getElementById("static-plan")?.remove();
+  document.getElementById("static-title")?.remove();
   addEventListener("scroll", trackActiveCard, { passive: true });
   trackActiveCard();
 });
@@ -224,31 +213,24 @@ onBeforeUnmount(() => {
       class="planner-header"
       :style="{ marginBottom: headerGap + 'px' }"
     >
-      <div v-if="stuck" class="digest">
-        <span class="digest-text">{{ digest }}</span>
-        <button
-          type="button"
-          class="digest-edit"
-          :aria-label="`${anchorLabel} und ${variantLabel} ändern`"
-          @click="editSetup"
-        >
-          <Pencil :size="14" />
-        </button>
-      </div>
-      <div v-else class="form">
-        <label class="field">
-          <span>{{ anchorLabel }}</span>
+      <h1 class="title">
+        {{ anchorName }} am
+        <span class="slot">
+          <span>{{ anchorDate ? formatDate(anchorDate) : anchorLabel }}</span>
           <input v-model="anchorDate" type="date" :aria-label="anchorLabel" />
-        </label>
-        <label v-if="variants.length > 1" class="field">
-          <span>{{ variantLabel }}</span>
-          <select v-model="selectedSlug">
-            <option v-for="v in variants" :key="v.slug" :value="v.slug">
-              {{ v.label }}
-            </option>
-          </select>
-        </label>
-      </div>
+        </span>
+        <template v-if="variants.length > 1">
+          {{ variantPreposition ?? "in" }}
+          <span class="slot">
+            <span>{{ selected?.label }}</span>
+            <select v-model="selectedSlug" :aria-label="variantLabel">
+              <option v-for="v in variants" :key="v.slug" :value="v.slug">
+                {{ v.label }}
+              </option>
+            </select>
+          </span>
+        </template>
+      </h1>
 
       <template v-if="anchorDate">
         <PlanSummary
@@ -384,11 +366,43 @@ onBeforeUnmount(() => {
   box-shadow: 0 10px 24px -18px color-mix(in srgb, var(--ink) 55%, transparent);
 }
 
-.form {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.4rem;
+.title {
+  margin: 0;
+  font-size: clamp(1.3rem, 3.6vw, 1.9rem);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  transition: font-size 0.18s;
 }
+.compact .title {
+  font-size: var(--fs-md);
+}
+.slot {
+  position: relative;
+  display: inline-block;
+  color: var(--accent);
+  border-bottom: 2px dashed var(--line);
+  cursor: pointer;
+}
+.slot:hover {
+  border-bottom-color: var(--accent);
+}
+.slot:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.slot input,
+.slot select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
 .tl-toggle {
   display: flex;
   align-items: center;
@@ -408,78 +422,6 @@ onBeforeUnmount(() => {
 }
 .tl-off {
   display: none;
-}
-
-.digest {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.digest-text {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.digest-edit {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  padding: 0;
-  border-radius: var(--radius-sm);
-  color: var(--muted);
-}
-.digest-edit:hover {
-  color: var(--accent);
-}
-
-.field {
-  display: block;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 0.7rem 1rem;
-  min-width: 0;
-  transition: border-color 0.22s;
-}
-.field:hover,
-.field:focus-within {
-  border-color: var(--accent);
-}
-.field span {
-  display: block;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 0.25rem;
-}
-.field input,
-.field select {
-  display: block;
-  width: 100%;
-  border: 0;
-  background: transparent;
-  padding: 0;
-  font-size: var(--fs-md);
-  font-weight: 600;
-  cursor: pointer;
-  transition: font-size 0.22s;
-}
-.field input {
-  font-family: var(--font-mono);
-}
-.field input:focus-visible,
-.field select:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
 }
 
 .facets {
@@ -592,10 +534,6 @@ onBeforeUnmount(() => {
 }
 
 @media (min-width: 40rem) {
-  .form {
-    grid-template-columns: 1fr 1fr;
-    gap: 0.6rem;
-  }
   .planner-header {
     margin-inline: 0;
     border-radius: var(--radius);

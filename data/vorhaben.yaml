@@ -10,6 +10,7 @@
   anchorLabel: Umzugstag
   anchorName: Umzug
   variantLabel: Ort
+  variantPreposition: nach
   defaultVariant: rottenburg
 
 - slug: geburt

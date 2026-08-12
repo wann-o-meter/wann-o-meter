@@ -1,2 +1,1 @@
 - [ ] Build a dashboard as the startpage that gives an overview of stats and the current events. see dashboard-example.html for reference
-- Move the Umzugstag and the Ort to the title -> It becomes "Umzug am dd.mm.yyyy nach Rottenburg am Neckar" and the date and location become clickable input fields. this allows removing the extra inputfields

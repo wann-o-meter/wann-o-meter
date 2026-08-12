@@ -27,6 +27,7 @@ const vorhabenSchema = z.object({
   anchorLabel: z.string(),
   anchorName: z.string(),
   variantLabel: z.string(),
+  variantPreposition: z.string().default("in"),
   defaultVariant: z.string().optional(),
 });
 

@@ -17,12 +17,14 @@ const rest = siblings.slice(PREVIEW);
 
 <Layout title={title} description={description}>
   <p class="back"><a href="/">&larr; Alle Vorhaben</a></p>
-  <h1>{title}</h1>
+  <h1 id="static-title">{title}</h1>
   <DeadlinePlanner
     client:only="vue"
     vorhaben={v.vorhaben}
     anchorLabel={v.anchorLabel}
+    anchorName={v.anchorName}
     variantLabel={v.variantLabel}
+    variantPreposition={v.variantPreposition}
     variants={v.variants}
     defaultSlug={variant.slug}
   />

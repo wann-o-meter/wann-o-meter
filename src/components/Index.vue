@@ -93,7 +93,9 @@
         :key="selected.slug"
         :vorhaben="selected.vorhaben"
         :anchor-label="selected.anchorLabel"
+        :anchor-name="selected.anchorName"
         :variant-label="selected.variantLabel"
+        :variant-preposition="selected.variantPreposition"
         :variants="selected.variants"
         :default-slug="variantSlug"
       />
