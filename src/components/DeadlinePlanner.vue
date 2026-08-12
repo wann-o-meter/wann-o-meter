@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  useTemplateRef,
+  watch,
+} from "vue";
 import { ChevronDown, ChevronUp } from "lucide-vue-next";
 import Timeline from "./deadline-planner/Timeline.vue";
 import TaskRail from "./deadline-planner/TaskRail.vue";
@@ -9,6 +16,7 @@ import PlanActions from "./deadline-planner/PlanActions.vue";
 import DoneGroup from "./deadline-planner/DoneGroup.vue";
 import { facetLabel } from "../../lib/facets";
 import { formatDate, toDate } from "../../lib/format-date";
+import { planStorageKey, savePlan } from "../../lib/saved-plans";
 import { burst } from "./deadline-planner/confetti";
 import { useTaskEditor } from "./deadline-planner/useTaskEditor";
 import { usePlanUrlState } from "./deadline-planner/usePlanUrlState";
@@ -29,6 +37,7 @@ import type { ScheduleEntry } from "../../lib/deadline-plan";
 export type { PlanVariant };
 
 const props = defineProps<{
+  slug: string;
   vorhaben: string;
   anchorLabel: string;
   anchorName: string;
@@ -53,7 +62,21 @@ const {
   overlapMonths,
   deferred,
   toggleDefer,
+  touched,
 } = usePlanUrlState(props.variants, props.defaultSlug);
+
+watch(
+  [touched, anchorDate, selectedSlug],
+  () => {
+    if (touched.value && anchorDate.value)
+      savePlan({
+        slug: props.slug,
+        variant: selectedSlug.value,
+        date: anchorDate.value,
+      });
+  },
+  { immediate: true },
+);
 
 const {
   doneIds,
@@ -74,7 +97,7 @@ const {
 } = useTaskEditor(
   selectedForPlan,
   rootEl,
-  computed(() => `wann:plan:${props.vorhaben}:${selectedSlug.value}`),
+  computed(() => planStorageKey(props.vorhaben, selectedSlug.value)),
 );
 
 const { timeline, tasks, unscheduled, railNodes } = usePlannerSchedule(
@@ -126,6 +149,7 @@ const store = computed<TaskStore>(() => ({
 }));
 
 function onToggleDone(id: string) {
+  touched.value = true;
   const wasDone = doneIds[id];
   toggleDone(id);
   if (!wasDone)
@@ -367,7 +391,12 @@ onBeforeUnmount(() => {
 }
 
 .title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.3em;
   margin: 0 0 1rem;
+  font-size: var(--fs-lg);
   line-height: 1.35;
   letter-spacing: -0.01em;
 }

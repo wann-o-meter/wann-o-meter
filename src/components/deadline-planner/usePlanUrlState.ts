@@ -54,6 +54,10 @@ export function usePlanUrlState(
     facetsUsedBy(selected.value?.deadlines ?? []),
   );
 
+  // A date in the URL means the visitor picked one, an auto default does not.
+  const touched = ref(params?.has("date") ?? false);
+  watch([anchorDate, selectedSlug, activeFacets], () => (touched.value = true));
+
   const overlapMonths = ref(params?.get("overlap") === "1" ? 1 : 0);
   const deferred = computed(() => overlapMonths.value > 0);
   const toggleDefer = () => (overlapMonths.value = deferred.value ? 0 : 1);
@@ -101,5 +105,6 @@ export function usePlanUrlState(
     overlapMonths,
     deferred,
     toggleDefer,
+    touched,
   };
 }
