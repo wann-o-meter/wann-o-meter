@@ -10,7 +10,6 @@ import type { TaskPicker as Picker } from "./useTaskPicker";
 defineProps<{
   nodes: { kind: string; [key: string]: any }[];
   anchorDate: string;
-  nextUpId: string | null;
   deferred: boolean;
   hoveredId: string | null;
   store: TaskStore;
@@ -74,7 +73,6 @@ defineEmits<{
         :is-past="isPast(node.entry.date!)"
         :done="!!store.doneIds[node.entry.id]"
         :is-custom="store.isCustom(node.entry.id)"
-        :is-next="node.entry.id === nextUpId"
         :cta="taskCtaFor(node.entry.id)"
         :note="store.userNotes[node.entry.id]"
         :attachment="store.attachments[node.entry.id]"

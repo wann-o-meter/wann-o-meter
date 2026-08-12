@@ -23,7 +23,6 @@ const props = defineProps<{
   isPast: boolean;
   done: boolean;
   isCustom: boolean;
-  isNext: boolean;
   deferred: boolean;
   cta: TaskCta | null;
   note?: string;
@@ -158,7 +157,6 @@ const menuItems = computed<MenuItem[]>(() => [
       <h3 v-else>
         {{ entry.label }}
         <span v-if="isPast && !done" class="badge late">Überfällig</span>
-        <span v-else-if="isNext && !done" class="badge">Als Nächstes</span>
       </h3>
       <CardMenu :items="menuItems" />
     </div>

@@ -10,7 +10,6 @@ import DoneGroup from "./deadline-planner/DoneGroup.vue";
 import { facetLabel } from "../../lib/facets";
 import { shortDate } from "../../lib/date-display";
 import { toDate } from "../../lib/format-date";
-import { isPast } from "../../lib/today";
 import { burst } from "./deadline-planner/confetti";
 import { useTaskEditor } from "./deadline-planner/useTaskEditor";
 import { usePlanUrlState } from "./deadline-planner/usePlanUrlState";
@@ -149,12 +148,6 @@ const openNodes = computed(() => {
   while (out.length > 0 && out[out.length - 1].kind === "gap") out.pop();
   return out;
 });
-
-const nextUpId = computed(
-  () =>
-    tasks.value.find((t) => t.date && !isPast(t.date) && !doneIds[t.id])?.id ??
-    null,
-);
 
 const hoveredId = ref<string | null>(null);
 let flashTimer: ReturnType<typeof setTimeout> | undefined;
@@ -308,7 +301,6 @@ onBeforeUnmount(() => {
         <TaskRail
           :nodes="openNodes"
           :anchor-date="anchorDate"
-          :next-up-id="nextUpId"
           :deferred="deferred"
           :hovered-id="activeId"
           :store="store"
