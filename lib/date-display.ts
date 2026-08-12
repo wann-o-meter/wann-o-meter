@@ -27,6 +27,17 @@ export function shortDate(iso: string): string {
   return `${p.weekday}, ${day}.${month}.${p.year}`;
 }
 
+export function dayMonth(iso: string): string {
+  const p = utcParts(iso);
+  return `${String(p.day).padStart(2, "0")}.${String(p.month0 + 1).padStart(2, "0")}.`;
+}
+
+export function monthLabel(iso: string, currentYear: number): string {
+  const p = utcParts(iso);
+  const name = MONTH_NAMES[p.month0];
+  return p.year === currentYear ? name : `${name} ${p.year}`;
+}
+
 export function longDate(iso: string): string {
   const p = utcParts(iso);
   return `${p.weekdayLong}, ${p.day}. ${MONTH_NAMES[p.month0]} ${p.year}`;

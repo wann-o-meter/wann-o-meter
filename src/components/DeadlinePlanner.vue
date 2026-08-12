@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   computed,
+  nextTick,
   onBeforeUnmount,
   onMounted,
   ref,
@@ -215,6 +216,8 @@ function trackActiveCard() {
 onMounted(() => {
   document.getElementById("static-plan")?.remove();
   document.getElementById("static-title")?.remove();
+  const linked = location.hash.match(/^#task-(.+)$/);
+  if (linked) nextTick(() => onTimelineSelect(linked[1]));
   addEventListener("scroll", trackActiveCard, { passive: true });
   trackActiveCard();
 });

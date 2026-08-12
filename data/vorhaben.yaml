@@ -7,6 +7,7 @@
     Ort und Umzugstag eingeben, kompletten Rückwärts-Zeitplan mit Fristen sehen -
     mit Wochenend- und Feiertagswarnung.
   vorhaben: Umzug innerhalb Deutschlands
+  possessive: Dein
   anchorLabel: Umzugstag
   anchorName: Umzug
   variantLabel: Ort
@@ -20,6 +21,7 @@
     Geburtstermin eingeben, Fristen für Geburtsanzeige, Elterngeld und Kindergeld
     rückwärts geplant - mit Quelle.
   vorhaben: Geburt eines Kindes
+  possessive: Deine
   anchorLabel: Geburtstermin
   anchorName: Geburt
   variantLabel: Ort
@@ -31,6 +33,7 @@
     Hochzeitstermin eingeben, Anmeldung beim Standesamt, Dokumente und
     Namensänderung rückwärts geplant.
   vorhaben: Standesamtliche Hochzeit
+  possessive: Deine
   anchorLabel: Hochzeitstermin
   anchorName: Hochzeit
   variantLabel: Ort
@@ -42,6 +45,7 @@
     Letzten Arbeitstag eingeben, Kündigungsfrist und Arbeitsuchendmeldung
     rückwärts geplant - mit Quelle.
   vorhaben: Jobwechsel
+  possessive: Dein
   anchorLabel: Letzter Arbeitstag
   anchorName: Jobwechsel
   variantLabel: Ort

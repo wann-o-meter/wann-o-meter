@@ -26,6 +26,7 @@ const vorhabenSchema = z.object({
   vorhaben: z.string(),
   anchorLabel: z.string(),
   anchorName: z.string(),
+  possessive: z.string().default("Dein"),
   variantLabel: z.string(),
   variantPreposition: z.string().default("in"),
   defaultVariant: z.string().optional(),

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { Download, Link2, Printer } from "lucide-vue-next";
-import { generateIcs } from "../../../lib/ics";
-import type { IcsEvent } from "../../../lib/ics";
+import { downloadIcs } from "../../../lib/ics-download";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
 
 const props = defineProps<{
@@ -22,27 +21,13 @@ async function copyPlanLink() {
   }
 }
 
-function exportIcs() {
-  const events: IcsEvent[] = props.entries
-    .filter((e) => e.date !== null)
-    .map((e) => ({
-      uid: `${e.id}-${props.anchorDate}@wannometer.de`,
-      from: e.date!,
-      to: e.date!,
-      title: e.label,
-      description: e.note,
-      url: e.source_url ?? undefined,
-    }));
-  const blob = new Blob([generateIcs(events, props.calendarName)], {
-    type: "text/calendar;charset=utf-8",
-  });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${props.fileSlug}-${props.anchorDate}.ics`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
+const exportIcs = () =>
+  downloadIcs(
+    props.entries,
+    props.calendarName,
+    props.fileSlug,
+    props.anchorDate,
+  );
 
 const print = () => window.print();
 </script>
