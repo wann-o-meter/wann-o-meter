@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { computeSchedule } from "../../lib/deadline-plan";
 import type { ScheduleEntry } from "../../lib/deadline-plan";
 import { shortDate, longDate } from "../../lib/date-display";
+import { formatDate } from "../../lib/format-date";
 import { isoToday } from "../../lib/today";
 import { dayNum, isoOfDay } from "../../lib/timeline-geometry";
 import {
@@ -137,8 +138,12 @@ function progress(view: PlanView): { done: number; total: number } {
   <section class="dashboard">
     <h1>Deine Fristen</h1>
     <p class="lede">
-      {{ views.length }} Vorhaben, {{ open.length }} offene
-      {{ open.length === 1 ? "Frist" : "Fristen" }}.
+      {{ open.length }} offene {{ open.length === 1 ? "Frist" : "Fristen" }},
+      gerechnet ab
+      <template v-for="(view, i) in views" :key="view.plan.slug"
+        ><template v-if="i > 0">, </template>{{ view.v.label
+        }}<span class="mono"> {{ formatDate(view.plan.date) }}</span></template
+      >.
       <template v-if="overdue.length">
         <b>{{ overdue.length }}</b> davon
         {{ overdue.length === 1 ? "ist" : "sind" }} überfällig.
@@ -175,7 +180,10 @@ function progress(view: PlanView): { done: number; total: number } {
       <article v-for="view in views" :key="view.plan.slug" class="card">
         <h3>
           {{ view.v.label }}
-          <em>{{ progress(view).done }}/{{ progress(view).total }}</em>
+          <em
+            >{{ progress(view).done }} von {{ progress(view).total }}
+            erledigt</em
+          >
         </h3>
         <p class="date">
           {{ longDate(view.plan.date)
@@ -216,7 +224,8 @@ function progress(view: PlanView): { done: number; total: number } {
   color: var(--muted);
   margin: 0.25rem 0 0;
 }
-.lede b {
+.lede b,
+.mono {
   font-family: var(--font-mono);
   color: var(--ink);
 }

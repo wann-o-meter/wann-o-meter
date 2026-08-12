@@ -7,11 +7,18 @@
       @forget="savedPlans = forgetPlan($event)"
     />
 
-    <section v-show="!showPlanner">
+    <button
+      v-if="hasPlans && !showPlanner && !pickerOpen"
+      type="button"
+      class="btn add-vorhaben"
+      @click="pickerOpen = true"
+    >
+      + Weiteres Vorhaben planen
+    </button>
+
+    <section v-if="!showPlanner && (!hasPlans || pickerOpen)">
       <header>
-        <component :is="savedPlans.length > 0 ? 'h2' : 'h1'">
-          Was hast du vor?
-        </component>
+        <component :is="hasPlans ? 'h2' : 'h1'">Was hast du vor?</component>
         <p class="lede">
           Wähl dein Datum, alle Fristen werden rückwärts berechnet.
         </p>
@@ -29,7 +36,7 @@
         </div>
       </header>
 
-      <ol class="how">
+      <ol v-if="!hasPlans" class="how">
         <li>Datum wählen</li>
         <li>Fristen sehen</li>
         <li>Als Kalender exportieren</li>
@@ -88,8 +95,15 @@
 
         <p class="summary">{{ summaryText }}</p>
 
+        <p v-if="savedForSelected" class="editing">
+          Du planst {{ selected.label }} schon zum
+          {{ formatDate(savedForSelected.date) }}. Änderungen hier ersetzen
+          diesen Plan.
+        </p>
+
         <a class="btn primary" :href="planHref" @click.prevent="openPlan"
-          >Zeitplan öffnen <ArrowRight :size="14"
+          >{{ savedForSelected ? `${selected.label} bearbeiten` : "Zeitplan öffnen" }}
+          <ArrowRight :size="14"
         /></a>
       </div>
     </section>
@@ -125,7 +139,11 @@ import {
   watch,
 } from "vue";
 import { appliesTo } from "../../lib/facets";
-import { formatDateWithWeekday, toDate } from "../../lib/format-date";
+import {
+  formatDate,
+  formatDateWithWeekday,
+  toDate,
+} from "../../lib/format-date";
 import {
   addDays,
   daysBetween,
@@ -148,6 +166,8 @@ const props = defineProps<{
 const rootEl = useTemplateRef<HTMLElement>("rootEl");
 
 const savedPlans = ref<SavedPlan[]>([]);
+const hasPlans = computed(() => savedPlans.value.length > 0);
+const pickerOpen = ref(false);
 
 const selectedSlug = ref(props.vorhaben[0]?.slug);
 const selected = computed(
@@ -194,6 +214,17 @@ function defaultVariantSlug() {
   );
 }
 const variantSlug = ref(defaultVariantSlug());
+
+// One plan per Vorhaben: picking one you already planned edits it, so the
+// picker starts from its date and place instead of a fresh default.
+const savedForSelected = computed(
+  () => savedPlans.value.find((p) => p.slug === selected.value.slug) ?? null,
+);
+watch(savedForSelected, (plan) => {
+  if (!plan) return;
+  anchorDate.value = plan.date;
+  variantSlug.value = plan.variant;
+});
 const previewVariant = computed(
   () =>
     selected.value.variants.find((v) => v.slug === variantSlug.value) ??
@@ -228,14 +259,15 @@ const hintText =
 const summaryText = computed(() => {
   const iso = previewIso.value ?? anchorDate.value;
   const dated = tasks.value.filter((t) => t.date !== null);
+  const head = `Für den ${formatDate(iso)}: ${dated.length} Fristen`;
   const first = dated.reduce<string | null>(
     (min, t) => (min === null || t.date! < min ? t.date! : min),
     null,
   );
-  if (!first) return `${dated.length} Fristen`;
+  if (!first) return head;
   const shift = daysBetween(toDate(anchorDate.value), toDate(iso));
   const firstShown = isoOf(addDays(toDate(first), shift));
-  return `${dated.length} Fristen · erste am ${formatDateWithWeekday(firstShown)}`;
+  return `${head}, erste am ${formatDateWithWeekday(firstShown)}`;
 });
 
 function measureKeyed(attr: string): Map<string, DOMRect> {
@@ -454,6 +486,16 @@ h1 {
   flex-wrap: wrap;
   gap: 0.4rem;
   padding-bottom: 0.25rem;
+}
+.add-vorhaben {
+  margin-bottom: 2rem;
+  padding: 0.5rem 1rem;
+  font-size: var(--fs-sm);
+}
+.editing {
+  margin: 0.5rem 0 0;
+  font-size: var(--fs-sm);
+  color: var(--muted);
 }
 .summary {
   margin: 0.75rem 0 0;
