@@ -122,6 +122,7 @@ import {
   reactive,
   ref,
   useTemplateRef,
+  watch,
 } from "vue";
 import { appliesTo } from "../../lib/facets";
 import { formatDateWithWeekday, toDate } from "../../lib/format-date";
@@ -342,6 +343,10 @@ async function collapseToRail() {
   await settle();
   flyDots(first, "data-node-key", dy);
 }
+
+watch(showPlanner, (open) => {
+  if (!open) savedPlans.value = loadSavedPlans();
+});
 
 function onPopState() {
   if (showPlanner.value) collapseToRail();

@@ -85,7 +85,7 @@ const overdue = computed(() => open.value.filter((i) => i.day < TODAY));
 const nextUp = computed(() => open.value.find((i) => i.day >= TODAY) ?? null);
 
 const week = (day: number) => Math.floor((day + 3) / 7);
-const monthOf = (day: number) => new Date(day * 86400000).getUTCMonth();
+const monthOf = (day: number) => isoOfDay(day).slice(0, 7);
 
 const groups = computed(() => {
   const month = monthOf(TODAY);

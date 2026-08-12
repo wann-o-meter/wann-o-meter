@@ -73,10 +73,12 @@ export function usePlanUrlState(
       : undefined,
   );
 
+  // Only mirror state into the URL once the visitor picked something, an
+  // untouched page keeps its clean URL and stays out of the saved plans.
   watch(
-    [anchorDate, selectedSlug, activeFacets, overlapMonths],
+    [touched, anchorDate, selectedSlug, activeFacets, overlapMonths],
     () => {
-      if (typeof window === "undefined") return;
+      if (typeof window === "undefined" || !touched.value) return;
       const next = new URLSearchParams(window.location.search);
       if (anchorDate.value) next.set("date", anchorDate.value);
       if (selected.value) next.set("variant", selected.value.slug);
