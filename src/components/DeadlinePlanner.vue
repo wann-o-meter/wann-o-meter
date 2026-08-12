@@ -206,6 +206,25 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="rootEl" class="deadline-planner" :class="{ compact: stuck }">
+    <h1 class="title">
+      {{ anchorName }} am
+      <span class="slot">
+        <span>{{ anchorDate ? formatDate(anchorDate) : anchorLabel }}</span>
+        <input v-model="anchorDate" type="date" :aria-label="anchorLabel" />
+      </span>
+      <template v-if="variants.length > 1">
+        {{ variantPreposition ?? "in" }}
+        <span class="slot">
+          <span>{{ selected?.label }}</span>
+          <select v-model="selectedSlug" :aria-label="variantLabel">
+            <option v-for="v in variants" :key="v.slug" :value="v.slug">
+              {{ v.label }}
+            </option>
+          </select>
+        </span>
+      </template>
+    </h1>
+
     <div ref="sentinelEl" class="sentinel"></div>
 
     <header
@@ -213,25 +232,6 @@ onBeforeUnmount(() => {
       class="planner-header"
       :style="{ marginBottom: headerGap + 'px' }"
     >
-      <h1 class="title">
-        {{ anchorName }} am
-        <span class="slot">
-          <span>{{ anchorDate ? formatDate(anchorDate) : anchorLabel }}</span>
-          <input v-model="anchorDate" type="date" :aria-label="anchorLabel" />
-        </span>
-        <template v-if="variants.length > 1">
-          {{ variantPreposition ?? "in" }}
-          <span class="slot">
-            <span>{{ selected?.label }}</span>
-            <select v-model="selectedSlug" :aria-label="variantLabel">
-              <option v-for="v in variants" :key="v.slug" :value="v.slug">
-                {{ v.label }}
-              </option>
-            </select>
-          </span>
-        </template>
-      </h1>
-
       <template v-if="anchorDate">
         <PlanSummary
           :entries="planEntries"
@@ -367,14 +367,9 @@ onBeforeUnmount(() => {
 }
 
 .title {
-  margin: 0;
-  font-size: clamp(1.3rem, 3.6vw, 1.9rem);
+  margin: 0 0 1rem;
   line-height: 1.35;
   letter-spacing: -0.01em;
-  transition: font-size 0.18s;
-}
-.compact .title {
-  font-size: var(--fs-md);
 }
 .slot {
   position: relative;
