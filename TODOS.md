@@ -39,6 +39,6 @@
 
 ## Timeline
 
-- [ ] Add a legend or labels for the circle markers
-- [ ] Explain the stacked lane rows, or flatten them
-- [ ] Label the blue/beige/gray bar segments, or remove the color coding
+- [x] Add a legend or labels for the circle markers
+- [x] Explain the stacked lane rows, or flatten them
+- [x] Label the blue/beige/gray bar segments, or remove the color coding

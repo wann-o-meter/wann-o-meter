@@ -14,6 +14,10 @@
         <span class="item"><span class="dot"></span> erledigt</span>
       </div>
       <div class="filters" role="group" aria-label="Bänder einblenden">
+        <span class="item"><span class="swatch werktag"></span> Werktag</span>
+        <span class="item"
+          ><span class="swatch wochenende"></span> Wochenende</span
+        >
         <label class="item">
           <input v-model="showFeiertage" type="checkbox" />
           <span class="swatch feiertag"></span> Feiertage
@@ -23,6 +27,10 @@
           <span class="swatch ferien"></span> Schulferien
         </label>
       </div>
+      <p v-if="L.laneCount > 1" class="lanes-note">
+        Termine stehen in mehreren Zeilen, damit sich nahe Fristen nicht
+        überdecken. Die Zeile hat keine Bedeutung.
+      </p>
     </div>
 
     <figure ref="figureEl" class="figure">
@@ -583,6 +591,7 @@ const L = computed(() => {
     unit,
     xLeft,
     items,
+    laneCount,
     axisY,
     bandTop,
     monthTop,
@@ -746,8 +755,18 @@ function onMarkerLeave() {
   border-radius: 2px;
   border: 1px solid var(--line);
 }
+.swatch.werktag {
+  background: var(--d-werktag);
+}
+.swatch.wochenende {
+  background: var(--d-wochenende);
+}
 .swatch.feiertag {
   background: var(--d-feiertag);
+}
+.lanes-note {
+  flex-basis: 100%;
+  margin: 0;
 }
 .swatch.ferien {
   background: var(--d-ferien);

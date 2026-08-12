@@ -86,7 +86,6 @@
           :anchor-date="anchorDate"
           :anchor-name="selected.anchorName"
           :region-code="previewVariant?.regionCode"
-          :show-legend="false"
           clickable
           keyed
           @place="onPlace"
