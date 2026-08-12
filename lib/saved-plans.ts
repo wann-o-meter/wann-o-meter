@@ -7,6 +7,8 @@ export interface SavedPlan {
   slug: string;
   variant: string;
   date: string;
+  // The same facets the plan page filters by, so both count the same Fristen.
+  facets: string[];
 }
 
 export interface PlanSnapshot {
@@ -43,7 +45,9 @@ function write(key: string, value: unknown): void {
 export function loadSavedPlans(): SavedPlan[] {
   const raw = read(INDEX_KEY);
   if (!Array.isArray(raw)) return [];
-  return raw.filter((p) => p?.slug && p?.variant && p?.date);
+  return raw
+    .filter((p) => p?.slug && p?.variant && p?.date)
+    .map((p) => ({ ...p, facets: Array.isArray(p.facets) ? p.facets : [] }));
 }
 
 export function savePlan(plan: SavedPlan): void {

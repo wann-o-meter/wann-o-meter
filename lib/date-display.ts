@@ -29,7 +29,7 @@ export function shortDate(iso: string): string {
 
 export function dayMonth(iso: string): string {
   const p = utcParts(iso);
-  return `${String(p.day).padStart(2, "0")}.${String(p.month0 + 1).padStart(2, "0")}.`;
+  return `${p.weekday}, ${String(p.day).padStart(2, "0")}.${String(p.month0 + 1).padStart(2, "0")}.`;
 }
 
 export function monthLabel(iso: string, currentYear: number): string {

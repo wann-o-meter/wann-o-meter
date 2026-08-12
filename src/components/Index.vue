@@ -1,19 +1,21 @@
 <template>
   <div class="wom-timeline" ref="rootEl">
     <Dashboard
-      v-if="savedPlans.length > 0 && !showPlanner"
+      v-if="hasPlans && !showPlanner && !pickerOpen"
       :vorhaben="vorhaben"
       :plans="savedPlans"
       @forget="savedPlans = forgetPlan($event)"
+      @edit="editPlan"
+      @add="addPlan"
     />
 
     <button
-      v-if="hasPlans && !showPlanner && !pickerOpen"
+      v-if="hasPlans && pickerOpen && !showPlanner"
+      class="back"
       type="button"
-      class="btn add-vorhaben"
-      @click="pickerOpen = true"
+      @click="pickerOpen = false"
     >
-      + Weiteres Vorhaben planen
+      &larr; Zurück zur Übersicht
     </button>
 
     <section v-if="!showPlanner && (!hasPlans || pickerOpen)">
@@ -159,7 +161,13 @@ import DeadlinePlanner from "./DeadlinePlanner.vue";
 import Timeline from "./deadline-planner/Timeline.vue";
 import { usePlannerSchedule } from "./deadline-planner/usePlannerSchedule";
 import { ArrowRight } from "lucide-vue-next";
-import { forgetPlan, loadSavedPlans } from "../../lib/saved-plans";
+import {
+  forgetPlan,
+  loadSavedPlans,
+  planStorageKey,
+  readSnapshot,
+  snapshotDeadlines,
+} from "../../lib/saved-plans";
 import type { SavedPlan } from "../../lib/saved-plans";
 import type { VorhabenData } from "../../lib/vorhaben-data";
 
@@ -234,9 +242,20 @@ const previewVariant = computed(
     selected.value.variants.find((v) => v.slug === variantSlug.value) ??
     selected.value.variants[0],
 );
-const workingDeadlines = computed(() =>
-  (previewVariant.value?.deadlines ?? []).filter((d) => appliesTo(d, [])),
-);
+// Count what the saved plan counts, a preview that disagrees with the plan page
+// is worse than no preview: same facets, same edits.
+const workingDeadlines = computed(() => {
+  const base = (previewVariant.value?.deadlines ?? []).filter((d) =>
+    appliesTo(d, savedForSelected.value?.facets ?? []),
+  );
+  if (!savedForSelected.value || !previewVariant.value) return base;
+  return snapshotDeadlines(
+    base,
+    readSnapshot(
+      planStorageKey(selected.value.vorhaben, previewVariant.value.slug),
+    ),
+  );
+});
 
 const { tasks } = usePlannerSchedule(
   anchorDate,
@@ -248,6 +267,19 @@ const { tasks } = usePlannerSchedule(
 
 function onPlace(iso: string) {
   anchorDate.value = iso;
+}
+
+function editPlan(slug: string) {
+  selectedSlug.value = slug;
+  pickerOpen.value = true;
+}
+
+function addPlan() {
+  const fresh = props.vorhaben.find(
+    (v) => !savedPlans.value.some((p) => p.slug === v.slug),
+  );
+  if (fresh) pick(fresh.slug);
+  pickerOpen.value = true;
 }
 
 const planHref = computed(() => {
@@ -493,11 +525,6 @@ h1 {
   flex-wrap: wrap;
   gap: 0.4rem;
   padding-bottom: 0.25rem;
-}
-.add-vorhaben {
-  margin-bottom: 2rem;
-  padding: 0.5rem 1rem;
-  font-size: var(--fs-sm);
 }
 .editing {
   margin: 0.5rem 0 0;

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { computeSchedule } from "../../lib/deadline-plan";
+import { appliesTo } from "../../lib/facets";
 import type { ScheduleEntry } from "../../lib/deadline-plan";
 import { dayMonth, monthLabel, shortDate } from "../../lib/date-display";
 import { isoToday } from "../../lib/today";
@@ -21,7 +22,11 @@ const props = defineProps<{
   plans: SavedPlan[];
 }>();
 
-defineEmits<{ (e: "forget", slug: string): void }>();
+defineEmits<{
+  (e: "forget", slug: string): void;
+  (e: "edit", slug: string): void;
+  (e: "add"): void;
+}>();
 
 interface PlanView {
   plan: SavedPlan;
@@ -42,9 +47,11 @@ const views = computed<PlanView[]>(() =>
     const variant =
       v.variants.find((x) => x.slug === plan.variant) ?? v.variants[0];
     const snap = readSnapshot(planStorageKey(v.vorhaben, variant.slug));
+    // Same facet filter the plan page applies, otherwise the counts disagree.
+    const deadlines = variant.deadlines.filter((d) => appliesTo(d, plan.facets));
     const entries = computeSchedule(
       plan.date,
-      snapshotDeadlines(variant.deadlines, snap),
+      snapshotDeadlines(deadlines, snap),
       "DE",
       variant.regionCode,
     ).filter((e) => e.date !== null);
@@ -90,6 +97,8 @@ const rest = computed(() =>
   openEntries.value.filter((e) => e.id !== nowDue.value?.id),
 );
 
+// Buckets are disjoint by construction: the one task in "Jetzt dran" is out of
+// `rest`, then every remaining task is either past or lives in exactly one month.
 const groups = computed(() => {
   const thisMonth = isoToday().slice(0, 7);
   const late = rest.value.filter((e) => dayNum(e.date!) < TODAY);
@@ -98,14 +107,12 @@ const groups = computed(() => {
     out.push({ key: "late", title: "Überfällig", entries: late });
   out.push({
     key: thisMonth,
-    title: "Diesen Monat",
-    entries: rest.value.filter(
-      (e) => dayNum(e.date!) >= TODAY && e.date!.slice(0, 7) === thisMonth,
-    ),
+    title: `Im ${monthLabel(isoToday(), THIS_YEAR)}`,
+    entries: [],
   });
   for (const entry of rest.value) {
+    if (dayNum(entry.date!) < TODAY) continue;
     const month = entry.date!.slice(0, 7);
-    if (dayNum(entry.date!) < TODAY || month === thisMonth) continue;
     const group = out.find((g) => g.key === month);
     if (group) group.entries.push(entry);
     else
@@ -115,7 +122,14 @@ const groups = computed(() => {
         entries: [entry],
       });
   }
-  return out;
+  // Repeat a date only once per run, four identical dates in a column stutter.
+  return out.map((group) => ({
+    ...group,
+    rows: group.entries.map((entry, i) => ({
+      entry,
+      date: entry.date === group.entries[i - 1]?.date ? null : entry.date,
+    })),
+  }));
 });
 
 const countdown = computed(() => {
@@ -209,7 +223,7 @@ function exportIcs(view: PlanView) {
             <span class="days">{{ countdown }}</span>
             <span class="mono">{{ shortDate(focus.plan.date) }}</span>
           </p>
-          <div class="bar" aria-hidden="true">
+          <div v-if="progress.done > 0" class="bar" aria-hidden="true">
             <i :style="{ width: progress.pct + '%' }"></i>
           </div>
           <p class="tally">
@@ -218,6 +232,14 @@ function exportIcs(view: PlanView) {
             >
               · {{ overdue.length }} überfällig</template
             >
+          </p>
+          <p class="hero-links">
+            <button type="button" @click="$emit('edit', focus.v.slug)">
+              {{ focus.v.label }} bearbeiten
+            </button>
+            <button type="button" @click="$emit('forget', focus.plan.slug)">
+              Entfernen
+            </button>
           </p>
         </header>
 
@@ -253,13 +275,15 @@ function exportIcs(view: PlanView) {
           <h2 class="group-title">{{ group.title }}</h2>
           <p v-if="group.entries.length === 0" class="empty">Nichts zu tun.</p>
           <a
-            v-for="entry in group.entries"
-            :key="entry.id"
+            v-for="row in group.rows"
+            :key="row.entry.id"
             class="row"
-            :href="taskHref(focus, entry)"
+            :href="taskHref(focus, row.entry)"
           >
-            <span class="what">{{ entry.label }}</span>
-            <span class="when mono">{{ dayMonth(entry.date!) }}</span>
+            <span class="what">{{ row.entry.label }}</span>
+            <span class="when mono">{{
+              row.date ? dayMonth(row.date) : ""
+            }}</span>
           </a>
         </div>
 
@@ -268,32 +292,26 @@ function exportIcs(view: PlanView) {
           <button type="button" class="link" @click="exportIcs(focus)">
             Als Kalender exportieren
           </button>
+          <button type="button" class="link" @click="$emit('add')">
+            + Weiteres Vorhaben planen
+          </button>
         </p>
       </div>
 
-      <aside class="cards">
-        <article
+      <!-- Only a switcher, so it earns its place only with something to switch. -->
+      <aside v-if="views.length > 1" class="cards">
+        <button
           v-for="view in views"
           :key="view.plan.slug"
+          type="button"
           class="card"
           :class="{ active: view.plan.slug === focus.plan.slug }"
+          :aria-current="view.plan.slug === focus.plan.slug ? 'true' : undefined"
+          @click="focusSlug = view.plan.slug"
         >
-          <button type="button" class="card-pick" @click="focusSlug = view.plan.slug">
-            {{ view.v.label }}
-          </button>
-          <p class="date mono">
-            {{ shortDate(view.plan.date)
-            }}<template v-if="view.variantLabel">
-              · {{ view.variantLabel }}</template
-            >
-          </p>
-          <p class="links">
-            <a :href="view.href">Zeitplan</a>
-            <button type="button" @click="$emit('forget', view.plan.slug)">
-              Entfernen
-            </button>
-          </p>
-        </article>
+          <span class="card-label">{{ view.v.label }}</span>
+          <span class="date mono">{{ shortDate(view.plan.date) }}</span>
+        </button>
       </aside>
     </div>
   </section>
@@ -386,6 +404,26 @@ function exportIcs(view: PlanView) {
   margin: 0.4rem 0 0;
   font-size: var(--fs-sm);
   color: var(--muted);
+}
+.hero-links {
+  display: flex;
+  gap: 1rem;
+  margin: 0.5rem 0 0;
+}
+.hero-links button {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.hero-links button:hover {
+  color: var(--accent);
+}
+.hero-links button:last-child:hover {
+  color: var(--warn);
 }
 
 .group-title {
@@ -510,49 +548,31 @@ function exportIcs(view: PlanView) {
   gap: 0.75rem;
 }
 .card {
+  display: block;
+  width: 100%;
+  text-align: left;
   background: var(--paper-raised);
   border: 1px solid var(--line);
   border-left: 3px solid var(--line);
   border-radius: var(--radius);
   padding: 0.7rem 0.9rem;
+  cursor: pointer;
+}
+.card:hover {
+  border-color: var(--accent);
 }
 .card.active {
   border-left-color: var(--accent);
 }
-.card-pick {
-  border: 0;
-  background: none;
-  padding: 0;
+.card-label {
+  display: block;
   font-size: var(--fs-md);
   font-weight: 600;
-  color: inherit;
-  cursor: pointer;
-}
-.card-pick:hover {
-  color: var(--accent);
+  color: var(--ink);
 }
 .card .date {
-  margin: 0.1rem 0 0.5rem;
   font-size: var(--fs-sm);
   color: var(--muted);
-}
-.links {
-  display: flex;
-  gap: 0.9rem;
-  margin: 0;
-  font-size: var(--fs-sm);
-}
-.links button {
-  border: 0;
-  background: none;
-  padding: 0;
-  color: var(--muted);
-  font-size: inherit;
-  text-decoration: underline;
-  cursor: pointer;
-}
-.links button:hover {
-  color: var(--warn);
 }
 
 @media (min-width: 60rem) {

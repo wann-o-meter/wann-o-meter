@@ -64,13 +64,14 @@ const {
 } = usePlanUrlState(props.variants, props.defaultSlug);
 
 watch(
-  [touched, anchorDate, selectedSlug],
+  [touched, anchorDate, selectedSlug, activeFacets],
   () => {
     if (touched.value && anchorDate.value)
       savePlan({
         slug: props.slug,
         variant: selectedSlug.value,
         date: anchorDate.value,
+        facets: [...activeFacets.value],
       });
   },
   { immediate: true },
