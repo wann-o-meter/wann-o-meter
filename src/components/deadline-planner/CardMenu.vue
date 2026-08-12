@@ -43,19 +43,25 @@ function closeOnBlur(e: FocusEvent) {
   transition: opacity 0.12s;
 }
 .tools summary {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 1.5rem;
   height: 1.5rem;
   border: 1px solid transparent;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   color: var(--muted);
   list-style: none;
 }
 .tools summary::-webkit-details-marker {
   display: none;
+}
+.tools summary::after {
+  content: "";
+  position: absolute;
+  inset: -0.5rem;
 }
 .tools summary:hover,
 .tools[open] summary {

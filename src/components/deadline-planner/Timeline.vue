@@ -141,12 +141,13 @@
             HEUTE
           </text>
           <text
+            v-if="todayDateLabel"
             class="axis-label today"
             :x="L.todayX + 8"
             :y="L.m.labelY + 16"
             :opacity="Math.max(0, 1 - shrink * 2)"
           >
-            {{ dayShort(today) }}
+            {{ todayDateLabel }}
           </text>
           <text
             class="anchor-label event"
@@ -163,7 +164,7 @@
             :text-anchor="L.eventFlip ? 'end' : 'start'"
             :opacity="Math.max(0, 1 - shrink * 2)"
           >
-            {{ dayLong(anchorDay) }}
+            {{ anchorDateLabel }}
           </text>
           <text
             v-if="ghost"
@@ -303,7 +304,7 @@ const FULL = {
   padX: 14,
   headTop: 22,
   labelY: 16,
-  headroom: 44,
+  headroom: 54,
   laneH: 30,
   markerR: 7,
   axisGap: 12,
@@ -316,7 +317,7 @@ const COMPACT = {
   ...FULL,
   headTop: 14,
   labelY: 11,
-  headroom: 26,
+  headroom: 30,
   laneH: 22,
   markerR: 5.5,
   axisGap: 8,
@@ -405,6 +406,28 @@ function dayShort(n: number): string {
 function dayLong(n: number): string {
   return longDate(isoOfDay(n));
 }
+
+function labelW(text: string): number {
+  return text.length * (13 - 2 * shrink.value) * 0.6;
+}
+
+const anchorDateLabel = computed(() => {
+  const l = L.value;
+  const room = l.eventFlip
+    ? l.eventX - 8 - (l.todayX + 8 + labelW(dayShort(today)) + 12)
+    : l.w - (l.eventX + 32);
+  const long = dayLong(anchorDay.value);
+  return labelW(long) < room ? long : dayShort(anchorDay.value);
+});
+
+const todayDateLabel = computed(() => {
+  const l = L.value;
+  const text = dayShort(today);
+  const anchorLeft = l.eventFlip
+    ? l.eventX - 8 - labelW(anchorDateLabel.value)
+    : l.eventX + 32;
+  return l.todayX + 8 + labelW(text) + 8 < anchorLeft ? text : "";
+});
 
 const dated = computed(() =>
   props.tasks
@@ -658,7 +681,7 @@ function onMarkerEnter(it: {
 }) {
   emit("hover", it.id);
   tip.value = {
-    x: Math.min(Math.max(it.cx, 90), L.value.w - 90),
+    x: Math.min(Math.max(it.cx, 135), L.value.w - 135),
     y: it.cy - L.value.m.markerR - 8,
     title: it.label,
     sub:
@@ -688,9 +711,9 @@ function onMarkerLeave() {
   font-size: var(--fs-xs);
   color: var(--muted);
   overflow: hidden;
-  max-height: calc((1 - var(--tl-t, 0)) * 2.2rem);
+  max-height: calc((1 - var(--tl-t, 0)) * 6rem);
   opacity: calc(1 - var(--tl-t, 0) * 1.6);
-  margin-bottom: calc((1 - var(--tl-t, 0)) * 0.25rem);
+  margin-bottom: calc((1 - var(--tl-t, 0)) * 0.7rem);
 }
 .keys,
 .filters {
@@ -839,6 +862,31 @@ function onMarkerLeave() {
 .halo {
   fill: var(--accent);
   opacity: 0.18;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: halo-pulse 1.6s ease-in-out infinite;
+}
+.halo.ueberfaellig {
+  fill: var(--warn);
+}
+.halo.erledigt {
+  fill: var(--done-color);
+}
+@keyframes halo-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.18;
+  }
+  50% {
+    transform: scale(1.45);
+    opacity: 0.07;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .halo {
+    animation: none;
+  }
 }
 .halo.erledigt {
   fill: var(--done-color);
@@ -910,7 +958,7 @@ function onMarkerLeave() {
   border-radius: var(--radius-sm);
   font-size: var(--fs-xs);
   line-height: 1.35;
-  max-width: 17rem;
+  max-width: 15rem;
 }
 .tip-date {
   display: block;

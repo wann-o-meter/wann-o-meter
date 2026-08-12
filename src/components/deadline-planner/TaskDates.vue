@@ -12,10 +12,9 @@ defineProps<{
 
 <template>
   <p v-if="isPast && !done && entry.rescue" class="dates">
-    <span class="lead">Bis {{ longDate(entry.rescue.date) }} nachholen.</span>
-    <br />
     <span class="meta">
-      Frist war {{ longDate(entry.date!) }}.
+      Die Frist war am {{ longDate(entry.date!) }}. Bis
+      {{ longDate(entry.rescue.date) }} nachholen.
       <template v-if="showRescueLabel">{{ entry.rescue.label }}.</template>
     </span>
   </p>

@@ -7,7 +7,6 @@ import type { ScheduleEntry } from "../../../lib/deadline-plan";
 
 const props = defineProps<{
   entries: ScheduleEntry[];
-  taskCount: number;
   doneIds: Record<string, boolean>;
   anchorDate: string;
   anchorLabel: string;
@@ -17,7 +16,11 @@ defineEmits<{ (e: "select", id: string): void }>();
 
 const open = computed(() => props.entries.filter((e) => !props.doneIds[e.id]));
 const overdue = computed(() => open.value.filter((e) => isPast(e.date!)));
-const openCount = computed(() => open.value.length - overdue.value.length);
+const total = computed(() => props.entries.length);
+const doneCount = computed(() => total.value - open.value.length);
+const pct = computed(() =>
+  total.value === 0 ? 0 : Math.round((doneCount.value / total.value) * 100),
+);
 
 const nextOpen = computed(() => {
   const upcoming = open.value.filter((e) => !isPast(e.date!));
@@ -41,68 +44,160 @@ const anchorIsSunday = computed(
 </script>
 
 <template>
-  <p class="summary">
-    <template v-if="overdue.length > 0">
-      <strong class="late">Du bist spät dran.</strong>
-      {{ overdue.length }}
-      {{ overdue.length === 1 ? "Frist" : "Fristen" }} verstrichen,
-      {{ openCount }} offen.
-      <template v-if="catchUp">
-        Nachholen bis
-        <a
-          :href="`#task-${catchUp.id}`"
-          @click.prevent="$emit('select', catchUp!.id)"
-          >{{ shortDate(catchUp.date) }}</a
-        >.
-      </template>
-    </template>
-    <template v-else-if="nextOpen">
-      {{ taskCount }} Aufgaben, {{ openCount }} noch offen. Die nächste Frist
-      ist am
+  <div class="summary">
+    <div class="stats">
+      <div class="stat">
+        <span class="row">
+          <span class="k">Erledigt</span>
+          <span class="v">{{ doneCount }}/{{ total }}</span>
+        </span>
+        <span class="bar" aria-hidden="true">
+          <i :style="{ width: pct + '%' }"></i>
+        </span>
+      </div>
+
       <a
+        v-if="catchUp"
+        class="stat late"
+        :href="`#task-${catchUp.id}`"
+        @click.prevent="$emit('select', catchUp!.id)"
+      >
+        <span class="row">
+          <span class="k">{{ overdue.length }} verstrichen</span>
+          <span class="v">bis {{ shortDate(catchUp.date) }}</span>
+        </span>
+      </a>
+
+      <p v-else-if="overdue.length > 0" class="stat late">
+        <span class="row">
+          <span class="k">{{ overdue.length }} verstrichen</span>
+          <span class="v">vorbei</span>
+        </span>
+      </p>
+
+      <a
+        v-else-if="nextOpen"
+        class="stat"
         :href="`#task-${nextOpen.id}`"
         @click.prevent="$emit('select', nextOpen!.id)"
-        >{{ shortDate(nextOpen.date) }}</a
-      >: {{ nextOpen.label }}.
-    </template>
-    <template v-else>Alle Aufgaben sind erledigt.</template>
-    <span v-if="anchorIsSunday" class="sunday">
+      >
+        <span class="row">
+          <span class="k">Nächste Frist</span>
+          <span class="v">{{ shortDate(nextOpen.date) }}</span>
+        </span>
+      </a>
+
+      <p v-else class="stat done">
+        <span class="row">
+          <span class="k">Fertig</span>
+          <span class="v">{{ total }}/{{ total }}</span>
+        </span>
+      </p>
+    </div>
+
+    <p v-if="anchorIsSunday" class="sunday">
       {{ anchorLabel }} ist ein Sonntag - Ämter und Übergaben brauchen einen
       Werktag.
-    </span>
-  </p>
+    </p>
+  </div>
 </template>
 
 <style scoped>
 .summary {
-  margin: 0.6rem 0 0.4rem;
-  font-size: var(--fs-md);
+  margin: 0.6rem 0 0.2rem;
+}
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.stat {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.3rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.45rem 0.6rem;
+  background: var(--paper);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  text-decoration: none;
   transition:
-    font-size 0.22s,
-    margin 0.22s;
+    padding 0.22s,
+    background 0.12s;
 }
-.summary a {
-  color: var(--accent);
+a.stat:hover {
+  background: color-mix(in srgb, var(--accent) 10%, var(--paper));
 }
-.late {
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  min-width: 0;
+}
+.k {
+  overflow: hidden;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.v {
+  flex-shrink: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.late .k {
   color: var(--warn);
 }
+.done .k {
+  color: var(--done-color);
+}
+
+.bar {
+  display: block;
+  height: 0.3rem;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--ink) 14%, var(--paper));
+  overflow: hidden;
+}
+.bar i {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--done-color);
+  transition: width 0.3s;
+}
+
 .sunday {
   display: block;
   overflow: hidden;
   max-height: 3rem;
+  margin: 0.4rem 0 0;
   font-size: var(--fs-sm);
   color: var(--muted);
   transition:
     max-height 0.22s,
     opacity 0.22s;
 }
-.compact .summary {
-  margin: 0.3rem 0 0.2rem;
-  font-size: var(--fs-sm);
+@media (min-width: 40rem) {
+  .stat {
+    flex: 1 1 12rem;
+  }
+}
+.compact .stat {
+  padding: 0.3rem 0.5rem;
 }
 .compact .sunday {
   max-height: 0;
   opacity: 0;
+  margin: 0;
 }
 </style>

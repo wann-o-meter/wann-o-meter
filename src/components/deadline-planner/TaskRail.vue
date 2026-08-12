@@ -94,14 +94,16 @@ defineEmits<{
 
 <style scoped>
 .rail {
-  --rail-gap: 1.4rem;
+  --rail-inset: 1.5rem;
+  --rail-line: 0.25rem;
+  --dot-x: -1.5rem;
   position: relative;
-  padding-left: 2.2rem;
+  padding-left: var(--rail-inset);
 }
 .rail::before {
   content: "";
   position: absolute;
-  left: 0.5rem;
+  left: var(--rail-line);
   top: 0.6rem;
   bottom: 0.6rem;
   width: 1px;
@@ -109,16 +111,16 @@ defineEmits<{
 }
 .gap {
   position: relative;
-  margin-left: -2.2rem;
-  padding-left: 2.2rem;
+  margin-left: calc(-1 * var(--rail-inset));
+  padding-left: var(--rail-inset);
 }
 .gap-add {
   position: absolute;
-  left: 0.5rem;
+  left: var(--rail-line);
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 1.3rem;
-  height: 1.3rem;
+  width: 1.5rem;
+  height: 1.5rem;
   border-radius: 50%;
   border: 1px dashed var(--muted);
   background: var(--paper);
@@ -131,9 +133,19 @@ defineEmits<{
   opacity: 0;
   transition: opacity 0.1s;
 }
+.gap-add::before {
+  content: "";
+  position: absolute;
+  inset: -0.6rem;
+}
 .gap:hover .gap-add,
 .gap-add:focus-visible {
   opacity: 1;
+}
+@media (hover: none) {
+  .gap-add {
+    opacity: 1;
+  }
 }
 .gap-add:hover {
   border-style: solid;
@@ -145,18 +157,11 @@ defineEmits<{
   top: calc(50% + 0.5rem);
 }
 
-@media (max-width: 40rem) {
+@media (min-width: 40rem) {
   .rail {
-    --rail-gap: 0.95rem;
-    padding-left: 1.5rem;
-  }
-  .rail::before,
-  .gap-add {
-    left: 0.25rem;
-  }
-  .gap {
-    margin-left: -1.5rem;
-    padding-left: 1.5rem;
+    --rail-inset: 2.2rem;
+    --rail-line: 0.5rem;
+    --dot-x: -1.95rem;
   }
 }
 

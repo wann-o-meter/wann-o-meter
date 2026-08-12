@@ -33,6 +33,7 @@ defineEmits<{ (e: "reopen", id: string): void }>();
 }
 .done-group summary {
   cursor: pointer;
+  padding: 0.5rem 0;
   color: var(--muted);
 }
 .done-group ul {
@@ -46,11 +47,13 @@ defineEmits<{ (e: "reopen", id: string): void }>();
 .done-group li {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  min-height: 2.4rem;
+  gap: 0.6rem;
   color: var(--muted);
   text-decoration: line-through;
 }
 .check {
+  position: relative;
   flex-shrink: 0;
   width: 1.1rem;
   height: 1.1rem;
@@ -62,5 +65,10 @@ defineEmits<{ (e: "reopen", id: string): void }>();
   border: 1px solid var(--done-color);
   background: var(--done-color);
   color: var(--paper-raised);
+}
+.check::before {
+  content: "";
+  position: absolute;
+  inset: -0.6rem;
 }
 </style>

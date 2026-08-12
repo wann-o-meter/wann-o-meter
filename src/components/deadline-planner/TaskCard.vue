@@ -252,25 +252,22 @@ const menuItems = computed<MenuItem[]>(() => [
 <style scoped>
 .card {
   position: relative;
+  padding: 0.5rem;
+  margin-bottom: 1.3rem;
   background: var(--paper-raised);
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--line);
   border-radius: var(--radius);
-  padding: 0.9rem 1.1rem;
-  margin-bottom: 0.6rem;
+  box-shadow: var(--shadow-card);
   scroll-margin-top: calc(var(--tl-header-h, 0px) + 1rem);
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
+  transition: box-shadow 0.2s;
 }
 .dot {
   position: absolute;
-  left: calc(-1 * var(--rail-gap, 1.4rem) - 1.1rem - 0.25rem);
-  top: 0.5rem;
+  left: var(--dot-x, -1.5rem);
+  top: 0.8rem;
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
-  background: var(--line);
+  background: var(--accent);
   border: 0;
 }
 .card[data-status="erledigt"] .dot {
@@ -280,20 +277,18 @@ const menuItems = computed<MenuItem[]>(() => [
   background: var(--warn);
 }
 
-.card[data-status="offen"] {
-  border-left-color: var(--accent);
-}
 .card[data-status="erledigt"] {
-  border-left-color: var(--done-color);
   opacity: 0.7;
 }
-.card[data-status="ueberfaellig"] {
-  border-left-color: var(--warn);
+@media (hover: hover) {
+  .card:hover {
+    box-shadow: var(--shadow-md);
+  }
 }
-.card.focused,
-.card.current {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+.card.focused {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent),
+    var(--shadow-md);
 }
 .card[data-status="erledigt"] .hint,
 .card[data-status="erledigt"] .cta-row,
@@ -308,22 +303,17 @@ const menuItems = computed<MenuItem[]>(() => [
 .badge {
   display: inline-block;
   vertical-align: 0.1em;
-  margin-left: 0.4rem;
-  padding: 0.05rem 0.4rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 12%, var(--paper-raised));
+  margin-left: 0.5rem;
   color: var(--accent);
   font-size: var(--fs-xs);
   font-weight: 600;
   white-space: nowrap;
 }
 .badge.late {
-  background: color-mix(in srgb, var(--warn) 12%, var(--paper-raised));
   color: var(--warn);
 }
 
 .head {
-  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
@@ -340,7 +330,7 @@ const menuItems = computed<MenuItem[]>(() => [
   font-weight: 600;
   color: inherit;
   border: 1px solid var(--accent);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   padding: 0.25rem 0.5rem;
   background: var(--paper);
 }
@@ -352,7 +342,7 @@ const menuItems = computed<MenuItem[]>(() => [
   margin-top: 0.15rem;
   border: 1px solid var(--line);
   background: var(--paper);
-  border-radius: 4px;
+  border-radius: 50%;
   cursor: pointer;
   padding: 0;
   display: flex;
@@ -364,12 +354,10 @@ const menuItems = computed<MenuItem[]>(() => [
   background: var(--done-color);
   border-color: var(--done-color);
 }
-@media (max-width: 40rem) {
-  .check::before {
-    content: "";
-    position: absolute;
-    inset: -0.55rem;
-  }
+.check::before {
+  content: "";
+  position: absolute;
+  inset: -0.6rem;
 }
 
 :deep(.tools) {
@@ -386,7 +374,8 @@ const menuItems = computed<MenuItem[]>(() => [
   }
 }
 
-.hint {
+.hint,
+.overlap {
   margin: 0.5rem 0 0;
   max-width: 68ch;
   font-size: var(--fs-sm);
@@ -395,11 +384,6 @@ const menuItems = computed<MenuItem[]>(() => [
   margin: 0.35rem 0 0;
   font-size: var(--fs-xs);
   color: var(--muted);
-}
-.overlap {
-  margin: 0.4rem 0 0;
-  max-width: 60ch;
-  font-size: var(--fs-sm);
 }
 .flag {
   display: flex;
@@ -423,6 +407,7 @@ const menuItems = computed<MenuItem[]>(() => [
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
+  min-height: 2.6rem;
   color: var(--accent);
   font-size: var(--fs-sm);
   text-decoration: underline;
@@ -431,11 +416,24 @@ const menuItems = computed<MenuItem[]>(() => [
 .cta-button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.35rem;
+  width: 100%;
+  min-height: 2.6rem;
   font-size: var(--fs-sm);
+  font-weight: 600;
   background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-ink);
+}
+@media (min-width: 40rem) {
+  .cta-button {
+    width: auto;
+    min-height: 0;
+  }
+  .cta-link {
+    min-height: 0;
+  }
 }
 
 .note-input,
@@ -443,7 +441,7 @@ const menuItems = computed<MenuItem[]>(() => [
   font-family: inherit;
   font-size: var(--fs-sm);
   color: inherit;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: var(--paper);
 }
 .note-input {
@@ -462,10 +460,9 @@ const menuItems = computed<MenuItem[]>(() => [
 }
 .note {
   margin: 0.5rem 0 0;
-  padding: 0.5rem;
-  background: color-mix(in srgb, var(--accent) 6%, var(--paper-raised));
-  border-left: 2px solid var(--line);
+  max-width: 68ch;
   font-size: var(--fs-sm);
+  color: var(--muted);
   white-space: pre-wrap;
   cursor: text;
 }

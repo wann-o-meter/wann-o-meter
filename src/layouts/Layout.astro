@@ -168,18 +168,18 @@ const ogDescription =
 
 <style>
   .wrap {
+    --wrap-pad: 1rem;
     max-width: 62rem;
     margin: 0 auto;
-    padding-left: 1.75rem;
-    padding-right: 1.75rem;
+    padding-left: var(--wrap-pad);
+    padding-right: var(--wrap-pad);
   }
   .wrap.wide {
     max-width: 88rem;
   }
-  @media (max-width: 30rem) {
+  @media (min-width: 30rem) {
     .wrap {
-      padding-left: 1rem;
-      padding-right: 1rem;
+      --wrap-pad: 1.75rem;
     }
   }
 

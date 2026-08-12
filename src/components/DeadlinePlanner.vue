@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
+import { ChevronDown, ChevronUp, Pencil } from "lucide-vue-next";
 import Timeline from "./deadline-planner/Timeline.vue";
 import TaskRail from "./deadline-planner/TaskRail.vue";
 import TaskPicker from "./deadline-planner/TaskPicker.vue";
@@ -7,6 +8,7 @@ import PlanSummary from "./deadline-planner/PlanSummary.vue";
 import PlanActions from "./deadline-planner/PlanActions.vue";
 import DoneGroup from "./deadline-planner/DoneGroup.vue";
 import { facetLabel } from "../../lib/facets";
+import { shortDate } from "../../lib/date-display";
 import { toDate } from "../../lib/format-date";
 import { isPast } from "../../lib/today";
 import { burst } from "./deadline-planner/confetti";
@@ -167,8 +169,56 @@ function onTimelineSelect(id: string) {
   }, 1600);
 }
 
+const digest = computed(() =>
+  [
+    anchorDate.value ? shortDate(anchorDate.value) : "",
+    props.variants.length > 1 ? selected.value?.label : "",
+  ]
+    .filter(Boolean)
+    .join(" · "),
+);
+
+const timelineHidden = ref(false);
+
+const scrollActiveId = ref<string | null>(null);
+const activeId = computed(() => hoveredId.value ?? scrollActiveId.value);
+
+let spyFrame = 0;
+function trackActiveCard() {
+  if (spyFrame) return;
+  spyFrame = requestAnimationFrame(() => {
+    spyFrame = 0;
+    const cards =
+      railEl.value?.querySelectorAll<HTMLElement>("[data-entry-id]") ?? [];
+    const line = (headerEl.value?.offsetHeight ?? 0) + 80;
+    let best: string | null = null;
+    let bestDistance = Infinity;
+    for (const el of cards) {
+      const box = el.getBoundingClientRect();
+      if (box.bottom < line) continue;
+      const distance = Math.abs(box.top - line);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = el.dataset.entryId ?? null;
+      }
+    }
+    scrollActiveId.value = best;
+  });
+}
+
+function editSetup() {
+  rootEl.value?.scrollIntoView({ block: "start", behavior: "smooth" });
+}
+
 onMounted(() => {
   document.getElementById("static-plan")?.remove();
+  addEventListener("scroll", trackActiveCard, { passive: true });
+  trackActiveCard();
+});
+
+onBeforeUnmount(() => {
+  removeEventListener("scroll", trackActiveCard);
+  cancelAnimationFrame(spyFrame);
 });
 </script>
 
@@ -181,7 +231,18 @@ onMounted(() => {
       class="planner-header"
       :style="{ marginBottom: headerGap + 'px' }"
     >
-      <div class="form">
+      <div v-if="stuck" class="digest">
+        <span class="digest-text">{{ digest }}</span>
+        <button
+          type="button"
+          class="digest-edit"
+          :aria-label="`${anchorLabel} und ${variantLabel} ändern`"
+          @click="editSetup"
+        >
+          <Pencil :size="14" />
+        </button>
+      </div>
+      <div v-else class="form">
         <label class="field">
           <span>{{ anchorLabel }}</span>
           <input v-model="anchorDate" type="date" :aria-label="anchorLabel" />
@@ -199,18 +260,19 @@ onMounted(() => {
       <template v-if="anchorDate">
         <PlanSummary
           :entries="planEntries"
-          :task-count="tasks.length"
           :done-ids="doneIds"
           :anchor-date="anchorDate"
           :anchor-label="anchorLabel"
           @select="onTimelineSelect"
         />
         <Timeline
+          id="plan-timeline"
+          :class="{ 'tl-off': timelineHidden }"
           :tasks="tasks"
           :anchor-date="anchorDate"
           :anchor-name="anchorLabel"
           :region-code="selected?.regionCode"
-          :hover-id="hoveredId"
+          :hover-id="activeId"
           :done-ids="doneIds"
           :compact="stuck"
           draggable
@@ -219,6 +281,16 @@ onMounted(() => {
           @place="anchorDate = $event"
           @hover="hoveredId = $event"
         />
+        <button
+          type="button"
+          class="tl-toggle"
+          :aria-expanded="!timelineHidden"
+          aria-controls="plan-timeline"
+          @click="timelineHidden = !timelineHidden"
+        >
+          <component :is="timelineHidden ? ChevronDown : ChevronUp" :size="14" />
+          {{ timelineHidden ? "Zeitstrahl zeigen" : "Zeitstrahl ausblenden" }}
+        </button>
       </template>
     </header>
 
@@ -238,7 +310,7 @@ onMounted(() => {
           :anchor-date="anchorDate"
           :next-up-id="nextUpId"
           :deferred="deferred"
-          :hovered-id="hoveredId"
+          :hovered-id="activeId"
           :store="store"
           :picker="picker"
           @hover="hoveredId = $event"
@@ -305,34 +377,84 @@ onMounted(() => {
   position: sticky;
   top: min(0px, calc(100vh - var(--tl-header-h, 0px) - 2rem));
   z-index: 40;
-  background: var(--paper);
-  padding: 0 0 0.5rem;
+  background: var(--paper-raised);
+  margin-inline: calc(-1 * var(--wrap-pad, 0px));
+  padding: 0.6rem var(--wrap-pad, 0px);
   transition:
     padding 0.18s,
     box-shadow 0.18s;
 }
+.planner-header :deep(.timeline) {
+  --d-werktag: var(--paper);
+}
 .compact .planner-header {
-  padding: 0.4rem 0 0.3rem;
+  padding: 0.45rem var(--wrap-pad, 0px);
   box-shadow: 0 10px 24px -18px color-mix(in srgb, var(--ink) 55%, transparent);
-  border-bottom: 1px solid var(--line);
 }
 
 .form {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.6rem;
+  grid-template-columns: 1fr;
+  gap: 0.4rem;
 }
+.tl-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  width: 100%;
+  min-height: 1.8rem;
+  margin-top: 0.15rem;
+  padding: 0.1rem 0.5rem;
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.tl-toggle:hover {
+  color: var(--accent);
+}
+.tl-off {
+  display: none;
+}
+
+.digest {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.digest-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.digest-edit {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+}
+.digest-edit:hover {
+  color: var(--accent);
+}
+
 .field {
   display: block;
-  background: var(--paper-raised);
+  background: var(--paper);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 0.7rem 1rem;
   min-width: 0;
-  transition:
-    padding 0.22s,
-    border-color 0.22s,
-    background-color 0.22s;
+  transition: border-color 0.22s;
 }
 .field:hover,
 .field:focus-within {
@@ -340,18 +462,12 @@ onMounted(() => {
 }
 .field span {
   display: block;
-  overflow: hidden;
-  max-height: 1.5rem;
   font-size: var(--fs-xs);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 0.25rem;
-  transition:
-    max-height 0.22s,
-    opacity 0.22s,
-    margin-bottom 0.22s;
 }
 .field input,
 .field select {
@@ -372,20 +488,6 @@ onMounted(() => {
 .field select:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
-}
-.compact .field {
-  border-color: transparent;
-  background: transparent;
-  padding: 0.1rem 0.4rem;
-}
-.compact .field span {
-  max-height: 0;
-  opacity: 0;
-  margin-bottom: 0;
-}
-.compact .field input,
-.compact .field select {
-  font-size: var(--fs-sm);
 }
 
 .facets {
@@ -497,13 +599,25 @@ onMounted(() => {
   color: var(--muted);
 }
 
-@media (max-width: 40rem) {
+@media (min-width: 40rem) {
   .form {
-    grid-template-columns: 1fr;
-    gap: 0.4rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
   }
   .planner-header {
-    padding-top: 0.4rem;
+    margin-inline: 0;
+    border-radius: var(--radius);
+    padding: 0.9rem 1rem;
+    box-shadow: var(--shadow-card);
+  }
+  .compact .planner-header {
+    padding: 0.6rem 1rem;
+  }
+  .tl-toggle {
+    display: none;
+  }
+  .tl-off {
+    display: block;
   }
 }
 

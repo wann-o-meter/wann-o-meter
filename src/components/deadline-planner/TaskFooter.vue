@@ -84,9 +84,7 @@ const fallbackLabel = () =>
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.35rem 1.2rem;
-  margin-top: 0.8rem;
-  padding-top: 0.6rem;
-  border-top: 1px solid var(--line);
+  margin-top: 0.6rem;
 }
 .footer:empty {
   display: none;
@@ -104,8 +102,15 @@ const fallbackLabel = () =>
 }
 .defer button {
   font-size: var(--fs-xs);
-  padding: 0.15rem 0.5rem;
+  min-height: 2.2rem;
+  padding: 0.35rem 0.7rem;
   white-space: nowrap;
+}
+@media (min-width: 40rem) {
+  .defer button {
+    min-height: 0;
+    padding: 0.15rem 0.5rem;
+  }
 }
 .defer button[aria-checked="true"] {
   border-color: var(--accent);
@@ -122,6 +127,7 @@ const fallbackLabel = () =>
 }
 .derivation summary {
   cursor: pointer;
+  padding: 0.4rem 0;
   color: var(--muted);
 }
 .derivation summary:hover {

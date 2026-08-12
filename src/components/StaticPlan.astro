@@ -52,14 +52,12 @@ const entries = deadlines.filter((d) => appliesTo(d, [])).sort(byOffset);
     list-style: none;
     padding: 0;
     margin: 1.5rem 0 0;
-    display: grid;
-    gap: 1rem;
   }
   li {
-    border: 1px solid var(--line);
-    border-radius: 0.6rem;
-    padding: 0.9rem 1rem;
-    background: var(--paper-raised);
+    padding: 1rem 0;
+  }
+  li + li {
+    border-top: 1px solid var(--line);
   }
   .when {
     font-family: var(--font-mono);
