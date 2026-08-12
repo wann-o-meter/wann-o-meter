@@ -4,22 +4,23 @@ export interface TaskCta {
   url?: string;
 }
 
+// Labels never restate the card title, the card already says what this is.
 const LINK_CTAS: Record<string, TaskCta> = {
   nachsendeauftrag: {
     kind: "link",
-    label: "Nachsendeauftrag bei der Post",
+    label: "Bei der Post beauftragen",
     url: "https://shop.deutschepost.de/nachsendeservice-beauftragen",
   },
   "kfz-ummeldung": {
     kind: "link",
-    label: "i-Kfz beim Kraftfahrt-Bundesamt",
+    label: "Online ummelden (i-Kfz)",
     url: "https://www.kba.de/DE/Themen/ZentraleRegister/Digitale_Fahrzeugzulassung/iKfz/ikfz_node.html",
   },
 };
 
 const LETTER_CTAS: Record<string, string> = {
-  "wohnung-kuendigen": "Kündigung der Wohnung",
-  "internetanbieter-kuendigen-ummelden": "Kündigung beim Internetanbieter",
+  "wohnung-kuendigen": "Kündigung",
+  "internetanbieter-kuendigen-ummelden": "Kündigung",
 };
 
 export function taskCtaFor(id: string): TaskCta | null {

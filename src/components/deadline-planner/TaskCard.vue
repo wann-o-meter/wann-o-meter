@@ -234,7 +234,7 @@ const menuItems = computed<MenuItem[]>(() => [
         class="cta-button"
         @click="open('attachment')"
       >
-        {{ attachment ? `${cta.label} bearbeiten` : `${cta.label} aufsetzen` }}
+        {{ cta.label }} aufsetzen
       </button>
     </div>
 
@@ -420,9 +420,12 @@ const menuItems = computed<MenuItem[]>(() => [
   min-height: 2.6rem;
   font-size: var(--fs-sm);
   font-weight: 600;
-  background: var(--accent);
+  background: transparent;
   border-color: var(--accent);
-  color: var(--accent-ink);
+  color: var(--accent);
+}
+.cta-button:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 @media (min-width: 40rem) {
   .cta-button {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
-import { longDate } from "../../../lib/date-display";
+import { longDate, shortDate } from "../../../lib/date-display";
 
 defineProps<{
   entry: ScheduleEntry;
@@ -12,23 +12,24 @@ defineProps<{
 
 <template>
   <p v-if="isPast && !done && entry.rescue" class="dates">
-    <span class="meta">
-      Die Frist war am {{ longDate(entry.date!) }}. Bis
-      {{ longDate(entry.rescue.date) }} nachholen.
-      <template v-if="showRescueLabel">{{ entry.rescue.label }}.</template>
-    </span>
+    Frist war <span class="d">{{ shortDate(entry.date!) }}</span
+    >, nachholen bis <b class="d">{{ longDate(entry.rescue.date) }}</b
+    >.
+    <template v-if="showRescueLabel">{{ entry.rescue.label }}.</template>
   </p>
   <p v-else class="dates">
-    <span :class="{ overdue: isPast }">
-      Frist: {{ longDate(entry.date!)
-      }}<template v-if="isPast"> (verstrichen)</template>
-    </span>
+    <span :class="{ overdue: isPast }"
+      >Frist: <b class="d">{{ longDate(entry.date!) }}</b
+      ><template v-if="isPast"> (verstrichen)</template></span
+    >
     <template v-if="entry.earliestDate !== entry.date">
-      &nbsp;·&nbsp; möglich ab: {{ longDate(entry.earliestDate!) }}
+      &nbsp;·&nbsp; möglich ab <span class="d">{{
+        shortDate(entry.earliestDate!)
+      }}</span>
     </template>
     <template v-if="entry.startByDate !== entry.date">
-      &nbsp;·&nbsp;
-      <b>Termin buchen bis: {{ longDate(entry.startByDate!) }}</b>
+      &nbsp;·&nbsp; Termin buchen bis
+      <b class="d">{{ shortDate(entry.startByDate!) }}</b>
     </template>
   </p>
 </template>
@@ -36,9 +37,12 @@ defineProps<{
 <style scoped>
 .dates {
   margin: 0.35rem 0 0;
-  font-family: var(--font-mono);
   font-size: var(--fs-sm);
   color: var(--muted);
+}
+/* Monospace marks hard dates only, never the prose around them. */
+.d {
+  font-family: var(--font-mono);
 }
 .dates b {
   color: var(--ink);
@@ -46,14 +50,5 @@ defineProps<{
 }
 .overdue {
   color: var(--warn);
-}
-.lead {
-  font-size: var(--fs-md);
-  font-weight: 600;
-  color: var(--ink);
-}
-.meta {
-  font-size: var(--fs-sm);
-  color: var(--muted);
 }
 </style>

@@ -21,14 +21,14 @@
 
 ## Task cards
 
-- [ ] Demote the "Bis Donnerstag, 3. September 2026 nachholen." line so the task title stays the strongest element in the card
-- [ ] Pick one date-format rule (long form for the actionable deadline, short form for derived dates) and apply it consistently
-- [ ] Shorten CTA labels so they don't restate the card title ("Kündigung aufsetzen", not "Kündigung der Wohnung aufsetzen")
-- [ ] Use one verb across all cards for the same action ("aufsetzen" vs. "bearbeiten")
-- [ ] Limit filled primary buttons to one per screen; outline for the rest
-- [ ] Give the footer rail one job — controls above the divider, provenance ("Grundlage: …") always below
-- [ ] Show provenance on all cards or none
-- [ ] Move the "Wie wird das berechnet?" disclosure below the CTA
+- [x] Demote the "Bis Donnerstag, 3. September 2026 nachholen." line so the task title stays the strongest element in the card
+- [x] Pick one date-format rule (long form for the actionable deadline, short form for derived dates) and apply it consistently
+- [x] Shorten CTA labels so they don't restate the card title ("Kündigung aufsetzen", not "Kündigung der Wohnung aufsetzen")
+- [x] Use one verb across all cards for the same action ("aufsetzen" vs. "bearbeiten")
+- [x] Limit filled primary buttons to one per screen; outline for the rest
+- [x] Give the footer rail one job — controls above the divider, provenance ("Grundlage: …") always below
+- [x] Show provenance on all cards or none
+- [x] Move the "Wie wird das berechnet?" disclosure below the CTA
 
 ## Typography and color
 

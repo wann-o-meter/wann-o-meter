@@ -19,74 +19,68 @@ const fallbackLabel = () =>
 
 <template>
   <div class="footer">
-    <div
-      v-if="entry.offset_rule || deferred"
-      class="defer"
-      role="radiogroup"
-      aria-label="Mietende"
-    >
-      <span class="defer-label">Mietende</span>
-      <button
-        type="button"
-        role="radio"
-        :aria-checked="!deferred"
-        @click="deferred && $emit('toggle-defer')"
+    <div class="controls">
+      <div
+        v-if="entry.offset_rule || deferred"
+        class="defer"
+        role="radiogroup"
+        aria-label="Mietende"
       >
-        Ende des Umzugsmonats
-      </button>
-      <button
-        type="button"
-        role="radio"
-        :aria-checked="deferred"
-        @click="!deferred && $emit('toggle-defer')"
-      >
-        Einen Monat später
-      </button>
+        <span class="defer-label">Mietende</span>
+        <button
+          type="button"
+          role="radio"
+          :aria-checked="!deferred"
+          @click="deferred && $emit('toggle-defer')"
+        >
+          Ende des Umzugsmonats
+        </button>
+        <button
+          type="button"
+          role="radio"
+          :aria-checked="deferred"
+          @click="!deferred && $emit('toggle-defer')"
+        >
+          Einen Monat später
+        </button>
+      </div>
+
+      <details v-if="entry.derivation?.length" class="derivation">
+        <summary>Wie wird das berechnet?</summary>
+        <ol>
+          <li v-for="step in entry.derivation" :key="step.step">
+            {{ step.label }}
+          </li>
+        </ol>
+      </details>
     </div>
 
-    <details v-if="entry.derivation?.length" class="derivation">
-      <summary>Wie wird das berechnet?</summary>
-      <ol>
-        <li v-for="step in entry.derivation" :key="step.step">
-          {{ step.label }}
-        </li>
-      </ol>
-      <p class="src">
-        Grundlage:
-        <a
-          v-if="entry.source_url"
-          :href="entry.source_url"
-          target="_blank"
-          rel="noopener"
-          >{{ entry.source_label ?? "Quelle" }} <ArrowUpRight :size="12"
-        /></a>
-        <span v-else>{{ fallbackLabel() }}</span>
-      </p>
-    </details>
-
-    <p v-else class="src">
+    <p class="src">
       Grundlage:
       <a
         v-if="entry.source_url"
         :href="entry.source_url"
         target="_blank"
         rel="noopener"
-        >{{ entry.source_label ?? "Quelle" }}</a
-      >
+        >{{ entry.source_label ?? "Quelle" }} <ArrowUpRight :size="12"
+      /></a>
       <span v-else>{{ fallbackLabel() }}</span>
     </p>
   </div>
 </template>
 
 <style scoped>
+/* Controls above the divider, where the plan comes from always below it. */
 .footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.35rem 1.2rem;
   margin-top: 0.6rem;
 }
-.footer:empty {
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 1.2rem;
+}
+.controls:empty {
   display: none;
 }
 
@@ -140,21 +134,17 @@ const fallbackLabel = () =>
 .derivation li {
   margin-bottom: 0.25rem;
 }
-.derivation .src {
-  margin-top: 0.5rem;
-}
-.derivation .src a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-}
-
 .src {
-  margin: 0;
+  margin: 0.4rem 0 0;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--line);
   font-size: var(--fs-xs);
   color: var(--muted);
 }
 .src a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
   color: var(--accent);
 }
 </style>
