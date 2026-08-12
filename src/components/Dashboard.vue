@@ -230,7 +230,10 @@ function progress(view: PlanView): { done: number; total: number } {
   color: var(--muted);
   margin: 0.25rem 0 0;
 }
-.lede b,
+.lede b {
+  color: var(--ink);
+}
+/* Monospace marks hard dates only. */
 .mono {
   font-family: var(--font-mono);
   color: var(--ink);
@@ -238,8 +241,8 @@ function progress(view: PlanView): { done: number; total: number } {
 
 .collide {
   margin-top: 1rem;
-  border-left: 3px solid var(--holiday);
-  background: color-mix(in srgb, var(--holiday) 10%, transparent);
+  border-left: 3px solid var(--warn);
+  background: color-mix(in srgb, var(--warn) 8%, transparent);
   padding: 0.6rem 0.9rem;
   font-size: var(--fs-sm);
 }
@@ -337,7 +340,6 @@ function progress(view: PlanView): { done: number; total: number } {
 }
 .card h3 em {
   font-style: normal;
-  font-family: var(--font-mono);
   font-size: var(--fs-xs);
   font-weight: 400;
   color: var(--muted);
@@ -358,7 +360,7 @@ function progress(view: PlanView): { done: number; total: number } {
 .bar i {
   display: block;
   height: 100%;
-  background: var(--done-color);
+  background: var(--accent);
 }
 .next {
   margin: 0 0 0.6rem;

@@ -158,7 +158,7 @@ a.stat:hover {
   color: var(--warn);
 }
 .done .k {
-  color: var(--done-color);
+  color: var(--muted);
 }
 
 .bar {
@@ -172,7 +172,7 @@ a.stat:hover {
   display: block;
   height: 100%;
   border-radius: var(--radius-pill);
-  background: var(--done-color);
+  background: var(--accent);
   transition: width 0.3s;
 }
 

@@ -269,7 +269,7 @@ const menuItems = computed<MenuItem[]>(() => [
   border: 0;
 }
 .card[data-status="erledigt"] .dot {
-  background: var(--done-color);
+  background: var(--line);
 }
 .card[data-status="ueberfaellig"] .dot {
   background: var(--warn);
@@ -349,8 +349,8 @@ const menuItems = computed<MenuItem[]>(() => [
   color: var(--paper);
 }
 .check[aria-pressed="true"] {
-  background: var(--done-color);
-  border-color: var(--done-color);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 .check::before {
   content: "";

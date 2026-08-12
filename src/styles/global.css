@@ -245,7 +245,6 @@ a[target="_blank"]:not(:has(svg))::after {
 .badge {
   display: inline-block;
   border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
   font-size: var(--fs-xs);
   padding: 0.25rem 0.5rem;
   border: 1px solid var(--accent);

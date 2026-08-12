@@ -93,7 +93,12 @@
           @preview="previewIso = $event"
         />
 
-        <p class="summary">{{ summaryText }}</p>
+        <p class="summary">
+          Für den <span class="mono">{{ summary.date }}</span
+          >: {{ summary.count }} Fristen<template v-if="summary.first"
+            >, erste am <span class="mono">{{ summary.first }}</span></template
+          >
+        </p>
 
         <p v-if="savedForSelected" class="editing">
           Du planst {{ selected.label }} schon zum
@@ -256,18 +261,21 @@ const planHref = computed(() => {
 const hintText =
   "Zieh den Griff, tippe auf den Zeitstrahl oder nutz die Pfeiltasten.";
 
-const summaryText = computed(() => {
+const summary = computed(() => {
   const iso = previewIso.value ?? anchorDate.value;
   const dated = tasks.value.filter((t) => t.date !== null);
-  const head = `Für den ${formatDate(iso)}: ${dated.length} Fristen`;
   const first = dated.reduce<string | null>(
     (min, t) => (min === null || t.date! < min ? t.date! : min),
     null,
   );
-  if (!first) return head;
   const shift = daysBetween(toDate(anchorDate.value), toDate(iso));
-  const firstShown = isoOf(addDays(toDate(first), shift));
-  return `${head}, erste am ${formatDateWithWeekday(firstShown)}`;
+  return {
+    date: formatDate(iso),
+    count: dated.length,
+    first: first
+      ? formatDateWithWeekday(isoOf(addDays(toDate(first), shift)))
+      : null,
+  };
 });
 
 function measureKeyed(attr: string): Map<string, DOMRect> {
@@ -502,6 +510,11 @@ h1 {
   font-size: var(--fs-sm);
   color: var(--muted);
   min-height: 1.5rem;
+}
+/* Monospace marks hard dates only. */
+.mono {
+  font-family: var(--font-mono);
+  color: var(--ink);
 }
 .how {
   display: flex;

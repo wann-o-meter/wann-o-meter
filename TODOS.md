@@ -32,10 +32,10 @@
 
 ## Typography and color
 
-- [ ] Define one rule for monospace (e.g. hard dates only) and apply it everywhere
-- [ ] Fix mono inconsistencies: "Nächste Frist: … 16.09.2026" and "erste am Do., 03.09.2026" are sans while equivalent dates are mono
-- [ ] Decide whether mono applies to status badges at all
-- [ ] Reduce to two accent colors plus neutral; drop accents that carry no meaning
+- [x] Define one rule for monospace (e.g. hard dates only) and apply it everywhere
+- [x] Fix mono inconsistencies: "Nächste Frist: … 16.09.2026" and "erste am Do., 03.09.2026" are sans while equivalent dates are mono
+- [x] Decide whether mono applies to status badges at all
+- [x] Reduce to two accent colors plus neutral; drop accents that carry no meaning
 
 ## Timeline
 
