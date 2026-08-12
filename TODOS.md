@@ -1,1 +1,0 @@
-- [ ] Build a dashboard as the startpage that gives an overview of stats and the current events. see dashboard-example.html for reference

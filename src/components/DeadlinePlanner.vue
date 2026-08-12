@@ -27,11 +27,8 @@ import {
   usePlannerSchedule,
 } from "./deadline-planner/usePlannerSchedule";
 import type { TaskStore } from "./deadline-planner/task-store";
-import type {
-  EditorKind,
-  PlanVariant,
-  TaskPatch,
-} from "./deadline-planner/types";
+import type { PlanVariant } from "./deadline-planner/types";
+import type { EditorKind, TaskPatch } from "./deadline-planner/task-card";
 import type { ScheduleEntry } from "../../lib/deadline-plan";
 
 export type { PlanVariant };

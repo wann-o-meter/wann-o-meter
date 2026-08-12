@@ -1,8 +1,17 @@
 <template>
   <div class="wom-timeline" ref="rootEl">
+    <Dashboard
+      v-if="savedPlans.length > 0 && !showPlanner"
+      :vorhaben="vorhaben"
+      :plans="savedPlans"
+      @forget="savedPlans = forgetPlan($event)"
+    />
+
     <section v-show="!showPlanner">
       <header>
-        <h1>Was hast du vor?</h1>
+        <component :is="savedPlans.length > 0 ? 'h2' : 'h1'">
+          Was hast du vor?
+        </component>
         <p class="lede">
           Wähl dein Datum, alle Fristen werden rückwärts berechnet.
         </p>
@@ -91,6 +100,7 @@
       </button>
       <DeadlinePlanner
         :key="selected.slug"
+        :slug="selected.slug"
         :vorhaben="selected.vorhaben"
         :anchor-label="selected.anchorLabel"
         :anchor-name="selected.anchorName"
@@ -121,10 +131,13 @@ import {
   isoOf,
   utcDay,
 } from "../../lib/timeline-geometry";
+import Dashboard from "./Dashboard.vue";
 import DeadlinePlanner from "./DeadlinePlanner.vue";
 import Timeline from "./deadline-planner/Timeline.vue";
 import { usePlannerSchedule } from "./deadline-planner/usePlannerSchedule";
 import { ArrowRight } from "lucide-vue-next";
+import { forgetPlan, loadSavedPlans } from "../../lib/saved-plans";
+import type { SavedPlan } from "../../lib/saved-plans";
 import type { VorhabenData } from "../../lib/vorhaben-data";
 
 const props = defineProps<{
@@ -132,6 +145,8 @@ const props = defineProps<{
 }>();
 
 const rootEl = useTemplateRef<HTMLElement>("rootEl");
+
+const savedPlans = ref<SavedPlan[]>([]);
 
 const selectedSlug = ref(props.vorhaben[0]?.slug);
 const selected = computed(
@@ -334,7 +349,10 @@ function onPopState() {
 function backToRail() {
   history.back();
 }
-onMounted(() => window.addEventListener("popstate", onPopState));
+onMounted(() => {
+  savedPlans.value = loadSavedPlans();
+  window.addEventListener("popstate", onPopState);
+});
 onBeforeUnmount(() => window.removeEventListener("popstate", onPopState));
 </script>
 
