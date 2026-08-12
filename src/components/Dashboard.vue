@@ -82,27 +82,20 @@ const items = computed<Item[]>(() =>
 const open = computed(() => items.value.filter((i) => !i.done));
 const overdue = computed(() => open.value.filter((i) => i.day < TODAY));
 
-const nextUp = computed(() => open.value.find((i) => i.day >= TODAY) ?? null);
-
 const week = (day: number) => Math.floor((day + 3) / 7);
-const monthOf = (day: number) => isoOfDay(day).slice(0, 7);
 
-const groups = computed(() => {
-  const month = monthOf(TODAY);
-  const buckets: { title: string; items: Item[] }[] = [
-    { title: "Überfällig", items: [] },
-    { title: "Diese Woche", items: [] },
-    { title: "Dieser Monat", items: [] },
-    { title: "Später", items: [] },
-  ];
-  for (const item of open.value) {
-    if (item.day < TODAY) buckets[0].items.push(item);
-    else if (week(item.day) === week(TODAY)) buckets[1].items.push(item);
-    else if (monthOf(item.day) === month) buckets[2].items.push(item);
-    else buckets[3].items.push(item);
-  }
-  return buckets.filter((b) => b.items.length > 0);
-});
+// An overview, not the plan itself: what is late and what comes next.
+const SOON = 5;
+const upcoming = computed(() => open.value.filter((i) => i.day >= TODAY));
+const soon = computed(() => upcoming.value.slice(0, SOON));
+const laterCount = computed(() => upcoming.value.length - soon.value.length);
+
+const groups = computed(() =>
+  [
+    { title: "Überfällig", items: overdue.value },
+    { title: "Demnächst", items: soon.value },
+  ].filter((g) => g.items.length > 0),
+);
 
 // Weeks where two Vorhaben want something at once, the reason this page exists.
 const collisions = computed(() => {
@@ -127,6 +120,11 @@ function relative(item: Item): string {
   return `in ${days} ${days === 1 ? "Tag" : "Tagen"}`;
 }
 
+function nextEntry(view: PlanView): ScheduleEntry | null {
+  const rest = view.entries.filter((e) => !view.done[e.id]);
+  return rest.find((e) => dayNum(e.date!) >= TODAY) ?? rest[0] ?? null;
+}
+
 function progress(view: PlanView): { done: number; total: number } {
   return {
     done: view.entries.filter((e) => view.done[e.id]).length,
@@ -144,11 +142,6 @@ function progress(view: PlanView): { done: number; total: number } {
       <template v-if="overdue.length">
         <b>{{ overdue.length }}</b> davon
         {{ overdue.length === 1 ? "ist" : "sind" }} überfällig.
-      </template>
-      <template v-if="nextUp">
-        Als Nächstes: {{ nextUp.entry.label }},
-        <b>{{ relative(nextUp) }}</b
-        >.
       </template>
     </p>
 
@@ -173,6 +166,11 @@ function progress(view: PlanView): { done: number; total: number } {
       </a>
     </div>
 
+    <p v-if="laterCount > 0" class="later">
+      {{ laterCount }} weitere {{ laterCount === 1 ? "Frist" : "Fristen" }}
+      später, im jeweiligen Zeitplan.
+    </p>
+
     <div class="cards">
       <article v-for="view in views" :key="view.plan.slug" class="card">
         <h3>
@@ -192,6 +190,13 @@ function progress(view: PlanView): { done: number; total: number } {
             }"
           ></i>
         </div>
+        <p class="next">
+          <template v-if="nextEntry(view)">
+            Nächste Frist: {{ nextEntry(view)!.label }},
+            {{ shortDate(nextEntry(view)!.date!) }}
+          </template>
+          <template v-else>Alle Fristen erledigt.</template>
+        </p>
         <p class="links">
           <a :href="view.href">Zeitplan</a>
           <button type="button" @click="$emit('forget', view.plan.slug)">
@@ -268,6 +273,12 @@ function progress(view: PlanView): { done: number; total: number } {
   color: var(--warn);
 }
 
+.later {
+  margin: 0.75rem 0 0;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
@@ -313,6 +324,11 @@ function progress(view: PlanView): { done: number; total: number } {
   display: block;
   height: 100%;
   background: var(--done-color);
+}
+.next {
+  margin: 0 0 0.6rem;
+  font-size: var(--fs-sm);
+  color: var(--muted);
 }
 .links {
   display: flex;
