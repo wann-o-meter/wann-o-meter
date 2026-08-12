@@ -116,9 +116,10 @@ const collisions = computed(() => {
 
 function relative(item: Item): string {
   const days = item.day - TODAY;
-  if (days < 0) return "abgelaufen";
   if (days === 0) return "heute";
-  return `in ${days} ${days === 1 ? "Tag" : "Tagen"}`;
+  const n = Math.abs(days);
+  const unit = n === 1 ? "Tag" : "Tagen";
+  return days < 0 ? `vor ${n} ${unit}` : `in ${n} ${unit}`;
 }
 
 function nextEntry(view: PlanView): ScheduleEntry | null {
@@ -155,28 +156,32 @@ function progress(view: PlanView): { done: number; total: number } {
       {{ c.labels }} zusammen: {{ c.titles }}.
     </div>
 
-    <div v-for="group in groups" :key="group.title" class="group">
-      <h2>{{ group.title }}</h2>
-      <a
-        v-for="item in group.items"
-        :key="item.id"
-        class="row"
-        :href="item.view.href"
-        :data-late="item.day < TODAY"
-      >
-        <span class="when">{{ shortDate(item.entry.date!) }}</span>
-        <span class="what">{{ item.entry.label }}</span>
-        <span class="tag">{{ item.view.v.label }}</span>
-        <span class="rel">{{ relative(item) }}</span>
-      </a>
-    </div>
+    <div class="split">
+      <div class="agenda">
+        <div v-for="group in groups" :key="group.title" class="group">
+          <h2>{{ group.title }}</h2>
+          <a
+            v-for="item in group.items"
+            :key="item.id"
+            class="row"
+            :href="item.view.href"
+          >
+            <span class="rel">{{ relative(item) }}</span>
+            <span class="what">{{ item.entry.label }}</span>
+            <span v-if="views.length > 1" class="tag">{{
+              item.view.v.label
+            }}</span>
+            <span class="when">{{ shortDate(item.entry.date!) }}</span>
+          </a>
+        </div>
 
-    <p v-if="laterCount > 0" class="later">
-      {{ laterCount }} weitere {{ laterCount === 1 ? "Frist" : "Fristen" }}
-      später, im jeweiligen Zeitplan.
-    </p>
+        <p v-if="laterCount > 0" class="later">
+          {{ laterCount }} weitere {{ laterCount === 1 ? "Frist" : "Fristen" }}
+          danach, im jeweiligen Zeitplan.
+        </p>
+      </div>
 
-    <div class="cards">
+      <aside class="cards">
       <article v-for="view in views" :key="view.plan.slug" class="card">
         <h3>
           {{ view.v.label }}
@@ -201,7 +206,7 @@ function progress(view: PlanView): { done: number; total: number } {
         <p class="next">
           <template v-if="nextEntry(view)">
             Nächste Frist: {{ nextEntry(view)!.label }},
-            {{ shortDate(nextEntry(view)!.date!) }}
+            <span class="mono">{{ shortDate(nextEntry(view)!.date!) }}</span>
           </template>
           <template v-else>Alle Fristen erledigt.</template>
         </p>
@@ -211,7 +216,8 @@ function progress(view: PlanView): { done: number; total: number } {
             Entfernen
           </button>
         </p>
-      </article>
+        </article>
+      </aside>
     </div>
   </section>
 </template>
@@ -252,9 +258,9 @@ function progress(view: PlanView): { done: number; total: number } {
 }
 .row {
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: 7rem minmax(0, 1fr) auto;
   align-items: baseline;
-  gap: 0.2rem 1rem;
+  gap: 0.1rem 1rem;
   padding: 0.6rem 0;
   border-bottom: 1px solid var(--line);
   color: inherit;
@@ -263,23 +269,23 @@ function progress(view: PlanView): { done: number; total: number } {
 .row:hover .what {
   color: var(--accent);
 }
-.when,
 .rel {
-  font-family: var(--font-mono);
-  font-size: var(--fs-sm);
+  font-weight: 600;
   white-space: nowrap;
 }
-.rel {
-  color: var(--muted);
-}
-.tag {
+.when {
+  grid-column: 2;
+  font-family: var(--font-mono);
   font-size: var(--fs-xs);
   color: var(--muted);
   white-space: nowrap;
 }
-.row[data-late="true"] .when,
-.row[data-late="true"] .rel {
-  color: var(--warn);
+.tag {
+  grid-column: 3;
+  grid-row: 1;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  white-space: nowrap;
 }
 
 .later {
@@ -288,11 +294,31 @@ function progress(view: PlanView): { done: number; total: number } {
   color: var(--muted);
 }
 
+.split {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  align-content: start;
   gap: 0.75rem;
-  margin-top: 2rem;
+  order: -1;
+}
+@media (min-width: 60rem) {
+  .split {
+    grid-template-columns: minmax(0, 1fr) 17rem;
+    align-items: start;
+    gap: 2rem;
+  }
+  .agenda {
+    grid-area: 1 / 1;
+  }
+  .cards {
+    grid-area: 1 / 2;
+    grid-template-columns: 1fr;
+  }
 }
 .card {
   background: var(--paper-raised);
@@ -358,24 +384,25 @@ function progress(view: PlanView): { done: number; total: number } {
   color: var(--warn);
 }
 
-@media (max-width: 40rem) {
+@media (max-width: 30rem) {
   .row {
-    grid-template-columns: 1fr auto;
-  }
-  .what {
-    grid-column: 1;
-    grid-row: 1;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
   .rel {
-    grid-column: 2;
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .what {
+    grid-column: 1 / -1;
     grid-row: 1;
   }
   .when {
-    grid-column: 1;
+    grid-column: 2;
+    grid-row: 2;
   }
   .tag {
     grid-column: 2;
-    text-align: right;
+    grid-row: 1;
   }
 }
 </style>

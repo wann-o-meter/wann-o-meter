@@ -10,14 +10,14 @@
 
 - [x] Collapse the "Was hast du vor?" onboarding block once a Vorhaben exists — replace with a "Weiteres Vorhaben planen" affordance
 - [x] Hide the 1-2-3 stepper for returning users
-- [ ] Move the Vorhaben card above the deadline list, or place it beside the list to use the empty right-hand gutter
-- [ ] Reduce the wide empty column on the right at desktop widths
+- [x] Move the Vorhaben card above the deadline list, or place it beside the list to use the empty right-hand gutter
+- [x] Reduce the wide empty column on the right at desktop widths
 
 ## Deadline list
 
-- [ ] Hide the "Umzug" category column while only one Vorhaben exists
-- [ ] Collapse the date + "in X Tagen" pair — keep the countdown primary, the absolute date secondary
-- [ ] Remove duplicate overdue signals in the overdue row (section header + red date + "abgelaufen" — keep one)
+- [x] Hide the "Umzug" category column while only one Vorhaben exists
+- [x] Collapse the date + "in X Tagen" pair — keep the countdown primary, the absolute date secondary
+- [x] Remove duplicate overdue signals in the overdue row (section header + red date + "abgelaufen" — keep one)
 
 ## Task cards
 
