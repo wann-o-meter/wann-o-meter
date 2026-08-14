@@ -5,5 +5,9 @@ import sitemap from "@astrojs/sitemap";
 export default defineConfig({
   site: "https://wannometer.de",
   prefetch: true,
-  integrations: [vue(), sitemap()],
+  integrations: [
+    vue(),
+    // Noindex pages do not belong in the sitemap.
+    sitemap({ filter: (page) => !page.includes("/feedback/") }),
+  ],
 });

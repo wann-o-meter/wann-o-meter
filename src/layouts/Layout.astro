@@ -2,9 +2,8 @@
 import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
 import { Monitor, Moon, Sun } from "@lucide/astro";
-import {
-  newSourceIssueUrl,
-} from "../../lib/github-issue";
+import { newSourceIssueUrl } from "../../lib/github-issue";
+import { loadAllVorhaben } from "../../lib/vorhaben-data";
 
 interface Props {
   title: string;
@@ -22,6 +21,12 @@ const {
 } = Astro.props;
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
 const pageTitle = `${title} · Wann-O-Meter`;
+// Every Vorhaben is reachable from every page: the startpage picker is a set
+// of buttons, so without this the plan pages have no incoming internal links.
+const vorhabenLinks = loadAllVorhaben().map((v) => ({
+  href: `/${v.slug}/`,
+  label: v.label,
+}));
 const ogDescription =
   description ?? "Strukturierte Antworten auf Wann-Fragen, als Kalender-Abo.";
 ---
@@ -102,6 +107,17 @@ const ogDescription =
     </main>
     <footer>
       <div class:list={["wrap", "footer-bar", { wide }]}>
+        <nav class="footer-nav" aria-label="Zeitpläne">
+          Zeitpläne:{" "}
+          {
+            vorhabenLinks.map((v, i) => (
+              <>
+                {i > 0 && <span aria-hidden="true"> &middot; </span>}
+                <a href={v.href}>{v.label}</a>
+              </>
+            ))
+          }
+        </nav>
         <p>Angaben ohne Gewähr, keine Rechtsberatung.</p>
         <p>
           <a href="/impressum">Impressum</a> &middot; <a href="/datenschutz"
@@ -241,5 +257,8 @@ const ogDescription =
   }
   .footer-bar p {
     margin: 0 0 0.5rem;
+  }
+  .footer-nav {
+    margin-bottom: 0.5rem;
   }
 </style>

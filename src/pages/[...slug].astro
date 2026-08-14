@@ -10,13 +10,36 @@ export function getStaticPaths() {
 }
 
 const { v, variant, title, description } = Astro.props;
+const isPlace = Astro.params.slug !== v.slug;
+const crumbs = [
+  { name: "Startseite", url: new URL("/", Astro.site).href },
+  { name: v.label, url: new URL(`/${v.slug}/`, Astro.site).href },
+  ...(isPlace
+    ? [
+      {
+        name: variant.label,
+        url: new URL(`/${v.slug}/${variant.slug}/`, Astro.site).href,
+      },
+    ]
+    : []),
+];
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: crumbs.map((c, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: c.name,
+    item: c.url,
+  })),
+};
 const siblings = v.variants.filter((s) => s.slug !== BUNDESWEIT_SLUG);
 const PREVIEW = 12;
 const preview = siblings.slice(0, PREVIEW);
 const rest = siblings.slice(PREVIEW);
 ---
 
-<Layout title={title} description={description}>
+<Layout title={title} description={description} structuredData={structuredData}>
   <p class="back"><a href="/">&larr; Alle Vorhaben</a></p>
   <h1 id="static-title">{title}</h1>
   <DeadlinePlanner
