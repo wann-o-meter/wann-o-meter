@@ -20,6 +20,8 @@ function utcParts(iso: string) {
   };
 }
 
+// One date rule for the whole site: an Anker or a Frist carries its year
+// (shortDate), rows in a list drop it (dayMonth). No third form.
 export function shortDate(iso: string): string {
   const p = utcParts(iso);
   const day = String(p.day).padStart(2, "0");
@@ -36,6 +38,27 @@ export function monthLabel(iso: string, currentYear: number): string {
   const p = utcParts(iso);
   const name = MONTH_NAMES[p.month0];
   return p.year === currentYear ? name : `${name} ${p.year}`;
+}
+
+export function daysUntil(iso: string, from: string): number {
+  return Math.round(
+    (new Date(`${iso}T00:00:00Z`).getTime() -
+      new Date(`${from}T00:00:00Z`).getTime()) /
+      86400000,
+  );
+}
+
+// Number and unit stay separate so the number can be set in mono like a date.
+// Below two weeks days read more precisely than a rounded week count.
+export function spanParts(days: number): { n: number; unit: string } {
+  const n = Math.abs(days);
+  if (n < 14) return { n, unit: n === 1 ? "Tag" : "Tage" };
+  return { n: Math.round(n / 7), unit: "Wochen" };
+}
+
+// "vor drei Tagen", "in drei Wochen": only the plural of Tag takes the -n.
+export function dativeUnit(unit: string): string {
+  return unit === "Tage" ? "Tagen" : unit;
 }
 
 export function longDate(iso: string): string {

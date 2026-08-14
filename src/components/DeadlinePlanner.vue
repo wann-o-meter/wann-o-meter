@@ -70,6 +70,7 @@ watch(
       savePlan({
         slug: props.slug,
         variant: selectedSlug.value,
+        region: selected.value?.regionCode,
         date: anchorDate.value,
         facets: [...activeFacets.value],
       });

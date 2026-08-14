@@ -1,5 +1,6 @@
 import { computed, ref, watch } from "vue";
 import { FACET_LABELS, appliesTo, facetsUsedBy } from "../../../lib/facets";
+import { STATES } from "../../../lib/states";
 import { isoToday } from "../../../lib/today";
 import type { PlanVariant } from "./types";
 
@@ -34,9 +35,14 @@ export function usePlanUrlState(
         ? defaultSlug!
         : variants[0]?.slug,
   );
-  const selected = computed(
-    () => variants.find((v) => v.slug === selectedSlug.value) ?? variants[0],
-  );
+  // Bundesweit has no Bundesland of its own, so the startpage passes the one of
+  // the picked Ort along, otherwise its Feiertage silently drop out here.
+  const region = params?.get("region");
+  const urlRegion = region && region in STATES ? region : undefined;
+  const selected = computed(() => {
+    const v = variants.find((x) => x.slug === selectedSlug.value) ?? variants[0];
+    return v && !v.regionCode && urlRegion ? { ...v, regionCode: urlRegion } : v;
+  });
 
   const urlDate = params?.get("date");
   const anchorDate = ref(

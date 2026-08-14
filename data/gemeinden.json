@@ -1,0 +1,14 @@
+[
+  { "name": "Bad Nauheim", "state": "HE" },
+  { "name": "Hamburg", "state": "HH" },
+  { "name": "Hechingen", "state": "BW" },
+  { "name": "Leipzig", "state": "SN" },
+  { "name": "Ochsenhausen", "state": "BW" },
+  { "name": "Passau", "state": "BY" },
+  { "name": "Reutlingen", "state": "BW" },
+  { "name": "Rostock", "state": "MV" },
+  { "name": "Rottenburg am Neckar", "state": "BW" },
+  { "name": "Singen (Hohentwiel)", "state": "BW" },
+  { "name": "Stuttgart", "state": "BW" },
+  { "name": "Tübingen", "state": "BW" }
+]

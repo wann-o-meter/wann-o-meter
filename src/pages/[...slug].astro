@@ -3,13 +3,14 @@ import Layout from "../layouts/Layout.astro";
 import DeadlinePlanner from "../components/DeadlinePlanner.vue";
 import StaticPlan from "../components/StaticPlan.astro";
 import { vorhabenRoutes } from "../../lib/vorhaben-routes";
+import { BUNDESWEIT_SLUG } from "../../lib/vorhaben-data";
 
 export function getStaticPaths() {
   return vorhabenRoutes().map((r) => ({ params: { slug: r.path }, props: r }));
 }
 
 const { v, variant, title, description } = Astro.props;
-const siblings = v.variants.length > 1 ? v.variants : [];
+const siblings = v.variants.filter((s) => s.slug !== BUNDESWEIT_SLUG);
 const PREVIEW = 12;
 const preview = siblings.slice(0, PREVIEW);
 const rest = siblings.slice(PREVIEW);

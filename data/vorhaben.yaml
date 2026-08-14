@@ -2,6 +2,7 @@
 # slug matches the data/<slug>/ folder and the URL segment.
 - slug: umzug
   label: Umzug
+  teaser: Kündigung, Ummeldung, Halteverbot
   title: "Umzug: wann muss ich anfangen?"
   description: >-
     Ort und Umzugstag eingeben, kompletten Rückwärts-Zeitplan mit Fristen sehen -
@@ -16,6 +17,7 @@
 
 - slug: geburt
   label: Geburt
+  teaser: Elterngeld, Kindergeld, Urkunde
   title: "Geburt: wann muss ich anfangen?"
   description: >-
     Geburtstermin eingeben, Fristen für Geburtsanzeige, Elterngeld und Kindergeld
@@ -28,6 +30,7 @@
 
 - slug: heirat
   label: Hochzeit
+  teaser: Standesamt, Urkunden, Namen
   title: "Hochzeit: wann muss ich anfangen?"
   description: >-
     Hochzeitstermin eingeben, Anmeldung beim Standesamt, Dokumente und
@@ -40,6 +43,7 @@
 
 - slug: jobwechsel
   label: Jobwechsel
+  teaser: Kündigung, Arbeitsagentur, Zeugnis
   title: "Jobwechsel: wann muss ich anfangen?"
   description: >-
     Letzten Arbeitstag eingeben, Kündigungsfrist und Arbeitsuchendmeldung

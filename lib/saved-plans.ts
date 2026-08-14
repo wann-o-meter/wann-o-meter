@@ -7,6 +7,8 @@ export interface SavedPlan {
   slug: string;
   variant: string;
   date: string;
+  // Bundesland of the picked Ort, only set when the variant has none itself.
+  region?: string;
   // The same facets the plan page filters by, so both count the same Fristen.
   facets: string[];
 }

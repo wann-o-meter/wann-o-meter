@@ -1,4 +1,4 @@
-import { loadAllVorhaben } from "./vorhaben-data";
+import { BUNDESWEIT_SLUG, loadAllVorhaben } from "./vorhaben-data";
 import type { VorhabenData, VorhabenVariant } from "./vorhaben-data";
 
 interface VorhabenRoute {
@@ -22,10 +22,11 @@ export function vorhabenRoutes(): VorhabenRoute[] {
       title: v.title,
       description: v.description,
     };
-    if (v.variants.length < 2) return [base];
+    const local = v.variants.filter((x) => x.slug !== BUNDESWEIT_SLUG);
+    if (local.length === 0) return [base];
     return [
       base,
-      ...v.variants.map((variant) => ({
+      ...local.map((variant) => ({
         path: `${v.slug}/${variant.slug}`,
         v,
         variant,

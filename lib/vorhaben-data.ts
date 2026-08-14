@@ -8,6 +8,9 @@ import type { Deadline } from "./deadline-plan";
 const DATA_ROOT = join(process.cwd(), "data");
 const BUNDESWEIT_FILE = "_bundesweit.yaml";
 const VORHABEN_FILE = "vorhaben.yaml";
+// Kept in sync by hand with the literal in the Vue islands, importing this
+// module would pull node:fs into the browser bundle.
+export const BUNDESWEIT_SLUG = "bundesweit";
 
 const deadlineListSchema = z.object({
   deadlines: z.array(deadlineSchema).default([]),
@@ -21,6 +24,7 @@ const variantFileSchema = deadlineListSchema.extend({
 const vorhabenSchema = z.object({
   slug: z.string(),
   label: z.string(),
+  teaser: z.string(),
   title: z.string(),
   description: z.string(),
   vorhaben: z.string(),
@@ -72,10 +76,12 @@ function loadVorhaben(slug: string): VorhabenData | null {
     })
     .sort((a, b) => a.label.localeCompare(b.label, "de"));
 
-  const variants =
-    local.length > 0
-      ? local
-      : [{ slug: "bundesweit", label: "Bundesweit", deadlines: bundesweit.deadlines }];
+  // Bundesweit is always a variant: a place without its own file still needs a
+  // plan, and the Feiertage of its Bundesland come from the region parameter.
+  const variants = [
+    { slug: BUNDESWEIT_SLUG, label: "Bundesweit", deadlines: bundesweit.deadlines },
+    ...local,
+  ];
   return { ...meta, variants };
 }
 
