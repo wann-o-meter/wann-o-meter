@@ -1,0 +1,108 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { feedbackIssueUrl } from "../../lib/github-issue";
+---
+
+<Layout
+  title="Feedback geben"
+  description="Fehlende Frist, falsches Datum oder ein Vorschlag: kurz beschreiben und abschicken."
+>
+  <h1>Feedback geben</h1>
+  <p class="lede">
+    Fehlt eine Frist, stimmt ein Datum nicht oder fehlt deine Gemeinde? Schreib
+    kurz, worum es geht. Das Formular öffnet deine Mail-App mit dem fertigen
+    Text, es werden keine Daten an uns übertragen, bevor du sie abschickst.
+  </p>
+
+  <form id="feedback-form">
+    <p class="field">
+      <label for="topic">Worum geht es?</label>
+      <select id="topic" name="topic">
+        <option>Eine Frist fehlt</option>
+        <option>Ein Datum oder eine Quelle stimmt nicht</option>
+        <option>Meine Gemeinde fehlt</option>
+        <option>Etwas anderes</option>
+      </select>
+    </p>
+    <p class="field">
+      <label for="page">Welche Seite betrifft es? (optional)</label>
+      <input id="page" name="page" type="text" placeholder="z. B. Umzug in Tübingen" />
+    </p>
+    <p class="field">
+      <label for="message">Deine Nachricht</label>
+      <textarea id="message" name="message" rows="6" required></textarea>
+    </p>
+    <p class="actions">
+      <button type="submit">Mail öffnen</button>
+      <a href={feedbackIssueUrl()} rel="noopener">Lieber als GitHub-Issue</a>
+    </p>
+  </form>
+</Layout>
+
+<script>
+  const MAIL = "hallo@wannometer.de";
+  document.addEventListener("astro:page-load", () => {
+    const form = document.getElementById("feedback-form");
+    if (!(form instanceof HTMLFormElement)) return;
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const data = new FormData(form);
+      const page = String(data.get("page") ?? "").trim();
+      const body = `${data.get("message")}\n\n${page ? `Seite: ${page}\n` : ""}`;
+      const params = new URLSearchParams({
+        subject: `Wann-O-Meter: ${data.get("topic")}`,
+        body,
+      });
+      window.location.href = `mailto:${MAIL}?${params}`;
+    });
+  });
+</script>
+
+<style>
+  .lede {
+    color: var(--muted);
+    max-width: 60ch;
+  }
+  form {
+    max-width: 34rem;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0 0 1rem;
+  }
+  label {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  input,
+  select,
+  textarea {
+    font: inherit;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper-raised);
+    color: var(--ink);
+  }
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    font-size: var(--fs-sm);
+  }
+  .actions button {
+    padding: 0.5rem 1.2rem;
+    border: 0;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    cursor: pointer;
+  }
+</style>

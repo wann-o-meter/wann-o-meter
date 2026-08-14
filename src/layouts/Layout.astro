@@ -3,8 +3,6 @@ import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
 import { Monitor, Moon, Sun } from "@lucide/astro";
 import {
-  feedbackIssueUrl,
-  feedbackMailtoUrl,
   newSourceIssueUrl,
 } from "../../lib/github-issue";
 
@@ -109,12 +107,8 @@ const ogDescription =
           <a href="/impressum">Impressum</a> &middot; <a href="/datenschutz"
             >Datenschutz</a
           > &middot;{" "}
-          <a href={newSourceIssueUrl()}>Quelle vorschlagen</a> &middot; Feedback:{
-            " "
-          }
-          <a href={feedbackMailtoUrl()}>Mail</a> &middot; <a
-            href={feedbackIssueUrl()}>GitHub</a
-          >
+          <a href={newSourceIssueUrl()}>Quelle vorschlagen</a> &middot;{" "}
+          <a href="/feedback">Feedback geben</a>
         </p>
       </div>
     </footer>

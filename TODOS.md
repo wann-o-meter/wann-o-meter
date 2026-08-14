@@ -1,44 +1,22 @@
-# Wann-O-Meter — UI todos
-
-## Correctness (do first)
-
-- [x] Reconcile the two move dates: the Vorhaben card says 28.10.2026, the planner is set to 10.11.2026 — decide whether the planner edits the existing Vorhaben or creates a new one, and make that explicit
-- [x] Reconcile the four conflicting counts: "12 offene Fristen", "0/12", "6 weitere Fristen später", "10 Fristen"
-- [x] Make it unambiguous which date each count is derived from
-
-## Page structure
-
-- [x] Collapse the "Was hast du vor?" onboarding block once a Vorhaben exists — replace with a "Weiteres Vorhaben planen" affordance
-- [x] Hide the 1-2-3 stepper for returning users
-- [x] Move the Vorhaben card above the deadline list, or place it beside the list to use the empty right-hand gutter
-- [x] Reduce the wide empty column on the right at desktop widths
-
-## Deadline list
-
-- [x] Hide the "Umzug" category column while only one Vorhaben exists
-- [x] Collapse the date + "in X Tagen" pair — keep the countdown primary, the absolute date secondary
-- [x] Remove duplicate overdue signals in the overdue row (section header + red date + "abgelaufen" — keep one)
-
-## Task cards
-
-- [x] Demote the "Bis Donnerstag, 3. September 2026 nachholen." line so the task title stays the strongest element in the card
-- [x] Pick one date-format rule (long form for the actionable deadline, short form for derived dates) and apply it consistently
-- [x] Shorten CTA labels so they don't restate the card title ("Kündigung aufsetzen", not "Kündigung der Wohnung aufsetzen")
-- [x] Use one verb across all cards for the same action ("aufsetzen" vs. "bearbeiten")
-- [x] Limit filled primary buttons to one per screen; outline for the rest
-- [x] Give the footer rail one job — controls above the divider, provenance ("Grundlage: …") always below
-- [x] Show provenance on all cards or none
-- [x] Move the "Wie wird das berechnet?" disclosure below the CTA
-
-## Typography and color
-
-- [x] Define one rule for monospace (e.g. hard dates only) and apply it everywhere
-- [x] Fix mono inconsistencies: "Nächste Frist: … 16.09.2026" and "erste am Do., 03.09.2026" are sans while equivalent dates are mono
-- [x] Decide whether mono applies to status badges at all
-- [x] Reduce to two accent colors plus neutral; drop accents that carry no meaning
-
-## Timeline
-
-- [x] Add a legend or labels for the circle markers
-- [x] Explain the stacked lane rows, or flatten them
-- [x] Label the blue/beige/gray bar segments, or remove the color coding
+- [x] Der Plan ist kaputt, aber die Seite feiert „Noch 11 Wochen": die erste Frist ist 10 Tage überfällig. Der Countdown oben muss auf die nächste Frist zeigen, nicht auf den Umzugstag — der Umzugstag ist nie das, was schiefgeht.
+- [x] Überfällige Fristen dürfen nicht in Primärblau stehen. `Di, 04.08.2026` sieht im Preview genauso aus wie ein gesunder Termin. Rot/Warnfarbe plus Icon, nicht Farbe allein.
+- [x] Die Eyebrow „DAS IST ALS ERSTES FÄLLIG" ist bei einem überfälligen Termin schlicht falsch. Zweiter Zustand nötig: „Diese Frist ist bereits verstrichen".
+- [x] Es fehlt der Ausweg. Wenn der gewählte Termin die Kündigungsfrist reißt, muss die Seite sagen, was jetzt gilt — frühestmöglicher Umzugstag bei heutiger Kündigung, oder „Frist verpasst, Mietvertrag läuft bis …". Das ist der Rescue-Loop, den die Engine schon kann; hier sieht man ihn nicht.
+- [x] Zwei Namen für dieselbe Sache: „Als Nächstes" oben, „Das ist als Erstes fällig" unten. Ein Begriff, überall.
+- [x] Zwei Namen für dieselbe Aktion: Link „Plan öffnen" und Button „Kompletten Plan öffnen". Ein Name.
+- [x] Der gespeicherte Plan und das Formular zeigen exakt dieselbe Aufgabe mit demselben Datum doppelt. Wenn ein Plan existiert, darf das Formular nicht vorbelegt sein — es steht unter „Noch etwas planen?" und soll leer starten.
+- [x] Unklar, ob eine Datumsänderung im Formular den gespeicherten Plan bearbeitet oder einen zweiten anlegt. Muss aus dem Label hervorgehen: „Umzug bearbeiten" gehört in die Karte, das Formular unten legt immer neu an.
+- [x] Drei Datumsformate auf einer Seite: `Mi, 28.10.2026`, `Di, 04.08.2026`, `Mi, 16.09.`. Eine Regel festlegen — Anker und Fristen mit Jahr, Listenzeilen ohne, und dann ausnahmslos.
+- [x] Der Fortschrittsbalken bei 0 von 10 ist ein durchgehender grauer Strich und liest sich als Trennlinie. Bei 0 % entweder weglassen oder die Spur sichtbar leer zeichnen.
+- [x] „Noch **11** Wochen", „**10** Tage überfällig", „**0** von **10**" — alle Zahlen gehören in Mono, sonst gilt deine Regel nur für Datumsangaben und nicht für abgeleitete Werte.
+- [x] „Entfernen" hat dieselbe Gewichtung wie „Plan öffnen". Destruktive Aktion abrücken oder abschwächen.
+- [x] Die Coverage-Zeile verspricht „die örtlichen Schritte" — zu vage für ein Produkt, das mit Genauigkeit wirbt. Konkret benennen: Halteverbotszone, Sperrmüll. Und Schulferien fehlen in der Aufzählung, obwohl die Daten da sind.
+- [x] Der grün gefettete Ortsname kodiert Abdeckung über Farbe. Braucht ein zusätzliches Signal (Häkchen/Label), sonst geht der Unterschied zwischen „hinterlegt" und „noch nicht" für ein Drittel der Nutzer verloren.
+- [x] Das Ort-Feld sieht aus wie ein normales Textfeld. Kein Lupensymbol, kein Hinweis, dass getippt und ausgewählt wird. Bei gefülltem Feld ist nicht erkennbar, ob die Auswahl wirklich getroffen wurde.
+- [x] Die Untertitel der vier Karten sind ein-, zwei- und dreizeilig, dadurch sitzen die Karten optisch schief. Auf gleiche Länge kürzen (drei Begriffe, kein Umbruch).
+- [x] „Noch etwas planen?" und „Was möchtest du planen?" stehen direkt übereinander und sagen dasselbe. Eins davon streichen.
+- [x] In der Wiederkehrer-Ansicht verschwindet jede Erklärung, was die Seite ist. Ein Satz muss bleiben, sonst steht ein fremder Besucher auf demselben Gerät vor einem fremden Plan.
+- [x] „Ohne Konto" steht ganz unten in der Preview-Karte. Wenn der Plan lokal gespeichert wird, gehört das an die gespeicherte Karte — inklusive dem, was beim Browserwechsel passiert.
+- [x] Der Abstand zwischen Coverage-Zeile und Preview-Karte ist deutlich größer als alle anderen Abstände. Rhythmus vereinheitlichen.
+- [x] „Grundlage: § 573c BGB" ohne die Erklärung dahinter — im Prototyp stand der Satz, der die Frist verständlich macht. Ohne ihn ist der Paragraf nur ein Siegel; mit ihm ist er das Argument.
+- [x] Footer verweist für Feedback weiter auf GitHub. Das war der Punkt, den du gestrichen hast — Formular hin, GitHub-Link raus (oder zusätzlich, nicht stattdessen).

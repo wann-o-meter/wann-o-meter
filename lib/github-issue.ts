@@ -15,6 +15,10 @@ export function feedbackIssueUrl(): string {
   return `https://github.com/${REPO}/issues/new?${params}`;
 }
 
-export function feedbackMailtoUrl(): string {
-  return `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent("Feedback zu Wann-O-Meter")}`;
+export function feedbackMailtoUrl(subject?: string, body?: string): string {
+  const params = new URLSearchParams({
+    subject: subject ?? "Feedback zu Wann-O-Meter",
+  });
+  if (body) params.set("body", body);
+  return `mailto:${FEEDBACK_EMAIL}?${params}`;
 }
