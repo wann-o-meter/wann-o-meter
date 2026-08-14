@@ -110,12 +110,12 @@
           <b>{{ ort.name }}:</b>
           <template v-if="localVariant">
             {{ localSteps }} sind als eigene Fristen hinterlegt, dazu die
-            Feiertage in {{ stateName(ort) }}. Die Schulferien kennen wir auch,
-            sie stehen unten am Termin.
+            Feiertage in {{ stateName(ort) }}. Liegt dein Termin in den
+            Schulferien, sagen wir es darunter.
           </template>
           <template v-else>
-            Die Feiertage in {{ stateName(ort) }} sind eingerechnet, die
-            Schulferien stehen unten am Termin.
+            Die Feiertage in {{ stateName(ort) }} sind eingerechnet, und liegt
+            dein Termin in den Schulferien, sagen wir es darunter.
             <template v-if="hasLocalVariants">
               Örtliche Fristen wie Halteverbotszone oder Sperrmüll haben wir
               hier noch nicht, der Plan zeigt die bundesweiten Schritte.

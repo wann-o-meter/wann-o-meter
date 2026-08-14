@@ -15,10 +15,11 @@ export function feedbackIssueUrl(): string {
   return `https://github.com/${REPO}/issues/new?${params}`;
 }
 
+// Hand-encoded: mailto wants %20, URLSearchParams would write a literal plus.
 export function feedbackMailtoUrl(subject?: string, body?: string): string {
-  const params = new URLSearchParams({
-    subject: subject ?? "Feedback zu Wann-O-Meter",
-  });
-  if (body) params.set("body", body);
-  return `mailto:${FEEDBACK_EMAIL}?${params}`;
+  const query = [
+    `subject=${encodeURIComponent(subject ?? "Feedback zu Wann-O-Meter")}`,
+    ...(body ? [`body=${encodeURIComponent(body)}`] : []),
+  ];
+  return `mailto:${FEEDBACK_EMAIL}?${query.join("&")}`;
 }

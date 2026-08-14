@@ -40,7 +40,8 @@ import { feedbackIssueUrl } from "../../lib/github-issue";
 </Layout>
 
 <script>
-  const MAIL = "hallo@wannometer.de";
+  import { feedbackMailtoUrl } from "../../lib/github-issue";
+
   document.addEventListener("astro:page-load", () => {
     const form = document.getElementById("feedback-form");
     if (!(form instanceof HTMLFormElement)) return;
@@ -49,11 +50,10 @@ import { feedbackIssueUrl } from "../../lib/github-issue";
       const data = new FormData(form);
       const page = String(data.get("page") ?? "").trim();
       const body = `${data.get("message")}\n\n${page ? `Seite: ${page}\n` : ""}`;
-      const params = new URLSearchParams({
-        subject: `Wann-O-Meter: ${data.get("topic")}`,
+      window.location.href = feedbackMailtoUrl(
+        `Wann-O-Meter: ${data.get("topic")}`,
         body,
-      });
-      window.location.href = `mailto:${MAIL}?${params}`;
+      );
     });
   });
 </script>

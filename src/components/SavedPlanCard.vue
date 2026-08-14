@@ -9,7 +9,10 @@
     <h2 v-if="!next">Alle Fristen erledigt</h2>
     <h2 v-else-if="span!.days < 0" class="late">
       <AlertTriangle :size="20" aria-hidden="true" />
-      <span><span class="mono">{{ span!.n }}</span> {{ span!.unit }} überfällig</span>
+      <span
+        ><span class="mono">{{ span!.n }}</span>
+        {{ span!.unit }} überfällig</span
+      >
     </h2>
     <h2 v-else-if="span!.days === 0">Nächste Frist heute</h2>
     <h2 v-else>
@@ -37,7 +40,9 @@
     </p>
 
     <p class="links">
-      <a :href="href">{{ v.label }} bearbeiten</a>
+      <a class="cta" :href="href"
+        >{{ v.label }} bearbeiten <ArrowRight :size="16"
+      /></a>
       <button type="button" @click="exportIcs">Als Kalender exportieren</button>
       <button type="button" class="remove" @click="$emit('forget', plan.slug)">
         Entfernen
