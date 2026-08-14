@@ -6,7 +6,6 @@ defineProps<{
   entry: ScheduleEntry;
   isPast: boolean;
   done: boolean;
-  showRescueLabel: boolean;
 }>();
 </script>
 
@@ -15,7 +14,6 @@ defineProps<{
     Frist war <span class="d">{{ shortDate(entry.date!) }}</span
     >, nachholen bis <b class="d">{{ longDate(entry.rescue.date) }}</b
     >.
-    <template v-if="showRescueLabel">{{ entry.rescue.label }}.</template>
   </p>
   <p v-else class="dates">
     <span :class="{ overdue: isPast }"
@@ -23,9 +21,8 @@ defineProps<{
       ><template v-if="isPast"> (verstrichen)</template></span
     >
     <template v-if="entry.earliestDate !== entry.date">
-      &nbsp;·&nbsp; möglich ab <span class="d">{{
-        shortDate(entry.earliestDate!)
-      }}</span>
+      &nbsp;·&nbsp; möglich ab
+      <span class="d">{{ shortDate(entry.earliestDate!) }}</span>
     </template>
     <template v-if="entry.startByDate !== entry.date">
       &nbsp;·&nbsp; Termin buchen bis

@@ -161,12 +161,7 @@ const menuItems = computed<MenuItem[]>(() => [
       <CardMenu :items="menuItems" />
     </div>
 
-    <TaskDates
-      :entry="entry"
-      :is-past="isPast"
-      :done="done"
-      :show-rescue-label="!doubleRent"
-    />
+    <TaskDates :entry="entry" :is-past="isPast" :done="done" />
 
     <input
       v-if="editor === 'date'"
@@ -179,11 +174,6 @@ const menuItems = computed<MenuItem[]>(() => [
       @blur="closeDateEdit"
       @keydown.enter="($event.target as HTMLInputElement).blur()"
     />
-
-    <p v-if="doubleRent && !done" class="overlap">
-      Mietende {{ doubleRent.end }}, {{ doubleRent.span }} nach dem Umzug. So
-      lange läuft die Miete für beide Wohnungen.
-    </p>
 
     <p v-if="!done && entry.impossible" class="flag">
       <TriangleAlert :size="14" /> Bei diesem Termin nicht mehr rechtzeitig

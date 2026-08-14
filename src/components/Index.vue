@@ -1,12 +1,14 @@
 <template>
   <div class="wom-start">
-    <SavedPlanCard
-      v-for="card in planCards"
-      :key="card.plan.slug"
-      :plan="card.plan"
-      :v="card.v"
-      @forget="savedPlans = forgetPlan($event)"
-    />
+    <TransitionGroup name="plan" tag="div" class="plans" appear>
+      <SavedPlanCard
+        v-for="card in planCards"
+        :key="card.plan.slug"
+        :plan="card.plan"
+        :v="card.v"
+        @forget="savedPlans = forgetPlan($event)"
+      />
+    </TransitionGroup>
 
     <section class="intro">
       <h1 v-if="planCards.length === 0">
@@ -21,14 +23,18 @@
 
     <section class="step">
       <h2 class="q" id="q1">
-        {{ planCards.length > 0 ? "Noch etwas planen?" : "Was möchtest du planen?" }}
+        {{
+          planCards.length > 0
+            ? "Noch etwas planen?"
+            : "Was möchtest du planen?"
+        }}
       </h2>
       <div class="choices" role="group" aria-labelledby="q1">
         <button
           v-for="v in vorhaben"
           :key="v.slug"
           type="button"
-          class="choice"
+          class="choice key"
           :aria-pressed="v.slug === selectedSlug"
           @click="pick(v.slug)"
         >
@@ -37,182 +43,195 @@
       </div>
     </section>
 
-    <section v-if="selected" class="step">
-      <h2 class="q">Wann und wo?</h2>
-      <div class="fields">
-        <div class="field">
-          <label for="anchor">{{ selected.anchorLabel }}</label>
-          <input
-            id="anchor"
-            type="date"
-            class="mono"
-            :value="anchorDate"
-            :min="minDate"
-            :max="maxDate"
-            @change="anchorDate = ($event.target as HTMLInputElement).value"
-          />
-        </div>
-        <div class="field ac">
-          <label for="ort">Ort</label>
-          <div class="ac-input" :class="{ picked: ort }">
-            <Search v-if="!ort" :size="16" aria-hidden="true" />
-            <Check v-else :size="16" class="ok" aria-hidden="true" />
+    <Transition name="reveal">
+      <section v-if="selected" class="step">
+        <h2 class="q">Wann und wo?</h2>
+        <div class="fields">
+          <div class="field">
+            <label for="anchor">{{ selected.anchorLabel }}</label>
             <input
-              id="ort"
-              v-model="ortQuery"
-              type="text"
-              autocomplete="off"
-              placeholder="Gemeinde suchen und auswählen"
-              role="combobox"
-              aria-controls="aclist"
-              :aria-expanded="suggestions.length > 0"
-              @input="ort = null"
-              @blur="closeSuggestions"
-              @keydown.esc="closeSuggestions"
+              id="anchor"
+              type="date"
+              :value="anchorDate"
+              :min="minDate"
+              :max="maxDate"
+              @change="anchorDate = ($event.target as HTMLInputElement).value"
             />
           </div>
-          <ul v-if="suggestions.length > 0" id="aclist" role="listbox">
-            <li
-              v-for="g in suggestions"
-              :key="g.name"
-              role="option"
-              :aria-selected="g.name === ort?.name"
-              @mousedown.prevent="chooseOrt(g)"
-            >
-              <span>{{ g.name }}</span>
-              <span v-if="variantFor(g)" class="tag covered">
-                <Check :size="13" aria-hidden="true" /> örtliche Fristen
-                hinterlegt
-              </span>
-              <span v-else class="tag">{{ stateName(g) }}</span>
-            </li>
-          </ul>
+          <div class="field ac">
+            <label for="ort">Ort</label>
+            <div class="ac-input" :class="{ picked: ort }">
+              <Search v-if="!ort" :size="16" aria-hidden="true" />
+              <Check v-else :size="16" class="ok" aria-hidden="true" />
+              <input
+                id="ort"
+                v-model="ortQuery"
+                type="text"
+                autocomplete="off"
+                placeholder="Gemeinde suchen und auswählen"
+                role="combobox"
+                aria-controls="aclist"
+                :aria-expanded="suggestions.length > 0"
+                @input="ort = null"
+                @blur="closeSuggestions"
+                @keydown.esc="closeSuggestions"
+              />
+            </div>
+            <Transition name="drop">
+              <ul v-if="suggestions.length > 0" id="aclist" role="listbox">
+                <li
+                  v-for="g in suggestions"
+                  :key="g.name"
+                  role="option"
+                  :aria-selected="g.name === ort?.name"
+                  @mousedown.prevent="chooseOrt(g)"
+                >
+                  <span>{{ g.name }}</span>
+                  <span v-if="variantFor(g)" class="tag covered">
+                    <Check :size="13" aria-hidden="true" /> örtliche Fristen
+                    hinterlegt
+                  </span>
+                  <span v-else class="tag">{{ stateName(g) }}</span>
+                </li>
+              </ul>
+            </Transition>
+          </div>
         </div>
-      </div>
 
-      <div class="chips">
-        <button
-          v-for="p in presets"
-          :key="p.label"
-          type="button"
-          class="chip"
-          :aria-pressed="anchorDate === p.iso()"
-          @click="anchorDate = p.iso()"
-        >
-          {{ p.label }}
-        </button>
-      </div>
-
-      <p v-if="ort" class="coverage">
-        <Check v-if="localVariant" :size="15" class="ok" aria-hidden="true" />
-        <Info v-else :size="15" class="thin" aria-hidden="true" />
-        <span>
-          <b>{{ ort.name }}:</b>
-          <template v-if="localVariant">
-            {{ localSteps }} sind als eigene Fristen hinterlegt, dazu die
-            Feiertage in {{ stateName(ort) }}. Liegt dein Termin in den
-            Schulferien, sagen wir es darunter.
-          </template>
-          <template v-else>
-            Die Feiertage in {{ stateName(ort) }} sind eingerechnet, und liegt
-            dein Termin in den Schulferien, sagen wir es darunter.
-            <template v-if="hasLocalVariants">
-              Örtliche Fristen wie Halteverbotszone oder Sperrmüll haben wir
-              hier noch nicht, der Plan zeigt die bundesweiten Schritte.
-            </template>
-          </template>
-        </span>
-      </p>
-
-      <p v-if="ferien" class="ferien">
-        <Info :size="15" aria-hidden="true" />
-        <span>
-          Der <span class="mono">{{ shortDate(anchorDate) }}</span> liegt in den
-          {{ ferien.name }} ({{ shortDate(ferien.from) }} bis
-          {{ shortDate(ferien.to) }}).
-        </span>
-      </p>
-    </section>
-
-    <section v-if="preview" class="step">
-      <div class="card">
-        <p class="eyebrow" :class="{ late: overdue }">
-          <AlertTriangle v-if="overdue" :size="14" aria-hidden="true" />
-          {{ overdue ? "Diese Frist ist bereits verstrichen" : "Als Nächstes" }}
-        </p>
-        <p class="first-task">{{ preview.first.label }}</p>
-        <template v-if="span">
-          <p class="first-date mono" :class="{ late: overdue }">
-            {{ shortDate(preview.first.date!) }}
-          </p>
-          <p class="countdown" :class="{ late: overdue }">
-            <template v-if="overdue">
-              <span class="mono">{{ span.n }}</span> {{ span.unit }} überfällig
-            </template>
-            <template v-else-if="span.days === 0">heute fällig</template>
-            <template v-else>
-              in <span class="mono">{{ span.n }}</span> {{ span.unit }}
-            </template>
-          </p>
-        </template>
-        <p v-else class="first-date">Termin erfragen</p>
-
-        <p v-if="preview.first.rescue" class="rescue">
-          <b>Ausweg:</b> kündige bis
-          <b class="mono">{{ shortDate(preview.first.rescue.date) }}</b
-          >. {{ preview.first.rescue.label }}. Für den
-          <span class="mono">{{ shortDate(anchorDate) }}</span> als
-          {{ selected!.anchorLabel }} ist die Frist nicht mehr zu halten.
-        </p>
-
-        <p v-if="basis" class="basis">
-          <template v-if="basis.label"
-            >Grundlage: <b>{{ basis.label }}</b
-            ><template v-if="basis.rule">, </template></template
-          >{{ basis.rule }}.
-          <a
-            v-if="basis.url"
-            class="source"
-            :href="basis.url"
-            target="_blank"
-            rel="noopener"
-            >Quelle</a
+        <div class="chips">
+          <button
+            v-for="p in presets"
+            :key="p.label"
+            type="button"
+            class="chip key"
+            :aria-pressed="anchorDate === p.iso()"
+            @click="anchorDate = p.iso()"
           >
+            {{ p.label }}
+          </button>
+        </div>
+
+        <p v-if="ort" class="coverage">
+          <Check v-if="localVariant" :size="15" class="ok" aria-hidden="true" />
+          <Info v-else :size="15" class="thin" aria-hidden="true" />
+          <span>
+            <b>{{ ort.name }}: </b>
+            <template v-if="localVariant">
+              {{ localSteps }} sind als eigene Fristen hinterlegt, dazu die
+              Feiertage in {{ stateName(ort) }}. Liegt dein Termin in den
+              Schulferien, sagen wir es darunter.
+            </template>
+            <template v-else>
+              Die Feiertage in {{ stateName(ort) }} sind eingerechnet, und liegt
+              dein Termin in den Schulferien, sagen wir es darunter.
+              <template v-if="hasLocalVariants">
+                Örtliche Fristen wie Halteverbotszone oder Sperrmüll haben wir
+                hier noch nicht, der Plan zeigt die bundesweiten Schritte.
+              </template>
+            </template>
+          </span>
         </p>
 
-        <ol class="rest">
-          <li v-for="t in preview.rest" :key="t.id">
-            <span>{{ t.label }}</span>
-            <span v-if="t.date" class="dt mono">{{ dayMonth(t.date) }}</span>
-            <span v-else class="dt none">Termin erfragen</span>
-          </li>
-        </ol>
-        <p v-if="preview.more > 0" class="more">
-          und <span class="mono">{{ preview.more }}</span> weitere Fristen im
-          vollständigen Plan.
+        <p v-if="ferien" class="ferien">
+          <Info :size="15" aria-hidden="true" />
+          <span>
+            Der <span>{{ shortDate(anchorDate) }}</span> liegt in den
+            {{ ferien.name }} ({{ shortDate(ferien.from) }} bis
+            {{ shortDate(ferien.to) }}).
+          </span>
         </p>
+      </section>
+    </Transition>
 
-        <p v-if="savedForSelected" class="replaces">
-          Du hast schon einen Plan für {{ selected!.label }} vom
-          <span class="mono">{{ shortDate(savedForSelected.date) }}</span
-          >. Dieses Formular legt einen neuen an und ersetzt ihn.
-        </p>
+    <Transition name="reveal">
+      <section v-if="preview" class="step">
+        <div class="card">
+          <p class="eyebrow" :class="{ late: overdue }">
+            <AlertTriangle v-if="overdue" :size="14" aria-hidden="true" />
+            {{
+              overdue ? "Diese Frist ist bereits verstrichen" : "Als Nächstes"
+            }}
+          </p>
+          <p class="first-task">{{ preview.first.label }}</p>
+          <template v-if="span">
+            <p class="first-date mono" :class="{ late: overdue }">
+              {{ shortDate(preview.first.date!) }}
+            </p>
+            <p class="countdown" :class="{ late: overdue }">
+              <template v-if="overdue">
+                <span>{{ span.n }}</span> {{ span.unit }} überfällig
+              </template>
+              <template v-else-if="span.days === 0">heute fällig</template>
+              <template v-else>
+                in <span>{{ span.n }}</span> {{ span.unit }}
+              </template>
+            </p>
+          </template>
+          <p v-else class="first-date">Termin erfragen</p>
 
-        <a class="cta" :href="planHref">
-          Plan öffnen <ArrowRight :size="16" />
-        </a>
-        <p class="after-cta">
-          Im Plan: abhaken, Aufgaben ergänzen und alles als Kalender
-          exportieren.
-        </p>
-      </div>
-    </section>
+          <p v-if="preview.first.rescue" class="rescue">
+            <b>Ausweg:</b> kündige bis
+            <b>{{ shortDate(preview.first.rescue.date) }}</b
+            >. {{ preview.first.rescue.label }}. Für den
+            <span>{{ shortDate(anchorDate) }}</span> als
+            {{ selected!.anchorLabel }} ist die Frist nicht mehr zu halten.
+          </p>
+
+          <p v-if="basis" class="basis">
+            <template v-if="basis.label"
+              >Grundlage: <b>{{ basis.label }}</b
+              ><template v-if="basis.rule">, </template></template
+            >{{ basis.rule }}.
+            <a
+              v-if="basis.url"
+              class="source"
+              :href="basis.url"
+              target="_blank"
+              rel="noopener"
+              >Quelle</a
+            >
+          </p>
+
+          <ol class="rest">
+            <li v-for="t in preview.rest" :key="t.id">
+              <span>{{ t.label }}</span>
+              <span v-if="t.date" class="dt mono">{{ dayMonth(t.date) }}</span>
+              <span v-else class="dt none">Termin erfragen</span>
+            </li>
+          </ol>
+          <p v-if="preview.more > 0" class="more">
+            und <span>{{ preview.more }}</span> weitere Fristen im vollständigen
+            Plan.
+          </p>
+
+          <p v-if="savedForSelected" class="replaces">
+            Du hast schon einen Plan für {{ selected!.label }} vom
+            <span>{{ shortDate(savedForSelected.date) }}</span
+            >. Dieses Formular legt einen neuen an und ersetzt ihn.
+          </p>
+
+          <a class="cta" :href="planHref">
+            Plan öffnen <ArrowRight :size="16" />
+          </a>
+          <p class="after-cta">
+            Im Plan: abhaken, Aufgaben ergänzen und alles als Kalender
+            exportieren.
+          </p>
+        </div>
+      </section>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from "vue";
-import { AlertTriangle, ArrowRight, Check, Info, Search } from "lucide-vue-next";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Check,
+  Info,
+  Search,
+} from "lucide-vue-next";
 import gemeinden from "../../data/gemeinden.json";
 import { appliesTo } from "../../lib/facets";
 import {
@@ -425,11 +444,11 @@ onMounted(() => (savedPlans.value = loadSavedPlans()));
 
 <style scoped>
 .intro {
-  padding: 0.5rem 0 0;
+  padding: 1rem 0 0.5rem;
 }
 h1 {
   max-width: 20ch;
-  margin-top: 0;
+  margin: 0 0 1rem;
 }
 .lede {
   color: var(--muted);
@@ -440,15 +459,79 @@ h1 {
   color: var(--ink);
 }
 
+/* Two plans fit side by side, four stack into two rows, one fills the row. */
+.plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+/* Saved plans fade in after the storage read and slide out when forgotten. */
+.plan-enter-active {
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.plan-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+.plan-enter-from {
+  opacity: 0;
+  transform: translateY(0.5rem);
+}
+.plan-leave-to {
+  opacity: 0;
+  transform: translateX(-1rem);
+}
+.plan-move {
+  transition: transform 0.3s ease;
+}
+
+/* Steps arrive, they do not pop: fade up on enter, fade out on leave. */
+.reveal-enter-active {
+  transition:
+    opacity 0.24s ease,
+    transform 0.24s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.reveal-leave-active {
+  transition: opacity 0.14s ease;
+}
+.reveal-enter-from {
+  opacity: 0;
+  transform: translateY(0.5rem);
+}
+.reveal-leave-to {
+  opacity: 0;
+}
+.drop-enter-active,
+.drop-leave-active {
+  transition:
+    opacity 0.14s ease,
+    transform 0.14s ease;
+}
+.drop-enter-from,
+.drop-leave-to {
+  opacity: 0;
+  transform: translateY(-0.25rem);
+}
+
 /* One rhythm: every block of the page starts the same distance below the last. */
 .step {
-  margin-top: 2rem;
+  margin-top: 4rem;
+}
+@media (max-width: 40rem) {
+  .step {
+    margin-top: 2.5rem;
+  }
 }
 .q {
   font-size: var(--fs-lg);
   border: 0;
   padding: 0;
-  margin: 0 0 0.9rem;
+  margin: 0 0 1.25rem;
 }
 
 /* Cards, not pills: the pill shape belongs to the date presets below. */
@@ -497,7 +580,7 @@ h1 {
 .fields {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem 1.4rem;
+  gap: 1.25rem 1.75rem;
 }
 .field {
   display: flex;
@@ -604,8 +687,8 @@ input[type="date"] {
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.9rem;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
 }
 .chip {
   border-radius: var(--radius-pill);
@@ -623,7 +706,7 @@ input[type="date"] {
   display: flex;
   align-items: flex-start;
   gap: 0.4rem;
-  margin: 0.9rem 0 0;
+  margin: 1.25rem 0 0;
   font-size: var(--fs-sm);
   color: var(--muted);
   max-width: 60ch;
@@ -658,7 +741,7 @@ input[type="date"] {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
-  padding: 1.4rem 1.4rem 1.2rem;
+  padding: 1.75rem 1.75rem 1.5rem;
 }
 .eyebrow {
   display: flex;
@@ -716,14 +799,10 @@ input[type="date"] {
 .source {
   margin-left: 0.3rem;
 }
-/* Monospace marks hard dates and every derived number. */
-.mono {
-  font-family: var(--font-mono);
-}
 
 .rest {
   list-style: none;
-  margin: 1rem 0 0;
+  margin: 1.4rem 0 0;
   padding: 0;
   border-top: 1px solid var(--line);
 }
@@ -732,7 +811,7 @@ input[type="date"] {
   justify-content: space-between;
   align-items: baseline;
   gap: 1rem;
-  padding: 0.6rem 0;
+  padding: 0.75rem 0;
   border-bottom: 1px solid var(--line);
 }
 .rest .dt {
@@ -753,24 +832,5 @@ input[type="date"] {
   margin: 0.8rem 0 0;
   font-size: var(--fs-sm);
   color: var(--holiday);
-}
-
-.cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: 1.2rem;
-  padding: 0.6rem 1.2rem;
-  border-radius: var(--radius);
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: var(--fs-md);
-  font-weight: 600;
-  text-decoration: none;
-}
-.after-cta {
-  margin: 0.8rem 0 0;
-  font-size: var(--fs-sm);
-  color: var(--muted);
 }
 </style>

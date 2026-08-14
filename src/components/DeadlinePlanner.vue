@@ -298,7 +298,7 @@ onBeforeUnmount(() => {
     <template v-if="anchorDate">
       <fieldset v-if="facetOptions.length > 1" class="facets">
         <legend>Trifft auf mich zu</legend>
-        <label v-for="id in facetOptions" :key="id" class="facet">
+        <label v-for="id in facetOptions" :key="id" class="facet key">
           <input v-model="activeFacets" type="checkbox" :value="id" />
           <span>{{ facetLabel(id) }}</span>
         </label>
@@ -389,7 +389,7 @@ onBeforeUnmount(() => {
 }
 .compact .planner-header {
   padding: 0.45rem var(--wrap-pad, 0px);
-  box-shadow: 0 10px 24px -18px color-mix(in srgb, var(--ink) 55%, transparent);
+  box-shadow: var(--shadow-card);
 }
 
 .title {

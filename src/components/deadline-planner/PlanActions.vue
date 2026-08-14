@@ -36,14 +36,14 @@ const print = () => window.print();
   <div class="actions">
     <h2 class="section">Plan mitnehmen</h2>
     <div class="actions-buttons">
-      <button type="button" @click="copyPlanLink">
+      <button type="button" class="key" @click="copyPlanLink">
         <Link2 :size="14" />
         {{ linkCopied ? "Kopiert" : "Plan-Link kopieren" }}
       </button>
-      <button type="button" @click="exportIcs">
+      <button type="button" class="key" @click="exportIcs">
         <Download :size="14" /> Als ICS exportieren
       </button>
-      <button type="button" @click="print">
+      <button type="button" class="key" @click="print">
         <Printer :size="14" /> Checkliste drucken
       </button>
     </div>

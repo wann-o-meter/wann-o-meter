@@ -52,11 +52,10 @@ export function bgb573cNoticeDeadline(
   });
   derivation.push({
     step: "target-end-month",
-    label: `Angenommenes Mietende: Ende ${monthLabel(targetEndMonth)} (${
-      deferMonths > 0
+    label: `Angenommenes Mietende: Ende ${monthLabel(targetEndMonth)} (${deferMonths > 0
         ? `${deferMonths} Überlappungsmonat eingeplant`
         : "kein Überlappungsmonat eingeplant"
-    })`,
+      })`,
     value: targetEndMonth,
   });
 

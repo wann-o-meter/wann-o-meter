@@ -7,7 +7,7 @@ const WEEKDAY_NAMES_LONG = [
   "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag",
 ];
 
-const WEEKDAY_NAMES_SHORT = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+export const WEEKDAY_NAMES_SHORT = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
 function utcParts(iso: string) {
   const d = new Date(`${iso.slice(0, 10)}T00:00:00Z`);
