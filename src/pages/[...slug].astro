@@ -4,6 +4,8 @@ import DeadlinePlanner from "../components/DeadlinePlanner.vue";
 import StaticPlan from "../components/StaticPlan.astro";
 import { vorhabenRoutes } from "../../lib/vorhaben-routes";
 import { BUNDESWEIT_SLUG } from "../../lib/vorhaben-data";
+import { appliesTo } from "../../lib/facets";
+import { byOffset, offsetLabel } from "../../lib/offset-label";
 
 export function getStaticPaths() {
   return vorhabenRoutes().map((r) => ({ params: { slug: r.path }, props: r }));
@@ -23,15 +25,48 @@ const crumbs = [
     ]
     : []),
 ];
+// Every number below is counted from the plan itself, so the text cannot drift
+// away from the Fristen it describes.
+const entries = variant.deadlines.filter((d) => appliesTo(d, [])).sort(byOffset);
+const earliest = entries[0];
+const withSource = entries.filter((d) => d.source_url).length;
+const needsOffice = entries.filter((d) => d.needs_office).length;
+const afterAnchor = entries.filter((d) => (d.offset_days ?? 0) > 0).length;
+const undated = entries.filter((d) => d.offset_days === null).length;
+const baseIds = new Set(
+  (v.variants.find((x) => x.slug === BUNDESWEIT_SLUG)?.deadlines ?? []).map(
+    (d) => d.id,
+  ),
+);
+const localSteps = entries
+  .filter((d) => !baseIds.has(d.id))
+  .map((d) => d.label.split(" ")[0]);
+
 const structuredData = {
   "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: crumbs.map((c, i) => ({
-    "@type": "ListItem",
-    position: i + 1,
-    name: c.name,
-    item: c.url,
-  })),
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: crumbs.map((c, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: c.name,
+        item: c.url,
+      })),
+    },
+    {
+      "@type": "ItemList",
+      name: title,
+      description,
+      numberOfItems: entries.length,
+      itemListOrder: "https://schema.org/ItemListOrderAscending",
+      itemListElement: entries.map((d, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: d.label,
+      })),
+    },
+  ],
 };
 const siblings = v.variants.filter((s) => s.slug !== BUNDESWEIT_SLUG);
 const PREVIEW = 12;
@@ -42,6 +77,23 @@ const rest = siblings.slice(PREVIEW);
 <Layout title={title} description={description} structuredData={structuredData}>
   <p class="back"><a href="/">&larr; Alle Vorhaben</a></p>
   <h1 id="static-title">{title}</h1>
+  <p class="overview">
+    Der Zeitplan für {v.vorhaben} umfasst <b>{entries.length} Fristen</b>.{" "}
+    {earliest && (
+      <>
+        Die erste ist {earliest.label} ({offsetLabel(earliest, v.anchorLabel)}).{" "}
+      </>
+    )}
+    {afterAnchor > 0 && (
+      <>{afterAnchor} davon fallen erst nach dem {v.anchorLabel} an.{" "}</>
+    )}
+    {withSource} Fristen sind mit Paragraf und Quelle belegt{
+      needsOffice > 0 && <>, {needsOffice} brauchen einen Termin beim Amt</>
+    }{undated > 0 && <>, {undated} sind noch nicht recherchiert</>}.{" "}
+    {localSteps.length > 0 && (
+      <>In {variant.label} kommen dazu: {localSteps.join(", ")}.</>
+    )}
+  </p>
   <DeadlinePlanner
     client:only="vue"
     slug={v.slug}
@@ -98,6 +150,14 @@ const rest = siblings.slice(PREVIEW);
 </Layout>
 
 <style>
+  .overview {
+    max-width: 62ch;
+    color: var(--muted);
+  }
+  .overview b {
+    color: var(--ink);
+    font-weight: 600;
+  }
   .back {
     font-size: var(--fs-sm);
   }

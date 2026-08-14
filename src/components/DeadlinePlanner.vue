@@ -216,6 +216,8 @@ function trackActiveCard() {
 }
 
 onMounted(() => {
+  // Both are the pre-hydration fallback, the planner renders the same Fristen
+  // with their notes and sources, so showing both would only duplicate.
   document.getElementById("static-plan")?.remove();
   document.getElementById("static-title")?.remove();
   const linked = location.hash.match(/^#task-(.+)$/);

@@ -12,11 +12,14 @@ const { deadlines, anchorLabel } = Astro.props;
 const entries = deadlines.filter((d) => appliesTo(d, [])).sort(byOffset);
 ---
 
+<!-- The fallback before hydration and without JavaScript. The planner renders
+the same Fristen with labels, notes and sources, and drops this on mount so the
+page never shows both. -->
 <section id="static-plan">
-  <h2>Alle Fristen im Überblick</h2>
+  <h2>Fristen und Quellen im Überblick</h2>
   <p class="lede">
-    Jede Frist relativ zum {anchorLabel}. Mit einem Datum wird daraus ein
-    Zeitplan mit konkreten Tagen.
+    Jede Frist relativ zum {anchorLabel}, mit der Quelle dahinter. Oben im
+    Zeitplan wird daraus mit einem Datum ein konkreter Tag.
   </p>
   <ol>
     {
