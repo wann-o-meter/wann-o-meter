@@ -38,9 +38,7 @@ const schulferien = Object.fromEntries(
 ---
 
 <Layout title="Wann muss ich anfangen?" description={homeDescription} structuredData={structuredData}>
-  <!-- idle, not load: the page is server rendered, so let it paint before the
-  island and its holiday tables take the main thread. -->
-  <IndexTimeline client:idle vorhaben={vorhaben} schulferien={schulferien} />
+  <IndexTimeline client:load vorhaben={vorhaben} schulferien={schulferien} />
 
   <!-- The picker above is a set of buttons, this is the crawlable way in. -->
   <section class="all-plans">
