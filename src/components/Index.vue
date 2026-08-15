@@ -59,7 +59,7 @@
             />
           </div>
           <div class="field ac">
-            <label for="ort">Ort</label>
+            <label for="ort">Ort <span class="opt">optional</span></label>
             <div class="ac-input" :class="{ picked: ort }">
               <Search v-if="!ort" :size="16" aria-hidden="true" />
               <Check v-else :size="16" class="ok" aria-hidden="true" />
@@ -594,6 +594,12 @@ h1 {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
+}
+.field > label .opt {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.75;
 }
 .field input {
   padding: 0.5rem 0.75rem;

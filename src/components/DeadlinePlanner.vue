@@ -124,6 +124,10 @@ const picker = useTaskPicker({
 
 const editor = ref<{ id: string; kind: EditorKind } | null>(null);
 
+// Kept in sync by hand with lib/vorhaben-data, importing it would pull node:fs
+// into the browser bundle.
+const isBundesweit = computed(() => selectedSlug.value === "bundesweit");
+
 const dateEl = useTemplateRef<HTMLInputElement>("dateEl");
 // A transparent date input only opens its picker when the calendar icon is hit,
 // so the whole slot triggers it instead.
@@ -259,9 +263,9 @@ onBeforeUnmount(() => {
         />
       </span>
       <template v-if="variants.length > 1">
-        {{ variantPreposition ?? "in" }}
+        {{ isBundesweit ? "in" : (variantPreposition ?? "in") }}
         <span class="slot">
-          <span>{{ selected?.label }}</span>
+          <span>{{ isBundesweit ? "ganz Deutschland" : selected?.label }}</span>
           <select v-model="selectedSlug" :aria-label="variantLabel">
             <option v-for="v in variants" :key="v.slug" :value="v.slug">
               {{ v.label }}

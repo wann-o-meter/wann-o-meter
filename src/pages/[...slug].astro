@@ -109,7 +109,12 @@ const rest = siblings.slice(PREVIEW);
   {
     siblings.length > 0 && (
       <nav class="places">
-        <h2>{v.label} in deiner Stadt</h2>
+        <h2>Örtliche Fristen</h2>
+        <p class="places-note">
+          Halteverbotszone, Anwohnerparkausweis und Sperrmüll regelt jede
+          Kommune in ihrer eigenen Satzung, bundesweit gibt es dafür keine
+          Frist. Für diese Orte haben wir sie nachgeschlagen:
+        </p>
         <ul>
           {preview.map((s) =>
             s.slug === variant.slug ? (
@@ -168,6 +173,12 @@ const rest = siblings.slice(PREVIEW);
   }
   .places {
     margin-top: 2rem;
+  }
+  .places-note {
+    max-width: 62ch;
+    margin: 0 0 0.75rem;
+    color: var(--muted);
+    font-size: var(--fs-sm);
   }
   .places ul {
     list-style: none;

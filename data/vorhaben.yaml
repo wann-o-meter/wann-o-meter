@@ -13,7 +13,8 @@
   anchorName: Umzug
   variantLabel: Ort
   variantPreposition: nach
-  defaultVariant: rottenburg
+  # Bundesweit by default: a city is an addition to the plan, not a prerequisite.
+  defaultVariant: bundesweit
 
 - slug: geburt
   label: Geburt
