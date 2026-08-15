@@ -128,9 +128,10 @@ function move(step: number) {
           :class="{ on: i === active }"
           @mousedown.prevent="choose(g)"
         >
-          <span
-            ><span v-if="g.plz" class="plz">{{ g.plz }}</span> {{ g.name }}</span
-          >
+          <span class="name">
+            <span v-if="g.plz" class="plz">{{ g.plz }}</span>
+            <span class="label">{{ g.name }}</span>
+          </span>
           <span v-if="isCovered(g)" class="tag covered">
             <Check :size="12" aria-hidden="true" /> örtliche Fristen
           </span>
@@ -212,7 +213,21 @@ li.on,
 li:hover {
   background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
+/* The name owns the leftover width and clips, the tag never gets pushed onto a
+second line. */
+.name {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 .plz {
+  flex-shrink: 0;
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
   color: var(--muted);

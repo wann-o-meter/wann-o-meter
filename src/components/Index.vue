@@ -90,13 +90,12 @@
                   :aria-selected="g.name === ort?.name"
                   @mousedown.prevent="chooseOrt(g)"
                 >
-                  <span
-                    ><span v-if="g.plz" class="plz">{{ g.plz }}</span>
-                    {{ g.name }}</span
-                  >
+                  <span class="name">
+                    <span v-if="g.plz" class="plz">{{ g.plz }}</span>
+                    <span class="label">{{ g.name }}</span>
+                  </span>
                   <span v-if="variantFor(g)" class="tag covered">
                     <Check :size="13" aria-hidden="true" /> örtliche Fristen
-                    hinterlegt
                   </span>
                   <span v-else class="tag">{{ stateName(g) }}</span>
                 </li>
@@ -719,10 +718,24 @@ input[type="date"] {
 .ac li[aria-selected="true"] {
   background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
+/* The name owns the leftover width and clips, the tag never gets pushed onto a
+second line. */
+.ac .name {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.ac .label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 .ac .tag {
   display: flex;
   align-items: center;
   gap: 0.2rem;
+  flex-shrink: 0;
   font-size: var(--fs-xs);
   color: var(--muted);
   white-space: nowrap;
@@ -733,6 +746,7 @@ input[type="date"] {
 /* Over 450 Gemeinde names exist more than once, the PLZ is what tells them
 apart in the list. */
 .ac .plz {
+  flex-shrink: 0;
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
   color: var(--muted);
