@@ -341,18 +341,62 @@ const coveredOrte = computed<Gemeinde[]>(() =>
       name: v.label,
       plz: gemeinden.value.find((g) => g.name === v.label)?.plz ?? "",
       state: v.regionCode ?? "",
-    }))
-    .slice(0, 6),
+    })),
 );
+
+// The four biggest, so the empty field is not just the handful of Orte we
+// happen to have Fristen for.
+const BIG_CITIES = ["Berlin", "Hamburg", "München", "Frankfurt am Main"];
+
+const SUGGESTION_COUNT = 10;
+
+// "Muenchen" and "munchen" should both find München.
+function fold(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/ß/g, "ss")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+// Tiers, best first: the whole name, the start of the name, the start of a word
+// inside it, anywhere. Within a tier the shorter name wins, which is the same
+// as "more of the name is the query".
+function rank(name: string, q: string): number {
+  const n = fold(name);
+  if (n === q) return 0;
+  if (n.startsWith(q)) return 1;
+  const at = n.indexOf(q);
+  if (at < 0) return 4;
+  return /[\s(-]/.test(n[at - 1] ?? "") ? 2 : 3;
+}
 
 const suggestions = computed(() => {
   if (!suggestionsOpen.value || ort.value) return [];
-  const q = ortQuery.value.trim().toLowerCase();
-  if (q.length === 0) return coveredOrte.value;
-  if (q.length < 2) return [];
-  return gemeinden.value
-    .filter((g) => g.name.toLowerCase().includes(q) || g.plz.startsWith(q))
-    .slice(0, 6);
+  const q = fold(ortQuery.value.trim());
+  const covered = coveredOrte.value;
+  if (q.length === 0)
+    return [
+      ...covered,
+      ...BIG_CITIES.map((n) => gemeinden.value.find((g) => g.name === n)).filter(
+        (g): g is Gemeinde => !!g && !covered.some((c) => c.name === g.name),
+      ),
+    ].slice(0, SUGGESTION_COUNT);
+
+  // ponytail: a linear scan over 11k names per keystroke, fast enough by far.
+  // Build an index only if the list ever grows past a country.
+  const scored: { g: Gemeinde; tier: number }[] = [];
+  for (const g of gemeinden.value) {
+    const tier = g.plz.startsWith(q) ? 1 : rank(g.name, q);
+    if (tier < 4) scored.push({ g, tier });
+  }
+  return scored
+    .sort(
+      (a, b) => a.tier - b.tier || a.g.name.length - b.g.name.length ||
+        a.g.name.localeCompare(b.g.name, "de"),
+    )
+    .slice(0, SUGGESTION_COUNT)
+    .map((s) => s.g);
 });
 function chooseOrt(g: Gemeinde) {
   ort.value = g;

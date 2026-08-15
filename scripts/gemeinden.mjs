@@ -1,5 +1,5 @@
 // Regenerates public/gemeinden.json from Wikidata. Run by hand when the list
-// should be refreshed: `node scripts/gemeinden.mjs`.
+// should be refreshed: `bun scripts/gemeinden.mjs`.
 //
 // Selected by Gemeindeschlüssel (P439) rather than by class and P131 chain:
 // the chain version times the endpoint out, and the first two digits of the
@@ -45,17 +45,26 @@ function firstPlz(raw) {
   return codes ? codes.sort()[0] : null;
 }
 
-const res = await fetch(ENDPOINT, {
-  method: "POST",
-  headers: {
-    "User-Agent": UA,
-    Accept: "application/sparql-results+json",
-    "Content-Type": "application/x-www-form-urlencoded",
-  },
-  body: new URLSearchParams({ query: QUERY }),
-});
-if (!res.ok) throw new Error(`HTTP ${res.status}`);
-const rows = (await res.json()).results.bindings;
+// The public endpoint answers this in about 45 seconds and hands out a 504
+// whenever it is busy, so a few attempts are normal.
+async function ask(attempt = 1) {
+  const res = await fetch(ENDPOINT, {
+    method: "POST",
+    headers: {
+      "User-Agent": UA,
+      Accept: "application/sparql-results+json",
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({ query: QUERY }),
+  });
+  if (res.ok) return (await res.json()).results.bindings;
+  if (attempt >= 5) throw new Error(`HTTP ${res.status} after ${attempt} tries`);
+  console.error(`HTTP ${res.status}, retrying (${attempt})`);
+  await new Promise((r) => setTimeout(r, attempt * 10000));
+  return ask(attempt + 1);
+}
+
+const rows = await ask();
 
 const seen = new Set();
 const out = [];
