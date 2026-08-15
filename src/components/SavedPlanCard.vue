@@ -28,9 +28,14 @@
         erledigt.
       </p>
 
-      <a class="cta" :href="href">
-        {{ v.label }} bearbeiten <ArrowRight :size="14" />
-      </a>
+      <div class="row">
+        <a class="cta" :href="href">
+          {{ v.label }} bearbeiten <ArrowRight :size="14" />
+        </a>
+        <button type="button" class="forget" @click="$emit('forget', v.slug)">
+          Plan entfernen
+        </button>
+      </div>
     </div>
 
     <!-- Only worth a grid while the next Frist is in the month you are in. -->
@@ -201,10 +206,30 @@ h2.late {
   color: var(--muted);
 }
 
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1rem;
+}
 .cta {
   margin-top: 0.7rem;
   padding: 0.35rem 0.8rem;
   font-size: var(--fs-sm);
+}
+/* Removing a plan sits next to the way in, but reads as an aside. */
+.forget {
+  margin-top: 0.7rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+.forget:hover {
+  color: var(--warn);
 }
 
 .cal {
