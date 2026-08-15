@@ -1,5 +1,5 @@
 - [x] Fix the date selection in the title of the slug page. it doesn't work reliably, the hitbox is weird.
-- [ ] Add a small home link in the top navbar, next to the light/darkmode toggle
+- [x] Add a small home link in the top navbar, next to the light/darkmode toggle
 - [ ] Make a nationwide plan the default, with a note that parking-permit and bulk-waste rules are municipal, plus links for the covered cities
 - [ ] Keep the city pages as SEO longtail, but not as a choice the user appears forced to make
 - [ ] Add KFZ-Ummeldung to the moving plan (§ 13 FZV, mandatory on change of residence, fineable if missed)

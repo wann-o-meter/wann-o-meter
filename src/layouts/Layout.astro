@@ -1,7 +1,7 @@
 ---
 import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
-import { Monitor, Moon, Sun } from "@lucide/astro";
+import { House, Monitor, Moon, Sun } from "@lucide/astro";
 import { newSourceIssueUrl } from "../../lib/github-issue";
 import { loadAllVorhaben } from "../../lib/vorhaben-data";
 
@@ -89,17 +89,22 @@ const ogDescription =
         <a href="/" class="brand"
           >Wann-<span class="brand-accent">O</span>-Meter</a
         >
-        <button
-          type="button"
-          id="theme-toggle"
-          class="theme-toggle key"
-          title="Farbschema wechseln (System/Hell/Dunkel)"
-        >
-          <Monitor size={16} data-theme-icon="system" class="active" />
-          <Sun size={16} data-theme-icon="light" />
-          <Moon size={16} data-theme-icon="dark" />
-          <span data-theme-label>System</span>
-        </button>
+        <div class="header-actions">
+          <a href="/" class="home key" aria-label="Zur Startseite" title="Zur Startseite">
+            <House size={16} />
+          </a>
+          <button
+            type="button"
+            id="theme-toggle"
+            class="theme-toggle key"
+            title="Farbschema wechseln (System/Hell/Dunkel)"
+          >
+            <Monitor size={16} data-theme-icon="system" class="active" />
+            <Sun size={16} data-theme-icon="light" />
+            <Moon size={16} data-theme-icon="dark" />
+            <span data-theme-label>System</span>
+          </button>
+        </div>
       </div>
     </header>
     <main class:list={["wrap", { wide }]}>
@@ -213,6 +218,23 @@ const ogDescription =
     text-decoration: none;
   }
   .brand .brand-accent {
+    color: var(--accent);
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .home {
+    display: inline-flex;
+    padding: 0.35rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper-raised);
+    color: var(--ink);
+  }
+  .home:hover {
+    border-color: var(--accent);
     color: var(--accent);
   }
   .theme-toggle span {
