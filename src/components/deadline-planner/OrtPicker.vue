@@ -143,8 +143,10 @@ function move(step: number) {
 </template>
 
 <style scoped>
+/* Deliberately not positioned: the popover anchors to the nearest positioned
+ancestor instead, so it opens at the left of the whole heading and cannot hang
+off the right edge when the Ort sits at the end of a long line. */
 .ort {
-  position: relative;
   display: inline-block;
 }
 .slot {
@@ -166,7 +168,7 @@ function move(step: number) {
   top: calc(100% + 0.4rem);
   left: 0;
   z-index: 60;
-  width: min(22rem, 80vw);
+  width: min(22rem, 100%);
   padding: 0.4rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);

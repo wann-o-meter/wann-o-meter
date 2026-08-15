@@ -181,6 +181,8 @@ const href = computed(() =>
 .body {
   flex: 1 1 13rem;
   min-width: 0;
+  /* Frist labels are long compound nouns, they have to be allowed to break. */
+  overflow-wrap: anywhere;
 }
 .meta {
   margin: 0;

@@ -554,6 +554,9 @@ onBeforeUnmount(() => {
 }
 
 .title {
+  /* The Ort popover anchors here, so it opens at the left of the heading and
+  stays inside the content column. */
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;

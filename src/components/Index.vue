@@ -504,7 +504,9 @@ h1 {
 /* Two plans fit side by side, four stack into two rows, one fills the row. */
 .plans {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  /* min() or the 22rem track stays 22rem on a narrower screen and the card
+  pushes the page sideways. */
+  grid-template-columns: repeat(auto-fit, minmax(min(22rem, 100%), 1fr));
   gap: 1.25rem;
   margin-bottom: 1rem;
 }
