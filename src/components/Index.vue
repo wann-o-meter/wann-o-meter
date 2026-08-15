@@ -396,7 +396,7 @@ const { tasks } = usePlannerSchedule(
 
 // Tasks arrive sorted by date, undated last.
 const preview = computed(() => {
-  if (!selected.value || !anchorDate.value || !ort.value) return null;
+  if (!selected.value || !anchorDate.value) return null;
   const [first, ...others] = tasks.value;
   if (!first) return null;
   return {
