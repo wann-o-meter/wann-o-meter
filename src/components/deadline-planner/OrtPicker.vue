@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef } from "vue";
-import { Check, Search } from "lucide-vue-next";
+import { Check, MapPin, Search } from "lucide-vue-next";
 import { loadGemeinden, searchGemeinden } from "../../../lib/gemeinde-search";
 import type { Gemeinde } from "../../../lib/gemeinde-search";
 import type { PlanVariant } from "./types";
@@ -90,7 +90,7 @@ function move(step: number) {
       :aria-expanded="open"
       @click="openPicker"
     >
-      {{ label }}
+      <MapPin :size="16" class="pin" aria-hidden="true" />{{ label }}
     </button>
 
     <div v-if="open" class="pop">
@@ -129,6 +129,7 @@ function move(step: number) {
           @mousedown.prevent="choose(g)"
         >
           <span class="name">
+            <MapPin :size="13" class="pin" aria-hidden="true" />
             <span v-if="g.plz" class="plz">{{ g.plz }}</span>
             <span class="label">{{ g.name }}</span>
           </span>
@@ -225,6 +226,16 @@ second line. */
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+.pin {
+  flex-shrink: 0;
+  align-self: center;
+  color: var(--muted);
+}
+.slot .pin {
+  margin-right: 0.15em;
+  vertical-align: -0.1em;
+  color: inherit;
 }
 .plz {
   flex-shrink: 0;

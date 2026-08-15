@@ -62,7 +62,7 @@
             <label for="ort">Ort <span class="opt">optional</span></label>
             <div class="ac-input" :class="{ picked: ort }">
               <Search v-if="!ort" :size="16" aria-hidden="true" />
-              <Check v-else :size="16" class="ok" aria-hidden="true" />
+              <MapPin v-else :size="16" class="ok" aria-hidden="true" />
               <input
                 id="ort"
                 v-model="ortQuery"
@@ -91,6 +91,7 @@
                   @mousedown.prevent="chooseOrt(g)"
                 >
                   <span class="name">
+                    <MapPin :size="14" class="pin" aria-hidden="true" />
                     <span v-if="g.plz" class="plz">{{ g.plz }}</span>
                     <span class="label">{{ g.name }}</span>
                   </span>
@@ -236,6 +237,7 @@ import {
   ArrowRight,
   Check,
   Info,
+  MapPin,
   Search,
 } from "lucide-vue-next";
 import { appliesTo } from "../../lib/facets";
@@ -745,6 +747,11 @@ second line. */
 }
 /* Over 450 Gemeinde names exist more than once, the PLZ is what tells them
 apart in the list. */
+.ac .pin {
+  flex-shrink: 0;
+  align-self: center;
+  color: var(--muted);
+}
 .ac .plz {
   flex-shrink: 0;
   font-family: var(--font-mono);
