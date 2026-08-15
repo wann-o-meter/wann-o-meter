@@ -434,7 +434,8 @@ const planHref = computed(() => {
   const params = new URLSearchParams({ date: anchorDate.value });
   if (localVariant.value)
     return `/${selected.value.slug}/${localVariant.value.slug}/?${params}`;
-  params.set("variant", previewVariant.value?.slug ?? BUNDESWEIT);
+  // No variant param: without a local file the plan is the bundesweit one, and
+  // that is exactly what /<vorhaben>/ serves.
   if (ort.value) params.set("region", ort.value.state);
   return `/${selected.value.slug}/?${params}`;
 });

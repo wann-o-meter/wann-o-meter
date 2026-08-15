@@ -5,6 +5,9 @@ import { isoToday } from "../../../lib/today";
 import type { PlanVariant } from "./types";
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+// Kept in sync by hand with lib/vorhaben-data, importing it would pull node:fs
+// into the browser bundle.
+const BUNDESWEIT_SLUG = "bundesweit";
 
 function defaultAnchorDate(deadlines: PlanVariant["deadlines"]): string {
   const offsets = deadlines
@@ -17,6 +20,7 @@ function defaultAnchorDate(deadlines: PlanVariant["deadlines"]): string {
 }
 
 export function usePlanUrlState(
+  vorhabenSlug: string,
   variants: PlanVariant[],
   defaultSlug: string | undefined,
 ) {
@@ -79,26 +83,33 @@ export function usePlanUrlState(
       : undefined,
   );
 
-  // Only mirror state into the URL once the visitor picked something, an
+  // The Ort belongs in the path, otherwise /umzug/rottenburg/?variant=singen
+  // shows two different places at once. The query is still read on arrival so
+  // links shared before this stay valid.
+  const variantPath = (slug: string) =>
+    slug === BUNDESWEIT_SLUG
+      ? `/${vorhabenSlug}/`
+      : `/${vorhabenSlug}/${slug}/`;
+
+  // The other state only reaches the URL once the visitor picked something, an
   // untouched page keeps its clean URL and stays out of the saved plans.
   watch(
     [touched, anchorDate, selectedSlug, activeFacets, overlapMonths],
     () => {
-      if (typeof window === "undefined" || !touched.value) return;
+      if (typeof window === "undefined") return;
       const next = new URLSearchParams(window.location.search);
-      if (anchorDate.value) next.set("date", anchorDate.value);
-      if (selected.value) next.set("variant", selected.value.slug);
-      if (activeFacets.value.length > 0)
-        next.set("facets", activeFacets.value.join(","));
-      else next.delete("facets");
-      if (deferred.value) next.set("overlap", "1");
-      else next.delete("overlap");
+      next.delete("variant");
+      if (touched.value) {
+        if (anchorDate.value) next.set("date", anchorDate.value);
+        if (activeFacets.value.length > 0)
+          next.set("facets", activeFacets.value.join(","));
+        else next.delete("facets");
+        if (deferred.value) next.set("overlap", "1");
+        else next.delete("overlap");
+      }
+      const path = variantPath(selected.value?.slug ?? BUNDESWEIT_SLUG);
       const query = next.toString();
-      history.replaceState(
-        null,
-        "",
-        query ? `?${query}` : window.location.pathname,
-      );
+      history.replaceState(null, "", query ? `${path}?${query}` : path);
     },
     { immediate: true },
   );

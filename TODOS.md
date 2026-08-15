@@ -1,13 +1,2 @@
-- [x] Fix the date selection in the title of the slug page. it doesn't work reliably, the hitbox is weird.
-- [x] Add a small home link in the top navbar, next to the light/darkmode toggle
-- [x] Make a nationwide plan the default, with a note that parking-permit and bulk-waste rules are municipal, plus links for the covered cities
-- [x] Keep the city pages as SEO longtail, but not as a choice the user appears forced to make
-- [x] Add KFZ-Ummeldung to the moving plan (§ 13 FZV, mandatory on change of residence, fineable if missed)
-- [x] Add the other common gaps: household insurance, daycare/school registration, dog tax
-- [x] Reclassify internet provider move/cancellation from "Erfahrungswert" to § 60 TKG
-- [x] Reclassify Rundfunkbeitrag from "Erfahrungswert" to the RBStV provision
-- [x] Cut the meta-statistics from the intro paragraph ("2 of 10 backed by a paragraph") — it advertises your weakest number
-- [x] Expand the "3 require an appointment at a public office" line instead — that's the real stressor and the reason to start early
-- [x] Fix the timeline so the "rows have no meaning" disclaimer becomes unnecessary — either give lanes a meaning (authority / contract / apartment) or compact the layout
-- [x] Surface the ICS export on the plan page — it's promised as step 3 on the homepage but appears nowhere in the actual plan
-- [x] Keep the honest "Erfahrungswert" labelling — it's the strongest trust signal on the site
+- [x] Changing the city, is reflected only in the query but not in the path, meaning this is possible: http://localhost:4321/umzug/rottenburg/?date=2026-11-13&variant=singen
+- [ ] Updating the date in the cards doesn't work. I think this option should be removed for now, also renaming the cards. When a user deletes a card, it's only hidden and it should be framed as "Nicht relevant für mich" instead of "Aufgabe entfernen" and this should be reflected in the query as hidden=foobar,xyz

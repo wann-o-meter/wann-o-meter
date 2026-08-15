@@ -62,7 +62,7 @@ const {
   deferred,
   toggleDefer,
   touched,
-} = usePlanUrlState(props.variants, props.defaultSlug);
+} = usePlanUrlState(props.slug, props.variants, props.defaultSlug);
 
 watch(
   [touched, anchorDate, selectedSlug, activeFacets],
