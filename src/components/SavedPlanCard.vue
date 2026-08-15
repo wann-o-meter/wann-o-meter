@@ -145,10 +145,13 @@ function dayClass(day: string | null): string {
   return day === TODAY ? "today" : "";
 }
 
-const href = computed(
-  () =>
-    `/${props.v.slug}/${local.value ? `${variant.value.slug}/` : ""}?date=${props.plan.date}` +
-    (props.plan.region ? `&region=${props.plan.region}` : ""),
+// An Ort with its own file brings its Bundesland along, region is only for the
+// bundesweit plan of a place we have no file for.
+const href = computed(() =>
+  local.value
+    ? `/${props.v.slug}/${variant.value.slug}/?date=${props.plan.date}`
+    : `/${props.v.slug}/?date=${props.plan.date}` +
+      (props.plan.region ? `&region=${props.plan.region}` : ""),
 );
 </script>
 

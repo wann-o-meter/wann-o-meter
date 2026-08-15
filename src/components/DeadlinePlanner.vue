@@ -71,7 +71,12 @@ watch(
       savePlan({
         slug: props.slug,
         variant: selectedSlug.value,
-        region: selected.value?.regionCode,
+        // Only worth storing for a variant without a Bundesland of its own,
+        // otherwise it just repeats what the Ort file already says.
+        region: props.variants.find((v) => v.slug === selectedSlug.value)
+          ?.regionCode
+          ? undefined
+          : selected.value?.regionCode,
         date: anchorDate.value,
         facets: [...activeFacets.value],
       });
