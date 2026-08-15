@@ -73,6 +73,7 @@
                 aria-controls="aclist"
                 :aria-expanded="suggestions.length > 0"
                 @input="ort = null"
+                @focus="suggestionsOpen = true"
                 @blur="closeSuggestions"
                 @keydown.esc="closeSuggestions"
               />
@@ -311,9 +312,21 @@ const ortQuery = ref("");
 const ort = ref<Gemeinde | null>(null);
 const suggestionsOpen = ref(true);
 
+// Clicking the field should already offer something, and the Orte with their
+// own Fristen are the ones worth offering.
+const coveredOrte = computed(() =>
+  (selected.value?.variants ?? [])
+    .filter((v) => v.slug !== BUNDESWEIT)
+    .map((v) => gemeinden.find((g) => g.name === v.label))
+    .filter((g): g is Gemeinde => !!g)
+    .slice(0, 6),
+);
+
 const suggestions = computed(() => {
+  if (!suggestionsOpen.value || ort.value) return [];
   const q = ortQuery.value.trim().toLowerCase();
-  if (!suggestionsOpen.value || q.length < 2 || ort.value) return [];
+  if (q.length === 0) return coveredOrte.value;
+  if (q.length < 2) return [];
   return gemeinden.filter((g) => g.name.toLowerCase().includes(q)).slice(0, 6);
 });
 function chooseOrt(g: Gemeinde) {

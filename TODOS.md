@@ -4,5 +4,5 @@
 - [x] the website is too shaky when things load client-side
 - [ ] the cities should have the plz in their slug, e.g., there may be multiple singen or biberach or hausen
 - [ ] add all cities in germany, use wikidata
-- [ ] cities should be already shown when clicking the location selection
+- [x] cities should be already shown when clicking the location selection
 - [ ]
