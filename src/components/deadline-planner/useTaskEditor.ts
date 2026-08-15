@@ -93,11 +93,21 @@ export function useTaskEditor(
     lastHidden.value = { id: entry.id, label: entry.label };
   }
 
-  function unhide() {
-    if (!lastHidden.value) return;
-    delete hiddenIds[lastHidden.value.id];
-    lastHidden.value = null;
+  function unhide(id?: string) {
+    const target = id ?? lastHidden.value?.id;
+    if (!target) return;
+    delete hiddenIds[target];
+    if (lastHidden.value?.id === target) lastHidden.value = null;
   }
+
+  const hiddenTasks = computed(() =>
+    [
+      ...(selected.value?.deadlines ?? []),
+      ...customTasks.value.map((t) => ({ id: t.id, label: t.label })),
+    ]
+      .filter((d) => hiddenIds[d.id])
+      .map((d) => ({ id: d.id, label: labelOverrides[d.id] ?? d.label })),
+  );
 
   function insertCustomTask(
     afterOffset: number,
@@ -201,6 +211,7 @@ export function useTaskEditor(
     userNotes,
     attachments,
     lastHidden,
+    hiddenTasks,
     workingDeadlines,
     isCustom: isCustomTask,
     toggleDone,

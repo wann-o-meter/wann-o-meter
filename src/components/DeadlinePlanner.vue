@@ -8,7 +8,7 @@ import {
   useTemplateRef,
   watch,
 } from "vue";
-import { CalendarPlus, ChevronDown, ChevronUp } from "lucide-vue-next";
+import { CalendarPlus, ChevronDown, ChevronUp, Eye } from "lucide-vue-next";
 import Timeline from "./deadline-planner/Timeline.vue";
 import TaskRail from "./deadline-planner/TaskRail.vue";
 import TaskPicker from "./deadline-planner/TaskPicker.vue";
@@ -84,6 +84,7 @@ const {
   userNotes,
   attachments,
   lastHidden,
+  hiddenTasks,
   workingDeadlines,
   isCustom,
   toggleDone,
@@ -386,9 +387,21 @@ onBeforeUnmount(() => {
 
       <DoneGroup :entries="doneEntries" @reopen="toggleDone" />
 
+      <details v-if="hiddenTasks.length > 0" class="hidden-group">
+        <summary>Nicht relevant für mich ({{ hiddenTasks.length }})</summary>
+        <ul>
+          <li v-for="task in hiddenTasks" :key="task.id">
+            <span>{{ task.label }}</span>
+            <button type="button" @click="unhide(task.id)">
+              <Eye :size="14" /> Wieder einblenden
+            </button>
+          </li>
+        </ul>
+      </details>
+
       <p v-if="lastHidden" class="undo">
         „{{ lastHidden.label }}" ausgeblendet.
-        <button type="button" @click="unhide">Rückgängig</button>
+        <button type="button" @click="unhide()">Rückgängig</button>
       </p>
 
       <div v-if="unscheduled.length > 0" class="unscheduled">
@@ -584,6 +597,40 @@ onBeforeUnmount(() => {
 .add-end-wrap :deep(.task-picker) {
   left: 0;
   top: calc(100% + 0.4rem);
+}
+
+.hidden-group {
+  margin-top: 1rem;
+  font-size: var(--fs-sm);
+}
+.hidden-group summary {
+  cursor: pointer;
+  padding: 0.5rem 0;
+  color: var(--muted);
+}
+.hidden-group ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.hidden-group li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  min-height: 2.4rem;
+  color: var(--muted);
+}
+.hidden-group button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  padding: 0.2rem 0.5rem;
+  font-size: var(--fs-xs);
 }
 
 .undo {
