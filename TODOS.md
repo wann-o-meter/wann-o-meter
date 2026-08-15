@@ -8,6 +8,6 @@
 - [x] Reclassify Rundfunkbeitrag from "Erfahrungswert" to the RBStV provision
 - [x] Cut the meta-statistics from the intro paragraph ("2 of 10 backed by a paragraph") — it advertises your weakest number
 - [x] Expand the "3 require an appointment at a public office" line instead — that's the real stressor and the reason to start early
-- [ ] Fix the timeline so the "rows have no meaning" disclaimer becomes unnecessary — either give lanes a meaning (authority / contract / apartment) or compact the layout
+- [x] Fix the timeline so the "rows have no meaning" disclaimer becomes unnecessary — either give lanes a meaning (authority / contract / apartment) or compact the layout
 - [x] Surface the ICS export on the plan page — it's promised as step 3 on the homepage but appears nowhere in the actual plan
-- [ ] Keep the honest "Erfahrungswert" labelling — it's the strongest trust signal on the site
+- [x] Keep the honest "Erfahrungswert" labelling — it's the strongest trust signal on the site

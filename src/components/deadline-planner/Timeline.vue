@@ -6,11 +6,11 @@
   >
     <div v-if="showLegend" class="legend">
       <div class="keys">
-        <span class="item"><span class="capsule"></span> möglich ab – Frist</span>
-        <span class="item"><span class="ring"></span> offen</span>
         <span class="item"
-          ><span class="ring late"></span> überfällig</span
+          ><span class="capsule"></span> möglich ab – Frist</span
         >
+        <span class="item"><span class="ring"></span> offen</span>
+        <span class="item"><span class="ring late"></span> überfällig</span>
         <span class="item"><span class="dot"></span> erledigt</span>
       </div>
       <div class="filters" role="group" aria-label="Bänder einblenden">
@@ -27,10 +27,6 @@
           <span class="swatch ferien"></span> Schulferien
         </label>
       </div>
-      <p v-if="L.laneCount > 1" class="lanes-note">
-        Termine stehen in mehreren Zeilen, damit sich nahe Fristen nicht
-        überdecken. Die Zeile hat keine Bedeutung.
-      </p>
     </div>
 
     <figure ref="figureEl" class="figure">
@@ -499,8 +495,7 @@ watch(
           to: dayNum(w.to),
         }),
       );
-    } catch {
-    }
+    } catch {}
   },
   { immediate: true },
 );
@@ -532,7 +527,11 @@ const L = computed(() => {
         ...t,
         cx,
         x0,
-        left: (x0 ?? cx) - m.markerR,
+        // Only the marker claims a lane, not the capsule behind it. A second
+        // row therefore means "diese Fristen fallen auf denselben Tag" and
+        // needs no explanation, while a marker sitting inside someone else's
+        // capsule shows exactly that overlap.
+        left: cx - m.markerR,
         right: cx + m.markerR,
       };
     })
@@ -591,7 +590,6 @@ const L = computed(() => {
     unit,
     xLeft,
     items,
-    laneCount,
     axisY,
     bandTop,
     monthTop,
@@ -763,10 +761,6 @@ function onMarkerLeave() {
 }
 .swatch.feiertag {
   background: var(--d-feiertag);
-}
-.lanes-note {
-  flex-basis: 100%;
-  margin: 0;
 }
 .swatch.ferien {
   background: var(--d-ferien);
