@@ -1,4 +1,4 @@
-import { type ComputedRef, computed, nextTick, reactive, ref, watch } from "vue";
+import { type ComputedRef, computed, reactive, ref, watch } from "vue";
 import type { Deadline, ScheduleEntry } from "../../../lib/deadline-plan";
 import type { PlanVariant } from "./types";
 import { LETTER_TEMPLATE } from "./task-cta";
@@ -23,7 +23,6 @@ function urlHiddenIds(): string[] {
 
 export function useTaskEditor(
   selected: ComputedRef<PlanVariant | undefined>,
-  rootEl: { value: HTMLElement | null },
   storageKey?: ComputedRef<string>,
 ) {
   let customUid = 0;
@@ -49,16 +48,6 @@ export function useTaskEditor(
         d.id in labelOverrides ? { ...d, label: labelOverrides[d.id] } : d,
       );
   });
-
-  function focusWithin(selector: string) {
-    nextTick(() => {
-      const el = rootEl.value?.querySelector<
-        HTMLInputElement | HTMLTextAreaElement
-      >(selector);
-      el?.focus();
-      if (el instanceof HTMLInputElement) el.select();
-    });
-  }
 
   function toggleDone(id: string) {
     doneIds[id] = !doneIds[id];
@@ -223,6 +212,5 @@ export function useTaskEditor(
     unhide,
     insertCustomTask,
     addTaskAtEnd,
-    focusWithin,
   };
 }

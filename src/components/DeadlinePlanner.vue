@@ -98,7 +98,6 @@ const {
   addTaskAtEnd,
 } = useTaskEditor(
   selectedForPlan,
-  rootEl,
   computed(() => planStorageKey(props.vorhaben, selectedSlug.value)),
 );
 

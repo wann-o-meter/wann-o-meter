@@ -61,6 +61,8 @@ watch(
     await nextTick();
     editorEl.value?.focus();
   },
+  // A blank custom task opens its title editor before the card mounts.
+  { immediate: true },
 );
 
 const textEditor = computed(() => {
