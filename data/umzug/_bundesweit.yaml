@@ -2,8 +2,9 @@
 # offset_days below are generic ballpark figures (common moving-checklist
 # knowledge), not all verified-per-source facts yet - source_url stays null
 # until someone checks a given deadline against its actual Gesetz/Satzung and
-# fills in a real link. Where it's filled in, the URL and its content were
-# checked directly against gesetze-im-internet.de, not assumed.
+# fills in a real link. Where it's filled in, the URL and its content were read
+# directly at the official text, not assumed. The RBStV is a Staatsvertrag of
+# the Laender, so it lives on a Landesrecht portal, not gesetze-im-internet.de.
 deadlines:
   - id: wohnung-kuendigen
     label: Wohnung kündigen
@@ -15,8 +16,27 @@ deadlines:
   - id: internetanbieter-kuendigen-ummelden
     label: Internetanbieter kündigen oder umziehen lassen
     offset_days: -42
+    source_url: https://www.gesetze-im-internet.de/tkg_2021/__60.html
+    source_label: § 60 TKG
+    note: >-
+      Der Anbieter muss am neuen Wohnsitz weiterliefern, sonst darf mit einer
+      Frist von einem Monat gekündigt werden. Die sechs Wochen Vorlauf sind
+      Erfahrungswert, der Techniktermin ist der Engpass.
+  - id: kita-schule-anmelden
+    label: Kita- oder Schulplatz am neuen Wohnort anmelden
+    applies_if: [kinder]
+    offset_days: -60
     source_url: null
-    note: Längster Vorlauf im ganzen Plan, oft mit Techniktermin.
+    note: >-
+      Die Anmeldefristen setzt jede Kommune selbst, Kita-Plätze sind oft ein
+      halbes Jahr im Voraus vergeben.
+  - id: hausratversicherung-ummelden
+    label: Hausratversicherung auf die neue Wohnung ummelden
+    offset_days: -14
+    source_url: null
+    note: >-
+      Ohne Meldung deckt die Police im Zweifel die falsche Adresse. Wohnfläche
+      und Beitrag ändern sich meist mit.
   - id: strom-gas-ummeldung
     label: Strom- und Gasanbieter über den Umzug informieren
     note: Entweder Vertrag mitnehmen oder am alten Ort kündigen und am neuen neu abschließen.
@@ -43,7 +63,11 @@ deadlines:
     earliest_offset_days: 0 # Ummeldung am neuen Wohnort geht erst ab Einzug
     source_url: https://www.gesetze-im-internet.de/fzv_2023/__15.html
     source_label: § 15 Abs. 4 FZV
-    note: Das Gesetz nennt keine Tagesfrist, nur "unverzüglich" - 14 Tage ist die übliche Praxisempfehlung.
+    note: >-
+      Pflicht beim Wechsel in einen anderen Zulassungsbezirk. Das Gesetz nennt
+      keine Tagesfrist, nur "unverzüglich" - 14 Tage ist die übliche
+      Praxisempfehlung. Wer es liegen lässt, dem kann die Zulassungsbehörde den
+      Betrieb des Fahrzeugs untersagen.
   - id: zaehlerstaende-ablesen
     label: Zählerstände ablesen (Strom, Gas, Wasser)
     note: Am besten mit Foto, damit die Schlussrechnung überprüfbar bleibt.
@@ -56,8 +80,21 @@ deadlines:
     offset_days: 0
     source_url: null
     no_source_needed: true # keine Frist, das Protokoll entsteht bei der Übergabe
+  - id: hundesteuer-ummelden
+    label: Hund bei der neuen Gemeinde zur Hundesteuer anmelden
+    applies_if: [haustier_hund]
+    offset_days: 14
+    earliest_offset_days: 0
+    source_url: null
+    note: >-
+      Die Frist steht in der Hundesteuersatzung der Gemeinde, nicht im
+      Bundesrecht. Am alten Wohnort abmelden, sonst zahlst du doppelt.
   - id: rundfunkbeitrag
     label: Rundfunkbeitrag ummelden
-    note: Die Beitragsnummer zieht mit um, eine zweite Anmeldung wäre eine Doppelzahlung.
+    note: >-
+      Die Beitragsnummer zieht mit um, eine zweite Anmeldung wäre eine
+      Doppelzahlung. Das Gesetz sagt "unverzüglich" und nennt keine Tagesfrist -
+      die 14 Tage sind Erfahrungswert.
     offset_days: 14
-    source_url: null
+    source_url: https://www.gesetze-bayern.de/Content/Document/RBeitrStV-8
+    source_label: § 8 RBStV

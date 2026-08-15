@@ -2,10 +2,10 @@
 - [x] Add a small home link in the top navbar, next to the light/darkmode toggle
 - [ ] Make a nationwide plan the default, with a note that parking-permit and bulk-waste rules are municipal, plus links for the covered cities
 - [ ] Keep the city pages as SEO longtail, but not as a choice the user appears forced to make
-- [ ] Add KFZ-Ummeldung to the moving plan (§ 13 FZV, mandatory on change of residence, fineable if missed)
-- [ ] Add the other common gaps: household insurance, daycare/school registration, dog tax
-- [ ] Reclassify internet provider move/cancellation from "Erfahrungswert" to § 60 TKG
-- [ ] Reclassify Rundfunkbeitrag from "Erfahrungswert" to the RBStV provision
+- [x] Add KFZ-Ummeldung to the moving plan (§ 13 FZV, mandatory on change of residence, fineable if missed)
+- [x] Add the other common gaps: household insurance, daycare/school registration, dog tax
+- [x] Reclassify internet provider move/cancellation from "Erfahrungswert" to § 60 TKG
+- [x] Reclassify Rundfunkbeitrag from "Erfahrungswert" to the RBStV provision
 - [ ] Cut the meta-statistics from the intro paragraph ("2 of 10 backed by a paragraph") — it advertises your weakest number
 - [ ] Expand the "3 require an appointment at a public office" line instead — that's the real stressor and the reason to start early
 - [ ] Fix the timeline so the "rows have no meaning" disclaimer becomes unnecessary — either give lanes a meaning (authority / contract / apartment) or compact the layout
