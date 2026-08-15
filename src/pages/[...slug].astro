@@ -29,8 +29,7 @@ const crumbs = [
 // away from the Fristen it describes.
 const entries = variant.deadlines.filter((d) => appliesTo(d, [])).sort(byOffset);
 const earliest = entries[0];
-const withSource = entries.filter((d) => d.source_url).length;
-const needsOffice = entries.filter((d) => d.needs_office).length;
+const officeSteps = entries.filter((d) => d.needs_office).map((d) => d.label);
 const afterAnchor = entries.filter((d) => (d.offset_days ?? 0) > 0).length;
 const undated = entries.filter((d) => d.offset_days === null).length;
 const baseIds = new Set(
@@ -87,9 +86,21 @@ const rest = siblings.slice(PREVIEW);
     {afterAnchor > 0 && (
       <>{afterAnchor} davon fallen erst nach dem {v.anchorLabel} an.{" "}</>
     )}
-    {withSource} Fristen sind mit Paragraf und Quelle belegt{
-      needsOffice > 0 && <>, {needsOffice} brauchen einen Termin beim Amt</>
-    }{undated > 0 && <>, {undated} sind noch nicht recherchiert</>}.{" "}
+    {officeSteps.length > 0 && (
+      <>
+        <b>
+          {officeSteps.length}{" "}
+          {officeSteps.length === 1 ? "Frist braucht" : "Fristen brauchen"}
+          {" "}einen Termin beim Amt
+        </b>{" "}
+        ({officeSteps.join(", ")}). Solche Termine sind je nach Stadt Wochen im
+        Voraus vergeben, deshalb steht der Plan rückwärts und nicht als Liste
+        zum Abarbeiten.{" "}
+      </>
+    )}
+    {undated > 0 && (
+      <>{undated} Fristen sind noch nicht gegen ihre Rechtsgrundlage geprüft.{" "}</>
+    )}
     {localSteps.length > 0 && (
       <>In {variant.label} kommen dazu: {localSteps.join(", ")}.</>
     )}
