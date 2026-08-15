@@ -1,22 +1,13 @@
-- [x] Der Plan ist kaputt, aber die Seite feiert „Noch 11 Wochen": die erste Frist ist 10 Tage überfällig. Der Countdown oben muss auf die nächste Frist zeigen, nicht auf den Umzugstag — der Umzugstag ist nie das, was schiefgeht.
-- [x] Überfällige Fristen dürfen nicht in Primärblau stehen. `Di, 04.08.2026` sieht im Preview genauso aus wie ein gesunder Termin. Rot/Warnfarbe plus Icon, nicht Farbe allein.
-- [x] Die Eyebrow „DAS IST ALS ERSTES FÄLLIG" ist bei einem überfälligen Termin schlicht falsch. Zweiter Zustand nötig: „Diese Frist ist bereits verstrichen".
-- [x] Es fehlt der Ausweg. Wenn der gewählte Termin die Kündigungsfrist reißt, muss die Seite sagen, was jetzt gilt — frühestmöglicher Umzugstag bei heutiger Kündigung, oder „Frist verpasst, Mietvertrag läuft bis …". Das ist der Rescue-Loop, den die Engine schon kann; hier sieht man ihn nicht.
-- [x] Zwei Namen für dieselbe Sache: „Als Nächstes" oben, „Das ist als Erstes fällig" unten. Ein Begriff, überall.
-- [x] Zwei Namen für dieselbe Aktion: Link „Plan öffnen" und Button „Kompletten Plan öffnen". Ein Name.
-- [x] Der gespeicherte Plan und das Formular zeigen exakt dieselbe Aufgabe mit demselben Datum doppelt. Wenn ein Plan existiert, darf das Formular nicht vorbelegt sein — es steht unter „Noch etwas planen?" und soll leer starten.
-- [x] Unklar, ob eine Datumsänderung im Formular den gespeicherten Plan bearbeitet oder einen zweiten anlegt. Muss aus dem Label hervorgehen: „Umzug bearbeiten" gehört in die Karte, das Formular unten legt immer neu an.
-- [x] Drei Datumsformate auf einer Seite: `Mi, 28.10.2026`, `Di, 04.08.2026`, `Mi, 16.09.`. Eine Regel festlegen — Anker und Fristen mit Jahr, Listenzeilen ohne, und dann ausnahmslos.
-- [x] Der Fortschrittsbalken bei 0 von 10 ist ein durchgehender grauer Strich und liest sich als Trennlinie. Bei 0 % entweder weglassen oder die Spur sichtbar leer zeichnen.
-- [x] „Noch **11** Wochen", „**10** Tage überfällig", „**0** von **10**" — alle Zahlen gehören in Mono, sonst gilt deine Regel nur für Datumsangaben und nicht für abgeleitete Werte.
-- [x] „Entfernen" hat dieselbe Gewichtung wie „Plan öffnen". Destruktive Aktion abrücken oder abschwächen.
-- [x] Die Coverage-Zeile verspricht „die örtlichen Schritte" — zu vage für ein Produkt, das mit Genauigkeit wirbt. Konkret benennen: Halteverbotszone, Sperrmüll. Und Schulferien fehlen in der Aufzählung, obwohl die Daten da sind.
-- [x] Der grün gefettete Ortsname kodiert Abdeckung über Farbe. Braucht ein zusätzliches Signal (Häkchen/Label), sonst geht der Unterschied zwischen „hinterlegt" und „noch nicht" für ein Drittel der Nutzer verloren.
-- [x] Das Ort-Feld sieht aus wie ein normales Textfeld. Kein Lupensymbol, kein Hinweis, dass getippt und ausgewählt wird. Bei gefülltem Feld ist nicht erkennbar, ob die Auswahl wirklich getroffen wurde.
-- [x] Die Untertitel der vier Karten sind ein-, zwei- und dreizeilig, dadurch sitzen die Karten optisch schief. Auf gleiche Länge kürzen (drei Begriffe, kein Umbruch).
-- [x] „Noch etwas planen?" und „Was möchtest du planen?" stehen direkt übereinander und sagen dasselbe. Eins davon streichen.
-- [x] In der Wiederkehrer-Ansicht verschwindet jede Erklärung, was die Seite ist. Ein Satz muss bleiben, sonst steht ein fremder Besucher auf demselben Gerät vor einem fremden Plan.
-- [x] „Ohne Konto" steht ganz unten in der Preview-Karte. Wenn der Plan lokal gespeichert wird, gehört das an die gespeicherte Karte — inklusive dem, was beim Browserwechsel passiert.
-- [x] Der Abstand zwischen Coverage-Zeile und Preview-Karte ist deutlich größer als alle anderen Abstände. Rhythmus vereinheitlichen.
-- [x] „Grundlage: § 573c BGB" ohne die Erklärung dahinter — im Prototyp stand der Satz, der die Frist verständlich macht. Ohne ihn ist der Paragraf nur ein Siegel; mit ihm ist er das Argument.
-- [x] Footer verweist für Feedback weiter auf GitHub. Das war der Punkt, den du gestrichen hast — Formular hin, GitHub-Link raus (oder zusätzlich, nicht stattdessen).
+- [x] Fix the date selection in the title of the slug page. it doesn't work reliably, the hitbox is weird.
+- [ ] Add a small home link in the top navbar, next to the light/darkmode toggle
+- [ ] Make a nationwide plan the default, with a note that parking-permit and bulk-waste rules are municipal, plus links for the covered cities
+- [ ] Keep the city pages as SEO longtail, but not as a choice the user appears forced to make
+- [ ] Add KFZ-Ummeldung to the moving plan (§ 13 FZV, mandatory on change of residence, fineable if missed)
+- [ ] Add the other common gaps: household insurance, daycare/school registration, dog tax
+- [ ] Reclassify internet provider move/cancellation from "Erfahrungswert" to § 60 TKG
+- [ ] Reclassify Rundfunkbeitrag from "Erfahrungswert" to the RBStV provision
+- [ ] Cut the meta-statistics from the intro paragraph ("2 of 10 backed by a paragraph") — it advertises your weakest number
+- [ ] Expand the "3 require an appointment at a public office" line instead — that's the real stressor and the reason to start early
+- [ ] Fix the timeline so the "rows have no meaning" disclaimer becomes unnecessary — either give lanes a meaning (authority / contract / apartment) or compact the layout
+- [ ] Surface the ICS export on the plan page — it's promised as step 3 on the homepage but appears nowhere in the actual plan
+- [ ] Keep the honest "Erfahrungswert" labelling — it's the strongest trust signal on the site

@@ -124,6 +124,17 @@ const picker = useTaskPicker({
 
 const editor = ref<{ id: string; kind: EditorKind } | null>(null);
 
+const dateEl = useTemplateRef<HTMLInputElement>("dateEl");
+// A transparent date input only opens its picker when the calendar icon is hit,
+// so the whole slot triggers it instead.
+function openDatePicker() {
+  try {
+    dateEl.value?.showPicker();
+  } catch {
+    dateEl.value?.focus();
+  }
+}
+
 function onCommitDate(id: string, iso: string) {
   const days = Math.round(
     (toDate(iso).getTime() - toDate(anchorDate.value).getTime()) / 86400000,
@@ -236,9 +247,16 @@ onBeforeUnmount(() => {
   <div ref="rootEl" class="deadline-planner" :class="{ compact: stuck }">
     <h1 class="title">
       {{ anchorName }} am
-      <span class="slot">
-        <span>{{ anchorDate ? formatDate(anchorDate) : anchorLabel }}</span>
-        <input v-model="anchorDate" type="date" :aria-label="anchorLabel" />
+      <span class="slot date" @click="openDatePicker">
+        <span aria-hidden="true">{{
+          anchorDate ? formatDate(anchorDate) : anchorLabel
+        }}</span>
+        <input
+          ref="dateEl"
+          v-model="anchorDate"
+          type="date"
+          :aria-label="anchorLabel"
+        />
       </span>
       <template v-if="variants.length > 1">
         {{ variantPreposition ?? "in" }}
@@ -407,6 +425,7 @@ onBeforeUnmount(() => {
 .slot {
   position: relative;
   display: inline-block;
+  overflow: hidden;
   color: var(--accent);
   border-bottom: 2px dashed var(--line);
   cursor: pointer;
@@ -429,6 +448,11 @@ onBeforeUnmount(() => {
   opacity: 0;
   font: inherit;
   cursor: pointer;
+}
+/* Clicks belong to the slot, which opens the picker. The select needs them. */
+.slot.date input {
+  min-width: 0;
+  pointer-events: none;
 }
 
 .tl-toggle {
