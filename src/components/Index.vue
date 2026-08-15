@@ -312,7 +312,9 @@ const presets = [
 /* ---------- Ort ---------- */
 const ortQuery = ref("");
 const ort = ref<Gemeinde | null>(null);
-const suggestionsOpen = ref(true);
+// Closed until the field is focused: an empty query now answers with the
+// default list, so an open one would hang under the form from the start.
+const suggestionsOpen = ref(false);
 
 // All 11k Gemeinden are too much for the page bundle, so they arrive the first
 // time someone actually reaches for the field.
