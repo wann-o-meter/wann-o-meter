@@ -11,6 +11,7 @@
   possessive: Dein
   anchorLabel: Umzugstag
   anchorName: Umzug
+  tags: [wohnen]
   variantLabel: Ort
   variantPreposition: nach
   # Bundesweit by default: a city is an addition to the plan, not a prerequisite.
@@ -27,6 +28,7 @@
   possessive: Deine
   anchorLabel: Geburtstermin
   anchorName: Geburt
+  tags: [familie]
   variantLabel: Ort
 
 - slug: heirat
@@ -40,6 +42,7 @@
   possessive: Deine
   anchorLabel: Hochzeitstermin
   anchorName: Hochzeit
+  tags: [familie]
   variantLabel: Ort
 
 - slug: jobwechsel
@@ -53,4 +56,5 @@
   possessive: Dein
   anchorLabel: Letzter Arbeitstag
   anchorName: Jobwechsel
+  tags: [arbeit]
   variantLabel: Ort

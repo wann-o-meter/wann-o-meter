@@ -34,6 +34,9 @@ const vorhabenSchema = z.object({
   variantLabel: z.string(),
   variantPreposition: z.string().default("in"),
   defaultVariant: z.string().optional(),
+  // What a Vorhaben has in common with others. Carried through but not shown
+  // anywhere yet.
+  tags: z.array(z.string()).default([]),
 });
 
 type Vorhaben = z.infer<typeof vorhabenSchema>;
