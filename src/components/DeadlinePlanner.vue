@@ -8,7 +8,7 @@ import {
   useTemplateRef,
   watch,
 } from "vue";
-import { ChevronDown, ChevronUp } from "lucide-vue-next";
+import { CalendarPlus, ChevronDown, ChevronUp } from "lucide-vue-next";
 import Timeline from "./deadline-planner/Timeline.vue";
 import TaskRail from "./deadline-planner/TaskRail.vue";
 import TaskPicker from "./deadline-planner/TaskPicker.vue";
@@ -18,6 +18,7 @@ import DoneGroup from "./deadline-planner/DoneGroup.vue";
 import { facetLabel } from "../../lib/facets";
 import { formatDate, toDate } from "../../lib/format-date";
 import { planStorageKey, savePlan } from "../../lib/saved-plans";
+import { downloadIcs } from "../../lib/ics-download";
 import { burst } from "./deadline-planner/confetti";
 import { useTaskEditor } from "./deadline-planner/useTaskEditor";
 import { usePlanUrlState } from "./deadline-planner/usePlanUrlState";
@@ -204,6 +205,18 @@ function onTimelineSelect(id: string) {
 
 const timelineHidden = ref(false);
 
+const calendarName = computed(
+  () => `${props.vorhaben} - ${selected.value?.label ?? ""}`,
+);
+const fileSlug = computed(() => selected.value?.slug ?? "plan");
+const exportIcs = () =>
+  downloadIcs(
+    timeline.value,
+    calendarName.value,
+    fileSlug.value,
+    anchorDate.value,
+  );
+
 const scrollActiveId = ref<string | null>(null);
 const activeId = computed(() => hoveredId.value ?? scrollActiveId.value);
 
@@ -306,16 +319,24 @@ onBeforeUnmount(() => {
           @place="anchorDate = $event"
           @hover="hoveredId = $event"
         />
-        <button
-          type="button"
-          class="tl-toggle"
-          :aria-expanded="!timelineHidden"
-          aria-controls="plan-timeline"
-          @click="timelineHidden = !timelineHidden"
-        >
-          <component :is="timelineHidden ? ChevronDown : ChevronUp" :size="14" />
-          {{ timelineHidden ? "Zeitstrahl zeigen" : "Zeitstrahl ausblenden" }}
-        </button>
+        <div class="header-row">
+          <button
+            type="button"
+            class="tl-toggle"
+            :aria-expanded="!timelineHidden"
+            aria-controls="plan-timeline"
+            @click="timelineHidden = !timelineHidden"
+          >
+            <component
+              :is="timelineHidden ? ChevronDown : ChevronUp"
+              :size="14"
+            />
+            {{ timelineHidden ? "Zeitstrahl zeigen" : "Zeitstrahl ausblenden" }}
+          </button>
+          <button type="button" class="tl-toggle" @click="exportIcs">
+            <CalendarPlus :size="14" /> In den Kalender
+          </button>
+        </div>
       </template>
     </header>
 
@@ -378,8 +399,8 @@ onBeforeUnmount(() => {
       <PlanActions
         :entries="timeline"
         :anchor-date="anchorDate"
-        :calendar-name="`${vorhaben} - ${selected?.label ?? ''}`"
-        :file-slug="selected?.slug ?? 'plan'"
+        :calendar-name="calendarName"
+        :file-slug="fileSlug"
       />
     </template>
     <p v-else class="hint">
@@ -459,6 +480,10 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
+.header-row {
+  display: flex;
+  gap: 0.4rem;
+}
 .tl-toggle {
   display: flex;
   align-items: center;
