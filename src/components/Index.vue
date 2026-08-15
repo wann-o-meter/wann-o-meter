@@ -73,7 +73,10 @@
                 aria-controls="aclist"
                 :aria-expanded="suggestions.length > 0"
                 @input="ort = null"
-                @focus="suggestionsOpen = true"
+                @focus="
+                  suggestionsOpen = true;
+                  loadGemeinden();
+                "
                 @blur="closeSuggestions"
                 @keydown.esc="closeSuggestions"
               />
@@ -82,12 +85,15 @@
               <ul v-if="suggestions.length > 0" id="aclist" role="listbox">
                 <li
                   v-for="g in suggestions"
-                  :key="g.name"
+                  :key="`${g.name}-${g.plz}`"
                   role="option"
                   :aria-selected="g.name === ort?.name"
                   @mousedown.prevent="chooseOrt(g)"
                 >
-                  <span>{{ g.name }}</span>
+                  <span
+                    ><span v-if="g.plz" class="plz">{{ g.plz }}</span>
+                    {{ g.name }}</span
+                  >
                   <span v-if="variantFor(g)" class="tag covered">
                     <Check :size="13" aria-hidden="true" /> örtliche Fristen
                     hinterlegt
@@ -233,7 +239,6 @@ import {
   Info,
   Search,
 } from "lucide-vue-next";
-import gemeinden from "../../data/gemeinden.json";
 import { appliesTo } from "../../lib/facets";
 import {
   dayMonth,
@@ -252,6 +257,9 @@ import type { VorhabenData, VorhabenVariant } from "../../lib/vorhaben-data";
 
 interface Gemeinde {
   name: string;
+  // Lowest PLZ of the Gemeinde. Over 450 names exist more than once, this is
+  // what tells them apart.
+  plz: string;
   state: string;
 }
 
@@ -312,13 +320,28 @@ const ortQuery = ref("");
 const ort = ref<Gemeinde | null>(null);
 const suggestionsOpen = ref(true);
 
+// All 11k Gemeinden are too much for the page bundle, so they arrive the first
+// time someone actually reaches for the field.
+const gemeinden = ref<Gemeinde[]>([]);
+async function loadGemeinden() {
+  if (gemeinden.value.length > 0) return;
+  try {
+    gemeinden.value = await (await fetch("/gemeinden.json")).json();
+  } catch {
+  }
+}
+
 // Clicking the field should already offer something, and the Orte with their
-// own Fristen are the ones worth offering.
-const coveredOrte = computed(() =>
+// own Fristen are the ones worth offering. They come from the variants, so the
+// list is there before the fetch lands.
+const coveredOrte = computed<Gemeinde[]>(() =>
   (selected.value?.variants ?? [])
     .filter((v) => v.slug !== BUNDESWEIT)
-    .map((v) => gemeinden.find((g) => g.name === v.label))
-    .filter((g): g is Gemeinde => !!g)
+    .map((v) => ({
+      name: v.label,
+      plz: gemeinden.value.find((g) => g.name === v.label)?.plz ?? "",
+      state: v.regionCode ?? "",
+    }))
     .slice(0, 6),
 );
 
@@ -327,7 +350,9 @@ const suggestions = computed(() => {
   const q = ortQuery.value.trim().toLowerCase();
   if (q.length === 0) return coveredOrte.value;
   if (q.length < 2) return [];
-  return gemeinden.filter((g) => g.name.toLowerCase().includes(q)).slice(0, 6);
+  return gemeinden.value
+    .filter((g) => g.name.toLowerCase().includes(q) || g.plz.startsWith(q))
+    .slice(0, 6);
 });
 function chooseOrt(g: Gemeinde) {
   ort.value = g;
@@ -341,7 +366,7 @@ watch(ortQuery, () => (suggestionsOpen.value = true));
 const stateName = (g: Gemeinde) => STATES[g.state] ?? g.state;
 
 // A Gemeinde is covered when the Vorhaben has a variant file naming it, the
-// yaml `name:` is what data/gemeinden.json has to match.
+// yaml `name:` is what public/gemeinden.json has to match.
 function variantFor(g: Gemeinde): VorhabenVariant | undefined {
   return selected.value?.variants.find((v) => v.label === g.name);
 }
@@ -702,6 +727,13 @@ input[type="date"] {
 }
 .ac .tag.covered {
   color: var(--done-color);
+}
+/* Over 450 Gemeinde names exist more than once, the PLZ is what tells them
+apart in the list. */
+.ac .plz {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--muted);
 }
 
 .chips {
