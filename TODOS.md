@@ -1,4 +1,8 @@
-- [x] Changing the city, is reflected only in the query but not in the path, meaning this is possible: http://localhost:4321/umzug/rottenburg/?date=2026-11-13&variant=singen
-- [x] Updating the date in the cards doesn't work. I think this option should be removed for now, also renaming the cards. When a user deletes a card, it's only hidden and it should be framed as "Nicht relevant für mich" instead of "Aufgabe entfernen" and this should be reflected in the query as hidden=foobar,xyz
-- [x] On the startpage in the form, the city is optional but it doesn't show the plan not until the city is provided
-- [x] The non-relevant tasks still should be shown in a list, just like the finished tasks, such that the user can undo its actions
+- [ ] the generated text in the plan doesn't update when the location has changed
+- [ ] add a button to remove a plan
+- [x] make the buttons plain and not 3d, except for the ones that are like a selection, e.g., on the startpage when you select what you want to do
+- [ ] the website is too shaky when things load client-side
+- [ ] the cities should have the plz in their slug, e.g., there may be multiple singen or biberach or hausen
+- [ ] add all cities in germany, use wikidata
+- [ ] cities should be already shown when clicking the location selection
+- [ ]
