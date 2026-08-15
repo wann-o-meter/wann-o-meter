@@ -7,6 +7,7 @@ import type { PlanVariant } from "./types";
 
 const props = defineProps<{
   label: string;
+  variantLabel: string;
   variants: PlanVariant[];
   bundesweitSlug: string;
 }>();
@@ -66,15 +67,29 @@ function choose(g: Gemeinde | null) {
   close();
 }
 
+// A typo with no hits should not silently reset the plan to ganz Deutschland.
+function confirm() {
+  if (active.value < 0 && query.value.trim().length > 0) return;
+  choose(results.value[active.value] ?? null);
+}
+
+// Index -1 is the "Ganz Deutschland" row above the results, so the cycle runs
+// from -1 and the keyboard reaches it too.
 function move(step: number) {
-  const n = results.value.length;
-  if (n > 0) active.value = (active.value + step + n) % n;
+  const n = results.value.length + 1;
+  active.value = ((active.value + 1 + step + n) % n) - 1;
 }
 </script>
 
 <template>
   <span class="ort">
-    <button type="button" class="slot" :aria-expanded="open" @click="openPicker">
+    <button
+      type="button"
+      class="slot"
+      :aria-label="variantLabel"
+      :aria-expanded="open"
+      @click="openPicker"
+    >
       {{ label }}
     </button>
 
@@ -91,7 +106,7 @@ function move(step: number) {
           :aria-expanded="results.length > 0"
           @keydown.down.prevent="move(1)"
           @keydown.up.prevent="move(-1)"
-          @keydown.enter.prevent="choose(results[active] ?? null)"
+          @keydown.enter.prevent="confirm"
           @keydown.esc="close"
           @blur="close"
         />

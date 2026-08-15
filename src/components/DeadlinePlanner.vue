@@ -339,6 +339,7 @@ onBeforeUnmount(() => {
         {{ isBundesweit && !ortName ? "in" : (variantPreposition ?? "in") }}
         <OrtPicker
           :label="ortLabel"
+          :variant-label="variantLabel"
           :variants="variants"
           bundesweit-slug="bundesweit"
           @pick="onPickOrt"
