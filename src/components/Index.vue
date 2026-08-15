@@ -75,7 +75,7 @@
                 @input="ort = null"
                 @focus="
                   suggestionsOpen = true;
-                  loadGemeinden();
+                  fillGemeinden();
                 "
                 @blur="closeSuggestions"
                 @keydown.esc="closeSuggestions"
@@ -247,6 +247,8 @@ import {
   spanParts,
 } from "../../lib/date-display";
 import { STATES } from "../../lib/states";
+import { loadGemeinden, searchGemeinden } from "../../lib/gemeinde-search";
+import type { Gemeinde } from "../../lib/gemeinde-search";
 import { isoToday } from "../../lib/today";
 import { addDays, isoOf, utcDay } from "../../lib/timeline-geometry";
 import SavedPlanCard from "./SavedPlanCard.vue";
@@ -254,14 +256,6 @@ import { usePlannerSchedule } from "./deadline-planner/usePlannerSchedule";
 import { forgetPlan, loadSavedPlans } from "../../lib/saved-plans";
 import type { SavedPlan } from "../../lib/saved-plans";
 import type { VorhabenData, VorhabenVariant } from "../../lib/vorhaben-data";
-
-interface Gemeinde {
-  name: string;
-  // Lowest PLZ of the Gemeinde. Over 450 names exist more than once, this is
-  // what tells them apart.
-  plz: string;
-  state: string;
-}
 
 interface Ferien {
   from: string;
@@ -323,13 +317,7 @@ const suggestionsOpen = ref(true);
 // All 11k Gemeinden are too much for the page bundle, so they arrive the first
 // time someone actually reaches for the field.
 const gemeinden = ref<Gemeinde[]>([]);
-async function loadGemeinden() {
-  if (gemeinden.value.length > 0) return;
-  try {
-    gemeinden.value = await (await fetch("/gemeinden.json")).json();
-  } catch {
-  }
-}
+const fillGemeinden = async () => (gemeinden.value = await loadGemeinden());
 
 // Clicking the field should already offer something, and the Orte with their
 // own Fristen are the ones worth offering. They come from the variants, so the
@@ -350,53 +338,17 @@ const BIG_CITIES = ["Berlin", "Hamburg", "München", "Frankfurt am Main"];
 
 const SUGGESTION_COUNT = 10;
 
-// "Muenchen" and "munchen" should both find München.
-function fold(s: string): string {
-  return s
-    .toLowerCase()
-    .replace(/ß/g, "ss")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
-
-// Tiers, best first: the whole name, the start of the name, the start of a word
-// inside it, anywhere. Within a tier the shorter name wins, which is the same
-// as "more of the name is the query".
-function rank(name: string, q: string): number {
-  const n = fold(name);
-  if (n === q) return 0;
-  if (n.startsWith(q)) return 1;
-  const at = n.indexOf(q);
-  if (at < 0) return 4;
-  return /[\s(-]/.test(n[at - 1] ?? "") ? 2 : 3;
-}
-
 const suggestions = computed(() => {
   if (!suggestionsOpen.value || ort.value) return [];
-  const q = fold(ortQuery.value.trim());
   const covered = coveredOrte.value;
-  if (q.length === 0)
+  if (ortQuery.value.trim().length === 0)
     return [
       ...covered,
       ...BIG_CITIES.map((n) => gemeinden.value.find((g) => g.name === n)).filter(
         (g): g is Gemeinde => !!g && !covered.some((c) => c.name === g.name),
       ),
     ].slice(0, SUGGESTION_COUNT);
-
-  // ponytail: a linear scan over 11k names per keystroke, fast enough by far.
-  // Build an index only if the list ever grows past a country.
-  const scored: { g: Gemeinde; tier: number }[] = [];
-  for (const g of gemeinden.value) {
-    const tier = g.plz.startsWith(q) ? 1 : rank(g.name, q);
-    if (tier < 4) scored.push({ g, tier });
-  }
-  return scored
-    .sort(
-      (a, b) => a.tier - b.tier || a.g.name.length - b.g.name.length ||
-        a.g.name.localeCompare(b.g.name, "de"),
-    )
-    .slice(0, SUGGESTION_COUNT)
-    .map((s) => s.g);
+  return searchGemeinden(gemeinden.value, ortQuery.value, SUGGESTION_COUNT);
 });
 function chooseOrt(g: Gemeinde) {
   ort.value = g;
@@ -517,8 +469,12 @@ const planHref = computed(() => {
   if (localVariant.value)
     return `/${selected.value.slug}/${localVariant.value.slug}/?${params}`;
   // No variant param: without a local file the plan is the bundesweit one, and
-  // that is exactly what /<vorhaben>/ serves.
-  if (ort.value) params.set("region", ort.value.state);
+  // that is exactly what /<vorhaben>/ serves. The Ort still travels along, it
+  // names the place and its Feiertage.
+  if (ort.value) {
+    params.set("region", ort.value.state);
+    params.set("ort", ort.value.name);
+  }
   return `/${selected.value.slug}/?${params}`;
 });
 

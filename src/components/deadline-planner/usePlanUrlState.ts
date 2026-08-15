@@ -41,11 +41,18 @@ export function usePlanUrlState(
   );
   // Bundesweit has no Bundesland of its own, so the startpage passes the one of
   // the picked Ort along, otherwise its Feiertage silently drop out here.
-  const region = params?.get("region");
-  const urlRegion = region && region in STATES ? region : undefined;
+  const region = ref(params?.get("region") ?? "");
+  const urlRegion = computed(() =>
+    region.value in STATES ? region.value : undefined,
+  );
+  // The Ort the visitor picked without us having a file for it: it names no
+  // extra Fristen, only the Bundesland, but the title should still say it.
+  const ortName = ref(params?.get("ort") ?? "");
   const selected = computed(() => {
     const v = variants.find((x) => x.slug === selectedSlug.value) ?? variants[0];
-    return v && !v.regionCode && urlRegion ? { ...v, regionCode: urlRegion } : v;
+    return v && !v.regionCode && urlRegion.value
+      ? { ...v, regionCode: urlRegion.value }
+      : v;
   });
 
   const urlDate = params?.get("date");
@@ -66,7 +73,10 @@ export function usePlanUrlState(
 
   // A date in the URL means the visitor picked one, an auto default does not.
   const touched = ref(params?.has("date") ?? false);
-  watch([anchorDate, selectedSlug, activeFacets], () => (touched.value = true));
+  watch(
+    [anchorDate, selectedSlug, activeFacets, ortName],
+    () => (touched.value = true),
+  );
 
   const overlapMonths = ref(params?.get("overlap") === "1" ? 1 : 0);
   const deferred = computed(() => overlapMonths.value > 0);
@@ -94,15 +104,22 @@ export function usePlanUrlState(
   // The other state only reaches the URL once the visitor picked something, an
   // untouched page keeps its clean URL and stays out of the saved plans.
   watch(
-    [touched, anchorDate, selectedSlug, activeFacets, overlapMonths],
+    [touched, anchorDate, selectedSlug, activeFacets, overlapMonths, region, ortName],
     () => {
       if (typeof window === "undefined") return;
       const next = new URLSearchParams(window.location.search);
       next.delete("variant");
-      // region only carries the Bundesland of an Ort we have no file for. A
-      // variant that knows its own Bundesland makes it redundant.
-      if (variants.find((x) => x.slug === selectedSlug.value)?.regionCode)
+      // region and ort only carry an Ort we have no file for. A variant that
+      // knows its own Bundesland makes both redundant.
+      if (variants.find((x) => x.slug === selectedSlug.value)?.regionCode) {
         next.delete("region");
+        next.delete("ort");
+      } else {
+        if (region.value) next.set("region", region.value);
+        else next.delete("region");
+        if (ortName.value) next.set("ort", ortName.value);
+        else next.delete("ort");
+      }
       if (touched.value) {
         if (anchorDate.value) next.set("date", anchorDate.value);
         if (activeFacets.value.length > 0)
@@ -121,6 +138,8 @@ export function usePlanUrlState(
   return {
     selectedSlug,
     selected,
+    region,
+    ortName,
     selectedForPlan,
     anchorDate,
     activeFacets,

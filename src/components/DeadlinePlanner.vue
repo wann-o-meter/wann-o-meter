@@ -12,6 +12,7 @@ import { CalendarPlus, ChevronDown, ChevronUp, Eye } from "lucide-vue-next";
 import Timeline from "./deadline-planner/Timeline.vue";
 import TaskRail from "./deadline-planner/TaskRail.vue";
 import TaskPicker from "./deadline-planner/TaskPicker.vue";
+import OrtPicker from "./deadline-planner/OrtPicker.vue";
 import PlanSummary from "./deadline-planner/PlanSummary.vue";
 import PlanActions from "./deadline-planner/PlanActions.vue";
 import DoneGroup from "./deadline-planner/DoneGroup.vue";
@@ -33,6 +34,7 @@ import type { TaskStore } from "./deadline-planner/task-store";
 import type { PlanVariant } from "./deadline-planner/types";
 import type { EditorKind, TaskPatch } from "./deadline-planner/task-card";
 import type { ScheduleEntry } from "../../lib/deadline-plan";
+import type { Gemeinde } from "../../lib/gemeinde-search";
 
 export type { PlanVariant };
 
@@ -55,6 +57,8 @@ const sentinelEl = useTemplateRef<HTMLElement>("sentinelEl");
 const {
   selectedSlug,
   selected,
+  region,
+  ortName,
   selectedForPlan,
   anchorDate,
   activeFacets,
@@ -66,21 +70,22 @@ const {
 } = usePlanUrlState(props.slug, props.variants, props.defaultSlug);
 
 watch(
-  [touched, anchorDate, selectedSlug, activeFacets],
+  [touched, anchorDate, selectedSlug, activeFacets, ortName],
   () => {
-    if (touched.value && anchorDate.value)
-      savePlan({
-        slug: props.slug,
-        variant: selectedSlug.value,
-        // Only worth storing for a variant without a Bundesland of its own,
-        // otherwise it just repeats what the Ort file already says.
-        region: props.variants.find((v) => v.slug === selectedSlug.value)
-          ?.regionCode
-          ? undefined
-          : selected.value?.regionCode,
-        date: anchorDate.value,
-        facets: [...activeFacets.value],
-      });
+    if (!touched.value || !anchorDate.value) return;
+    // Both only say something for a variant without a Bundesland of its own,
+    // otherwise they repeat what the Ort file already says.
+    const own = props.variants.find(
+      (v) => v.slug === selectedSlug.value,
+    )?.regionCode;
+    savePlan({
+      slug: props.slug,
+      variant: selectedSlug.value,
+      region: own ? undefined : selected.value?.regionCode,
+      ort: own ? undefined : ortName.value || undefined,
+      date: anchorDate.value,
+      facets: [...activeFacets.value],
+    });
   },
   { immediate: true },
 );
@@ -144,6 +149,27 @@ const picker = useTaskPicker({
 // Kept in sync by hand with lib/vorhaben-data, importing it would pull node:fs
 // into the browser bundle.
 const isBundesweit = computed(() => selectedSlug.value === "bundesweit");
+
+const ortLabel = computed(() =>
+  isBundesweit.value
+    ? (ortName.value || "ganz Deutschland")
+    : (selected.value?.label ?? ""),
+);
+
+// An Ort we have a file for switches the plan, any other one only lends its
+// Bundesland so the Feiertage are the right ones.
+function onPickOrt(g: Gemeinde | null) {
+  const variant = props.variants.find((v) => v.label === g?.name);
+  if (variant) {
+    selectedSlug.value = variant.slug;
+    ortName.value = "";
+    region.value = "";
+    return;
+  }
+  selectedSlug.value = "bundesweit";
+  ortName.value = g?.name ?? "";
+  region.value = g?.state ?? "";
+}
 
 const dateEl = useTemplateRef<HTMLInputElement>("dateEl");
 // A transparent date input only opens its picker when the calendar icon is hit,
@@ -298,7 +324,7 @@ onBeforeUnmount(() => {
   <div ref="rootEl" class="deadline-planner" :class="{ compact: stuck }">
     <h1 class="title">
       {{ anchorName }} am
-      <span class="slot date" @click="openDatePicker">
+      <span class="slot" @click="openDatePicker">
         <span aria-hidden="true">{{
           anchorDate ? formatDate(anchorDate) : anchorLabel
         }}</span>
@@ -310,15 +336,13 @@ onBeforeUnmount(() => {
         />
       </span>
       <template v-if="variants.length > 1">
-        {{ isBundesweit ? "in" : (variantPreposition ?? "in") }}
-        <span class="slot">
-          <span>{{ isBundesweit ? "ganz Deutschland" : selected?.label }}</span>
-          <select v-model="selectedSlug" :aria-label="variantLabel">
-            <option v-for="v in variants" :key="v.slug" :value="v.slug">
-              {{ v.label }}
-            </option>
-          </select>
-        </span>
+        {{ isBundesweit && !ortName ? "in" : (variantPreposition ?? "in") }}
+        <OrtPicker
+          :label="ortLabel"
+          :variants="variants"
+          bundesweit-slug="bundesweit"
+          @pick="onPickOrt"
+        />
       </template>
     </h1>
 
@@ -553,21 +577,18 @@ onBeforeUnmount(() => {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
-.slot input,
-.slot select {
+/* The input covers the slot but takes no clicks: the slot opens the picker. */
+.slot input {
   position: absolute;
   inset: 0;
   width: 100%;
+  min-width: 0;
   height: 100%;
   padding: 0;
   border: 0;
   opacity: 0;
   font: inherit;
   cursor: pointer;
-}
-/* Clicks belong to the slot, which opens the picker. The select needs them. */
-.slot.date input {
-  min-width: 0;
   pointer-events: none;
 }
 

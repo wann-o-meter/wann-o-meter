@@ -1,6 +1,6 @@
 - [x] update the llms.txt. it doesn't reflect the site anymore.
 - [x] should use bun instead of node for gemeinden.mjs
 - [x] why is there gemeinden.json in data and in public?
-- [ ] the location input in the plan page still shows only the 4 cities and bundesweit. it.
+- [x] the location input in the plan page still shows only the 4 cities and bundesweit. it.
 - [x] the gemeinden are shown when clicking the input field, but when typing a letter, everything disappears and it reappears when typing two letters. the input field should show about 10 entries, first the validated, then the largest cities (can be a fix list),e.g. münchen, hamburg, berlin, frankfurt. searching should be not a simple word match but instead exact matches should be ranked higher, e.g., typing "singen" should show singen (78224) and not basingen or something else. i thought about it and it could be a ranking based on how many percent of the letters match, e.g., "singen" = singen -> 100%, "singen" -> basingen 75%. but maybe there's a better algorithm.
 - [x] prepare tags: different plans might share properties, e.g., "family" or "work". don't show the tags yet, but prepare everything for it.

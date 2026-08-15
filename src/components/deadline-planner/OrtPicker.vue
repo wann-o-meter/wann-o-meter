@@ -1,0 +1,213 @@
+<script setup lang="ts">
+import { computed, nextTick, ref, useTemplateRef } from "vue";
+import { Check, Search } from "lucide-vue-next";
+import { loadGemeinden, searchGemeinden } from "../../../lib/gemeinde-search";
+import type { Gemeinde } from "../../../lib/gemeinde-search";
+import type { PlanVariant } from "./types";
+
+const props = defineProps<{
+  label: string;
+  variants: PlanVariant[];
+  bundesweitSlug: string;
+}>();
+
+const emit = defineEmits<{ (e: "pick", g: Gemeinde | null): void }>();
+
+const COUNT = 10;
+// The four biggest, so the open list is not just the handful of Orte we happen
+// to have Fristen for.
+const BIG_CITIES = ["Berlin", "Hamburg", "München", "Frankfurt am Main"];
+
+const open = ref(false);
+const query = ref("");
+const active = ref(0);
+const gemeinden = ref<Gemeinde[]>([]);
+const inputEl = useTemplateRef<HTMLInputElement>("inputEl");
+
+const covered = computed<Gemeinde[]>(() =>
+  props.variants
+    .filter((v) => v.slug !== props.bundesweitSlug)
+    .map((v) => ({
+      name: v.label,
+      plz: gemeinden.value.find((g) => g.name === v.label)?.plz ?? "",
+      state: v.regionCode ?? "",
+    })),
+);
+
+const results = computed<Gemeinde[]>(() => {
+  if (query.value.trim().length === 0)
+    return [
+      ...covered.value,
+      ...BIG_CITIES.map((n) => gemeinden.value.find((g) => g.name === n)).filter(
+        (g): g is Gemeinde => !!g && !isCovered(g),
+      ),
+    ].slice(0, COUNT);
+  return searchGemeinden(gemeinden.value, query.value, COUNT);
+});
+
+const isCovered = (g: Gemeinde) =>
+  props.variants.some((v) => v.label === g.name);
+
+async function openPicker() {
+  open.value = true;
+  query.value = "";
+  active.value = 0;
+  await nextTick();
+  inputEl.value?.focus();
+  gemeinden.value = await loadGemeinden();
+}
+
+function close() {
+  open.value = false;
+}
+
+function choose(g: Gemeinde | null) {
+  emit("pick", g);
+  close();
+}
+
+function move(step: number) {
+  const n = results.value.length;
+  if (n > 0) active.value = (active.value + step + n) % n;
+}
+</script>
+
+<template>
+  <span class="ort">
+    <button type="button" class="slot" :aria-expanded="open" @click="openPicker">
+      {{ label }}
+    </button>
+
+    <div v-if="open" class="pop">
+      <div class="field">
+        <Search :size="15" aria-hidden="true" />
+        <input
+          ref="inputEl"
+          v-model="query"
+          type="text"
+          placeholder="Gemeinde oder PLZ"
+          role="combobox"
+          aria-controls="ort-list"
+          :aria-expanded="results.length > 0"
+          @keydown.down.prevent="move(1)"
+          @keydown.up.prevent="move(-1)"
+          @keydown.enter.prevent="choose(results[active] ?? null)"
+          @keydown.esc="close"
+          @blur="close"
+        />
+      </div>
+      <ul id="ort-list" role="listbox">
+        <li
+          role="option"
+          :aria-selected="false"
+          :class="{ on: active === -1 }"
+          @mousedown.prevent="choose(null)"
+        >
+          <span>Ganz Deutschland</span>
+        </li>
+        <li
+          v-for="(g, i) in results"
+          :key="`${g.name}-${g.plz}`"
+          role="option"
+          :aria-selected="i === active"
+          :class="{ on: i === active }"
+          @mousedown.prevent="choose(g)"
+        >
+          <span
+            ><span v-if="g.plz" class="plz">{{ g.plz }}</span> {{ g.name }}</span
+          >
+          <span v-if="isCovered(g)" class="tag covered">
+            <Check :size="12" aria-hidden="true" /> örtliche Fristen
+          </span>
+        </li>
+      </ul>
+    </div>
+  </span>
+</template>
+
+<style scoped>
+.ort {
+  position: relative;
+  display: inline-block;
+}
+.slot {
+  padding: 0;
+  border: 0;
+  border-bottom: 2px dashed var(--line);
+  border-radius: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+.slot:hover {
+  border-bottom-color: var(--accent);
+}
+
+.pop {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  z-index: 60;
+  width: min(22rem, 80vw);
+  padding: 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper-raised);
+  box-shadow: var(--shadow-md);
+}
+.field {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-left: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+}
+.field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  font-size: var(--fs-sm);
+}
+.field:focus-within {
+  border-color: var(--accent);
+}
+
+ul {
+  max-height: 17rem;
+  overflow-y: auto;
+  margin: 0.3rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+li.on,
+li:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.plz {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+  font-size: var(--fs-xs);
+  color: var(--done-color);
+}
+</style>

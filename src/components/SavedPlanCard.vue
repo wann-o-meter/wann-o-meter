@@ -93,9 +93,12 @@ const variant = computed(
     props.v.variants[0],
 );
 const local = computed(() => variant.value.slug !== "bundesweit");
-// Without a local variant only the Bundesland of the plan is known, not its Ort.
+// Without a local variant the Ort is only known if the visitor picked one,
+// otherwise the Bundesland is all the plan says about the place.
 const place = computed(() =>
-  local.value ? variant.value.label : (STATES[props.plan.region ?? ""] ?? ""),
+  local.value
+    ? variant.value.label
+    : (props.plan.ort ?? STATES[props.plan.region ?? ""] ?? ""),
 );
 
 const snap = computed(() =>
@@ -156,7 +159,8 @@ const href = computed(() =>
   local.value
     ? `/${props.v.slug}/${variant.value.slug}/?date=${props.plan.date}`
     : `/${props.v.slug}/?date=${props.plan.date}` +
-      (props.plan.region ? `&region=${props.plan.region}` : ""),
+      (props.plan.region ? `&region=${props.plan.region}` : "") +
+      (props.plan.ort ? `&ort=${encodeURIComponent(props.plan.ort)}` : ""),
 );
 </script>
 
