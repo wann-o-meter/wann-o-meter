@@ -76,7 +76,9 @@ const rest = siblings.slice(PREVIEW);
 <Layout title={title} description={description} structuredData={structuredData}>
   <p class="back"><a href="/">&larr; Alle Vorhaben</a></p>
   <h1 id="static-title">{title}</h1>
-  <p class="overview">
+  <!-- Keep in sync with the .overview paragraph in DeadlinePlanner.vue, which
+  recounts the same sentences once the Ort or the facets change. -->
+  <p class="overview prehydrate">
     Der Zeitplan für {v.vorhaben} umfasst <b>{entries.length} Fristen</b>.{" "}
     {earliest && (
       <>
@@ -105,17 +107,21 @@ const rest = siblings.slice(PREVIEW);
       <>In {variant.label} kommen dazu: {localSteps.join(", ")}.</>
     )}
   </p>
-  <DeadlinePlanner
-    client:only="vue"
-    slug={v.slug}
-    vorhaben={v.vorhaben}
-    anchorLabel={v.anchorLabel}
-    anchorName={v.anchorName}
-    variantLabel={v.variantLabel}
-    variantPreposition={v.variantPreposition}
-    variants={v.variants}
-    defaultSlug={variant.slug}
-  />
+  <!-- Holds the height the planner will take, so the page below it does not
+  jump when the island renders. -->
+  <div class="planner-slot">
+    <DeadlinePlanner
+      client:only="vue"
+      slug={v.slug}
+      vorhaben={v.vorhaben}
+      anchorLabel={v.anchorLabel}
+      anchorName={v.anchorName}
+      variantLabel={v.variantLabel}
+      variantPreposition={v.variantPreposition}
+      variants={v.variants}
+      defaultSlug={variant.slug}
+    />
+  </div>
   <StaticPlan deadlines={variant.deadlines} anchorLabel={v.anchorLabel} />
   {
     siblings.length > 0 && (
@@ -176,6 +182,11 @@ const rest = siblings.slice(PREVIEW);
   }
   .back {
     font-size: var(--fs-sm);
+  }
+  /* ponytail: one number for every plan, split it per Vorhaben if the plans
+  ever differ enough in length that the reserve reads as empty space. */
+  html[data-js] .planner-slot {
+    min-height: 32rem;
   }
   h1 {
     margin-top: 0.5rem;

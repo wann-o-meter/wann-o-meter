@@ -40,6 +40,9 @@ const ogDescription =
       const t = localStorage.getItem("theme");
       if (t === "light" || t === "dark")
         document.documentElement.dataset.theme = t;
+      // Runs before the first paint, so anything an island replaces later never
+      // gets drawn and then pulled away.
+      document.documentElement.dataset.js = "1";
     </script>
     <title>{pageTitle}</title>
     {description && <meta name="description" content={description} />}

@@ -1,6 +1,6 @@
 <template>
   <div class="wom-start">
-    <TransitionGroup name="plan" tag="div" class="plans" appear>
+    <TransitionGroup name="plan" tag="div" class="plans">
       <SavedPlanCard
         v-for="card in planCards"
         :key="card.plan.slug"

@@ -1,7 +1,7 @@
-- [ ] the generated text in the plan doesn't update when the location has changed
+- [x] the generated text in the plan doesn't update when the location has changed
 - [x] add a button to remove a plan
 - [x] make the buttons plain and not 3d, except for the ones that are like a selection, e.g., on the startpage when you select what you want to do
-- [ ] the website is too shaky when things load client-side
+- [x] the website is too shaky when things load client-side
 - [ ] the cities should have the plz in their slug, e.g., there may be multiple singen or biberach or hausen
 - [ ] add all cities in germany, use wikidata
 - [ ] cities should be already shown when clicking the location selection

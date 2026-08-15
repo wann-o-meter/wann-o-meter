@@ -17,6 +17,7 @@ import PlanActions from "./deadline-planner/PlanActions.vue";
 import DoneGroup from "./deadline-planner/DoneGroup.vue";
 import { facetLabel } from "../../lib/facets";
 import { formatDate } from "../../lib/format-date";
+import { offsetLabel } from "../../lib/offset-label";
 import { planStorageKey, savePlan } from "../../lib/saved-plans";
 import { downloadIcs } from "../../lib/ics-download";
 import { burst } from "./deadline-planner/confetti";
@@ -189,6 +190,30 @@ const doneEntries = computed(() =>
   planEntries.value.filter((e) => doneIds[e.id]),
 );
 
+// The same sentences the page renders before hydration, counted from the plan
+// the visitor sees now. Keep in sync with the .overview paragraph in
+// src/pages/[...slug].astro.
+const overview = computed(() => {
+  const entries = planEntries.value;
+  const base = new Set(
+    (props.variants.find((v) => v.slug === "bundesweit")?.deadlines ?? []).map(
+      (d) => d.id,
+    ),
+  );
+  return {
+    total: entries.length,
+    earliest: entries[0] ?? null,
+    afterAnchor: entries.filter((e) => (e.offset_days ?? 0) > 0).length,
+    officeSteps: entries.filter((e) => e.needs_office).map((e) => e.label),
+    undated: entries.filter((e) => e.offset_days === null).length,
+    localSteps: isBundesweit.value
+      ? []
+      : entries
+        .filter((e) => !base.has(e.id) && !isCustom(e.id))
+        .map((e) => e.label.split(" ")[0]),
+  };
+});
+
 const openNodes = computed(() => {
   const out: typeof railNodes.value = [];
   for (const node of railNodes.value) {
@@ -254,9 +279,8 @@ function trackActiveCard() {
 }
 
 onMounted(() => {
-  // Both are the pre-hydration fallback, the planner renders the same Fristen
-  // with their notes and sources, so showing both would only duplicate.
-  document.getElementById("static-plan")?.remove();
+  // The rest of the pre-hydration fallback is hidden by the js flag before the
+  // first paint, only the title has to go once the planner renders its own.
   document.getElementById("static-title")?.remove();
   const linked = location.hash.match(/^#task-(.+)$/);
   if (linked) nextTick(() => onTimelineSelect(linked[1]));
@@ -297,6 +321,42 @@ onBeforeUnmount(() => {
         </span>
       </template>
     </h1>
+
+    <p v-if="overview.total > 0" class="overview">
+      Der Zeitplan für {{ vorhaben }} umfasst
+      <b>{{ overview.total }} Fristen</b>.
+      <template v-if="overview.earliest">
+        Die erste ist {{ overview.earliest.label }} ({{
+          offsetLabel(overview.earliest, anchorLabel)
+        }}).
+      </template>
+      <template v-if="overview.afterAnchor > 0">
+        {{ overview.afterAnchor }} davon fallen erst nach dem
+        {{ anchorLabel }} an.
+      </template>
+      <template v-if="overview.officeSteps.length > 0">
+        <b>
+          {{ overview.officeSteps.length }}
+          {{
+            overview.officeSteps.length === 1
+              ? "Frist braucht"
+              : "Fristen brauchen"
+          }}
+          einen Termin beim Amt</b
+        >
+        ({{ overview.officeSteps.join(", ") }}). Solche Termine sind je nach
+        Stadt Wochen im Voraus vergeben, deshalb steht der Plan rückwärts und
+        nicht als Liste zum Abarbeiten.
+      </template>
+      <template v-if="overview.undated > 0">
+        {{ overview.undated }} Fristen sind noch nicht gegen ihre
+        Rechtsgrundlage geprüft.
+      </template>
+      <template v-if="overview.localSteps.length > 0">
+        In {{ selected?.label }} kommen dazu:
+        {{ overview.localSteps.join(", ") }}.
+      </template>
+    </p>
 
     <div ref="sentinelEl" class="sentinel"></div>
 
@@ -438,6 +498,15 @@ onBeforeUnmount(() => {
 }
 .sentinel {
   height: 1.5rem;
+}
+.overview {
+  max-width: 62ch;
+  margin: 0 0 1rem;
+  color: var(--muted);
+}
+.overview b {
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .planner-header {

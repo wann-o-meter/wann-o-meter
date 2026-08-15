@@ -12,10 +12,9 @@ const { deadlines, anchorLabel } = Astro.props;
 const entries = deadlines.filter((d) => appliesTo(d, [])).sort(byOffset);
 ---
 
-<!-- The fallback before hydration and without JavaScript. The planner renders
-the same Fristen with labels, notes and sources, and drops this on mount so the
-page never shows both. -->
-<section id="static-plan">
+<!-- The fallback without JavaScript. The planner renders the same Fristen with
+labels, notes and sources, so with JS this stays hidden. -->
+<section id="static-plan" class="prehydrate">
   <h2>Fristen und Quellen im Überblick</h2>
   <p class="lede">
     Jede Frist relativ zum {anchorLabel}, mit der Quelle dahinter. Oben im

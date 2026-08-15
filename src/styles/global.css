@@ -122,6 +122,12 @@ a:hover {
   text-decoration-thickness: 2px;
 }
 
+/* The crawlable and no-JS version of what an island renders. With JS it never
+appears, so the page does not shift when the island takes over. */
+html[data-js] .prehydrate {
+  display: none;
+}
+
 /* Physical key: a solid lip under the control, pressed in when active or chosen.
 Only for controls that hold a choice, everything else stays flat. */
 .key {
