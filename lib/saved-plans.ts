@@ -15,9 +15,8 @@ export interface SavedPlan {
 
 export interface PlanSnapshot {
   done: Record<string, boolean>;
-  deleted: Record<string, boolean>;
+  hidden: Record<string, boolean>;
   labels: Record<string, string>;
-  offsets: Record<string, number>;
   custom: { id: string; label: string; offsetDays: number }[];
 }
 
@@ -64,12 +63,14 @@ export function forgetPlan(slug: string): SavedPlan[] {
 }
 
 export function readSnapshot(key: string): PlanSnapshot {
-  const raw = read(key) as Partial<PlanSnapshot> | null;
+  const raw = read(key) as
+    | (Partial<PlanSnapshot> & { deleted?: Record<string, boolean> })
+    | null;
   return {
     done: raw?.done ?? {},
-    deleted: raw?.deleted ?? {},
+    // deleted is what hiding was called before.
+    hidden: raw?.hidden ?? raw?.deleted ?? {},
     labels: raw?.labels ?? {},
-    offsets: raw?.offsets ?? {},
     custom: Array.isArray(raw?.custom) ? raw.custom : [],
   };
 }
@@ -85,10 +86,6 @@ export function snapshotDeadlines(
     source_url: null,
   }));
   return [...base, ...custom]
-    .filter((d) => !snap.deleted[d.id])
-    .map((d) => ({
-      ...d,
-      offset_days: d.id in snap.offsets ? snap.offsets[d.id] : d.offset_days,
-      label: snap.labels[d.id] ?? d.label,
-    }));
+    .filter((d) => !snap.hidden[d.id])
+    .map((d) => ({ ...d, label: snap.labels[d.id] ?? d.label }));
 }

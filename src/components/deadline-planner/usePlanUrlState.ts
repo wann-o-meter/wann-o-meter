@@ -99,6 +99,10 @@ export function usePlanUrlState(
       if (typeof window === "undefined") return;
       const next = new URLSearchParams(window.location.search);
       next.delete("variant");
+      // region only carries the Bundesland of an Ort we have no file for. A
+      // variant that knows its own Bundesland makes it redundant.
+      if (variants.find((x) => x.slug === selectedSlug.value)?.regionCode)
+        next.delete("region");
       if (touched.value) {
         if (anchorDate.value) next.set("date", anchorDate.value);
         if (activeFacets.value.length > 0)

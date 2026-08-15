@@ -16,7 +16,7 @@ import PlanSummary from "./deadline-planner/PlanSummary.vue";
 import PlanActions from "./deadline-planner/PlanActions.vue";
 import DoneGroup from "./deadline-planner/DoneGroup.vue";
 import { facetLabel } from "../../lib/facets";
-import { formatDate, toDate } from "../../lib/format-date";
+import { formatDate } from "../../lib/format-date";
 import { planStorageKey, savePlan } from "../../lib/saved-plans";
 import { downloadIcs } from "../../lib/ics-download";
 import { burst } from "./deadline-planner/confetti";
@@ -83,18 +83,18 @@ const {
   doneIds,
   userNotes,
   attachments,
-  lastDeleted,
+  lastHidden,
   workingDeadlines,
   isCustom,
   toggleDone,
   commitLabel,
   commitNote,
   commitAttachment,
-  deleteEntry,
-  undoDelete,
+  ensureAttachment,
+  hideEntry,
+  unhide,
   insertCustomTask,
   addTaskAtEnd,
-  moveEntry,
 } = useTaskEditor(
   selectedForPlan,
   rootEl,
@@ -112,18 +112,28 @@ const { timeline, tasks, unscheduled, railNodes } = usePlannerSchedule(
 
 const { stuck, headerGap } = useStickyHeader(rootEl, headerEl, sentinelEl);
 
+const editor = ref<{ id: string; kind: EditorKind } | null>(null);
+
+// A task added without a preset has no title yet, so it opens straight into
+// its title editor.
+function nameIfBlank(id: string, label?: string) {
+  if (!label) editor.value = { id, kind: "label" };
+}
+
 const picker = useTaskPicker({
-  insertInGap: (after, before, label) => insertCustomTask(after, before, label),
+  insertInGap: (after, before, label) =>
+    nameIfBlank(insertCustomTask(after, before, label), label),
   addAtEnd: (label) =>
-    addTaskAtEnd(
-      timeline.value
-        .filter((e) => e.offset_days !== null)
-        .map((e) => e.offset_days!),
+    nameIfBlank(
+      addTaskAtEnd(
+        timeline.value
+          .filter((e) => e.offset_days !== null)
+          .map((e) => e.offset_days!),
+        label,
+      ),
       label,
     ),
 });
-
-const editor = ref<{ id: string; kind: EditorKind } | null>(null);
 
 // Kept in sync by hand with lib/vorhaben-data, importing it would pull node:fs
 // into the browser bundle.
@@ -140,24 +150,19 @@ function openDatePicker() {
   }
 }
 
-function onCommitDate(id: string, iso: string) {
-  const days = Math.round(
-    (toDate(iso).getTime() - toDate(anchorDate.value).getTime()) / 86400000,
-  );
-  moveEntry(id, days);
-}
-
 const store = computed<TaskStore>(() => ({
   doneIds,
   userNotes,
   attachments,
   isCustom,
   editorFor: (id) => (editor.value?.id === id ? editor.value.kind : null),
-  setEditor: (id, kind) => (editor.value = kind ? { id, kind } : null),
-  deleteEntry,
+  setEditor: (id, kind) => {
+    if (kind === "attachment") ensureAttachment(id);
+    editor.value = kind ? { id, kind } : null;
+  },
+  hideEntry,
   applyPatch: (entry: ScheduleEntry, patch: TaskPatch) => {
     if (patch.label !== undefined) commitLabel(entry.id, patch.label);
-    if (patch.date !== undefined) onCommitDate(entry.id, patch.date);
     if (patch.note !== undefined) commitNote(entry.id, patch.note);
     if (patch.attachment !== undefined)
       commitAttachment(entry.id, patch.attachment);
@@ -381,9 +386,9 @@ onBeforeUnmount(() => {
 
       <DoneGroup :entries="doneEntries" @reopen="toggleDone" />
 
-      <p v-if="lastDeleted" class="undo">
-        „{{ lastDeleted.label }}" entfernt.
-        <button type="button" @click="undoDelete">Rückgängig</button>
+      <p v-if="lastHidden" class="undo">
+        „{{ lastHidden.label }}" ausgeblendet.
+        <button type="button" @click="unhide">Rückgängig</button>
       </p>
 
       <div v-if="unscheduled.length > 0" class="unscheduled">

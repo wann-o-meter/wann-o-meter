@@ -2,11 +2,10 @@
 import { computed, nextTick, ref, watch } from "vue";
 import {
   ArrowUpRight,
-  CalendarClock,
   Check,
+  EyeOff,
   MessageSquarePlus,
   Pencil,
-  Trash2,
   TriangleAlert,
 } from "lucide-vue-next";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
@@ -35,7 +34,7 @@ const emit = defineEmits<{
   (e: "update", patch: TaskPatch): void;
   (e: "toggle-done"): void;
   (e: "toggle-defer"): void;
-  (e: "delete"): void;
+  (e: "hide"): void;
 }>();
 
 function open(kind: EditorKind) {
@@ -46,7 +45,6 @@ function close() {
 }
 function currentValue(field: EditorKind) {
   if (field === "label") return props.entry.label ?? "";
-  if (field === "date") return props.entry.date ?? "";
   if (field === "note") return props.note ?? "";
   return props.attachment ?? "";
 }
@@ -83,19 +81,6 @@ const textEditor = computed(() => {
   return null;
 });
 
-const pendingDate = ref("");
-function parkDate(e: Event) {
-  const el = e.target as HTMLInputElement;
-  pendingDate.value = el.value;
-  if (matchMedia("(hover: hover)").matches) el.blur();
-}
-function closeDateEdit() {
-  const iso = pendingDate.value;
-  pendingDate.value = "";
-  if (iso) commit("date", iso);
-  else close();
-}
-
 const status = computed(() =>
   props.done ? "erledigt" : props.isPast ? "ueberfaellig" : "offen",
 );
@@ -111,18 +96,16 @@ const doubleRent = computed(() => {
 });
 
 const menuItems = computed<MenuItem[]>(() => [
-  {
-    label: "Termin verschieben",
-    icon: CalendarClock,
-    onSelect: () => open("date"),
-  },
-  { label: "Titel ändern", icon: Pencil, onSelect: () => open("label") },
+  // Only a custom task can be renamed: a Frist from the plan carries its
+  // Grundlage, and a free title would no longer match it.
+  ...(props.isCustom
+    ? [{ label: "Titel ändern", icon: Pencil, onSelect: () => open("label") }]
+    : []),
   { label: "Notiz", icon: MessageSquarePlus, onSelect: () => open("note") },
   {
-    label: "Aufgabe entfernen",
-    icon: Trash2,
-    danger: true,
-    onSelect: () => emit("delete"),
+    label: "Nicht relevant für mich",
+    icon: EyeOff,
+    onSelect: () => emit("hide"),
   },
 ]);
 </script>
@@ -162,18 +145,6 @@ const menuItems = computed<MenuItem[]>(() => [
     </div>
 
     <TaskDates :entry="entry" :is-past="isPast" :done="done" />
-
-    <input
-      v-if="editor === 'date'"
-      ref="editorEl"
-      type="date"
-      class="date-input"
-      :value="entry.date"
-      aria-label="Datum ändern"
-      @change="parkDate"
-      @blur="closeDateEdit"
-      @keydown.enter="($event.target as HTMLInputElement).blur()"
-    />
 
     <p v-if="!done && entry.impossible" class="flag">
       <TriangleAlert :size="14" /> Bei diesem Termin nicht mehr rechtzeitig
@@ -427,27 +398,18 @@ const menuItems = computed<MenuItem[]>(() => [
   }
 }
 
-.note-input,
-.date-input {
-  font-family: inherit;
-  font-size: var(--fs-sm);
-  color: inherit;
-  border-radius: var(--radius-sm);
-  background: var(--paper);
-}
 .note-input {
   display: block;
   width: 100%;
   margin-top: 0.5rem;
-  border: 1px solid var(--line);
   padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  color: inherit;
   resize: vertical;
-}
-.date-input {
-  display: block;
-  margin-top: 0.5rem;
-  border: 1px solid var(--accent);
-  padding: 0.25rem 0.5rem;
 }
 .note {
   margin: 0.5rem 0 0;

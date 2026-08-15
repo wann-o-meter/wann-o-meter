@@ -9,5 +9,5 @@ export type TaskStore = {
   editorFor(id: string): EditorKind | null;
   setEditor(id: string, kind: EditorKind | null): void;
   applyPatch(entry: ScheduleEntry, patch: TaskPatch): void;
-  deleteEntry(entry: ScheduleEntry): void;
+  hideEntry(entry: ScheduleEntry): void;
 };

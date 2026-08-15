@@ -15,6 +15,12 @@ interface CustomTask {
   offsetDays: number;
 }
 
+function urlHiddenIds(): string[] {
+  if (typeof window === "undefined") return [];
+  const raw = new URLSearchParams(window.location.search).get("hidden");
+  return (raw ?? "").split(",").filter(Boolean);
+}
+
 export function useTaskEditor(
   selected: ComputedRef<PlanVariant | undefined>,
   rootEl: { value: HTMLElement | null },
@@ -23,21 +29,11 @@ export function useTaskEditor(
   let customUid = 0;
   const customTasks = ref<CustomTask[]>([]);
   const doneIds = reactive<Record<string, boolean>>({});
-  const deletedIds = reactive<Record<string, boolean>>({});
+  const hiddenIds = reactive<Record<string, boolean>>({});
   const userNotes = reactive<Record<string, string>>({});
   const labelOverrides = reactive<Record<string, string>>({});
-  const offsetOverrides = reactive<Record<string, number>>({});
-  const editingId = ref<string | null>(null);
-  const openNoteId = ref<string | null>(null);
   const attachments = reactive<Record<string, string>>({});
-  const openAttachmentId = ref<string | null>(null);
-  const lastDeleted = ref<{ id: string; label: string } | null>(null);
-
-  function moveEntry(id: string, newOffsetDays: number) {
-    const custom = customTasks.value.find((t) => t.id === id);
-    if (custom) custom.offsetDays = newOffsetDays;
-    else offsetOverrides[id] = newOffsetDays;
-  }
+  const lastHidden = ref<{ id: string; label: string } | null>(null);
 
   const workingDeadlines = computed<Deadline[]>(() => {
     if (!selected.value) return [];
@@ -48,12 +44,7 @@ export function useTaskEditor(
       source_url: null,
     }));
     return [...selected.value.deadlines, ...custom]
-      .filter((d) => !deletedIds[d.id])
-      .map((d) =>
-        d.id in offsetOverrides
-          ? { ...d, offset_days: offsetOverrides[d.id] }
-          : d,
-      )
+      .filter((d) => !hiddenIds[d.id])
       .map((d) =>
         d.id in labelOverrides ? { ...d, label: labelOverrides[d.id] } : d,
       );
@@ -73,57 +64,39 @@ export function useTaskEditor(
     doneIds[id] = !doneIds[id];
   }
 
-  function startEditingLabel(id: string) {
-    editingId.value = id;
-    focusWithin(`[data-title-input="${id}"]`);
-  }
-
   function commitLabel(id: string, value: string) {
-    if (editingId.value !== id) return;
     const label = value.trim();
     const task = customTasks.value.find((t) => t.id === id);
     if (task) task.label = label || "Ohne Titel";
     else if (label) labelOverrides[id] = label;
     else delete labelOverrides[id];
-    editingId.value = null;
-  }
-
-  function openNote(id: string) {
-    openNoteId.value = id;
-    focusWithin(`[data-note-input="${id}"]`);
   }
 
   function commitNote(id: string, value: string) {
-    if (openNoteId.value !== id) return;
     const trimmed = value.trim();
     if (trimmed) userNotes[id] = trimmed;
     else delete userNotes[id];
-    openNoteId.value = null;
-  }
-
-  function openAttachment(id: string) {
-    if (!(id in attachments)) attachments[id] = LETTER_TEMPLATE;
-    openAttachmentId.value = id;
-    focusWithin(`[data-attachment-input="${id}"]`);
   }
 
   function commitAttachment(id: string, value: string) {
-    if (openAttachmentId.value !== id) return;
     const trimmed = value.trim();
     if (trimmed) attachments[id] = trimmed;
     else delete attachments[id];
-    openAttachmentId.value = null;
   }
 
-  function deleteEntry(entry: ScheduleEntry) {
-    deletedIds[entry.id] = true;
-    lastDeleted.value = { id: entry.id, label: entry.label };
+  function ensureAttachment(id: string) {
+    if (!(id in attachments)) attachments[id] = LETTER_TEMPLATE;
   }
 
-  function undoDelete() {
-    if (!lastDeleted.value) return;
-    delete deletedIds[lastDeleted.value.id];
-    lastDeleted.value = null;
+  function hideEntry(entry: ScheduleEntry) {
+    hiddenIds[entry.id] = true;
+    lastHidden.value = { id: entry.id, label: entry.label };
+  }
+
+  function unhide() {
+    if (!lastHidden.value) return;
+    delete hiddenIds[lastHidden.value.id];
+    lastHidden.value = null;
   }
 
   function insertCustomTask(
@@ -137,7 +110,7 @@ export function useTaskEditor(
       label,
       offsetDays: Math.round((afterOffset + beforeOffset) / 2),
     });
-    if (!label) startEditingLabel(id);
+    return id;
   }
 
   function addTaskAtEnd(knownOffsets: number[], label = "") {
@@ -145,15 +118,14 @@ export function useTaskEditor(
       (knownOffsets.length > 0 ? Math.max(...knownOffsets) : 0) + 3;
     const id = `${CUSTOM_PREFIX}${++customUid}`;
     customTasks.value.push({ id, label, offsetDays: offset });
-    if (!label) startEditingLabel(id);
+    return id;
   }
 
   const maps = {
     done: doneIds,
-    deleted: deletedIds,
+    hidden: hiddenIds,
     notes: userNotes,
     labels: labelOverrides,
-    offsets: offsetOverrides,
     attachments,
   } as const;
 
@@ -171,6 +143,8 @@ export function useTaskEditor(
     }
     for (const [name, map] of Object.entries(maps))
       Object.assign(map, saved[name] ?? {});
+    // Plans saved before hiding got its own name.
+    Object.assign(hiddenIds, saved.deleted ?? {});
     customTasks.value = Array.isArray(saved.custom) ? saved.custom : [];
     for (const task of customTasks.value)
       customUid = Math.max(
@@ -184,15 +158,7 @@ export function useTaskEditor(
       immediate: true,
     });
     watch(
-      [
-        doneIds,
-        deletedIds,
-        userNotes,
-        labelOverrides,
-        offsetOverrides,
-        attachments,
-        customTasks,
-      ],
+      [doneIds, hiddenIds, userNotes, labelOverrides, attachments, customTasks],
       () => {
         const snapshot = Object.fromEntries(
           Object.entries(maps).map(([name, map]) => [name, { ...map }]),
@@ -209,27 +175,43 @@ export function useTaskEditor(
     );
   }
 
+  // What the visitor put aside travels with the link, the rest of the plan
+  // already does.
+  for (const id of urlHiddenIds()) hiddenIds[id] = true;
+  watch(
+    hiddenIds,
+    () => {
+      if (typeof window === "undefined") return;
+      const next = new URLSearchParams(window.location.search);
+      const ids = Object.keys(hiddenIds).filter((id) => hiddenIds[id]);
+      if (ids.length > 0) next.set("hidden", ids.join(","));
+      else next.delete("hidden");
+      const query = next.toString();
+      history.replaceState(
+        null,
+        "",
+        query ? `?${query}` : window.location.pathname,
+      );
+    },
+    { deep: true },
+  );
+
   return {
     doneIds,
     userNotes,
-    editingId,
-    openNoteId,
     attachments,
-    openAttachmentId,
-    lastDeleted,
+    lastHidden,
     workingDeadlines,
     isCustom: isCustomTask,
     toggleDone,
-    startEditingLabel,
     commitLabel,
-    openNote,
     commitNote,
-    openAttachment,
     commitAttachment,
-    deleteEntry,
-    undoDelete,
+    ensureAttachment,
+    hideEntry,
+    unhide,
     insertCustomTask,
     addTaskAtEnd,
-    moveEntry,
+    focusWithin,
   };
 }

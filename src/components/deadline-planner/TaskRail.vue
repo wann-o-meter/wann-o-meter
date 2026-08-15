@@ -80,7 +80,7 @@ defineEmits<{
         :editor="store.editorFor(node.entry.id)"
         @update:editor="store.setEditor(node.entry.id, $event)"
         @update="store.applyPatch(node.entry, $event)"
-        @delete="store.deleteEntry(node.entry)"
+        @hide="store.hideEntry(node.entry)"
         @toggle-done="$emit('toggle-done', node.entry.id)"
         @toggle-defer="$emit('toggle-defer')"
         @mouseenter="$emit('hover', node.entry.id)"
