@@ -1,4 +1,4 @@
-- [ ] update the llms.txt. it doesn't reflect the site anymore.
+- [x] update the llms.txt. it doesn't reflect the site anymore.
 - [x] should use bun instead of node for gemeinden.mjs
 - [x] why is there gemeinden.json in data and in public?
 - [ ] the location input in the plan page still shows only the 4 cities and bundesweit. it.
