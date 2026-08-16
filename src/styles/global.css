@@ -22,7 +22,7 @@
   --radius-sm: 6px;
   --radius-pill: 999px;
   /* One gap between page sections, everywhere. */
-  --section-gap: 4rem;
+  --section-gap: 2.75rem;
   --shadow-card: 0 1px 2px rgb(20 22 26 / 0.06), 0 2px 6px rgb(20 22 26 / 0.07);
   --shadow-md: 0 2px 4px rgb(20 22 26 / 0.06), 0 6px 16px rgb(20 22 26 / 0.1);
   --shadow-lg:
@@ -100,7 +100,7 @@ h1 {
 }
 @media (max-width: 40rem) {
   :root {
-    --section-gap: 2.5rem;
+    --section-gap: 2rem;
   }
   h1 {
     font-size: var(--fs-lg);

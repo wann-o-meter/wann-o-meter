@@ -165,7 +165,6 @@ const href = computed(() =>
 .plan {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
   justify-content: space-between;
   gap: 0.6rem 1.2rem;
   height: 100%;
@@ -177,6 +176,8 @@ const href = computed(() =>
   padding: 0.9rem 1.1rem;
 }
 .body {
+  display: flex;
+  flex-direction: column;
   flex: 1 1 13rem;
   min-width: 0;
   /* Frist labels are long compound nouns, they have to be allowed to break. */
@@ -215,6 +216,7 @@ h2.late {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.4rem 1rem;
+  margin-top: auto;
 }
 .cta {
   margin-top: 0.7rem;
@@ -237,6 +239,7 @@ h2.late {
 }
 
 .cal {
+  align-self: flex-start;
   width: max-content;
   font-size: var(--fs-xs);
 }

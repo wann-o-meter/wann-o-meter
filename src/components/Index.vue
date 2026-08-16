@@ -586,11 +586,11 @@ h2.mine {
 
 .add-plan {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  min-height: 8rem;
+  align-self: start;
+  gap: 0.5rem;
+  padding: 0.9rem 1.1rem;
   border: 1px dashed var(--line);
   border-radius: var(--radius);
   background: none;
