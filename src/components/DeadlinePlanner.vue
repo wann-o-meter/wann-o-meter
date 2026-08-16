@@ -103,6 +103,13 @@ function planRecord() {
   };
 }
 
+// The same burst the checkboxes use, then the button collapses into the space
+// it just filled: the plan is kept, the ask is done.
+function keepWithBurst(event: MouseEvent) {
+  burst(event.currentTarget as Element);
+  toggleKept();
+}
+
 function toggleKept() {
   if (kept.value) {
     forgetPlan(props.slug);
@@ -396,9 +403,11 @@ onBeforeUnmount(() => {
         />
       </template>
       </h1>
-      <button v-if="!kept" type="button" class="save" @click="toggleKept">
-        <Bookmark :size="16" /> Plan merken
-      </button>
+      <Transition name="implode">
+        <button v-if="!kept" type="button" class="save" @click="keepWithBurst">
+          <Bookmark :size="16" /> Plan merken
+        </button>
+      </Transition>
     </div>
 
     <p v-if="overview.total > 0" class="overview">
@@ -640,6 +649,21 @@ grey text under a chart. */
   border-color: var(--done-color);
   color: var(--done-color);
 }
+.implode-leave-active {
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 1, 1),
+    opacity 0.3s ease-in;
+}
+.implode-leave-to {
+  transform: scale(0.2) rotate(-8deg);
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .implode-leave-active {
+    transition: none;
+  }
+}
+
 .save-end {
   display: flex;
   width: 100%;
