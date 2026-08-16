@@ -15,7 +15,9 @@ const props = defineProps<{
 defineEmits<{ (e: "select", id: string): void }>();
 
 const open = computed(() => props.entries.filter((e) => !props.doneIds[e.id]));
-const overdue = computed(() => open.value.filter((e) => isPast(e.date!)));
+// Only a real Frist can be overdue or next, a soft step has no date to miss.
+const dated = computed(() => open.value.filter((e) => e.kind !== "soft"));
+const overdue = computed(() => dated.value.filter((e) => isPast(e.date!)));
 const total = computed(() => props.entries.length);
 const doneCount = computed(() => total.value - open.value.length);
 const pct = computed(() =>
@@ -23,7 +25,7 @@ const pct = computed(() =>
 );
 
 const nextOpen = computed(() => {
-  const upcoming = open.value.filter((e) => !isPast(e.date!));
+  const upcoming = dated.value.filter((e) => !isPast(e.date!));
   if (upcoming.length === 0) return null;
   const next = upcoming.reduce((a, b) => (a.date! <= b.date! ? a : b));
   return { id: next.id, label: next.label, date: next.date! };

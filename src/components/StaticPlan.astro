@@ -9,7 +9,10 @@ interface Props {
 }
 const { deadlines, anchorLabel } = Astro.props;
 
-const entries = deadlines.filter((d) => appliesTo(d, [])).sort(byOffset);
+const all = deadlines.filter((d) => appliesTo(d, []));
+const entries = all.filter((d) => d.kind !== "soft").sort(byOffset);
+// No date, so no place in a list sorted by date.
+const soft = all.filter((d) => d.kind === "soft");
 ---
 
 <!-- The fallback without JavaScript. The planner renders the same Fristen with
@@ -45,6 +48,18 @@ labels, notes and sources, so with JS this stays hidden. -->
       ))
     }
   </ol>
+  {
+    soft.length > 0 && (
+      <>
+        <h3 class="softhead">Ohne feste Frist</h3>
+        <ul class="soft">
+          {soft.map((d) => (
+            <li>{d.label}</li>
+          ))}
+        </ul>
+      </>
+    )
+  }
 </section>
 
 <style>
@@ -92,5 +107,16 @@ labels, notes and sources, so with JS this stays hidden. -->
   /* The task has a page of its own, this list only summarises it. */
   .src .frist {
     margin-right: 0.6rem;
+  }
+  .softhead {
+    margin-top: 1.5rem;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .soft {
+    margin: 0;
+    padding-left: 1.2rem;
+    color: var(--muted);
+    font-size: var(--fs-sm);
   }
 </style>

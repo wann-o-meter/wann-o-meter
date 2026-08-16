@@ -16,6 +16,7 @@ import OrtPicker from "./deadline-planner/OrtPicker.vue";
 import PlanSummary from "./deadline-planner/PlanSummary.vue";
 import PlanActions from "./deadline-planner/PlanActions.vue";
 import DoneGroup from "./deadline-planner/DoneGroup.vue";
+import SoftGroup from "./deadline-planner/SoftGroup.vue";
 import { facetLabel } from "../../lib/facets";
 import { formatDate } from "../../lib/format-date";
 import { offsetLabel } from "../../lib/offset-label";
@@ -226,12 +227,14 @@ const overview = computed(() => {
       (d) => d.id,
     ),
   );
+  const dated = entries.filter((e) => e.kind !== "soft");
   return {
-    total: entries.length,
-    earliest: entries[0] ?? null,
-    afterAnchor: entries.filter((e) => (e.offset_days ?? 0) > 0).length,
+    total: dated.length,
+    softCount: entries.length - dated.length,
+    earliest: dated[0] ?? null,
+    afterAnchor: dated.filter((e) => (e.offset_days ?? 0) > 0).length,
     officeSteps: entries.filter((e) => e.needs_office).map((e) => e.label),
-    undated: entries.filter((e) => e.offset_days === null).length,
+    undated: dated.filter((e) => e.offset_days === null).length,
     localSteps: isBundesweit.value
       ? []
       : entries
@@ -240,9 +243,17 @@ const overview = computed(() => {
   };
 });
 
+// A soft task has no defensible date, so it is not on the rail, not on the
+// timeline and not sorted by the date it never had.
+const softEntries = computed(() =>
+  planEntries.value.filter((e) => e.kind === "soft" && !doneIds[e.id]),
+);
+const datedTasks = computed(() => tasks.value.filter((t) => t.kind !== "soft"));
+
 const openNodes = computed(() => {
   const out: typeof railNodes.value = [];
   for (const node of railNodes.value) {
+    if (node.kind === "item" && node.entry.kind === "soft") continue;
     if (node.kind === "item" && node.entry.id === ANCHOR_ID) continue;
     if (node.kind === "gap" && out[out.length - 1]?.kind !== "item") continue;
     out.push(node);
@@ -373,9 +384,8 @@ onBeforeUnmount(() => {
         Stadt Wochen im Voraus vergeben, deshalb steht der Plan rückwärts und
         nicht als Liste zum Abarbeiten.
       </template>
-      <template v-if="overview.undated > 0">
-        {{ overview.undated }} Fristen sind noch nicht gegen ihre
-        Rechtsgrundlage geprüft.
+      <template v-if="overview.softCount > 0">
+        Dazu kommen {{ overview.softCount }} Schritte ohne feste Frist.
       </template>
       <template v-if="overview.localSteps.length > 0">
         In {{ selected?.label }} kommen dazu:
@@ -401,7 +411,7 @@ onBeforeUnmount(() => {
         <Timeline
           id="plan-timeline"
           :class="{ 'tl-off': timelineHidden }"
-          :tasks="tasks"
+          :tasks="datedTasks"
           :anchor-date="anchorDate"
           :anchor-name="anchorLabel"
           :region-code="selected?.regionCode"
@@ -473,6 +483,13 @@ onBeforeUnmount(() => {
           @pick-blank="picker.pick()"
         />
       </div>
+
+      <SoftGroup
+        :entries="softEntries"
+        :done-ids="doneIds"
+        @toggle-done="onToggleDone"
+        @hide="hideEntry"
+      />
 
       <DoneGroup :entries="doneEntries" @reopen="toggleDone" />
 
