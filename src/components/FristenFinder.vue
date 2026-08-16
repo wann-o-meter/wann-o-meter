@@ -94,9 +94,11 @@ const toggle = (id: string) => (filter.value = filter.value === id ? "" : id);
         <a :href="`/frist/${f.id}/`">{{ f.label }}</a>
         <span class="meta">
           <span class="src">{{ f.source }}</span>
-          <span v-for="g in groupsOf(f)" :key="g.id" class="tag">{{
-            g.label
-          }}</span>
+          <span class="tags">
+            <span v-for="g in groupsOf(f)" :key="g.id" class="tag">{{
+              g.label
+            }}</span>
+          </span>
         </span>
       </li>
     </ul>
@@ -171,6 +173,7 @@ ul {
   gap: 0.5rem;
 }
 li {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -180,22 +183,61 @@ li {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--paper-raised);
+  transition:
+    border-color 0.12s,
+    box-shadow 0.12s;
+}
+li:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-card);
 }
 li a {
   font-weight: 600;
+  text-decoration: none;
 }
+li:hover a {
+  color: var(--accent);
+}
+/* The title carries the link, the whole card is its hit area. */
+li a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+/* Two fixed tracks, so the paragraph and the tag line up down the list instead
+of drifting with the length of each. */
 .meta {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 7rem;
   align-items: baseline;
-  flex-wrap: wrap;
   gap: 0.5rem;
+  width: 19rem;
   font-size: var(--fs-xs);
   color: var(--muted);
+}
+.src {
+  text-align: right;
+}
+@media (max-width: 34rem) {
+  .meta {
+    width: auto;
+    grid-template-columns: auto auto;
+    justify-content: start;
+  }
+  .src {
+    text-align: left;
+  }
+}
+.tags {
+  display: flex;
+  gap: 0.3rem;
 }
 .tag {
   border: 1px solid var(--line);
   border-radius: var(--radius-pill);
   padding: 0.05rem 0.5rem;
+  white-space: nowrap;
 }
 .tag {
   border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
