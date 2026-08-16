@@ -6,7 +6,6 @@
         :key="card.plan.slug"
         :plan="card.plan"
         :v="card.v"
-        @forget="savedPlans = forgetPlan($event)"
       />
       <button
         v-if="planCards.length > 0"
@@ -243,7 +242,7 @@
       </section>
     </Transition>
 
-    <Teleport v-if="hasSlot" to="#fab-slot">
+    <Teleport v-if="SHOW_FAB && hasSlot" to="#fab-slot">
       <button
         type="button"
         class="fab-toggle"
@@ -282,7 +281,7 @@ import { isoToday } from "../../lib/today";
 import { addDays, isoOf, utcDay } from "../../lib/timeline-geometry";
 import SavedPlanCard from "./SavedPlanCard.vue";
 import { usePlannerSchedule } from "./deadline-planner/usePlannerSchedule";
-import { forgetPlan, loadSavedPlans } from "../../lib/saved-plans";
+import { loadSavedPlans } from "../../lib/saved-plans";
 import type { SavedPlan } from "../../lib/saved-plans";
 import type { VorhabenData, VorhabenVariant } from "../../lib/vorhaben-data";
 
@@ -529,6 +528,8 @@ const planHref = computed(() => {
   return `/${selected.value.slug}/?${params}`;
 });
 
+// Parked with the one in the planner, see DeadlinePlanner.vue.
+const SHOW_FAB = false;
 const hasSlot = ref(false);
 onMounted(() => {
   hasSlot.value = !!document.getElementById("fab-slot");

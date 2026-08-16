@@ -32,9 +32,6 @@
         <a class="cta" :href="href">
           {{ v.label }} bearbeiten <ArrowRight :size="14" />
         </a>
-        <button type="button" class="forget" @click="$emit('forget', v.slug)">
-          Plan entfernen
-        </button>
       </div>
     </div>
 

@@ -85,7 +85,7 @@ const {
 
 // Keeping a plan is the visitor's decision, not a side effect of opening one.
 // Once kept, it follows whatever they change afterwards.
-const kept = ref(false);
+const kept = ref(loadSavedPlans().some((p) => p.slug === props.slug));
 
 function planRecord() {
   // Both only say something for a variant without a Bundesland of its own,
@@ -307,6 +307,8 @@ function onTimelineSelect(id: string) {
 
 const timelineHidden = ref(false);
 
+// Parked, not deleted: the bar keeps the slot, we bring this back later.
+const SHOW_FAB = false;
 const fabOpen = ref(false);
 const hasSlot = ref(false);
 function fabDo(action: () => void) {
@@ -360,7 +362,6 @@ function trackActiveCard() {
 
 onMounted(() => {
   hasSlot.value = !!document.getElementById("fab-slot");
-  kept.value = loadSavedPlans().some((p) => p.slug === props.slug);
   // The rest of the pre-hydration fallback is hidden by the js flag before the
   // first paint, only the title has to go once the planner renders its own.
   document.getElementById("static-title")?.remove();
@@ -580,7 +581,7 @@ onBeforeUnmount(() => {
 
     <!-- Into the middle of the bottom bar, so the page's own actions sit where
     the thumb already is. -->
-    <Teleport v-if="anchorDate" to="#fab-slot" :disabled="!hasSlot">
+    <Teleport v-if="SHOW_FAB && anchorDate" to="#fab-slot" :disabled="!hasSlot">
       <div class="fab" :class="{ open: fabOpen }">
       <div v-if="fabOpen" class="fab-menu">
         <button type="button" @click="fabDo(addTask)">
@@ -800,22 +801,8 @@ the two stats be cards, once it has one they flatten into it. */
 not push it off the screen. */
 .facet-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.4rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding-bottom: 0.15rem;
-}
-.facet-row::-webkit-scrollbar {
-  display: none;
-}
-.facet {
-  flex-shrink: 0;
-}
-@media (min-width: 40rem) {
-  .facet-row {
-    flex-wrap: wrap;
-    overflow-x: visible;
-  }
 }
 .facets legend {
   font-size: var(--fs-xs);
@@ -828,9 +815,10 @@ not push it off the screen. */
 .facet {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   border: 1px solid var(--line);
-  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-pill);
+  padding: 0.3rem 0.8rem;
   background: var(--paper-raised);
   font-size: var(--fs-sm);
   cursor: pointer;
