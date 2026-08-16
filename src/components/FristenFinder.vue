@@ -66,7 +66,7 @@ const toggle = (id: string) => (filter.value = filter.value === id ? "" : id);
     </p>
 
     <div class="controls">
-      <div class="field">
+      <div class="searchbox">
         <Search :size="16" aria-hidden="true" />
         <input
           v-model="query"
@@ -133,7 +133,7 @@ h2 {
   gap: 0.6rem 1rem;
   margin-bottom: 1.25rem;
 }
-.field {
+.searchbox {
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -145,10 +145,10 @@ h2 {
   background: var(--paper-raised);
   color: var(--muted);
 }
-.field:focus-within {
+.searchbox:focus-within {
   border-color: var(--accent);
 }
-.field input {
+.searchbox input {
   flex: 1;
   min-width: 0;
   border: 0;

@@ -322,20 +322,20 @@ const minDate = isoOf(addDays(TODAY, -14));
 const maxDate = isoOf(addDays(TODAY, 365));
 const anchorDate = ref("");
 
-function endOfMonth(n: number): string {
+function endOfMonthFromNow(n: number): string {
   const d = new Date(TODAY);
   d.setUTCMonth(d.getUTCMonth() + n + 1, 0);
   return isoOf(d);
 }
-function firstOfMonth(n: number): string {
+function firstOfMonthFromNow(n: number): string {
   const d = new Date(TODAY);
   d.setUTCMonth(d.getUTCMonth() + n, 1);
   return isoOf(d);
 }
 const presets = [
   { label: "In 3 Monaten", iso: () => isoOf(addDays(TODAY, 90)) },
-  { label: "Zum Monatsende", iso: () => endOfMonth(0) },
-  { label: "Nächster Monatserste", iso: () => firstOfMonth(1) },
+  { label: "Zum Monatsende", iso: () => endOfMonthFromNow(0) },
+  { label: "Nächster Monatserste", iso: () => firstOfMonthFromNow(1) },
 ];
 
 /* ---------- Ort ---------- */

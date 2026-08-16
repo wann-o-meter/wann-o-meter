@@ -4,6 +4,7 @@ import { ArrowRight, CalendarDays } from "lucide-vue-next";
 import { computeSchedule } from "../../lib/deadline-plan";
 import { formatDate } from "../../lib/format-date";
 import { isPast } from "../../lib/today";
+import { STATES } from "../../lib/states";
 import type { Deadline } from "../../lib/deadline-plan";
 
 const props = defineProps<{
@@ -24,6 +25,29 @@ const result = computed(() => {
 });
 
 const late = computed(() => !!result.value && isPast(result.value.date!));
+
+// Feiertage are Landesrecht, so the bundesweit answer is not everyone's answer.
+// Rather than warn about that on every page, work out whether it is true for
+// the date actually entered: run the same sum for all sixteen Bundesländer and
+// see which ones land somewhere else.
+const differing = computed(() => {
+  const here = result.value?.date;
+  if (!here) return [];
+  return Object.entries(STATES)
+    .filter(([code]) => {
+      const [entry] = computeSchedule(anchorDate.value, [props.task], "DE", code);
+      return !!entry?.date && entry.date !== here;
+    })
+    .map(([, name]) => name);
+});
+
+const differingLabel = computed(() => {
+  const names = differing.value;
+  if (names.length > 3) return `${names.length} Bundesländern`;
+  return names.length > 1
+    ? `${names.slice(0, -1).join(", ")} und ${names[names.length - 1]}`
+    : names[0];
+});
 const inputId = `frist-anchor-${props.task.id}`;
 </script>
 
@@ -46,6 +70,10 @@ const inputId = `frist-anchor-${props.task.id}`;
         }}</span>
       </p>
       <p v-if="late" class="warn">Dieser Termin liegt schon in der Vergangenheit.</p>
+      <p v-if="differing.length" class="hint">
+        Gerechnet mit den bundesweiten Feiertagen. In {{ differingLabel }} liegt
+        ein Feiertag dazwischen, dort gilt ein anderer Tag.
+      </p>
       <a
         v-if="planSlug"
         class="cta"
@@ -124,6 +152,12 @@ input {
 .warn {
   margin: 0.3rem 0 0;
   color: var(--warn);
+  font-size: var(--fs-sm);
+}
+/* Only ever rendered when a Bundesland really does land on another day. */
+.hint {
+  margin: 0.5rem 0 0;
+  color: var(--muted);
   font-size: var(--fs-sm);
 }
 .cta {
