@@ -37,6 +37,11 @@ function lastmodFor(url) {
 export default defineConfig({
   site: "https://wannometer.de",
   prefetch: true,
+  // The two stylesheets are 10 KiB gzipped and block the first paint for a
+  // whole round trip on a slow connection. Inlined they cost about 7 KiB per
+  // page and no round trip, which is the better trade for a visitor who
+  // arrives from a search result and reads one page.
+  build: { inlineStylesheets: "always" },
   integrations: [
     vue(),
     sitemap({
