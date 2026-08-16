@@ -167,5 +167,13 @@ defineEmits<{
   .gap-add {
     display: none;
   }
+  /* No dots on paper, so the rail and the space it reserved go too. */
+  .rail {
+    --rail-inset: 0rem;
+    padding-left: 0;
+  }
+  .rail::before {
+    display: none;
+  }
 }
 </style>

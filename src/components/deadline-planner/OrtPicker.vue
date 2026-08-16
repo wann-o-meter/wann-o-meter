@@ -253,4 +253,17 @@ second line. */
   font-size: var(--fs-xs);
   color: var(--done-color);
 }
+
+@media print {
+  .slot {
+    border-bottom: 0;
+    color: inherit;
+  }
+  .slot .pin {
+    display: none;
+  }
+  .pop {
+    display: none;
+  }
+}
 </style>

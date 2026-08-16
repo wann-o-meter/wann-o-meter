@@ -783,14 +783,33 @@ onBeforeUnmount(() => {
 }
 
 @media print {
+  /* Everything that only exists to be clicked. */
   .planner-header :deep(.timeline),
+  .planner-header :deep(.bar),
+  .header-row,
   .facets,
-  .add-end,
-  .undo {
+  .add-end-wrap,
+  .hidden-group,
+  .undo,
+  .sentinel {
     display: none;
   }
   .planner-header {
     position: static;
+    margin-bottom: 0 !important;
+    padding: 0;
+    background: none;
+  }
+  .overview {
+    color: #000;
+  }
+  .section {
+    margin-top: 1rem;
+  }
+  /* The dashed underline says "you can change this", which paper cannot. */
+  .slot {
+    border-bottom: 0;
+    color: inherit;
   }
 }
 

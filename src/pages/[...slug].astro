@@ -237,4 +237,11 @@ const rest = siblings.slice(PREVIEW);
   .places details ul {
     margin-top: 0.5rem;
   }
+
+  @media print {
+    .back,
+    .places {
+      display: none;
+    }
+  }
 </style>

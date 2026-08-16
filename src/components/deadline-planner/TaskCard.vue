@@ -423,12 +423,33 @@ const menuItems = computed<MenuItem[]>(() => [
 }
 
 @media print {
-  .cta-row {
+  .cta-row,
+  .dot {
     display: none;
   }
+  /* A row on a checklist, not a card: no fill, no shadow, and never split
+  across two sheets. */
+  .card {
+    break-inside: avoid;
+    margin-bottom: 0;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #bbb;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+  /* The scroll spy marks whatever card the screen was on, meaningless here. */
+  .card.focused {
+    box-shadow: none;
+  }
   .check {
+    border-color: #000;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+  .hint,
+  .note {
+    color: #333;
   }
 }
 </style>

@@ -147,4 +147,22 @@ const fallbackLabel = () =>
   gap: 0.2rem;
   color: var(--accent);
 }
+
+@media print {
+  /* The Grundlage stays, the controls that change it do not. */
+  .controls {
+    display: none;
+  }
+  .src {
+    border-top: 0;
+    padding-top: 0;
+    color: #444;
+  }
+  .src a {
+    color: inherit;
+  }
+  .src svg {
+    display: none;
+  }
+}
 </style>
