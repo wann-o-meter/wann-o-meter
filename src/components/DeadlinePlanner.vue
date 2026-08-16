@@ -11,10 +11,14 @@ import {
 import {
   Bookmark,
   BookmarkCheck,
+  CalendarDays,
   CalendarPlus,
   ChevronDown,
   ChevronUp,
   Eye,
+  ListPlus,
+  Plus,
+  X,
 } from "lucide-vue-next";
 import Timeline from "./deadline-planner/Timeline.vue";
 import TaskRail from "./deadline-planner/TaskRail.vue";
@@ -298,6 +302,18 @@ function onTimelineSelect(id: string) {
 
 const timelineHidden = ref(false);
 
+const fabOpen = ref(false);
+function fabDo(action: () => void) {
+  fabOpen.value = false;
+  action();
+}
+function addTask() {
+  picker.toggle({ kind: "end" });
+  rootEl.value
+    ?.querySelector(".add-end-wrap")
+    ?.scrollIntoView({ block: "center", behavior: "smooth" });
+}
+
 const calendarName = computed(
   () => `${props.vorhaben} - ${selected.value?.label ?? ""}`,
 );
@@ -355,7 +371,8 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="rootEl" class="deadline-planner" :class="{ compact: stuck }">
-    <h1 class="title">
+    <div class="title-row">
+      <h1 class="title">
       {{ anchorName }} am
       <span class="slot" @click="openDatePicker">
         <span aria-hidden="true">{{
@@ -378,7 +395,17 @@ onBeforeUnmount(() => {
           @pick="onPickOrt"
         />
       </template>
-    </h1>
+      </h1>
+      <button
+        type="button"
+        class="save"
+        :aria-pressed="kept"
+        @click="toggleKept"
+      >
+        <component :is="kept ? BookmarkCheck : Bookmark" :size="16" />
+        {{ kept ? "Gemerkt" : "Plan merken" }}
+      </button>
+    </div>
 
     <p v-if="overview.total > 0" class="overview">
       Der Zeitplan für {{ vorhaben }} umfasst
@@ -463,15 +490,6 @@ onBeforeUnmount(() => {
           <button type="button" class="head-action" @click="exportIcs">
             <CalendarPlus :size="14" /> In den Kalender
           </button>
-          <button
-            type="button"
-            class="head-action keep"
-            :aria-pressed="kept"
-            @click="toggleKept"
-          >
-            <component :is="kept ? BookmarkCheck : Bookmark" :size="14" />
-            {{ kept ? "Gemerkt" : "Plan merken" }}
-          </button>
         </div>
       </template>
     </header>
@@ -544,6 +562,16 @@ onBeforeUnmount(() => {
         </ul>
       </div>
 
+      <button
+        type="button"
+        class="save save-end"
+        :aria-pressed="kept"
+        @click="toggleKept"
+      >
+        <component :is="kept ? BookmarkCheck : Bookmark" :size="16" />
+        {{ kept ? "Plan ist gemerkt" : "Plan merken" }}
+      </button>
+
       <PlanActions
         :entries="timeline"
         :anchor-date="anchorDate"
@@ -554,6 +582,35 @@ onBeforeUnmount(() => {
     <p v-else class="hint">
       {{ anchorLabel }} eingeben, um den Zeitplan zu sehen.
     </p>
+
+    <!-- On a phone the header scrolls away, so the same actions stay in reach
+    down here. -->
+    <div v-if="anchorDate" class="fab" :class="{ open: fabOpen }">
+      <div v-if="fabOpen" class="fab-menu">
+        <button type="button" @click="fabDo(addTask)">
+          <ListPlus :size="16" /> Aufgabe hinzufügen
+        </button>
+        <button type="button" @click="fabDo(openDatePicker)">
+          <CalendarDays :size="16" /> {{ anchorLabel }} ändern
+        </button>
+        <button type="button" @click="fabDo(exportIcs)">
+          <CalendarPlus :size="16" /> In den Kalender
+        </button>
+        <button type="button" @click="fabDo(toggleKept)">
+          <component :is="kept ? BookmarkCheck : Bookmark" :size="16" />
+          {{ kept ? "Nicht mehr merken" : "Plan merken" }}
+        </button>
+      </div>
+      <button
+        type="button"
+        class="fab-toggle"
+        :aria-expanded="fabOpen"
+        aria-label="Aktionen"
+        @click="fabOpen = !fabOpen"
+      >
+        <component :is="fabOpen ? X : Plus" :size="22" />
+      </button>
+    </div>
   </div>
 </template>
 
@@ -564,6 +621,42 @@ onBeforeUnmount(() => {
 }
 .sentinel {
   height: 1.5rem;
+}
+
+.title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+}
+/* Keeping a plan is a real action, so it looks like one instead of hiding as
+grey text under a chart. */
+.save {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  background: var(--paper-raised);
+}
+.save:hover {
+  background: color-mix(in srgb, var(--accent) 10%, var(--paper-raised));
+}
+.save[aria-pressed="true"] {
+  border-color: var(--done-color);
+  color: var(--done-color);
+}
+.save-end {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  margin-top: 1.5rem;
+  padding: 0.6rem;
 }
 .overview {
   max-width: 62ch;
@@ -858,6 +951,66 @@ onBeforeUnmount(() => {
   .slot {
     border-bottom: 0;
     color: inherit;
+  }
+}
+
+.fab {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+.fab-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: var(--shadow-lg);
+}
+.fab-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.3rem;
+  padding: 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper-raised);
+  box-shadow: var(--shadow-lg);
+}
+.fab-menu button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.4rem;
+  padding: 0.4rem 0.7rem;
+  border: 0;
+  background: none;
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+}
+.fab-menu button:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-radius: var(--radius-sm);
+}
+/* A wide screen keeps the header in view, so it needs no floating copy. */
+@media (min-width: 40rem) {
+  .fab {
+    display: none;
+  }
+}
+@media print {
+  .fab {
+    display: none;
   }
 }
 
