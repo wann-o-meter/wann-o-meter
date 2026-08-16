@@ -89,6 +89,17 @@ export const deadlineSchema = z
   .refine((d) => !d.year_pages || d.rule !== undefined, {
     message: "year pages need a rule, otherwise every year says the same thing",
     path: ["year_pages"],
-  });
+  })
+  // Catches both halves of the same mistake: emphasis on a Frist that quotes
+  // nothing, and emphasis on an Absatz the page does not print. Either way the
+  // mark would silently not appear.
+  .refine(
+    (d) =>
+      Object.keys(d.emphasize ?? {}).every((n) => d.quote?.includes(Number(n))),
+    {
+      message: "every emphasized Absatz has to be one the page quotes",
+      path: ["emphasize"],
+    },
+  );
 
 export type Deadline = z.infer<typeof deadlineSchema>;

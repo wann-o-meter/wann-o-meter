@@ -96,4 +96,15 @@ describe("deadlineSchema", () => {
       false,
     );
   });
+
+  // Emphasis that points nowhere renders nothing, so it has to fail here
+  // rather than quietly produce a page with no mark on it.
+  it("only emphasizes an Absatz the page also quotes", () => {
+    const ok = (quote?: number[], emphasize?: Record<string, number[]>) =>
+      deadlineSchema.safeParse({ ...task, quote, emphasize }).success;
+    expect(ok([1, 2], { "2": [1] })).toBe(true);
+    expect(ok([1])).toBe(true);
+    expect(ok(undefined, { "1": [1] })).toBe(false);
+    expect(ok([1], { "2": [1] })).toBe(false);
+  });
 });
