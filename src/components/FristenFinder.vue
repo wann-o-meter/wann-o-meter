@@ -109,7 +109,7 @@ const toggle = (id: string) => (filter.value = filter.value === id ? "" : id);
 
 <style scoped>
 .finder {
-  margin-top: 4rem;
+  margin-top: var(--section-gap);
 }
 /* Same shape as the picker above: heading, one line, then the controls. */
 h2 {

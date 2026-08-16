@@ -30,7 +30,7 @@
 
       <div class="row">
         <a class="cta" :href="href">
-          {{ v.label }} bearbeiten <ArrowRight :size="14" />
+          Plan öffnen <ArrowRight :size="14" />
         </a>
       </div>
     </div>

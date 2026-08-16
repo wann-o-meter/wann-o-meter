@@ -556,8 +556,8 @@ h1 {
 }
 
 /* Two plans fit side by side, four stack into two rows, one fills the row. */
-.mine {
-  margin-top: 2.5rem;
+h2.mine {
+  margin: var(--section-gap) 0 0.75rem;
 }
 .plans {
   margin-top: 0.75rem;
@@ -657,12 +657,7 @@ h1 {
 
 /* One rhythm: every block of the page starts the same distance below the last. */
 .step {
-  margin-top: 4rem;
-}
-@media (max-width: 40rem) {
-  .step {
-    margin-top: 2.5rem;
-  }
+  margin-top: var(--section-gap);
 }
 .what {
   max-width: 62ch;
