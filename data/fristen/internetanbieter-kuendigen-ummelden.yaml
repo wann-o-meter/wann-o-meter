@@ -7,7 +7,9 @@ deadlines:
     offset_days: -42
     source_url: https://www.gesetze-im-internet.de/tkg_2021/__60.html
     source_label: § 60 TKG
+    quote: [1, 2]
+    emphasize:
+      "2": [1]
     note: >-
-      Der Anbieter muss am neuen Wohnsitz weiterliefern, sonst darf mit einer
-      Frist von einem Monat gekündigt werden. Die sechs Wochen Vorlauf sind
-      Erfahrungswert, der Techniktermin ist der Engpass.
+      Die sechs Wochen Vorlauf sind ein Erfahrungswert, der Techniktermin ist
+      der Engpass.

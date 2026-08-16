@@ -11,8 +11,7 @@ deadlines:
     earliest_offset_days: 0
     source_url: https://www.gesetze-im-internet.de/fzv_2023/__15.html
     source_label: § 15 Abs. 4 FZV
+    quote: [4]
     note: >-
-      Pflicht beim Wechsel in einen anderen Zulassungsbezirk. Das Gesetz nennt
-      keine Tagesfrist, nur "unverzüglich" - 14 Tage ist die übliche
-      Praxisempfehlung. Wer es liegen lässt, dem kann die Zulassungsbehörde den
-      Betrieb des Fahrzeugs untersagen.
+      Das Gesetz nennt keine Tagesfrist, nur "unverzüglich" - die 14 Tage hier
+      sind ein Erfahrungswert.

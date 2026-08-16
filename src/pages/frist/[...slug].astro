@@ -6,7 +6,9 @@ import { evaluateRule, nextOccurrence } from "../../../lib/calendar-rule";
 import { formatDate } from "../../../lib/format-date";
 import { offsetLabel, sourceLabel } from "../../../lib/offset-label";
 import { allFristTasks, fristPath, yearsFor } from "../../../lib/tasks";
-import { isoToday } from "../../../lib/today";
+import { isPast, isoToday } from "../../../lib/today";
+import { lastChanged } from "../../../lib/git-dates";
+import { STATUTE_QUOTES } from "../../../lib/statute-quotes";
 
 export function getStaticPaths() {
   return allFristTasks().flatMap(({ task, vorhaben }) => [
@@ -36,12 +38,36 @@ const answer = isAbsolute
 const anchorLabel = plans[0]?.anchorLabel ?? "Termin";
 const planIndex = Object.fromEntries(plans.map((v) => [v.slug, v.label]));
 
+// The parent of a task with year pages is the hub for all of them. Without the
+// table it would repeat whichever year is currently next and compete with that
+// year's own page for the same words.
+const years = year ? [] : yearsFor(task);
+const yearRows = years.map((y) => {
+  const date = evaluateRule(task.rule!, y, "DE").date;
+  return { year: y, date, past: isPast(date) };
+});
+
+const source = task.source_label ?? "Gesetz";
 const title = year
   ? `${task.label} für ${year}: bis wann?`
-  : `${task.label}: welche Frist gilt?`;
-const description = isAbsolute
-  ? `${task.label}${year ? ` für ${year}` : ""}: Stichtag nach ${task.source_label ?? "Gesetz"}, mit Rechenweg.`
-  : `${task.label}: die Frist nach ${task.source_label ?? "Gesetz"}, erklärt und mit Rechner für deinen Termin.`;
+  : yearRows.length > 0
+    ? `${task.label}: Frist und alle Stichtage`
+    : `${task.label}: welche Frist gilt?`;
+const description = year
+  ? `${task.label} für ${year}: Stichtag nach ${source}, mit Rechenweg.`
+  : yearRows.length > 0
+    ? `${task.label}: Stichtag nach ${source}, mit Rechenweg und dem Termin für jedes Jahr.`
+    : isAbsolute
+      ? `${task.label}: Stichtag nach ${source}, mit Rechenweg.`
+      : `${task.label}: die Frist nach ${source}, erklärt und mit Rechner für deinen Termin.`;
+
+// A page is only as fresh as the yaml behind it, and saying so is the cheapest
+// trust signal a page about Gesetze has.
+const updated = lastChanged(`data/fristen/${task.id}.yaml`);
+
+// The statute in its own words, pulled from the official XML by
+// scripts/gesetze.mjs. Nothing here is written by hand or by a model.
+const statute = STATUTE_QUOTES[task.id];
 
 const crumbs = [
   { name: "Startseite", url: new URL("/", Astro.site).href },
@@ -57,13 +83,27 @@ const crumbs = [
 ];
 const structuredData = {
   "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: crumbs.map((c, i) => ({
-    "@type": "ListItem",
-    position: i + 1,
-    name: c.name,
-    item: c.url,
-  })),
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: crumbs.map((c, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: c.name,
+        item: c.url,
+      })),
+    },
+    {
+      "@type": "WebPage",
+      name: title,
+      description,
+      inLanguage: "de-DE",
+      ...(updated ? { dateModified: updated } : {}),
+      ...(task.source_url
+        ? { citation: { "@type": "Legislation", name: source, url: task.source_url } }
+        : {}),
+    },
+  ],
 };
 ---
 
@@ -121,18 +161,52 @@ const structuredData = {
   {task.note && <p class="note">{task.note}</p>}
 
   {
-    !isAbsolute && (
-      <FristRechner client:load task={task} anchorLabel={anchorLabel} />
+    year && answer && isPast(answer.date) && (
+      <p class="expired">
+        Dieser Stichtag ist vorbei. Der nächste steht auf{" "}
+        <a href={`/${fristPath(task.id)}/`}>der Übersicht aller Jahre</a>.
+      </p>
     )
   }
 
   {
-    !isAbsolute && plans.length > 0 && (
-      <p class="regionhint">
-        Gerechnet wird hier mit den bundesweiten Feiertagen. Im vollständigen
-        Plan kannst du deinen Ort angeben, dann zählen die Feiertage deines
-        Bundeslands.
-      </p>
+    statute && (
+      <figure class="statute">
+        <figcaption>
+          {statute.enbez} {statute.titel}
+          {!statute.complete && " (Auszug)"}
+        </figcaption>
+        <blockquote cite={statute.url}>
+          {statute.absaetze.map((segments) => (
+            <p>
+              {segments.map((s) => {
+                const inner = s.href ? (
+                  <a href={s.href} rel="nofollow noopener">
+                    {s.text}
+                  </a>
+                ) : (
+                  s.text
+                );
+                return s.mark ? <mark>{inner}</mark> : inner;
+              })}
+            </p>
+          ))}
+        </blockquote>
+        <p class="attribution">
+          Wortlaut von{" "}
+          <a href={statute.url} rel="nofollow noopener">
+            gesetze-im-internet.de
+          </a>
+          {statute.stand && `, Stand ${formatDate(statute.stand)}`}. Gesetze
+          genießen nach § 5 Abs. 1 UrhG keinen urheberrechtlichen Schutz.
+        </p>
+      </figure>
+    )
+  }
+
+  {
+    !isAbsolute && (
+      <FristRechner client:load task={task} anchorLabel={anchorLabel} />
     )
   }
 
@@ -155,9 +229,44 @@ const structuredData = {
   }
 
   {
+    yearRows.length > 0 && (
+      <section class="years">
+        <h2>Der Stichtag für jedes Jahr</h2>
+        <p class="lede">
+          Jede Zeile rechnet denselben Weg für ein anderes Jahr durch. Das Jahr
+          in der ersten Spalte ist das Steuerjahr, der Stichtag liegt im Jahr
+          danach.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Jahr</th>
+              <th scope="col">Abgabe bis</th>
+            </tr>
+          </thead>
+          <tbody>
+            {yearRows.map((r) => (
+              <tr class:list={{ past: r.past }}>
+                <th scope="row">
+                  <a href={`/${fristPath(task.id, r.year)}/`}>{r.year}</a>
+                </th>
+                <td>
+                  {formatDate(r.date)}
+                  {r.past && <span class="flag">vorbei</span>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    )
+  }
+
+  {
     year && (
       <p class="otheryears">
-        Andere Jahre:{" "}
+        <a href={`/${fristPath(task.id)}/`}>Alle Jahre im Überblick</a>
+        <span aria-hidden="true"> &middot; </span>
         {yearsFor(task)
           .filter((y) => y !== year)
           .map((y) => (
@@ -166,6 +275,19 @@ const structuredData = {
       </p>
     )
   }
+
+  <p class="stand">
+    {
+      updated && (
+        <>
+          Stand:{" "}
+          <time datetime={updated}>{formatDate(updated.slice(0, 10))}</time>. So
+          alt ist die Angabe auf dieser Seite, nicht das Gesetz dahinter.{" "}
+        </>
+      )
+    }
+    <a href="/impressum/#ki">Wie diese Seite entsteht</a>
+  </p>
 
   <script is:inline define:vars={{ planIndex }}>
     // The plan a visitor came from lives in the url: a view transition leaves
@@ -236,12 +358,6 @@ const structuredData = {
   .steps li {
     margin-bottom: 0.3rem;
   }
-  .regionhint {
-    max-width: 62ch;
-    margin-top: 1rem;
-    color: var(--muted);
-    font-size: var(--fs-sm);
-  }
   .bundle {
     margin-top: 2.5rem;
   }
@@ -260,5 +376,90 @@ const structuredData = {
   }
   .otheryears a {
     margin-right: 0.6rem;
+  }
+  /* The statute itself, which is what the page has to show when nobody has
+  entered a date yet. Set apart so it reads as a quotation and not as our text. */
+  .statute {
+    margin: 1.5rem 0 2rem;
+    max-width: 62ch;
+  }
+  .statute figcaption {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .statute blockquote {
+    margin: 0.5rem 0 0.6rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--line);
+  }
+  .statute blockquote p {
+    margin: 0 0 0.6rem;
+  }
+  .statute blockquote p:last-child {
+    margin-bottom: 0;
+  }
+  .statute mark {
+    background: var(--mark, rgb(255 214 0 / 0.28));
+    color: inherit;
+    padding: 0.05em 0.1em;
+    border-radius: 2px;
+  }
+  .statute .attribution {
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--fs-xs);
+  }
+  .expired {
+    max-width: 62ch;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    font-size: var(--fs-sm);
+  }
+  .years {
+    margin-top: 2.5rem;
+  }
+  .years h2 {
+    font-size: var(--fs-md);
+  }
+  .years .lede {
+    max-width: 62ch;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+  }
+  .years table {
+    border-collapse: collapse;
+    text-align: left;
+  }
+  .years th,
+  .years td {
+    padding: 0.45rem 1.5rem 0.45rem 0;
+    border-bottom: 1px solid var(--line);
+    font-weight: 400;
+  }
+  .years thead th {
+    font-size: var(--fs-xs);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .years tbody td {
+    font-variant-numeric: tabular-nums;
+  }
+  .years .past {
+    color: var(--muted);
+  }
+  .years .flag {
+    margin-left: 0.5rem;
+    font-size: var(--fs-xs);
+    color: var(--muted);
+  }
+  .stand {
+    margin-top: 2.5rem;
+    color: var(--muted);
+    font-size: var(--fs-xs);
   }
 </style>

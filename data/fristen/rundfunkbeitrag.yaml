@@ -11,3 +11,5 @@ deadlines:
     offset_days: 14
     source_url: https://www.gesetze-bayern.de/Content/Document/RBeitrStV-8
     source_label: § 8 RBStV
+    emphasize:
+      "1": [1]

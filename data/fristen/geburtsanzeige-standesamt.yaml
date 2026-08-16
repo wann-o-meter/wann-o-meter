@@ -7,6 +7,8 @@ deadlines:
     offset_days: 7
     source_url: https://www.gesetze-im-internet.de/pstg/__18.html
     source_label: § 18 Abs. 1 PStG
+    quote: [1]
+    emphasize:
+      "1": [1]
     note: >-
-      Binnen einer Woche. Meist übernimmt das Krankenhaus/die Hebamme die
-      Anzeige, dann läuft diese Frist automatisch.
+      Meist übernimmt das Krankenhaus die Anzeige.

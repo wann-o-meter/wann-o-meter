@@ -19,6 +19,9 @@ deadlines:
       first_year: 2024
     year_pages: true
     tags: [steuer, finanzamt, einkommensteuer]
+    quote: [2]
+    emphasize:
+      "2": [1]
     note: >-
-      Gilt, wenn du ohne Steuerberater abgibst. Mit Beratung gilt § 149 Abs. 3
-      AO und damit ein ganz anderer Termin.
+      Gilt ohne Steuerberater oder Lohnsteuerhilfeverein, sonst gilt § 149 Abs.
+      3 AO.

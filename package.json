@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "bun scripts/feiertage.mjs && astro build",
+    "gesetze": "bun scripts/gesetze.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "test": "vitest run"

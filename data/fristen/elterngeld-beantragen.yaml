@@ -7,6 +7,6 @@ deadlines:
     offset_days: 90
     source_url: https://www.gesetze-im-internet.de/beeg/__7.html
     source_label: § 7 Abs. 1 BEEG
-    note: >-
-      Rückwirkend wird nur für die letzten drei Lebensmonate vor Antragseingang
-      gezahlt - später beantragt heißt Geld verloren, nicht nur später bekommen.
+    quote: [1]
+    emphasize:
+      "1": [2]

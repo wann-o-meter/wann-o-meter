@@ -5,7 +5,11 @@ deadlines:
     direction: before
     label: Wohnung kündigen
     offset_days: -90
-    offset_rule: bgb-573c-notice
+    offset_label: Abhängig vom Umzugsmonat
     source_url: https://www.gesetze-im-internet.de/bgb/__573c.html
     source_label: § 573c BGB
-    note: Schriftlich und unterschrieben, am besten per Einwurf-Einschreiben.
+    quote: [1, 4]
+    emphasize:
+      "1": [1]
+    note: >-
+      Schriftlich und unterschrieben, am besten per Einwurf-Einschreiben.
