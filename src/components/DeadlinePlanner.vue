@@ -486,9 +486,8 @@ onBeforeUnmount(() => {
 
       <SoftGroup
         :entries="softEntries"
-        :done-ids="doneIds"
+        :store="store"
         @toggle-done="onToggleDone"
-        @hide="hideEntry"
       />
 
       <DoneGroup :entries="doneEntries" @reopen="toggleDone" />

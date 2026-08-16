@@ -1,50 +1,80 @@
 <script setup lang="ts">
-import { Check } from "lucide-vue-next";
-import CardMenu from "./CardMenu.vue";
+import { computed } from "vue";
+import TaskCard from "./TaskCard.vue";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
-import type { MenuItem } from "./task-card";
-import { EyeOff } from "lucide-vue-next";
+import type { TaskStore } from "./task-store";
 
-defineProps<{ entries: ScheduleEntry[]; doneIds: Record<string, boolean> }>();
-const emit = defineEmits<{
-  (e: "toggle-done", id: string): void;
-  (e: "hide", entry: ScheduleEntry): void;
-}>();
+const props = defineProps<{ entries: ScheduleEntry[]; store: TaskStore }>();
+defineEmits<{ (e: "toggle-done", id: string): void }>();
 
-const menu = (entry: ScheduleEntry): MenuItem[] => [
+// No fixed day, but a clear order: what comes before the move, what happens on
+// the day, what follows. The offset only sorts, it is never shown.
+const PHASES = [
   {
-    label: "Nicht relevant für mich",
-    icon: EyeOff,
-    onSelect: () => emit("hide", entry),
+    id: "vorher",
+    title: "Vorher",
+    lede: "Je früher, desto entspannter. Kein Gesetz gibt hier einen Tag vor.",
+    of: (e: ScheduleEntry) => (e.offset_days ?? 0) < 0,
+  },
+  {
+    id: "am-tag",
+    title: "Am Tag selbst",
+    lede: "Passiert, wenn es passiert.",
+    of: (e: ScheduleEntry) => (e.offset_days ?? 0) === 0,
+  },
+  {
+    id: "danach",
+    title: "Danach",
+    lede: "Bleibt liegen, bis du dazu kommst.",
+    of: (e: ScheduleEntry) => (e.offset_days ?? 0) > 0,
   },
 ];
+
+const groups = computed(() =>
+  PHASES.map((phase) => ({
+    ...phase,
+    entries: props.entries
+      .filter(phase.of)
+      .slice()
+      .sort((a, b) => (a.offset_days ?? 0) - (b.offset_days ?? 0)),
+  })).filter((g) => g.entries.length > 0),
+);
 </script>
 
 <template>
-  <section v-if="entries.length > 0" class="soft">
+  <section v-if="groups.length > 0" class="soft">
     <h2 class="section">Ohne feste Frist</h2>
     <p class="lede">
-      Diese Schritte gehören dazu, aber kein Gesetz sagt wann. Wir erfinden dafür
-      auch kein Datum.
+      Diese Schritte gehören dazu, aber kein Gesetz sagt wann. Die Reihenfolge
+      stimmt, ein Datum erfinden wir dafür nicht.
     </p>
-    <ul>
-      <li v-for="entry in entries" :key="entry.id" :data-entry-id="entry.id">
-        <button
-          type="button"
-          class="check"
-          :aria-pressed="!!doneIds[entry.id]"
-          :aria-label="`${entry.label} als erledigt markieren`"
-          @click="emit('toggle-done', entry.id)"
-        >
-          <Check v-if="doneIds[entry.id]" :size="11" />
-        </button>
-        <div class="body">
-          <p class="label">{{ entry.label }}</p>
-          <p v-if="entry.note" class="note">{{ entry.note }}</p>
-        </div>
-        <CardMenu :items="menu(entry)" />
-      </li>
-    </ul>
+
+    <div v-for="group in groups" :key="group.id" class="phase">
+      <h3>
+        {{ group.title }}
+        <span class="count">{{ group.entries.length }}</span>
+      </h3>
+      <p class="phase-lede">{{ group.lede }}</p>
+      <TaskCard
+        v-for="entry in group.entries"
+        :key="entry.id"
+        undated
+        :entry="entry"
+        anchor-date=""
+        :is-past="false"
+        :done="!!store.doneIds[entry.id]"
+        :is-custom="store.isCustom(entry.id)"
+        :cta="null"
+        :note="store.userNotes[entry.id]"
+        :attachment="store.attachments[entry.id]"
+        :deferred="false"
+        :editor="store.editorFor(entry.id)"
+        @update:editor="store.setEditor(entry.id, $event)"
+        @update="store.applyPatch(entry, $event)"
+        @hide="store.hideEntry(entry)"
+        @toggle-done="$emit('toggle-done', entry.id)"
+      />
+    </div>
   </section>
 </template>
 
@@ -62,76 +92,33 @@ const menu = (entry: ScheduleEntry): MenuItem[] => [
 }
 .lede {
   max-width: 62ch;
-  margin: 0 0 0.75rem;
+  margin: 0 0 1.25rem;
   color: var(--muted);
   font-size: var(--fs-sm);
 }
-ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.phase {
+  margin-bottom: 1.5rem;
 }
-li {
+.phase h3 {
   display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--line);
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0 0 0.15rem;
+  font-size: var(--fs-md);
 }
-/* Quieter than a dated card: no raised surface, no accent, no numbers. */
-.body {
-  flex: 1;
-  min-width: 0;
-}
-.label {
-  margin: 0;
-  font-size: var(--fs-sm);
-}
-li:has(.check[aria-pressed="true"]) .label {
-  text-decoration: line-through;
+.count {
+  font-size: var(--fs-xs);
+  font-weight: 400;
   color: var(--muted);
 }
-.note {
-  margin: 0.15rem 0 0;
+.phase-lede {
+  margin: 0 0 0.75rem;
   color: var(--muted);
   font-size: var(--fs-xs);
 }
-.check {
-  position: relative;
-  flex-shrink: 0;
-  width: 1.1rem;
-  height: 1.1rem;
-  margin-top: 0.15rem;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: var(--paper);
-  color: var(--paper);
-  cursor: pointer;
-}
-.check[aria-pressed="true"] {
-  background: var(--muted);
-  border-color: var(--muted);
-}
-.check::before {
-  content: "";
-  position: absolute;
-  inset: -0.6rem;
-}
-:deep(.tools) {
-  opacity: 0;
-}
-li:hover :deep(.tools),
-:deep(.tools[open]),
-:deep(.tools:focus-within) {
-  opacity: 1;
-}
-@media (hover: none) {
-  :deep(.tools) {
-    opacity: 1;
-  }
+/* The cards are the same shape as a Frist card, only without the dated parts,
+so the eye reads one list and not two systems. */
+.phase :deep(.card) {
+  margin-bottom: 0.6rem;
 }
 </style>

@@ -27,6 +27,8 @@ const props = defineProps<{
   note?: string;
   attachment?: string;
   editor: EditorKind | null;
+  // A soft task is ordered, not dated. Everything that would show a day goes.
+  undated?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -120,7 +122,7 @@ const menuItems = computed<MenuItem[]>(() => [
     :data-status="status"
   >
     <div class="head">
-      <span class="dot" :data-dot-key="entry.id"></span>
+      <span v-if="!undated" class="dot" :data-dot-key="entry.id"></span>
       <button
         type="button"
         class="check"
@@ -141,12 +143,14 @@ const menuItems = computed<MenuItem[]>(() => [
       />
       <h3 v-else>
         {{ entry.label }}
-        <span v-if="isPast && !done" class="badge late">Überfällig</span>
+        <span v-if="!undated && isPast && !done" class="badge late">
+          Überfällig
+        </span>
       </h3>
       <CardMenu :items="menuItems" />
     </div>
 
-    <TaskDates :entry="entry" :is-past="isPast" :done="done" />
+    <TaskDates v-if="!undated" :entry="entry" :is-past="isPast" :done="done" />
 
     <p v-if="!done && entry.impossible" class="flag">
       <TriangleAlert :size="14" /> Bei diesem Termin nicht mehr rechtzeitig
@@ -202,6 +206,7 @@ const menuItems = computed<MenuItem[]>(() => [
     </div>
 
     <TaskFooter
+      v-if="!undated"
       :entry="entry"
       :is-custom="isCustom"
       :deferred="deferred"
