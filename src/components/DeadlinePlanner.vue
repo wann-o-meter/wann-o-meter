@@ -396,14 +396,8 @@ onBeforeUnmount(() => {
         />
       </template>
       </h1>
-      <button
-        type="button"
-        class="save"
-        :aria-pressed="kept"
-        @click="toggleKept"
-      >
-        <component :is="kept ? BookmarkCheck : Bookmark" :size="16" />
-        {{ kept ? "Gemerkt" : "Plan merken" }}
+      <button v-if="!kept" type="button" class="save" @click="toggleKept">
+        <Bookmark :size="16" /> Plan merken
       </button>
     </div>
 
@@ -473,24 +467,16 @@ onBeforeUnmount(() => {
           @place="anchorDate = $event"
           @hover="hoveredId = $event"
         />
-        <div class="header-row">
-          <button
-            type="button"
-            class="tl-toggle"
-            :aria-expanded="!timelineHidden"
-            aria-controls="plan-timeline"
-            @click="timelineHidden = !timelineHidden"
-          >
-            <component
-              :is="timelineHidden ? ChevronDown : ChevronUp"
-              :size="14"
-            />
-            {{ timelineHidden ? "Zeitstrahl zeigen" : "Zeitstrahl ausblenden" }}
-          </button>
-          <button type="button" class="head-action" @click="exportIcs">
-            <CalendarPlus :size="14" /> In den Kalender
-          </button>
-        </div>
+        <button
+          type="button"
+          class="tl-toggle"
+          :aria-expanded="!timelineHidden"
+          aria-controls="plan-timeline"
+          @click="timelineHidden = !timelineHidden"
+        >
+          <component :is="timelineHidden ? ChevronDown : ChevronUp" :size="14" />
+          {{ timelineHidden ? "Zeitstrahl zeigen" : "Zeitstrahl ausblenden" }}
+        </button>
       </template>
     </header>
 
@@ -569,7 +555,7 @@ onBeforeUnmount(() => {
         @click="toggleKept"
       >
         <component :is="kept ? BookmarkCheck : Bookmark" :size="16" />
-        {{ kept ? "Plan ist gemerkt" : "Plan merken" }}
+        {{ kept ? "Plan nicht mehr merken" : "Plan merken" }}
       </button>
 
       <PlanActions
@@ -691,10 +677,18 @@ grey text under a chart. */
 .planner-header :deep(.timeline) {
   --d-werktag: var(--paper-raised);
 }
+/* Whoever owns the surface decides: with no surface of its own the header lets
+the two stats be cards, once it has one they flatten into it. */
+.compact .planner-header {
+  background: var(--paper-raised);
+  box-shadow: var(--shadow-card);
+}
+.compact .planner-header :deep(.stat) {
+  background: var(--paper);
+  box-shadow: none;
+}
 .compact .planner-header {
   padding: 0.45rem var(--wrap-pad, 0px);
-  background: var(--paper);
-  box-shadow: var(--shadow-card);
 }
 
 .title {
@@ -740,12 +734,7 @@ grey text under a chart. */
   pointer-events: none;
 }
 
-.header-row {
-  display: flex;
-  gap: 0.4rem;
-}
-.tl-toggle,
-.head-action {
+.tl-toggle {
   display: flex;
   white-space: nowrap;
   align-items: center;
@@ -760,8 +749,7 @@ grey text under a chart. */
   color: var(--muted);
   font-size: var(--fs-sm);
 }
-.tl-toggle:hover,
-.head-action:hover {
+.tl-toggle:hover {
   color: var(--accent);
 }
 .keep[aria-pressed="true"] {
@@ -943,14 +931,20 @@ not push it off the screen. */
   .deadline-planner {
     padding-bottom: 0;
   }
+  /* Wide enough for the timeline, so the header is a card that holds it. */
   .planner-header {
     margin-inline: 0;
     border-radius: var(--radius);
     padding: 0.9rem 1rem;
+    background: var(--paper-raised);
+    box-shadow: var(--shadow-card);
+  }
+  .planner-header :deep(.stat) {
+    background: var(--paper);
+    box-shadow: none;
   }
   .compact .planner-header {
     padding: 0.6rem 1rem;
-    box-shadow: var(--shadow-card);
   }
   /* A wide screen has room for the timeline, so it never collapses. The
   actions next to it stay. */
@@ -966,7 +960,7 @@ not push it off the screen. */
   /* Everything that only exists to be clicked. */
   .planner-header :deep(.timeline),
   .planner-header :deep(.bar),
-  .header-row,
+  .tl-toggle,
   .facets,
   .add-end-wrap,
   .hidden-group,
