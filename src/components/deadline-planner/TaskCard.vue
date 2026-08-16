@@ -29,6 +29,7 @@ const props = defineProps<{
   editor: EditorKind | null;
   // A soft task is ordered, not dated. Everything that would show a day goes.
   undated?: boolean;
+  planSlug?: string;
 }>();
 
 const emit = defineEmits<{
@@ -122,7 +123,11 @@ const menuItems = computed<MenuItem[]>(() => [
     :data-status="status"
   >
     <div class="head">
-      <span v-if="!undated" class="dot" :data-dot-key="entry.id"></span>
+      <span
+        class="dot"
+        :class="{ undated }"
+        :data-dot-key="undated ? null : entry.id"
+      ></span>
       <button
         type="button"
         class="check"
@@ -208,6 +213,7 @@ const menuItems = computed<MenuItem[]>(() => [
     <TaskFooter
       v-if="!undated"
       :entry="entry"
+      :plan-slug="planSlug"
       :is-custom="isCustom"
       :deferred="deferred"
       @toggle-defer="$emit('toggle-defer')"
@@ -235,6 +241,11 @@ const menuItems = computed<MenuItem[]>(() => [
   border-radius: 50%;
   background: var(--accent);
   border: 0;
+}
+/* Hollow, because there is no day under it. */
+.dot.undated {
+  background: none;
+  border: 1px solid var(--line);
 }
 .card[data-status="erledigt"] .dot {
   background: var(--line);

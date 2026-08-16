@@ -9,33 +9,32 @@ import { allFristTasks, fristPath, yearsFor } from "../../../lib/tasks";
 import { isoToday } from "../../../lib/today";
 
 export function getStaticPaths() {
-  return allFristTasks().flatMap(({ task, vorhaben }) => {
-    const base = {
-      path: fristPath(task.id),
-      params: { slug: `${task.id}` },
-      props: { task, vorhaben, year: null },
-    };
-    return [
-      base,
-      ...yearsFor(task).map((year) => ({
-        params: { slug: `${task.id}/${year}` },
-        props: { task, vorhaben, year },
-      })),
-    ];
-  });
+  return allFristTasks().flatMap(({ task, vorhaben }) => [
+    { params: { slug: task.id }, props: { task, vorhaben, year: null } },
+    ...yearsFor(task).map((year) => ({
+      params: { slug: `${task.id}/${year}` },
+      props: { task, vorhaben, year },
+    })),
+  ]);
 }
 
-const { task, vorhaben, year } = Astro.props;
+const { task, vorhaben: plans, year } = Astro.props;
 const isAbsolute = task.kind === "statutory-absolute";
 
 // The answer is only computed here for a date the statute fixes by itself. A
-// task that counts from the visitor's own date is worked out in the browser,
-// never baked into HTML that goes stale.
+// Frist counted from the visitor's own date is worked out in the browser, never
+// baked into HTML that goes stale.
 const answer = isAbsolute
   ? year
     ? evaluateRule(task.rule!, year, "DE")
     : nextOccurrence(task.rule!, isoToday(), "DE")
   : null;
+
+// A Frist can sit in several plans, so the page belongs to none of them. Which
+// one a visitor came from is a question only the browser can answer, from the
+// from= parameter the plans put on their links.
+const anchorLabel = plans[0]?.anchorLabel ?? "Termin";
+const planIndex = Object.fromEntries(plans.map((v) => [v.slug, v.label]));
 
 const title = year
   ? `${task.label} für ${year}: bis wann?`
@@ -43,10 +42,6 @@ const title = year
 const description = isAbsolute
   ? `${task.label}${year ? ` für ${year}` : ""}: Stichtag nach ${task.source_label ?? "Gesetz"}, mit Rechenweg.`
   : `${task.label}: die Frist nach ${task.source_label ?? "Gesetz"}, erklärt und mit Rechner für deinen Termin.`;
-
-const siblings = (vorhaben?.variants[0]?.deadlines ?? []).filter(
-  (d) => d.id !== task.id && d.kind !== "soft",
-);
 
 const crumbs = [
   { name: "Startseite", url: new URL("/", Astro.site).href },
@@ -73,29 +68,24 @@ const structuredData = {
 ---
 
 <Layout title={title} description={description} structuredData={structuredData}>
-  <p class="back"><a href="/">&larr; Startseite</a></p>
-
-  {
-    isAbsolute && answer && (
-      <div class="answer">
-        <p class="eyebrow">
-          {year ? `Steuerjahr ${year}` : "Als Nächstes fällig"}
-        </p>
-        <p class="date">{formatDate(answer.date)}</p>
-        <h1>{title}</h1>
-        <p class="basis">
-          Grundlage:{" "}
-          <a href={task.source_url} rel="nofollow noopener">
-            {sourceLabel(task)}
-          </a>
-        </p>
-      </div>
-    )
-  }
+  <p class="back"><a data-back href="/">&larr; Startseite</a></p>
 
   {
     isAbsolute && answer && (
       <>
+        <div class="answer">
+          <p class="eyebrow">
+            {year ? `Steuerjahr ${year}` : "Als Nächstes fällig"}
+          </p>
+          <p class="date">{formatDate(answer.date)}</p>
+          <h1>{title}</h1>
+          <p class="basis">
+            Grundlage:{" "}
+            <a href={task.source_url} rel="nofollow noopener">
+              {sourceLabel(task)}
+            </a>
+          </p>
+        </div>
         <ol class="steps">
           {answer.derivation.map((s) => (
             <li>{s.label}</li>
@@ -116,7 +106,7 @@ const structuredData = {
       <>
         <h1>{title}</h1>
         <p class="rule">
-          <b>{offsetLabel(task, vorhaben?.anchorLabel ?? "Termin")}</b>{`, gerechnet vom ${vorhaben?.anchorLabel ?? "Termin"}.`}
+          <b>{offsetLabel(task, anchorLabel)}</b>{`, gerechnet vom ${anchorLabel}.`}
         </p>
         <p class="basis">
           Grundlage:{" "}
@@ -132,45 +122,34 @@ const structuredData = {
 
   {
     !isAbsolute && (
-      <FristRechner
-        client:load
-        task={task}
-        anchorLabel={vorhaben?.anchorLabel ?? "Termin"}
-        planSlug={vorhaben?.slug}
-        planLabel={vorhaben?.label}
-      />
+      <FristRechner client:load task={task} anchorLabel={anchorLabel} />
     )
   }
 
   {
-    !isAbsolute && vorhaben && (
+    !isAbsolute && plans.length > 0 && (
       <p class="regionhint">
-        Gerechnet wird hier mit den bundesweiten Feiertagen. Im{" "}
-        <a href={`/${vorhaben.slug}/`}>vollständigen Plan</a> kannst du deinen Ort
-        angeben, dann zählen die Feiertage deines Bundeslands.
+        Gerechnet wird hier mit den bundesweiten Feiertagen. Im vollständigen
+        Plan kannst du deinen Ort angeben, dann zählen die Feiertage deines
+        Bundeslands.
       </p>
     )
   }
 
   {
-    vorhaben && siblings.length > 0 && (
+    plans.length > 0 && (
       <nav class="bundle">
         <h2>Diese Frist steht nicht allein</h2>
         <p class="lede">
-          Beim {vorhaben.label} hängen {siblings.length + 1} Fristen zusammen. Gib
-          einmal deinen {vorhaben.anchorLabel} ein, und der Plan rechnet alle
-          zurück, mit Feiertagen deines Bundeslands.
+          Sie gehört zum {plans.map((v) => v.label).join(" und zum ")}-Plan. Ein
+          Datum eingeben, und der Plan rechnet alle Fristen zurück, mit den
+          Feiertagen deines Bundeslands.
         </p>
-        <ul>
-          {siblings.map((s) => (
-            <li>
-              <a href={`/${fristPath(s.id)}/`}>{s.label}</a>
-            </li>
-          ))}
-        </ul>
-        <a class="cta" href={`/${vorhaben.slug}/`}>
-          {vorhaben.label} planen <ArrowRight size={16} />
-        </a>
+        {plans.map((v) => (
+          <a class="cta" data-plan-cta={v.slug} href={`/${v.slug}/`}>
+            {v.label} planen <ArrowRight size={16} />
+          </a>
+        ))}
       </nav>
     )
   }
@@ -187,6 +166,23 @@ const structuredData = {
       </p>
     )
   }
+
+  <script is:inline define:vars={{ planIndex }}>
+    // The plan a visitor came from lives in the url: a view transition leaves
+    // document.referrer empty, and a Frist can belong to more than one plan.
+    document.addEventListener("astro:page-load", () => {
+      const from = new URLSearchParams(location.search).get("from");
+      const label = planIndex[from];
+      if (!label) return;
+      const back = document.querySelector("[data-back]");
+      if (back) {
+        back.setAttribute("href", `/${from}/`);
+        back.textContent = `← ${label}-Plan`;
+      }
+      // They came from that plan, so inviting them to start it is noise.
+      document.querySelector(`[data-plan-cta="${from}"]`)?.remove();
+    });
+  </script>
 </Layout>
 
 <style>
@@ -232,7 +228,7 @@ const structuredData = {
   }
   .steps {
     max-width: 62ch;
-    margin: 0 0 2rem;
+    margin: 0 0 1rem;
     padding-left: 1.2rem;
     color: var(--muted);
     font-size: var(--fs-sm);
@@ -254,22 +250,8 @@ const structuredData = {
     color: var(--muted);
     font-size: var(--fs-sm);
   }
-  .bundle ul {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  .bundle a {
-    font-size: var(--fs-sm);
-  }
-  .bundle li a {
-    display: inline-block;
-    border: 1px solid var(--line);
-    border-radius: 100px;
-    padding: 0.4rem 0.9rem;
-    text-decoration: none;
+  .bundle .cta {
+    margin-right: 0.6rem;
   }
   .otheryears {
     margin-top: 2rem;

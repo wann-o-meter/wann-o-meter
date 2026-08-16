@@ -122,7 +122,11 @@ const rest = siblings.slice(PREVIEW);
       defaultSlug={variant.slug}
     />
   </div>
-  <StaticPlan deadlines={variant.deadlines} anchorLabel={v.anchorLabel} />
+  <StaticPlan
+    deadlines={variant.deadlines}
+    anchorLabel={v.anchorLabel}
+    planSlug={v.slug}
+  />
   {
     siblings.length > 0 && (
       <nav class="places">

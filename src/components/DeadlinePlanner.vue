@@ -16,7 +16,6 @@ import OrtPicker from "./deadline-planner/OrtPicker.vue";
 import PlanSummary from "./deadline-planner/PlanSummary.vue";
 import PlanActions from "./deadline-planner/PlanActions.vue";
 import DoneGroup from "./deadline-planner/DoneGroup.vue";
-import SoftGroup from "./deadline-planner/SoftGroup.vue";
 import { facetLabel } from "../../lib/facets";
 import { formatDate } from "../../lib/format-date";
 import { offsetLabel } from "../../lib/offset-label";
@@ -184,6 +183,7 @@ function openDatePicker() {
 }
 
 const store = computed<TaskStore>(() => ({
+  planSlug: props.slug,
   doneIds,
   userNotes,
   attachments,
@@ -243,17 +243,13 @@ const overview = computed(() => {
   };
 });
 
-// A soft task has no defensible date, so it is not on the rail, not on the
-// timeline and not sorted by the date it never had.
-const softEntries = computed(() =>
-  planEntries.value.filter((e) => e.kind === "soft" && !doneIds[e.id]),
-);
+// A soft step keeps its place in the order, but never a marker on the timeline:
+// a dot would sit on a day nobody can defend.
 const datedTasks = computed(() => tasks.value.filter((t) => t.kind !== "soft"));
 
 const openNodes = computed(() => {
   const out: typeof railNodes.value = [];
   for (const node of railNodes.value) {
-    if (node.kind === "item" && node.entry.kind === "soft") continue;
     if (node.kind === "item" && node.entry.id === ANCHOR_ID) continue;
     if (node.kind === "gap" && out[out.length - 1]?.kind !== "item") continue;
     out.push(node);
@@ -483,12 +479,6 @@ onBeforeUnmount(() => {
           @pick-blank="picker.pick()"
         />
       </div>
-
-      <SoftGroup
-        :entries="softEntries"
-        :store="store"
-        @toggle-done="onToggleDone"
-      />
 
       <DoneGroup :entries="doneEntries" @reopen="toggleDone" />
 

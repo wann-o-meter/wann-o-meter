@@ -6,8 +6,9 @@ import type { VorhabenData } from "./vorhaben-data";
 
 export interface FristTask {
   task: Deadline;
-  // The plan that points at this Frist, if one does. A Frist can stand alone.
-  vorhaben?: VorhabenData;
+  // Every plan that points at this Frist. A Frist can belong to several, or to
+  // none at all.
+  vorhaben: VorhabenData[];
 }
 
 export function fristPath(id: string, year?: number): string {
@@ -19,7 +20,7 @@ export function allFristTasks(): FristTask[] {
   const plans = loadAllVorhaben();
   return [...allFristen().values()].map((task) => ({
     task,
-    vorhaben: plans.find((v) =>
+    vorhaben: plans.filter((v) =>
       v.variants.some((variant) =>
         variant.deadlines.some((d) => d.id === task.id),
       ),

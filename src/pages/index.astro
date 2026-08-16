@@ -22,8 +22,8 @@ const vorhaben = loadAllVorhaben();
 // follow without running the planner.
 const fristen = allFristTasks();
 const fristenOf = (slug: string) =>
-  fristen.filter((f) => f.vorhaben?.slug === slug);
-const standalone = fristen.filter((f) => !f.vorhaben);
+  fristen.filter((f) => f.vorhaben.some((v) => v.slug === slug));
+const standalone = fristen.filter((f) => f.vorhaben.length === 0);
 
 // Schulferien of every Bundesland, trimmed to the range the date picker allows,
 // so the picked Termin can be checked against them in the browser.

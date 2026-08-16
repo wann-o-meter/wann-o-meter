@@ -5,6 +5,7 @@ import { sourceLabel } from "../../../lib/offset-label";
 
 const props = defineProps<{
   entry: ScheduleEntry;
+  planSlug?: string;
   isCustom: boolean;
   deferred: boolean;
 }>();
@@ -59,7 +60,7 @@ const fallbackLabel = () =>
       <a
         v-if="entry.kind !== 'soft'"
         class="frist"
-        :href="`/frist/${entry.id}/`"
+        :href="`/frist/${entry.id}/${planSlug ? `?from=${planSlug}` : ''}`"
         >Frist im Detail</a
       >
       Grundlage:

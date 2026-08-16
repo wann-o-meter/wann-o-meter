@@ -6,8 +6,9 @@ import type { Deadline } from "../../lib/deadline-plan";
 interface Props {
   deadlines: Deadline[];
   anchorLabel: string;
+  planSlug: string;
 }
-const { deadlines, anchorLabel } = Astro.props;
+const { deadlines, anchorLabel, planSlug } = Astro.props;
 
 const all = deadlines.filter((d) => appliesTo(d, []));
 const entries = all.filter((d) => d.kind !== "soft").sort(byOffset);
@@ -32,7 +33,7 @@ labels, notes and sources, so with JS this stays hidden. -->
           {d.note && <p class="note">{d.note}</p>}
           <p class="src">
             {d.kind !== "soft" && (
-              <a class="frist" href={`/frist/${d.id}/`}>
+              <a class="frist" href={`/frist/${d.id}/?from=${planSlug}`}>
                 Frist im Detail
               </a>
             )}

@@ -34,9 +34,11 @@ describe("allFristTasks", () => {
   });
 
   it("knows which plan a task came from", () => {
-    expect(byId.get("wohnung-kuendigen")?.vorhaben?.slug).toBe("umzug");
+    expect(byId.get("wohnung-kuendigen")?.vorhaben.map((v) => v.slug)).toEqual([
+      "umzug",
+    ]);
     // Nothing bundles the Steuererklärung yet, so it stands alone.
-    expect(byId.get("steuererklaerung-abgeben")?.vorhaben).toBeUndefined();
+    expect(byId.get("steuererklaerung-abgeben")?.vorhaben).toEqual([]);
   });
 });
 

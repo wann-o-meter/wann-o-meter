@@ -9,6 +9,8 @@ export const COUNTRY_CODE = "DE";
 
 type RailNode =
   | { kind: "item"; entry: ScheduleEntry }
+  // A gap is drawn in days. Around a step without a date it would show time
+  // nobody measured, so it is only spanned between two real Fristen.
   | {
       kind: "gap";
       id: string;
@@ -63,8 +65,8 @@ export function usePlannerSchedule(
   const railNodes = computed<RailNode[]>(() => {
     const nodes: RailNode[] = [];
     timeline.value.forEach((entry, i) => {
-      if (i > 0) {
-        const prev = timeline.value[i - 1];
+      const prev = timeline.value[i - 1];
+      if (i > 0 && entry.kind !== "soft" && prev.kind !== "soft") {
         const bufferDays = Math.max(
           0,
           Math.round(
