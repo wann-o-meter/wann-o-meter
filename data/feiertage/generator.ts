@@ -1,7 +1,7 @@
 import { allCountries } from "../../lib/countries";
 import { formatDate } from "../../lib/format-date";
 import { holidaySource, rollingYears } from "../../lib/materialization";
-import { holidaysFor } from "../../lib/holidays";
+import { holidaysFromLibrary } from "../../lib/holidays-lib";
 import { parsePageData, parsePageMeta } from "../../lib/pages-schema";
 import { STATES } from "../../lib/states";
 import type { Page } from "../../lib/pages";
@@ -22,7 +22,7 @@ function buildPage(
   featured?: boolean,
 ): Page {
   const windows: RawWindow[] = years.flatMap((year) =>
-    holidaysFor(year, countryCode, regionCode).map((h) => ({
+    holidaysFromLibrary(year, countryCode, regionCode).map((h) => ({
       type: "holiday",
       year,
       from: h.date,

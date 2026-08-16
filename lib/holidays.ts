@@ -1,22 +1,19 @@
-import Holidays from "date-holidays";
+import { HOLIDAYS_DE } from "./holidays-de-data";
 
 export interface Holiday {
   date: string;
   name: string;
 }
 
-const cache = new Map<string, Holiday[]>();
-
-export function holidaysFor(year: number, countryCode: string, regionCode?: string): Holiday[] {
-  const key = `${countryCode}-${regionCode ?? ""}-${year}`;
-  const cached = cache.get(key);
-  if (cached) return cached;
-
-  const h = new Holidays(countryCode, regionCode ?? "", { types: ["public"] });
-  const result = h
-    .getHolidays(year)
-    .filter((d) => d.type === "public")
-    .map((d) => ({ date: d.date.slice(0, 10), name: d.name }));
-  cache.set(key, result);
-  return result;
+// Only Germany, and only from the generated table: the library those entries
+// come from is 260 KiB of rules for every country and has no business in a
+// page bundle. Server code that needs another country uses holidays-lib.ts.
+export function holidaysFor(
+  year: number,
+  countryCode: string,
+  regionCode?: string,
+): Holiday[] {
+  if (countryCode !== "DE") return [];
+  const table = HOLIDAYS_DE[regionCode || "DE"] ?? HOLIDAYS_DE.DE;
+  return (table[String(year)] ?? []).map(([date, name]) => ({ date, name }));
 }
