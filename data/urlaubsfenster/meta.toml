@@ -1,7 +1,0 @@
-# Category-level, not subject-level: see data/feiertage/meta.toml. This one is
-# a hybrid - generator.ts computes bridge-day windows from the authored school
-# holiday facts in data/schulferien/, so its inputs are decreed and its output
-# is derived.
-category = "urlaubsfenster"
-mode     = "generator"
-generator = "generator.ts"

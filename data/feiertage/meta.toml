@@ -1,7 +1,0 @@
-# Category-level, not subject-level: this folder has no subject directories.
-# generator.ts produces all 200+ pages in code at build time (registered in
-# lib/pages.ts's GENERATORS), so there is nothing on disk to describe one by
-# one. Derived, not decreed - see the rule in AGENTS.md.
-category = "feiertage"
-mode     = "generator"
-generator = "generator.ts"

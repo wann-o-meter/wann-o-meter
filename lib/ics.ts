@@ -39,7 +39,7 @@ export function generateIcs(events: IcsEvent[], calendarName: string): string {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//wann//urlaubsfenster//DE",
+    "PRODID:-//Wann-O-Meter//wannometer.de//DE",
     "CALSCALE:GREGORIAN",
     `X-WR-CALNAME:${escapeText(calendarName)}`,
   ];
