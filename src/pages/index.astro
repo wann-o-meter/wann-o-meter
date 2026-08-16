@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import IndexTimeline from "../components/Index.vue";
 import { getPagesInCategory } from "../../lib/pages";
 import { loadAllVorhaben } from "../../lib/vorhaben-data";
+import { allFristTasks, fristPath } from "../../lib/tasks";
 
 const homeDescription =
   "Wann muss ich anfangen? Fristen rückwärts vom Termin geplant, mit Quelle - Umzug, Geburt, Hochzeit und Jobwechsel.";
@@ -15,6 +16,14 @@ const structuredData = {
 };
 
 const vorhaben = loadAllVorhaben();
+
+// Every Frist with a paragraph behind it has its own page. Those pages answer
+// the question people actually type, so they need a way in that a crawler can
+// follow without running the planner.
+const fristen = allFristTasks();
+const fristenOf = (slug: string) =>
+  fristen.filter((f) => f.vorhaben?.slug === slug);
+const standalone = fristen.filter((f) => !f.vorhaben);
 
 // Schulferien of every Bundesland, trimmed to the range the date picker allows,
 // so the picked Termin can be checked against them in the browser.
@@ -49,6 +58,17 @@ const schulferien = Object.fromEntries(
           <li>
             <h3><a href={`/${v.slug}/`}>{v.label}: wann muss ich anfangen?</a></h3>
             <p>{v.description}</p>
+            {fristenOf(v.slug).length > 0 && (
+              <p class="fristen">
+                Einzelne Fristen:{" "}
+                {fristenOf(v.slug).map(({ task }, i) => (
+                  <>
+                    {i > 0 && <span aria-hidden="true"> &middot; </span>}
+                    <a href={`/${fristPath(task.id)}/`}>{task.label}</a>
+                  </>
+                ))}
+              </p>
+            )}
             {v.variants.length > 1 && (
               <p class="places">
                 Mit örtlichen Fristen:{" "}
@@ -66,6 +86,25 @@ const schulferien = Object.fromEntries(
             )}
           </li>
         ))
+      }
+      {
+        standalone.length > 0 && (
+          <li>
+            <h3>Fristen ohne Termin</h3>
+            <p>
+              Stichtage, die das Gesetz selbst setzt. Sie brauchen kein Datum von
+              dir, sie stehen schon fest.
+            </p>
+            <p class="fristen">
+              {standalone.map(({ task }, i) => (
+                <>
+                  {i > 0 && <span aria-hidden="true"> &middot; </span>}
+                  <a href={`/${fristPath(task.id)}/`}>{task.label}</a>
+                </>
+              ))}
+            </p>
+          </li>
+        )
       }
     </ul>
   </section>
@@ -92,7 +131,8 @@ const schulferien = Object.fromEntries(
     font-size: var(--fs-sm);
     max-width: 60ch;
   }
-  .all-plans .places {
+  .all-plans .places,
+  .all-plans .fristen {
     margin-top: 0.25rem;
   }
 </style>
