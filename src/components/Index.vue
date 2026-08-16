@@ -347,7 +347,9 @@ const suggestions = computed(() => {
   if (ortQuery.value.trim().length === 0)
     return [
       ...covered,
-      ...BIG_CITIES.map((n) => gemeinden.value.find((g) => g.name === n)).filter(
+      ...BIG_CITIES.map((n) =>
+        gemeinden.value.find((g) => g.name === n),
+      ).filter(
         (g): g is Gemeinde => !!g && !covered.some((c) => c.name === g.name),
       ),
     ].slice(0, SUGGESTION_COUNT);
@@ -650,7 +652,8 @@ h1 {
   font-size: var(--fs-md);
 }
 input[type="date"] {
-  width: 11rem;
+  width: 100%;
+  max-width: 11rem;
 }
 .ac-input {
   display: flex;
@@ -661,7 +664,8 @@ input[type="date"] {
   border-radius: var(--radius);
   background: var(--paper-raised);
   color: var(--muted);
-  width: 19rem;
+  width: 100%;
+  max-width: 19rem;
 }
 .ac-input:focus-within {
   border-color: var(--accent);
