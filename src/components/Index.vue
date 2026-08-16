@@ -21,9 +21,7 @@
     </TransitionGroup>
 
     <section class="intro">
-      <h1 v-if="planCards.length === 0">
-        Die Checkliste, die deine Termine kennt.
-      </h1>
+      <h1 v-if="planCards.length === 0">Ein Termin, alle Fristen dazu.</h1>
       <p class="lede">
         Wann-O-Meter rechnet jede Frist rückwärts von deinem Termin: mit dem
         Datum, bis wann sie erledigt sein muss, <strong>mit Paragraf</strong>,

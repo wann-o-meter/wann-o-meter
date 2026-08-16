@@ -8,7 +8,14 @@ import {
   useTemplateRef,
   watch,
 } from "vue";
-import { CalendarPlus, ChevronDown, ChevronUp, Eye } from "lucide-vue-next";
+import {
+  Bookmark,
+  BookmarkCheck,
+  CalendarPlus,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+} from "lucide-vue-next";
 import Timeline from "./deadline-planner/Timeline.vue";
 import TaskRail from "./deadline-planner/TaskRail.vue";
 import TaskPicker from "./deadline-planner/TaskPicker.vue";
@@ -19,7 +26,12 @@ import DoneGroup from "./deadline-planner/DoneGroup.vue";
 import { facetLabel } from "../../lib/facets";
 import { formatDate } from "../../lib/format-date";
 import { offsetLabel } from "../../lib/offset-label";
-import { planStorageKey, savePlan } from "../../lib/saved-plans";
+import {
+  forgetPlan,
+  loadSavedPlans,
+  planStorageKey,
+  savePlan,
+} from "../../lib/saved-plans";
 import { downloadIcs } from "../../lib/ics-download";
 import { burst } from "./deadline-planner/confetti";
 import { useTaskEditor } from "./deadline-planner/useTaskEditor";
@@ -69,26 +81,39 @@ const {
   touched,
 } = usePlanUrlState(props.slug, props.variants, props.defaultSlug);
 
-watch(
-  [touched, anchorDate, selectedSlug, activeFacets, ortName],
-  () => {
-    if (!touched.value || !anchorDate.value) return;
-    // Both only say something for a variant without a Bundesland of its own,
-    // otherwise they repeat what the Ort file already says.
-    const own = props.variants.find(
-      (v) => v.slug === selectedSlug.value,
-    )?.regionCode;
-    savePlan({
-      slug: props.slug,
-      variant: selectedSlug.value,
-      region: own ? undefined : selected.value?.regionCode,
-      ort: own ? undefined : ortName.value || undefined,
-      date: anchorDate.value,
-      facets: [...activeFacets.value],
-    });
-  },
-  { immediate: true },
-);
+// Keeping a plan is the visitor's decision, not a side effect of opening one.
+// Once kept, it follows whatever they change afterwards.
+const kept = ref(false);
+
+function planRecord() {
+  // Both only say something for a variant without a Bundesland of its own,
+  // otherwise they repeat what the Ort file already says.
+  const own = props.variants.find(
+    (v) => v.slug === selectedSlug.value,
+  )?.regionCode;
+  return {
+    slug: props.slug,
+    variant: selectedSlug.value,
+    region: own ? undefined : selected.value?.regionCode,
+    ort: own ? undefined : ortName.value || undefined,
+    date: anchorDate.value,
+    facets: [...activeFacets.value],
+  };
+}
+
+function toggleKept() {
+  if (kept.value) {
+    forgetPlan(props.slug);
+    kept.value = false;
+    return;
+  }
+  savePlan(planRecord());
+  kept.value = true;
+}
+
+watch([anchorDate, selectedSlug, activeFacets, ortName], () => {
+  if (kept.value && anchorDate.value) savePlan(planRecord());
+});
 
 const {
   doneIds,
@@ -312,6 +337,7 @@ function trackActiveCard() {
 }
 
 onMounted(() => {
+  kept.value = loadSavedPlans().some((p) => p.slug === props.slug);
   // The rest of the pre-hydration fallback is hidden by the js flag before the
   // first paint, only the title has to go once the planner renders its own.
   document.getElementById("static-title")?.remove();
@@ -436,6 +462,15 @@ onBeforeUnmount(() => {
           </button>
           <button type="button" class="tl-toggle" @click="exportIcs">
             <CalendarPlus :size="14" /> In den Kalender
+          </button>
+          <button
+            type="button"
+            class="tl-toggle keep"
+            :aria-pressed="kept"
+            @click="toggleKept"
+          >
+            <component :is="kept ? BookmarkCheck : Bookmark" :size="14" />
+            {{ kept ? "Gemerkt" : "Plan merken" }}
           </button>
         </div>
       </template>
@@ -622,6 +657,9 @@ onBeforeUnmount(() => {
 }
 .tl-toggle:hover {
   color: var(--accent);
+}
+.keep[aria-pressed="true"] {
+  color: var(--done-color);
 }
 .tl-off {
   display: none;
