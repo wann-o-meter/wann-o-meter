@@ -80,8 +80,6 @@ const {
   activeFacets,
   facetOptions,
   overlapMonths,
-  deferred,
-  toggleDefer,
   touched,
 } = usePlanUrlState(props.slug, props.variants, props.defaultSlug);
 
@@ -300,7 +298,11 @@ function onTimelineSelect(id: string) {
   }, 1600);
 }
 
-const timelineHidden = ref(false);
+// Collapsed on a phone: the chart needs width to say anything, and the space
+// belongs to the tasks. A wide screen always shows it, see the media query.
+const timelineHidden = ref(
+  typeof window !== "undefined" && window.innerWidth < 640,
+);
 
 const fabOpen = ref(false);
 function fabDo(action: () => void) {
@@ -485,7 +487,7 @@ onBeforeUnmount(() => {
               :is="timelineHidden ? ChevronDown : ChevronUp"
               :size="14"
             />
-            {{ timelineHidden ? "Zeitstrahl zeigen" : "Zeitstrahl ausblenden" }}
+            {{ timelineHidden ? "Zeitstrahl" : "Zeitstrahl ausblenden" }}
           </button>
           <button type="button" class="head-action" @click="exportIcs">
             <CalendarPlus :size="14" /> In den Kalender
@@ -495,26 +497,16 @@ onBeforeUnmount(() => {
     </header>
 
     <template v-if="anchorDate">
-      <fieldset v-if="facetOptions.length > 1" class="facets">
-        <legend>Trifft auf mich zu</legend>
-        <label v-for="id in facetOptions" :key="id" class="facet key">
-          <input v-model="activeFacets" type="checkbox" :value="id" />
-          <span>{{ facetLabel(id) }}</span>
-        </label>
-      </fieldset>
-
       <h2 class="section">Aufgaben</h2>
       <div ref="railEl">
         <TaskRail
           :nodes="openNodes"
           :anchor-date="anchorDate"
-          :deferred="deferred"
           :hovered-id="activeId"
           :store="store"
           :picker="picker"
           @hover="hoveredId = $event"
           @toggle-done="onToggleDone"
-          @toggle-defer="toggleDefer"
         />
       </div>
 
@@ -532,6 +524,14 @@ onBeforeUnmount(() => {
           @pick-blank="picker.pick()"
         />
       </div>
+
+      <fieldset v-if="facetOptions.length > 1" class="facets">
+        <legend>Trifft auf mich zu</legend>
+        <label v-for="id in facetOptions" :key="id" class="facet key">
+          <input v-model="activeFacets" type="checkbox" :value="id" />
+          <span>{{ facetLabel(id) }}</span>
+        </label>
+      </fieldset>
 
       <DoneGroup :entries="doneEntries" @reopen="toggleDone" />
 
@@ -617,6 +617,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .deadline-planner {
   max-width: 62rem;
+  padding-bottom: 5rem;
   --tint-accent: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 .sentinel {
@@ -663,6 +664,13 @@ grey text under a chart. */
   margin: 0 0 1rem;
   color: var(--muted);
 }
+/* A phone opens this page for the plan, not for the reasoning behind it. */
+@media (max-width: 40rem) {
+  .overview {
+    display: none;
+  }
+}
+
 .overview b {
   color: var(--ink);
   font-weight: 600;
@@ -737,6 +745,7 @@ grey text under a chart. */
 .tl-toggle,
 .head-action {
   display: flex;
+  white-space: nowrap;
   align-items: center;
   justify-content: center;
   gap: 0.3rem;
@@ -767,7 +776,7 @@ grey text under a chart. */
   gap: 0.4rem;
   border: 0;
   padding: 0;
-  margin: 1rem 0 0;
+  margin: 2rem 0 0;
 }
 .facets legend {
   font-size: var(--fs-xs);
@@ -904,6 +913,9 @@ grey text under a chart. */
 }
 
 @media (min-width: 40rem) {
+  .deadline-planner {
+    padding-bottom: 0;
+  }
   .planner-header {
     margin-inline: 0;
     border-radius: var(--radius);

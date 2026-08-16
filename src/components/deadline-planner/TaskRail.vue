@@ -10,7 +10,6 @@ import type { TaskPicker as Picker } from "./useTaskPicker";
 defineProps<{
   nodes: { kind: string; [key: string]: any }[];
   anchorDate: string;
-  deferred: boolean;
   hoveredId: string | null;
   store: TaskStore;
   picker: Picker;
@@ -19,7 +18,6 @@ defineProps<{
 defineEmits<{
   (e: "hover", id: string | null): void;
   (e: "toggle-done", id: string): void;
-  (e: "toggle-defer"): void;
 }>();
 </script>
 
@@ -78,13 +76,11 @@ defineEmits<{
         :cta="taskCtaFor(node.entry.id)"
         :note="store.userNotes[node.entry.id]"
         :attachment="store.attachments[node.entry.id]"
-        :deferred="deferred"
         :editor="store.editorFor(node.entry.id)"
         @update:editor="store.setEditor(node.entry.id, $event)"
         @update="store.applyPatch(node.entry, $event)"
         @hide="store.hideEntry(node.entry)"
         @toggle-done="$emit('toggle-done', node.entry.id)"
-        @toggle-defer="$emit('toggle-defer')"
         @mouseenter="$emit('hover', node.entry.id)"
         @mouseleave="$emit('hover', null)"
       />

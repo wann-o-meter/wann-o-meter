@@ -22,7 +22,6 @@ const props = defineProps<{
   isPast: boolean;
   done: boolean;
   isCustom: boolean;
-  deferred: boolean;
   cta: TaskCta | null;
   note?: string;
   attachment?: string;
@@ -36,7 +35,6 @@ const emit = defineEmits<{
   (e: "update:editor", value: EditorKind | null): void;
   (e: "update", patch: TaskPatch): void;
   (e: "toggle-done"): void;
-  (e: "toggle-defer"): void;
   (e: "hide"): void;
 }>();
 
@@ -215,8 +213,6 @@ const menuItems = computed<MenuItem[]>(() => [
       :entry="entry"
       :plan-slug="planSlug"
       :is-custom="isCustom"
-      :deferred="deferred"
-      @toggle-defer="$emit('toggle-defer')"
     />
   </article>
 </template>
