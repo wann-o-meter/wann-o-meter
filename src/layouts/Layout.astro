@@ -57,6 +57,11 @@ const organization = {
     {description && <meta name="description" content={description} />}
     {noindex && <meta name="robots" content="noindex, follow" />}
     <link rel="canonical" href={canonicalUrl} />
+    <!-- RFC 9727 allows the catalog to be advertised in the markup as well as
+    in a Link header, and a static host can only do the markup half. -->
+    <link rel="api-catalog" href="/.well-known/api-catalog" />
+    <link rel="service-desc" type="application/json" href="/openapi.json" />
+    <link rel="service-doc" type="text/html" href="/api/" />
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="shortcut icon" href="/favicon.ico" />

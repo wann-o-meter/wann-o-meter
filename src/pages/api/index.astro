@@ -1,0 +1,111 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { allFristSummaries } from "../../../lib/frist-api";
+import { allFristTasks, yearsFor } from "../../../lib/tasks";
+
+// What /.well-known/api-catalog points at as service-doc. Counts and examples
+// come from the data, so the page cannot promise an endpoint that is not there.
+const fristen = allFristSummaries();
+const example = fristen.find((f) => f.id === "wohnung-kuendigen") ?? fristen[0];
+const feeds = allFristTasks().flatMap(({ task }) =>
+  yearsFor(task).map((year) => `${task.id}/${year}`),
+);
+
+const title = "API";
+const description = `${fristen.length} deutsche Fristen als JSON, jede mit dem Paragrafen dahinter und dem Wortlaut des Gesetzes.`;
+
+const endpoints = [
+  {
+    path: "/api/v1/fristen.json",
+    what: "Alle Fristen, je mit Gesetz und Link auf die eigene JSON.",
+  },
+  {
+    path: `/api/v1/fristen/${example.id}.json`,
+    what: "Eine Frist, mit den zitierten Absätzen im Wortlaut und, wo das Gesetz den Tag selbst festlegt, dem Termin pro Jahr.",
+  },
+  {
+    path: `/frist/${feeds[0] ?? "steuererklaerung-abgeben/2026"}.ics`,
+    what: "Ein fester Stichtag als Kalendereintrag. Nur dort, wo kein Datum von dir nötig ist.",
+  },
+  { path: "/openapi.json", what: "OpenAPI 3.1, aus denselben Schemas erzeugt." },
+  { path: "/llms.txt", what: "Dieselben Daten als Fließtext." },
+];
+---
+
+<Layout title={title} description={description}>
+  <h1>API</h1>
+  <p class="lede">{description}</p>
+
+  <h2>Endpunkte</h2>
+  <dl>
+    {
+      endpoints.map((e) => (
+        <>
+          <dt><a href={e.path}>{e.path}</a></dt>
+          <dd>{e.what}</dd>
+        </>
+      ))
+    }
+  </dl>
+
+  <h2>Bedingungen</h2>
+  <ul>
+    <li>Keine Anmeldung, kein Limit. Bitte zwischenspeichern statt dieselbe URL erneut zu holen.</li>
+    <li>
+      Der Gesetzestext ist wörtlich von{" "}
+      <a href="https://www.gesetze-im-internet.de/" rel="nofollow noopener">
+        gesetze-im-internet.de
+      </a>{" "}
+      übernommen und nach § 5 Abs. 1 UrhG gemeinfrei. Zitiere die Quelle, nicht
+      diese Seite.
+    </li>
+    <li>
+      Wo eine Zahl keine Rechtsgrundlage hat, steht sie als "Erfahrungswert" in
+      <code>note</code>. Nicht als Frist zitieren.
+    </li>
+    <li>
+      Ein <code>occurrences</code>-Eintrag existiert nur, wenn das Gesetz den Tag
+      selbst festlegt. Eine Frist, die von deinem Datum abhängt, wird bewusst
+      nicht vorab ausgerechnet.
+    </li>
+  </ul>
+
+  <h2>Auffinden</h2>
+  <p>
+    <a href="/.well-known/api-catalog">/.well-known/api-catalog</a> listet diese
+    API nach RFC 9727.
+  </p>
+</Layout>
+
+<style>
+  .lede {
+    max-width: 62ch;
+    color: var(--muted);
+  }
+  h2 {
+    font-size: var(--fs-md);
+    margin-top: 2rem;
+  }
+  dl {
+    max-width: 62ch;
+  }
+  dt {
+    margin-top: 0.9rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+  }
+  dd {
+    margin: 0.2rem 0 0;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+  }
+  ul {
+    max-width: 62ch;
+    padding-left: 1.2rem;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+  }
+  li {
+    margin-bottom: 0.4rem;
+  }
+</style>
