@@ -1,5 +1,6 @@
 deadlines:
   - id: arbeitsuchend-melden
+    tags: [arbeit, job, arbeitsagentur, arbeitslos]
     kind: statutory-relative
     direction: before
     label: Bei der Agentur für Arbeit arbeitsuchend melden

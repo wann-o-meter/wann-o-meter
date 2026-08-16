@@ -6,6 +6,7 @@ const task = (over: Partial<Deadline>): Deadline => ({
   id: "x",
   kind: "soft",
   belongsTo: [],
+  tags: [],
   label: "x",
   offset_days: 0,
   source_url: null,

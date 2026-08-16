@@ -1,5 +1,6 @@
 deadlines:
   - id: geburtsanzeige-standesamt
+    tags: [familie, geburt, standesamt, urkunde]
     kind: statutory-relative
     direction: after
     label: Geburt beim Standesamt anzeigen

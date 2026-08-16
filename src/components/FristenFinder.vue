@@ -7,41 +7,49 @@ export interface FristEntry {
   id: string;
   label: string;
   source: string;
-  // A statute that names the day itself, rather than counting from your date.
-  fixed: boolean;
+  tags: string[];
   note?: string;
   plans: { slug: string; label: string }[];
 }
 
 const props = defineProps<{ fristen: FristEntry[] }>();
 
-const FIXED = "__fixed";
 const query = ref("");
 const filter = ref("");
 
+const title = (s: string) => s[0].toUpperCase() + s.slice(1);
+// A Frist is filed under its plan, or under the first of its own tags when no
+// plan claims it yet. The rest of the tags are words to search for, not groups.
+const groupsOf = (f: FristEntry) =>
+  f.plans.length > 0
+    ? f.plans.map((p) => ({ id: p.slug, label: p.label }))
+    : f.tags.slice(0, 1).map((t) => ({ id: t, label: title(t) }));
+
+// Someone types muenchen or münchen or munchen and means the same place, so
+// both spellings of every umlaut have to match.
+const forms = (s: string) => [
+  fold(s),
+  fold(s.replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue")),
+];
+const hit = (field: string, query: string) =>
+  forms(query).some((q) => forms(field).some((f) => f.includes(q)));
+
 const filters = computed(() => {
-  const plans = new Map<string, string>();
+  const seen = new Map<string, string>();
   for (const f of props.fristen)
-    for (const p of f.plans) plans.set(p.slug, p.label);
-  return [
-    ...[...plans].map(([slug, label]) => ({ id: slug, label })),
-    ...(props.fristen.some((f) => f.fixed)
-      ? [{ id: FIXED, label: "Fester Stichtag" }]
-      : []),
-  ];
+    for (const g of groupsOf(f)) seen.set(g.id, g.label);
+  return [...seen].map(([id, label]) => ({ id, label }));
 });
 
 const matches = computed(() => {
-  const q = fold(query.value.trim());
+  const q = query.value.trim();
   return props.fristen.filter((f) => {
-    if (filter.value === FIXED && !f.fixed) return false;
-    if (filter.value && filter.value !== FIXED)
-      if (!f.plans.some((p) => p.slug === filter.value)) return false;
+    if (filter.value && !groupsOf(f).some((g) => g.id === filter.value))
+      return false;
     if (!q) return true;
-    return (
-      fold(f.label).includes(q) ||
-      fold(f.source).includes(q) ||
-      fold(f.note ?? "").includes(q)
+    // Not the note: it is prose, and prose matches things nobody searched for.
+    return [f.label, f.source, ...f.tags, ...f.plans.map((p) => p.label)].some(
+      (field) => hit(field, q),
     );
   });
 });
@@ -86,9 +94,8 @@ const toggle = (id: string) => (filter.value = filter.value === id ? "" : id);
         <a :href="`/frist/${f.id}/`">{{ f.label }}</a>
         <span class="meta">
           <span class="src">{{ f.source }}</span>
-          <span v-if="f.fixed" class="tag">Fester Stichtag</span>
-          <span v-for="p in f.plans" :key="p.slug" class="tag plan">{{
-            p.label
+          <span v-for="g in groupsOf(f)" :key="g.id" class="tag">{{
+            g.label
           }}</span>
         </span>
       </li>
@@ -104,8 +111,16 @@ const toggle = (id: string) => (filter.value = filter.value === id ? "" : id);
 .finder {
   margin-top: 4rem;
 }
+/* Same shape as the picker above: heading, one line, then the controls. */
+h2 {
+  font-size: var(--fs-lg);
+  border: 0;
+  padding: 0;
+  margin: 0 0 0.25rem;
+}
 .lede {
   max-width: 62ch;
+  margin: 0 0 1.25rem;
   color: var(--muted);
   font-size: var(--fs-sm);
 }
@@ -182,7 +197,7 @@ li a {
   border-radius: var(--radius-pill);
   padding: 0.05rem 0.5rem;
 }
-.tag.plan {
+.tag {
   border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
   color: var(--accent);
 }

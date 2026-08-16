@@ -1,5 +1,6 @@
 deadlines:
   - id: ummeldung-einwohnermeldeamt
+    tags: [wohnen, anmeldung, bürgeramt, meldepflicht, adresse]
     kind: statutory-relative
     direction: after
     label: Ummeldung beim Einwohnermeldeamt

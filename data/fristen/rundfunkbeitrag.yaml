@@ -1,5 +1,6 @@
 deadlines:
   - id: rundfunkbeitrag
+    tags: [gez, beitragsservice, rundfunk]
     kind: statutory-relative
     direction: after
     label: Rundfunkbeitrag ummelden

@@ -8,6 +8,16 @@
         :v="card.v"
         @forget="savedPlans = forgetPlan($event)"
       />
+      <button
+        v-if="planCards.length > 0"
+        key="__add"
+        type="button"
+        class="add-plan"
+        @click="goToPicker"
+      >
+        <Plus :size="22" aria-hidden="true" />
+        Plan erstellen
+      </button>
     </TransitionGroup>
 
     <section class="intro">
@@ -22,13 +32,10 @@
     </section>
 
     <section class="step">
-      <h2 class="q" id="q1">
-        {{
-          planCards.length > 0
-            ? "Noch etwas planen?"
-            : "Was möchtest du planen?"
-        }}
-      </h2>
+      <h2 class="q" id="q1">Plan erstellen</h2>
+      <p class="section-lede">
+        Kategorie wählen, Termin festlegen und Plan mit konkreten Fristen erstellen.
+      </p>
       <div class="choices" role="group" aria-labelledby="q1">
         <button
           v-for="v in vorhaben"
@@ -45,6 +52,15 @@
 
     <Transition name="reveal">
       <section v-if="selected" class="step">
+        <p v-if="planSummary" class="what">
+          <b>{{ planSummary.dated }} Fristen mit Paragraf</b>
+          <template v-if="planSummary.soft > 0">
+            und {{ planSummary.soft }} Schritte ohne feste Frist</template
+          >.
+          <template v-if="planSummary.first">
+            Als Erstes: {{ planSummary.first }}.
+          </template>
+        </p>
         <h2 class="q">Wann und wo?</h2>
         <div class="fields">
           <div class="field">
@@ -238,9 +254,11 @@ import {
   Check,
   Info,
   MapPin,
+  Plus,
   Search,
 } from "lucide-vue-next";
 import { appliesTo } from "../../lib/facets";
+import { byOffset } from "../../lib/offset-label";
 import {
   dayMonth,
   daysUntil,
@@ -381,6 +399,19 @@ const baseVariant = computed(() =>
   selected.value?.variants.find((v) => v.slug === BUNDESWEIT),
 );
 
+// What the picked plan actually contains, in one line, so the choice is not a
+// leap of faith.
+const planSummary = computed(() => {
+  const all = baseVariant.value?.deadlines ?? [];
+  if (all.length === 0) return null;
+  const dated = all.filter((d) => d.kind !== "soft");
+  return {
+    dated: dated.length,
+    soft: all.length - dated.length,
+    first: [...dated].sort(byOffset)[0]?.label ?? "",
+  };
+});
+
 // Name the local steps instead of promising "örtliche Schritte".
 // ponytail: the first word of the label is the step's name in every Kommune
 // file so far, add a short label to the schema if that ever reads wrong.
@@ -412,6 +443,11 @@ const previewVariant = computed<VorhabenVariant | undefined>(() => {
   const base = baseVariant.value ?? selected.value.variants[0];
   return base && ort.value ? { ...base, regionCode: ort.value.state } : base;
 });
+
+function goToPicker() {
+  document.getElementById("q1")?.scrollIntoView({ behavior: "smooth" });
+  (document.querySelector(".choice") as HTMLElement | null)?.focus();
+}
 
 function pick(slug: string) {
   if (slug === selectedSlug.value) return;
@@ -514,6 +550,27 @@ h1 {
 }
 
 /* Saved plans fade in after the storage read and slide out when forgotten. */
+.add-plan {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 8rem;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.add-plan:hover {
+  border-color: var(--accent);
+  border-style: solid;
+  color: var(--accent);
+}
+
 .plan-enter-active {
   transition:
     opacity 0.3s ease,
@@ -573,11 +630,26 @@ h1 {
     margin-top: 2.5rem;
   }
 }
+.what {
+  max-width: 62ch;
+  margin: 0 0 0.75rem;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.what b {
+  color: var(--ink);
+}
 .q {
   font-size: var(--fs-lg);
   border: 0;
   padding: 0;
+  margin: 0 0 0.25rem;
+}
+.section-lede {
+  max-width: 62ch;
   margin: 0 0 1.25rem;
+  color: var(--muted);
+  font-size: var(--fs-sm);
 }
 
 /* Cards, not pills: the pill shape belongs to the date presets below. */

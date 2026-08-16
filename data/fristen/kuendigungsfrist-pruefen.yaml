@@ -1,5 +1,6 @@
 deadlines:
   - id: kuendigungsfrist-pruefen
+    tags: [arbeit, job, kündigung, arbeitsvertrag]
     kind: statutory-relative
     direction: before
     label: Kündigungsfrist einhalten und kündigen

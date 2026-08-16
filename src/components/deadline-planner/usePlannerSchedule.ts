@@ -36,6 +36,7 @@ export function usePlannerSchedule(
         id: ANCHOR_ID,
         kind: "soft" as const,
         belongsTo: [],
+        tags: [],
         label: anchorLabel(),
         offset_days: 0,
         source_url: null,

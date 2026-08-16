@@ -1,5 +1,6 @@
 deadlines:
   - id: internetanbieter-kuendigen-ummelden
+    tags: [wohnen, internet, dsl, telefon, vertrag]
     kind: statutory-relative
     direction: before
     label: Internetanbieter kündigen oder umziehen lassen

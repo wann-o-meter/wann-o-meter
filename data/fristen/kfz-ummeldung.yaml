@@ -1,5 +1,6 @@
 deadlines:
   - id: kfz-ummeldung
+    tags: [auto, zulassung, kennzeichen, fahrzeug]
     kind: statutory-relative
     direction: after
     label: Kfz beim neuen Wohnort ummelden

@@ -1,5 +1,6 @@
 deadlines:
   - id: kindergeld-beantragen
+    tags: [familie, familienkasse, antrag, kindergeld]
     kind: statutory-relative
     direction: after
     label: Kindergeld beantragen

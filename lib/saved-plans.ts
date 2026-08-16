@@ -87,6 +87,7 @@ export function snapshotDeadlines(
     id: t.id,
     kind: "soft" as const,
     belongsTo: [],
+    tags: [],
     label: t.label,
     offset_days: t.offsetDays,
     source_url: null,

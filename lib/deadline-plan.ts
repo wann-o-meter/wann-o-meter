@@ -36,6 +36,9 @@ export const deadlineSchema = z
     // Give this task one page per year. Only makes sense where the answer
     // actually moves from year to year, so only for a rule-fixed date.
     year_pages: z.boolean().optional(),
+    // What this Frist is about, for grouping it with others. A Frist inside a
+    // plan is grouped by that plan and needs none.
+    tags: z.array(z.string()).default([]),
     needs_office: z.boolean().optional(),
     earliest_offset_days: z.number().int().optional(),
     lead_time_days: z.number().int().positive().optional(),

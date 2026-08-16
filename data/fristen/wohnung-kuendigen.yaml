@@ -1,5 +1,6 @@
 deadlines:
   - id: wohnung-kuendigen
+    tags: [wohnen, miete, kündigung, mietvertrag, vermieter]
     kind: statutory-relative
     direction: before
     label: Wohnung kündigen

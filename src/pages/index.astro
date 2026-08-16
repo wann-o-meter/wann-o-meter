@@ -25,7 +25,7 @@ const fristen = allFristTasks().map(({ task, vorhaben }) => ({
   id: task.id,
   label: task.label,
   source: task.source_label ?? "Quelle",
-  fixed: task.kind === "statutory-absolute",
+  tags: task.tags,
   note: task.note,
   plans: vorhaben.map((v) => ({ slug: v.slug, label: v.label })),
 }));
@@ -54,61 +54,5 @@ const schulferien = Object.fromEntries(
 <Layout title="Wann muss ich anfangen?" description={homeDescription} structuredData={structuredData}>
   <IndexTimeline client:load vorhaben={vorhaben} schulferien={schulferien} />
 
-  <!-- The picker above is a set of buttons, this is the crawlable way in. -->
-  <section class="all-plans">
-    <h2>Alle Zeitpläne</h2>
-    <ul>
-      {
-        vorhaben.map((v) => (
-          <li>
-            <h3><a href={`/${v.slug}/`}>{v.label}: wann muss ich anfangen?</a></h3>
-            <p>{v.description}</p>
-            {v.variants.length > 1 && (
-              <p class="places">
-                Mit örtlichen Fristen:{" "}
-                {v.variants
-                  .filter((s) => s.slug !== "bundesweit")
-                  .map((s, i) => (
-                    <>
-                      {i > 0 && <span aria-hidden="true"> &middot; </span>}
-                      <a href={`/${v.slug}/${s.slug}/`}>
-                        {v.label} in {s.label}
-                      </a>
-                    </>
-                  ))}
-              </p>
-            )}
-          </li>
-        ))
-      }
-    </ul>
-  </section>
-
   <FristenFinder client:load fristen={fristen} />
 </Layout>
-
-<style>
-  .all-plans {
-    margin-top: 4rem;
-  }
-  .all-plans ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 1.5rem;
-  }
-  .all-plans h3 {
-    margin: 0 0 0.25rem;
-    font-size: var(--fs-md);
-  }
-  .all-plans p {
-    margin: 0;
-    color: var(--muted);
-    font-size: var(--fs-sm);
-    max-width: 60ch;
-  }
-  .all-plans .places {
-    margin-top: 0.25rem;
-  }
-</style>
