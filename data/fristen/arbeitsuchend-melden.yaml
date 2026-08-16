@@ -1,0 +1,11 @@
+deadlines:
+  - id: arbeitsuchend-melden
+    kind: statutory-relative
+    direction: before
+    label: Bei der Agentur für Arbeit arbeitsuchend melden
+    offset_days: -90
+    source_url: https://www.gesetze-im-internet.de/sgb_3/__38.html
+    source_label: § 38 Abs. 1 SGB III
+    note: >-
+      Spätestens drei Monate vor Ende des Arbeitsverhältnisses. Wird das Ende
+      später bekannt, gilt eine Frist von drei Tagen nach Kenntnis.

@@ -1,0 +1,12 @@
+deadlines:
+  - id: kuendigungsfrist-pruefen
+    kind: statutory-relative
+    direction: before
+    label: Kündigungsfrist einhalten und kündigen
+    offset_days: -28
+    source_url: https://www.gesetze-im-internet.de/bgb/__622.html
+    source_label: § 622 Abs. 1 BGB
+    note: >-
+      Grundfrist vier Wochen zum 15. oder zum Monatsende, sofern Arbeits- oder
+      Tarifvertrag nichts Längeres vorsehen. Die längeren Fristen nach § 622
+      Abs. 2 BGB gelten nur für Kündigungen durch den Arbeitgeber.

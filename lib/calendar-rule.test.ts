@@ -1,15 +1,11 @@
-import { readFileSync } from "node:fs";
-import { load } from "js-yaml";
 import { describe, expect, it } from "vitest";
 import { evaluateRule, nextOccurrence } from "./calendar-rule";
 import { computeSchedule, deadlineSchema } from "./deadline-plan";
+import { fristById } from "./fristen-data";
 
 // Straight from the yaml, so a wrong rule fails here and not only in the
 // browser.
-const task = deadlineSchema.parse(
-  (load(readFileSync("data/fristen/steuererklaerung.yaml", "utf8")) as any)
-    .deadlines[0],
-);
+const task = fristById("steuererklaerung-abgeben");
 const rule = task.rule!;
 const due = (year: number, region?: string) =>
   evaluateRule(rule, year, "DE", region)?.date;

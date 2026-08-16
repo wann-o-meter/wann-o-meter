@@ -1,6 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import { CalendarPlus } from "@lucide/astro";
+import { ArrowRight, CalendarPlus } from "@lucide/astro";
 import FristRechner from "../../components/FristRechner.vue";
 import { evaluateRule, nextOccurrence } from "../../../lib/calendar-rule";
 import { formatDate } from "../../../lib/format-date";
@@ -155,10 +155,11 @@ const structuredData = {
   {
     vorhaben && siblings.length > 0 && (
       <nav class="bundle">
-        <h2>Gehört zu: {vorhaben.label}</h2>
+        <h2>Diese Frist steht nicht allein</h2>
         <p class="lede">
-          Diese Frist steht nicht allein. Der Plan rechnet alle zusammen von
-          deinem {vorhaben.anchorLabel} zurück.
+          Beim {vorhaben.label} hängen {siblings.length + 1} Fristen zusammen. Gib
+          einmal deinen {vorhaben.anchorLabel} ein, und der Plan rechnet alle
+          zurück, mit Feiertagen deines Bundeslands.
         </p>
         <ul>
           {siblings.map((s) => (
@@ -167,7 +168,9 @@ const structuredData = {
             </li>
           ))}
         </ul>
-        <a href={`/${vorhaben.slug}/`}>Alle Fristen im {vorhaben.label}-Plan</a>
+        <a class="cta" href={`/${vorhaben.slug}/`}>
+          {vorhaben.label} planen <ArrowRight size={16} />
+        </a>
       </nav>
     )
   }

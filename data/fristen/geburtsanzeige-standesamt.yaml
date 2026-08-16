@@ -1,0 +1,11 @@
+deadlines:
+  - id: geburtsanzeige-standesamt
+    kind: statutory-relative
+    direction: after
+    label: Geburt beim Standesamt anzeigen
+    offset_days: 7
+    source_url: https://www.gesetze-im-internet.de/pstg/__18.html
+    source_label: § 18 Abs. 1 PStG
+    note: >-
+      Binnen einer Woche. Meist übernimmt das Krankenhaus/die Hebamme die
+      Anzeige, dann läuft diese Frist automatisch.

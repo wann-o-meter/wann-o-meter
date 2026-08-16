@@ -1,0 +1,10 @@
+deadlines:
+  - id: wohnung-kuendigen
+    kind: statutory-relative
+    direction: before
+    label: Wohnung kündigen
+    offset_days: -90
+    offset_rule: bgb-573c-notice
+    source_url: https://www.gesetze-im-internet.de/bgb/__573c.html
+    source_label: § 573c BGB
+    note: Schriftlich und unterschrieben, am besten per Einwurf-Einschreiben.

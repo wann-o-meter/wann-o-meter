@@ -1,0 +1,13 @@
+deadlines:
+  - id: ummeldung-einwohnermeldeamt
+    kind: statutory-relative
+    direction: after
+    label: Ummeldung beim Einwohnermeldeamt
+    needs_office: true
+    note: >-
+      Braucht die Wohnungsgeberbestätigung des Vermieters und einen Termin beim
+      Bürgeramt.
+    offset_days: 14
+    earliest_offset_days: 0
+    source_url: https://www.gesetze-im-internet.de/bmg/__17.html
+    source_label: § 17 BMG

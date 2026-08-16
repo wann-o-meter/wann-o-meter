@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { load } from "js-yaml";
 import { z } from "zod";
 import { deadlineSchema } from "./deadline-plan";
+import { fristById } from "./fristen-data";
 import type { Deadline } from "./deadline-plan";
 
 const DATA_ROOT = join(process.cwd(), "data");
@@ -12,9 +13,19 @@ const VORHABEN_FILE = "vorhaben.yaml";
 // module would pull node:fs into the browser bundle.
 export const BUNDESWEIT_SLUG = "bundesweit";
 
+// A plan either spells a task out or points at a Frist that lives on its own.
+const entrySchema = z.union([
+  z.object({ ref: z.string() }).strict(),
+  deadlineSchema,
+]);
+
 const deadlineListSchema = z.object({
-  deadlines: z.array(deadlineSchema).default([]),
+  deadlines: z.array(entrySchema).default([]),
 });
+
+function resolve(entries: z.infer<typeof entrySchema>[]): Deadline[] {
+  return entries.map((e) => ("ref" in e ? fristById(e.ref) : e));
+}
 
 const variantFileSchema = deadlineListSchema.extend({
   name: z.string(),
@@ -66,8 +77,8 @@ function loadVorhaben(slug: string): VorhabenData | null {
   const dir = join(DATA_ROOT, slug);
   // Membership is the directory today. The field exists so a task can later
   // belong to more than one Vorhaben without every consumer changing.
-  const own = (list: Deadline[]) =>
-    list.map((d) => ({ ...d, belongsTo: [slug] }));
+  const own = (list: z.infer<typeof entrySchema>[]) =>
+    resolve(list).map((d) => ({ ...d, belongsTo: [slug] }));
   const bundesweit = deadlineListSchema.parse(readYaml(join(dir, BUNDESWEIT_FILE)));
 
   const local = readdirSync(dir, { withFileTypes: true })

@@ -51,7 +51,7 @@ const inputId = `frist-anchor-${props.task.id}`;
         class="cta"
         :href="`/${planSlug}/?date=${anchorDate}`"
       >
-        {{ planLabel ?? "Kompletten Plan" }} für diesen Termin öffnen
+        {{ planLabel ?? "Plan" }} ab diesem Termin planen
         <ArrowRight :size="16" />
       </a>
       <details v-if="result.derivation?.length" class="steps">

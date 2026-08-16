@@ -1,0 +1,12 @@
+deadlines:
+  - id: rundfunkbeitrag
+    kind: statutory-relative
+    direction: after
+    label: Rundfunkbeitrag ummelden
+    note: >-
+      Die Beitragsnummer zieht mit um, eine zweite Anmeldung wäre eine
+      Doppelzahlung. Das Gesetz sagt "unverzüglich" und nennt keine Tagesfrist -
+      die 14 Tage sind Erfahrungswert.
+    offset_days: 14
+    source_url: https://www.gesetze-bayern.de/Content/Document/RBeitrStV-8
+    source_label: § 8 RBStV

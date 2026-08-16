@@ -1,0 +1,11 @@
+deadlines:
+  - id: kindergeld-beantragen
+    kind: statutory-relative
+    direction: after
+    label: Kindergeld beantragen
+    offset_days: 180
+    source_url: https://www.gesetze-im-internet.de/estg/__70.html
+    source_label: § 70 Abs. 1 Satz 2 EStG
+    note: >-
+      Auszahlung rückwirkend nur für die letzten sechs Monate vor
+      Antragseingang.

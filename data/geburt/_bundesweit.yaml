@@ -6,30 +6,9 @@
 # the URL and its content were checked directly against
 # gesetze-im-internet.de, not assumed.
 deadlines:
-  - id: geburtsanzeige-standesamt
-    kind: statutory-relative
-    direction: after
-    label: Geburt beim Standesamt anzeigen
-    offset_days: 7
-    source_url: https://www.gesetze-im-internet.de/pstg/__18.html
-    source_label: § 18 Abs. 1 PStG
-    note: Binnen einer Woche. Meist übernimmt das Krankenhaus/die Hebamme die Anzeige, dann läuft diese Frist automatisch.
-  - id: elterngeld-beantragen
-    kind: statutory-relative
-    direction: after
-    label: Elterngeld beantragen
-    offset_days: 90
-    source_url: https://www.gesetze-im-internet.de/beeg/__7.html
-    source_label: § 7 Abs. 1 BEEG
-    note: Rückwirkend wird nur für die letzten drei Lebensmonate vor Antragseingang gezahlt - später beantragt heißt Geld verloren, nicht nur später bekommen.
-  - id: kindergeld-beantragen
-    kind: statutory-relative
-    direction: after
-    label: Kindergeld beantragen
-    offset_days: 180
-    source_url: https://www.gesetze-im-internet.de/estg/__70.html
-    source_label: § 70 Abs. 1 Satz 2 EStG
-    note: Auszahlung rückwirkend nur für die letzten sechs Monate vor Antragseingang.
+  - ref: geburtsanzeige-standesamt
+  - ref: elterngeld-beantragen
+  - ref: kindergeld-beantragen
   - id: krankenversicherung-kind-anmelden
     kind: soft
     label: Kind bei der Krankenversicherung anmelden

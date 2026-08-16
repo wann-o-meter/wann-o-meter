@@ -1,21 +1,12 @@
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
-import { load } from "js-yaml";
-import { z } from "zod";
-import { deadlineSchema } from "./deadline-plan";
 import { HOLIDAYS_DE } from "./holidays-de-data";
-import { BUNDESWEIT_SLUG, loadAllVorhaben } from "./vorhaben-data";
+import { allFristen } from "./fristen-data";
+import { loadAllVorhaben } from "./vorhaben-data";
 import type { Deadline } from "./deadline-plan";
 import type { VorhabenData } from "./vorhaben-data";
 
-const FRISTEN_DIR = join(process.cwd(), "data", "fristen");
-
-const fileSchema = z.object({ deadlines: z.array(deadlineSchema).default([]) });
-
 export interface FristTask {
   task: Deadline;
-  // The plan this task is part of, if any. A task under data/fristen stands on
-  // its own until a Vorhaben bundles it.
+  // The plan that points at this Frist, if one does. A Frist can stand alone.
   vorhaben?: VorhabenData;
 }
 
@@ -23,36 +14,17 @@ export function fristPath(id: string, year?: number): string {
   return year ? `frist/${id}/${year}` : `frist/${id}`;
 }
 
-// Only the tasks that carry a statutory basis get a page of their own. A soft
-// task has no defensible date, so a page about it would say nothing.
+// Every Frist that lives in data/fristen, with the plan that references it.
 export function allFristTasks(): FristTask[] {
-  const out: FristTask[] = [];
-
-  for (const v of loadAllVorhaben()) {
-    // The bundesweit variant holds every task of the Vorhaben. The Gemeinde
-    // variants repeat those and add local ones, which are all soft.
-    const base = v.variants.find((x) => x.slug === BUNDESWEIT_SLUG);
-    for (const task of base?.deadlines ?? [])
-      if (task.kind !== "soft") out.push({ task, vorhaben: v });
-  }
-
-  for (const file of readdirSync(FRISTEN_DIR).filter((f) =>
-    f.endsWith(".yaml"),
-  )) {
-    const doc = fileSchema.parse(
-      load(readFileSync(join(FRISTEN_DIR, file), "utf-8")),
-    );
-    for (const task of doc.deadlines)
-      if (task.kind !== "soft") out.push({ task });
-  }
-
-  // The id is the URL, so a collision would quietly drop a page.
-  const seen = new Set<string>();
-  for (const { task } of out) {
-    if (seen.has(task.id)) throw new Error(`duplicate task id: ${task.id}`);
-    seen.add(task.id);
-  }
-  return out;
+  const plans = loadAllVorhaben();
+  return [...allFristen().values()].map((task) => ({
+    task,
+    vorhaben: plans.find((v) =>
+      v.variants.some((variant) =>
+        variant.deadlines.some((d) => d.id === task.id),
+      ),
+    ),
+  }));
 }
 
 // A rule needs the holidays of the year its deadline lands in, so the table

@@ -1,0 +1,17 @@
+deadlines:
+  - id: kfz-ummeldung
+    kind: statutory-relative
+    direction: after
+    label: Kfz beim neuen Wohnort ummelden
+    needs_office: true
+    applies_if:
+      - auto
+    offset_days: 14
+    earliest_offset_days: 0
+    source_url: https://www.gesetze-im-internet.de/fzv_2023/__15.html
+    source_label: § 15 Abs. 4 FZV
+    note: >-
+      Pflicht beim Wechsel in einen anderen Zulassungsbezirk. Das Gesetz nennt
+      keine Tagesfrist, nur "unverzüglich" - 14 Tage ist die übliche
+      Praxisempfehlung. Wer es liegen lässt, dem kann die Zulassungsbehörde den
+      Betrieb des Fahrzeugs untersagen.

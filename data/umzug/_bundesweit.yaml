@@ -6,15 +6,7 @@
 # directly at the official text, not assumed. The RBStV is a Staatsvertrag of
 # the Laender, so it lives on a Landesrecht portal, not gesetze-im-internet.de.
 deadlines:
-  - id: wohnung-kuendigen
-    kind: statutory-relative
-    direction: before
-    label: Wohnung kündigen
-    offset_days: -90 # nur Näherung für die Sortierung - das echte Datum kommt aus offset_rule
-    offset_rule: bgb-573c-notice
-    source_url: https://www.gesetze-im-internet.de/bgb/__573c.html
-    source_label: § 573c BGB
-    note: Schriftlich und unterschrieben, am besten per Einwurf-Einschreiben.
+  - ref: wohnung-kuendigen
   - id: umzugsurlaub-beantragen
     kind: soft
     label: Umzugsurlaub beim Arbeitgeber beantragen
@@ -41,17 +33,7 @@ deadlines:
   #   note: >-
   #     Was du zurückbauen und streichen musst, steht im Mietvertrag. Fachfirmen
   #     sind zum Monatsende Wochen im Voraus ausgebucht, deshalb jetzt anfragen.
-  - id: internetanbieter-kuendigen-ummelden
-    kind: statutory-relative
-    direction: before
-    label: Internetanbieter kündigen oder umziehen lassen
-    offset_days: -42
-    source_url: https://www.gesetze-im-internet.de/tkg_2021/__60.html
-    source_label: § 60 TKG
-    note: >-
-      Der Anbieter muss am neuen Wohnsitz weiterliefern, sonst darf mit einer
-      Frist von einem Monat gekündigt werden. Die sechs Wochen Vorlauf sind
-      Erfahrungswert, der Techniktermin ist der Engpass.
+  - ref: internetanbieter-kuendigen-ummelden
   - id: kita-schule-anmelden
     kind: soft
     label: Kita- oder Schulplatz am neuen Wohnort anmelden
@@ -211,31 +193,8 @@ deadlines:
     note: >-
       Reinigen, Namensschilder an Tür, Klingel und Briefkasten abnehmen,
       Briefkasten leeren und alle Schlüssel abgeben.
-  - id: ummeldung-einwohnermeldeamt
-    kind: statutory-relative
-    direction: after
-    label: Ummeldung beim Einwohnermeldeamt
-    needs_office: true
-    note: Braucht die Wohnungsgeberbestätigung des Vermieters und einen Termin beim Bürgeramt.
-    offset_days: 14
-    earliest_offset_days: 0 # geht erst ab Einzug - kein Rechercheergebnis, sondern per Definition unmöglich davor
-    source_url: https://www.gesetze-im-internet.de/bmg/__17.html
-    source_label: § 17 BMG
-  - id: kfz-ummeldung
-    kind: statutory-relative
-    direction: after
-    label: Kfz beim neuen Wohnort ummelden
-    needs_office: true
-    applies_if: [auto]
-    offset_days: 14
-    earliest_offset_days: 0 # Ummeldung am neuen Wohnort geht erst ab Einzug
-    source_url: https://www.gesetze-im-internet.de/fzv_2023/__15.html
-    source_label: § 15 Abs. 4 FZV
-    note: >-
-      Pflicht beim Wechsel in einen anderen Zulassungsbezirk. Das Gesetz nennt
-      keine Tagesfrist, nur "unverzüglich" - 14 Tage ist die übliche
-      Praxisempfehlung. Wer es liegen lässt, dem kann die Zulassungsbehörde den
-      Betrieb des Fahrzeugs untersagen.
+  - ref: ummeldung-einwohnermeldeamt
+  - ref: kfz-ummeldung
   - id: hundesteuer-ummelden
     kind: soft
     label: Hund bei der neuen Gemeinde zur Hundesteuer anmelden
@@ -246,17 +205,7 @@ deadlines:
     note: >-
       Die Frist steht in der Hundesteuersatzung der Gemeinde, nicht im
       Bundesrecht. Am alten Wohnort abmelden, sonst zahlst du doppelt.
-  - id: rundfunkbeitrag
-    kind: statutory-relative
-    direction: after
-    label: Rundfunkbeitrag ummelden
-    note: >-
-      Die Beitragsnummer zieht mit um, eine zweite Anmeldung wäre eine
-      Doppelzahlung. Das Gesetz sagt "unverzüglich" und nennt keine Tagesfrist -
-      die 14 Tage sind Erfahrungswert.
-    offset_days: 14
-    source_url: https://www.gesetze-bayern.de/Content/Document/RBeitrStV-8
-    source_label: § 8 RBStV
+  - ref: rundfunkbeitrag
   - id: umzugskosten-steuer
     kind: soft
     label: Umzugsbelege für die Steuererklärung sammeln

@@ -1,0 +1,12 @@
+deadlines:
+  - id: internetanbieter-kuendigen-ummelden
+    kind: statutory-relative
+    direction: before
+    label: Internetanbieter kündigen oder umziehen lassen
+    offset_days: -42
+    source_url: https://www.gesetze-im-internet.de/tkg_2021/__60.html
+    source_label: § 60 TKG
+    note: >-
+      Der Anbieter muss am neuen Wohnsitz weiterliefern, sonst darf mit einer
+      Frist von einem Monat gekündigt werden. Die sechs Wochen Vorlauf sind
+      Erfahrungswert, der Techniktermin ist der Engpass.

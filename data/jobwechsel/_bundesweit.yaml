@@ -7,22 +7,8 @@
 # someone checks a given deadline against its actual Gesetz and fills in a
 # real link.
 deadlines:
-  - id: kuendigungsfrist-pruefen
-    kind: statutory-relative
-    direction: before
-    label: Kündigungsfrist einhalten und kündigen
-    offset_days: -28
-    source_url: https://www.gesetze-im-internet.de/bgb/__622.html
-    source_label: § 622 Abs. 1 BGB
-    note: Grundfrist vier Wochen zum 15. oder zum Monatsende, sofern Arbeits- oder Tarifvertrag nichts Längeres vorsehen. Die längeren Fristen nach § 622 Abs. 2 BGB gelten nur für Kündigungen durch den Arbeitgeber.
-  - id: arbeitsuchend-melden
-    kind: statutory-relative
-    direction: before
-    label: Bei der Agentur für Arbeit arbeitsuchend melden
-    offset_days: -90
-    source_url: https://www.gesetze-im-internet.de/sgb_3/__38.html
-    source_label: § 38 Abs. 1 SGB III
-    note: Spätestens drei Monate vor Ende des Arbeitsverhältnisses. Wird das Ende später bekannt, gilt eine Frist von drei Tagen nach Kenntnis.
+  - ref: kuendigungsfrist-pruefen
+  - ref: arbeitsuchend-melden
   - id: krankenkasse-informieren
     kind: soft
     label: Neuen Arbeitgeber und Krankenkasse über Wechsel informieren
