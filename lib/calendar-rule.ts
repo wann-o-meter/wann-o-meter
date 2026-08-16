@@ -1,27 +1,9 @@
-import { z } from "zod";
 import { loadHolidays, rollToLandingDay } from "./business-days";
 import { formatDate } from "./format-date";
-import type { DerivationStep } from "./notice-period";
+import type { DerivationStep } from "./derivation";
+import type { CalendarRule } from "./deadline-schema";
 
-// A deadline the statute fixes by itself, written down in the task's yaml
-// rather than in code. Nothing here knows any law: it reads the steps the yaml
-// names and walks them. A new deadline is a yaml entry, not a new function.
-export const calendarRuleSchema = z.object({
-  // Where the count starts. The year it applies to comes from the caller.
-  from: z.enum(["end-of-year"]),
-  add_months: z.number().int().optional(),
-  add_days: z.number().int().optional(),
-  // Pull the result to the last day of the month it landed in.
-  snap: z.enum(["end-of-month"]).optional(),
-  // Saturday, Sunday and public holidays push the result to the next
-  // working day.
-  roll: z.enum(["next-working-day"]).optional(),
-  // Earliest year this wording is the one that applies. Older years usually
-  // had a transitional rule and are better answered not at all.
-  first_year: z.number().int().optional(),
-});
-
-export type CalendarRule = z.infer<typeof calendarRuleSchema>;
+export type { CalendarRule };
 
 export interface RuleResult {
   date: string;

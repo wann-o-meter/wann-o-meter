@@ -1,9 +1,5 @@
 import type { Deadline } from "./deadline-plan";
 
-const RULE_LABELS: Record<string, string> = {
-  "bgb-573c-notice": "Frist nach § 573c BGB, abhängig vom Umzugsmonat",
-};
-
 function amount(days: number): string {
   if (days >= 60) return `${Math.round(days / 30)} Monate`;
   if (days >= 14) return `${Math.round(days / 7)} Wochen`;
@@ -11,8 +7,8 @@ function amount(days: number): string {
 }
 
 export function offsetLabel(d: Deadline, anchorLabel: string): string {
-  if (d.offset_rule)
-    return RULE_LABELS[d.offset_rule] ?? "Frist nach Regel berechnet";
+  // A Frist whose shape no offset describes says so in its yaml.
+  if (d.offset_label) return d.offset_label;
   if (d.offset_days === null) return "Frist noch nicht recherchiert";
   if (d.offset_days === 0) return anchorLabel;
   return d.offset_days < 0

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { computeSchedule, deadlineSchema } from "./deadline-plan";
+import { computeSchedule } from "./deadline-plan";
+import { deadlineSchema } from "./deadline-schema";
 import type { Deadline } from "./deadline-plan";
 
 const task = (over: Partial<Deadline>): Deadline => ({
@@ -82,10 +83,10 @@ describe("computeSchedule", () => {
       "2027-06-15",
       [
         task({
+          id: "wohnung-kuendigen",
           kind: "statutory-relative",
           direction: "before",
           offset_days: -90,
-          offset_rule: "bgb-573c-notice",
         }),
       ],
       "DE",

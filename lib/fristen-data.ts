@@ -2,8 +2,8 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { load } from "js-yaml";
 import { z } from "zod";
-import { deadlineSchema } from "./deadline-plan";
-import type { Deadline } from "./deadline-plan";
+import { deadlineSchema } from "./deadline-schema";
+import type { Deadline } from "./deadline-schema";
 
 // One file per Frist, named like its page. A Vorhaben points at it by id, so
 // the rule and its paragraph live in exactly one place no matter how many plans

@@ -2,9 +2,9 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { load } from "js-yaml";
 import { z } from "zod";
-import { deadlineSchema } from "./deadline-plan";
+import { deadlineSchema } from "./deadline-schema";
 import { fristById } from "./fristen-data";
-import type { Deadline } from "./deadline-plan";
+import type { Deadline } from "./deadline-schema";
 
 const DATA_ROOT = join(process.cwd(), "data");
 const BUNDESWEIT_FILE = "_bundesweit.yaml";

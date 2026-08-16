@@ -2,6 +2,10 @@ export function toDate(iso: string): Date {
   return new Date(iso.length > 10 ? `${iso}Z` : `${iso}T00:00:00Z`);
 }
 
+export function toIso(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
 export function formatDate(iso: string): string {
   return toDate(iso).toLocaleDateString("de-DE", {
     day: "2-digit",

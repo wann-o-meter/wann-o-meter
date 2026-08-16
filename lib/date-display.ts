@@ -40,6 +40,13 @@ export function monthLabel(iso: string, currentYear: number): string {
   return p.year === currentYear ? name : `${name} ${p.year}`;
 }
 
+// A whole month, always with its year: "April 2027". monthLabel above is the
+// other one, for a day inside a list that already establishes the year.
+export function monthAndYear(yyyyMm: string): string {
+  const [y, m] = yyyyMm.split("-").map(Number);
+  return `${MONTH_NAMES[m - 1]} ${y}`;
+}
+
 export function daysUntil(iso: string, from: string): number {
   return Math.round(
     (new Date(`${iso}T00:00:00Z`).getTime() -

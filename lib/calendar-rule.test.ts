@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { evaluateRule, nextOccurrence } from "./calendar-rule";
-import { computeSchedule, deadlineSchema } from "./deadline-plan";
+import { computeSchedule } from "./deadline-plan";
+import { deadlineSchema } from "./deadline-schema";
 import { fristById } from "./fristen-data";
 
 // Straight from the yaml, so a wrong rule fails here and not only in the

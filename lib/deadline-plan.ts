@@ -1,68 +1,20 @@
-import { z } from "zod";
 import { loadHolidays, rollToLandingDay } from "./business-days";
-import { FACET_IDS } from "./facets";
-import { toDate } from "./format-date";
+import { toDate, toIso } from "./format-date";
 import { holidaysFor } from "./holidays";
 import type { Holiday } from "./holidays";
-import { bgb573cNoticeDeadline } from "./notice-period";
-import type { DerivationStep } from "./notice-period";
-import { calendarRuleSchema, nextOccurrence } from "./calendar-rule";
+import { nextOccurrence } from "./calendar-rule";
+import { solve as wohnungKuendigen } from "../data/fristen/wohnung-kuendigen";
+import type { DerivationStep, FristSolver } from "./derivation";
+import type { Deadline } from "./deadline-schema";
 
-// What a task is, before anything computes a date for it.
-//   statutory-absolute  the statute names the day, no user input
-//   statutory-relative  the statute names an offset from a date the user gives
-//   soft                no legal anchor, so no defensible date either
-export const TASK_KINDS = [
-  "statutory-absolute",
-  "statutory-relative",
-  "soft",
-] as const;
+// A Frist whose statute no yaml rule can express keeps its code next to its
+// yaml, under the same name. The id is the only link, so adding one is adding a
+// file and a line here.
+const SOLVERS: Record<string, FristSolver> = {
+  "wohnung-kuendigen": wohnungKuendigen,
+};
 
-export const deadlineSchema = z
-  .object({
-    id: z.string(),
-    kind: z.enum(TASK_KINDS),
-    // before: the deadline precedes the anchor. after: the clock starts at it.
-    direction: z.enum(["before", "after"]).optional(),
-    // The Vorhaben this task appears in. Filled in by the loader from the
-    // directory, one entry until a second Vorhaben genuinely reuses a task.
-    belongsTo: z.array(z.string()).default([]),
-    label: z.string(),
-    offset_days: z.number().int().nullable(),
-    offset_rule: z.enum(["bgb-573c-notice"]).optional(),
-    // A Frist the statute fixes by itself, spelled out in yaml. Present exactly
-    // on the tasks whose kind is statutory-absolute.
-    rule: calendarRuleSchema.optional(),
-    // Give this task one page per year. Only makes sense where the answer
-    // actually moves from year to year, so only for a rule-fixed date.
-    year_pages: z.boolean().optional(),
-    // What this Frist is about, for grouping it with others. A Frist inside a
-    // plan is grouped by that plan and needs none.
-    tags: z.array(z.string()).default([]),
-    needs_office: z.boolean().optional(),
-    earliest_offset_days: z.number().int().optional(),
-    lead_time_days: z.number().int().positive().optional(),
-    lead_time_source: z.string().optional(),
-    source_url: z.url().nullable(),
-    source_label: z.string().optional(),
-    no_source_needed: z.boolean().optional(),
-    applies_if: z.array(z.enum(FACET_IDS)).optional(),
-    note: z.string().optional(),
-  })
-  .refine((d) => (d.kind === "soft") === (d.direction === undefined), {
-    message: "statutory tasks need a direction, soft tasks must not have one",
-    path: ["direction"],
-  })
-  .refine((d) => (d.kind === "statutory-absolute") === (d.rule !== undefined), {
-    message: "an absolute task is exactly one that carries a rule",
-    path: ["rule"],
-  })
-  .refine((d) => !d.year_pages || d.rule !== undefined, {
-    message: "year pages need a rule, otherwise every year says the same thing",
-    path: ["year_pages"],
-  });
-
-export type Deadline = z.infer<typeof deadlineSchema>;
+export type { Deadline };
 
 export interface ScheduleEntry extends Deadline {
   date: string | null;
@@ -81,20 +33,7 @@ export interface ScheduleEntry extends Deadline {
 function addDays(iso: string, days: number): string {
   const d = toDate(iso);
   d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
-}
-
-function endOfMonth(yyyyMm: string): string {
-  const [y, m] = yyyyMm.split("-").map(Number);
-  return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
-}
-
-function shiftMonth(yyyyMm: string, n: number): string {
-  const [y, m] = yyyyMm.split("-").map(Number);
-  const total = m - 1 + n;
-  const year = y + Math.floor(total / 12);
-  const month = (((total % 12) + 12) % 12) + 1;
-  return `${year}-${String(month).padStart(2, "0")}`;
+  return toIso(d);
 }
 
 export function computeSchedule(
@@ -117,32 +56,15 @@ export function computeSchedule(
       const hit = nextOccurrence(d.rule, anchorDate, countryCode, regionCode);
       date = hit?.date ?? null;
       derivation = hit?.derivation;
-    } else if (d.offset_days === null) {
-      date = null;
-    } else if (d.offset_rule === "bgb-573c-notice") {
-      const targetEndMonth = shiftMonth(anchorDate.slice(0, 7), deferMonths);
-      const result = bgb573cNoticeDeadline(
-        targetEndMonth,
-        countryCode,
-        regionCode,
-        today,
-        deferMonths,
-      );
+    } else if (SOLVERS[d.id]) {
+      const result = SOLVERS[d.id](anchorDate, countryCode, regionCode, today, deferMonths);
       date = result.date;
       derivation = result.derivation;
       pastDeadline = result.pastDeadline;
-      rescue = result.rescue
-        ? { date: result.rescue.date, label: result.rescue.label }
-        : null;
-      const lastDay = endOfMonth(
-        result.rescue?.leaseEndMonth ?? result.leaseEndMonth,
-      );
-      leaseEnd = {
-        date: lastDay,
-        overlapDays: Math.round(
-          (toDate(lastDay).getTime() - toDate(anchorDate).getTime()) / 86400000,
-        ),
-      };
+      rescue = result.rescue ?? null;
+      leaseEnd = result.leaseEnd;
+    } else if (d.offset_days === null) {
+      date = null;
     } else {
       date = addDays(anchorDate, d.offset_days);
     }
