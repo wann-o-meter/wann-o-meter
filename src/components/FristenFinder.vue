@@ -193,6 +193,7 @@ li:hover {
 }
 li a {
   font-weight: 600;
+  color: var(--ink);
   text-decoration: none;
 }
 li:hover a {
@@ -217,16 +218,13 @@ of drifting with the length of each. */
   color: var(--muted);
 }
 .src {
-  text-align: right;
+  text-align: left;
 }
 @media (max-width: 34rem) {
   .meta {
     width: auto;
     grid-template-columns: auto auto;
     justify-content: start;
-  }
-  .src {
-    text-align: left;
   }
 }
 .tags {
