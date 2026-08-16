@@ -20,7 +20,7 @@
     </TransitionGroup>
 
     <section class="intro">
-      <h1 v-if="planCards.length === 0">Damit dir keine Frist durchrutscht.</h1>
+      <h1>Damit dir keine Frist durchrutscht.</h1>
       <p class="lede">
         Wann-O-Meter rechnet jede Frist rückwärts von deinem Termin: mit dem
         Datum, bis wann sie erledigt sein muss, <strong>mit Paragraf</strong>,
