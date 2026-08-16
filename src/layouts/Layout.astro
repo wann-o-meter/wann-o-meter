@@ -256,6 +256,12 @@ const ogDescription =
     border-color: var(--accent);
     color: var(--accent);
   }
+  /* The bottom bar already has Start on a phone. */
+  @media (max-width: 40rem) {
+    .home {
+      display: none;
+    }
+  }
   .theme-toggle span {
     font-size: var(--fs-xs);
   }

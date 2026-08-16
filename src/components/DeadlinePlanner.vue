@@ -298,11 +298,7 @@ function onTimelineSelect(id: string) {
   }, 1600);
 }
 
-// Collapsed on a phone: the chart needs width to say anything, and the space
-// belongs to the tasks. A wide screen always shows it, see the media query.
-const timelineHidden = ref(
-  typeof window !== "undefined" && window.innerWidth < 640,
-);
+const timelineHidden = ref(false);
 
 const fabOpen = ref(false);
 const hasSlot = ref(false);
@@ -489,7 +485,7 @@ onBeforeUnmount(() => {
               :is="timelineHidden ? ChevronDown : ChevronUp"
               :size="14"
             />
-            {{ timelineHidden ? "Zeitstrahl" : "Zeitstrahl ausblenden" }}
+            {{ timelineHidden ? "Zeitstrahl zeigen" : "Zeitstrahl ausblenden" }}
           </button>
           <button type="button" class="head-action" @click="exportIcs">
             <CalendarPlus :size="14" /> In den Kalender
@@ -499,6 +495,16 @@ onBeforeUnmount(() => {
     </header>
 
     <template v-if="anchorDate">
+      <fieldset v-if="facetOptions.length > 1" class="facets">
+        <legend>Trifft auf mich zu</legend>
+        <div class="facet-row">
+          <label v-for="id in facetOptions" :key="id" class="facet key">
+            <input v-model="activeFacets" type="checkbox" :value="id" />
+            <span>{{ facetLabel(id) }}</span>
+          </label>
+        </div>
+      </fieldset>
+
       <h2 class="section">Aufgaben</h2>
       <div ref="railEl">
         <TaskRail
@@ -526,14 +532,6 @@ onBeforeUnmount(() => {
           @pick-blank="picker.pick()"
         />
       </div>
-
-      <fieldset v-if="facetOptions.length > 1" class="facets">
-        <legend>Trifft auf mich zu</legend>
-        <label v-for="id in facetOptions" :key="id" class="facet key">
-          <input v-model="activeFacets" type="checkbox" :value="id" />
-          <span>{{ facetLabel(id) }}</span>
-        </label>
-      </fieldset>
 
       <DoneGroup :entries="doneEntries" @reopen="toggleDone" />
 
@@ -684,7 +682,6 @@ grey text under a chart. */
   position: sticky;
   top: min(0px, calc(100vh - var(--tl-header-h, 0px) - 2rem));
   z-index: 40;
-  background: var(--paper-raised);
   margin-inline: calc(-1 * var(--wrap-pad, 0px));
   padding: 0.6rem var(--wrap-pad, 0px);
   transition:
@@ -696,6 +693,7 @@ grey text under a chart. */
 }
 .compact .planner-header {
   padding: 0.45rem var(--wrap-pad, 0px);
+  background: var(--paper-raised);
   box-shadow: var(--shadow-card);
 }
 
@@ -772,15 +770,40 @@ grey text under a chart. */
 .tl-off {
   display: none;
 }
+/* A phone gets the plan, not a chart of it. */
+@media (max-width: 40rem) {
+  .planner-header :deep(.timeline),
+  .tl-toggle {
+    display: none;
+  }
+}
 
 .facets {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem;
   border: 0;
   padding: 0;
-  margin: 2rem 0 0;
+  margin: 1rem 0 0;
+  min-width: 0;
+}
+/* One line that scrolls, not four that wrap: it sits above the plan and must
+not push it off the screen. */
+.facet-row {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 0.15rem;
+}
+.facet-row::-webkit-scrollbar {
+  display: none;
+}
+.facet {
+  flex-shrink: 0;
+}
+@media (min-width: 40rem) {
+  .facet-row {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
 }
 .facets legend {
   font-size: var(--fs-xs);
@@ -924,10 +947,10 @@ grey text under a chart. */
     margin-inline: 0;
     border-radius: var(--radius);
     padding: 0.9rem 1rem;
-    box-shadow: var(--shadow-card);
   }
   .compact .planner-header {
     padding: 0.6rem 1rem;
+    box-shadow: var(--shadow-card);
   }
   /* A wide screen has room for the timeline, so it never collapses. The
   actions next to it stay. */
