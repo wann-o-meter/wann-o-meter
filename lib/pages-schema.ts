@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { rawWindowSchema, sourceSchema } from "./schema";
 
-const pageMetaSchema = z.object({
+export const pageMetaSchema = z.object({
   title: z.string(),
   description: z.string().default(""),
   intro: z.string().default(""),
@@ -20,7 +20,7 @@ const categoryPathSchema = z.string().refine(
   { message: `category must be 1-${MAX_CATEGORY_DEPTH} lowercase, hyphenated "/"-joined segments` },
 );
 
-const pageDataSchema = z
+export const pageDataSchema = z
   .object({
     subject: z.object({ slug: z.string(), category: categoryPathSchema }),
     source: z

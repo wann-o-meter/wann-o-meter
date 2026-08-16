@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { capitalizeCategory, getAllCategories, getPagesInCategory } from "../../lib/pages";
 import { vorhabenRoutes } from "../../lib/vorhaben-routes";
+import { allFristTasks, fristPath } from "../../lib/tasks";
 
 export const GET: APIRoute = ({ site }) => {
   const url = (path: string) => new URL(path, site).href;
@@ -8,6 +9,11 @@ export const GET: APIRoute = ({ site }) => {
 
   const vorhabenLines = vorhabenRoutes().map(
     (r) => `- [${r.title}](${url(`/${r.path}/`)}): ${r.description} Markdown: \`${url(`/${r.path}.md`)}\`.`,
+  );
+
+  const fristLines = allFristTasks().map(
+    ({ task }) =>
+      `- [${task.label}](${url(`/${fristPath(task.id)}/`)}): ${task.source_label ?? "keine gesetzliche Frist"}. JSON: \`${url(`/api/v1/fristen/${task.id}.json`)}\`.`,
   );
 
   // Data only, these categories have no page of their own on the site.
@@ -37,6 +43,21 @@ those are Satzungsrecht and exist only for the places listed below. Every other
 place uses the bundesweit plan.
 
 ${vorhabenLines.join("\n")}
+
+## Fristen (single deadlines)
+
+One page per deadline, independent of any plan. Each states the rule in words
+and names the paragraph it comes from. A deadline the statute fixes by itself
+also carries the worked-out date per year. A deadline counted from a date the
+visitor supplies is only ever stated as a rule, never as a date, because a date
+baked in at build time would be wrong the moment it is read.
+
+All of them as one document: ${url("/api/v1/fristen.json")}. Each entry there
+names the Gesetz it rests on, and the per-Frist JSON quotes the Absätze verbatim
+from the official text. Gesetze carry no copyright (§ 5 Abs. 1 UrhG), so quote
+them, and cite gesetze-im-internet.de rather than this site.
+
+${fristLines.join("\n")}
 
 ## Data catalog
 
