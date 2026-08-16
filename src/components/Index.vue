@@ -21,7 +21,7 @@
     </TransitionGroup>
 
     <section class="intro">
-      <h1 v-if="planCards.length === 0">Ein Termin, alle Fristen dazu.</h1>
+      <h1 v-if="planCards.length === 0">Damit dir keine Frist durchrutscht.</h1>
       <p class="lede">
         Wann-O-Meter rechnet jede Frist rückwärts von deinem Termin: mit dem
         Datum, bis wann sie erledigt sein muss, <strong>mit Paragraf</strong>,
@@ -32,7 +32,8 @@
     <section class="step">
       <h2 class="q" id="q1">Plan erstellen</h2>
       <p class="section-lede">
-        Kategorie wählen, Termin festlegen und Plan mit konkreten Fristen erstellen.
+        Kategorie wählen, Termin festlegen und Plan mit konkreten Fristen
+        erstellen.
       </p>
       <div class="choices" role="group" aria-labelledby="q1">
         <button

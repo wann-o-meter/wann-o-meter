@@ -460,12 +460,12 @@ onBeforeUnmount(() => {
             />
             {{ timelineHidden ? "Zeitstrahl zeigen" : "Zeitstrahl ausblenden" }}
           </button>
-          <button type="button" class="tl-toggle" @click="exportIcs">
+          <button type="button" class="head-action" @click="exportIcs">
             <CalendarPlus :size="14" /> In den Kalender
           </button>
           <button
             type="button"
-            class="tl-toggle keep"
+            class="head-action keep"
             :aria-pressed="kept"
             @click="toggleKept"
           >
@@ -641,7 +641,8 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 0.4rem;
 }
-.tl-toggle {
+.tl-toggle,
+.head-action {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -655,7 +656,8 @@ onBeforeUnmount(() => {
   color: var(--muted);
   font-size: var(--fs-sm);
 }
-.tl-toggle:hover {
+.tl-toggle:hover,
+.head-action:hover {
   color: var(--accent);
 }
 .keep[aria-pressed="true"] {
@@ -818,6 +820,8 @@ onBeforeUnmount(() => {
   .compact .planner-header {
     padding: 0.6rem 1rem;
   }
+  /* A wide screen has room for the timeline, so it never collapses. The
+  actions next to it stay. */
   .tl-toggle {
     display: none;
   }
