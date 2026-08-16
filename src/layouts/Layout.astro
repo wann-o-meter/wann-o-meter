@@ -1,7 +1,7 @@
 ---
 import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
-import { House, Monitor, Moon, Sun } from "@lucide/astro";
+import { House, ListChecks, Monitor, Moon, Search, Sun } from "@lucide/astro";
 import { newSourceIssueUrl } from "../../lib/github-issue";
 import { loadAllVorhaben } from "../../lib/vorhaben-data";
 
@@ -113,6 +113,15 @@ const ogDescription =
     <main class:list={["wrap", { wide }]}>
       <slot />
     </main>
+    <!-- Thumb reach on a phone. The middle slot is filled by whatever island
+    owns the page, so the plus always does the thing the page is about. -->
+    <nav class="tabbar" aria-label="Bereiche">
+      <a href="/"><House size={20} /><span>Start</span></a>
+      <a href="/#plaene"><ListChecks size={20} /><span>Pläne</span></a>
+      <div id="fab-slot"></div>
+      <a href="/#fristen"><Search size={20} /><span>Fristen</span></a>
+    </nav>
+
     <footer>
       <div class:list={["wrap", "footer-bar", { wide }]}>
         <nav class="footer-nav" aria-label="Zeitpläne">
@@ -274,6 +283,50 @@ const ogDescription =
     }
     main {
       padding-top: 1.5rem;
+    }
+  }
+
+  .tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    display: grid;
+    grid-template-columns: 1fr 1fr auto 1fr;
+    align-items: center;
+    padding: 0.3rem 0.5rem calc(0.3rem + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line);
+    background: var(--paper-raised);
+  }
+  .tabbar a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    padding: 0.35rem 0;
+    color: var(--muted);
+    font-size: var(--fs-xs);
+    text-decoration: none;
+  }
+  .tabbar a:hover {
+    color: var(--accent);
+  }
+  #fab-slot {
+    display: flex;
+    justify-content: center;
+    width: 4.5rem;
+  }
+  /* Room for the bar, so it never sits on the last line of a page. */
+  body {
+    padding-bottom: 4.5rem;
+  }
+  @media (min-width: 40rem) {
+    .tabbar {
+      display: none;
+    }
+    body {
+      padding-bottom: 0;
     }
   }
 

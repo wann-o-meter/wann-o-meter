@@ -1,6 +1,6 @@
 <template>
   <div class="wom-start">
-    <TransitionGroup name="plan" tag="div" class="plans">
+    <TransitionGroup id="plaene" name="plan" tag="div" class="plans">
       <SavedPlanCard
         v-for="card in planCards"
         :key="card.plan.slug"
@@ -242,6 +242,17 @@
         </div>
       </section>
     </Transition>
+
+    <Teleport v-if="hasSlot" to="#fab-slot">
+      <button
+        type="button"
+        class="fab-toggle"
+        aria-label="Plan erstellen"
+        @click="goToPicker"
+      >
+        <Plus :size="22" />
+      </button>
+    </Teleport>
   </div>
 </template>
 
@@ -518,7 +529,11 @@ const planHref = computed(() => {
   return `/${selected.value.slug}/?${params}`;
 });
 
-onMounted(() => (savedPlans.value = loadSavedPlans()));
+const hasSlot = ref(false);
+onMounted(() => {
+  hasSlot.value = !!document.getElementById("fab-slot");
+  savedPlans.value = loadSavedPlans();
+});
 </script>
 
 <style scoped>
@@ -549,6 +564,20 @@ h1 {
 }
 
 /* Saved plans fade in after the storage read and slide out when forgotten. */
+.fab-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.4rem;
+  height: 3.4rem;
+  margin-top: -1.2rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: var(--shadow-lg);
+}
+
 .add-plan {
   display: flex;
   flex-direction: column;

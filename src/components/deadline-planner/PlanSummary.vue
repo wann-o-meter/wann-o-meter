@@ -115,7 +115,8 @@ const anchorIsSunday = computed(
 }
 .stat {
   display: flex;
-  flex: 1 1 100%;
+  /* Side by side even on the narrowest phone: two short facts, one row. */
+  flex: 1 1 0;
   flex-direction: column;
   justify-content: center;
   gap: 0.3rem;
@@ -135,9 +136,10 @@ a.stat:hover {
 }
 .row {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.6rem;
+  gap: 0 0.6rem;
   min-width: 0;
 }
 .k {
@@ -189,11 +191,7 @@ a.stat:hover {
     max-height 0.22s,
     opacity 0.22s;
 }
-@media (min-width: 40rem) {
-  .stat {
-    flex: 1 1 12rem;
-  }
-}
+
 .compact .stat {
   padding: 0.3rem 0.5rem;
 }

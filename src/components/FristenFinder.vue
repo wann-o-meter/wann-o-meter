@@ -58,7 +58,7 @@ const toggle = (id: string) => (filter.value = filter.value === id ? "" : id);
 </script>
 
 <template>
-  <section class="finder">
+  <section id="fristen" class="finder">
     <h2>Fristen nachschlagen</h2>
     <p class="lede">
       Jede Frist mit dem Paragrafen dahinter. Such nach der Aufgabe oder nach dem

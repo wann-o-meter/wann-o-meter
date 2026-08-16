@@ -305,6 +305,7 @@ const timelineHidden = ref(
 );
 
 const fabOpen = ref(false);
+const hasSlot = ref(false);
 function fabDo(action: () => void) {
   fabOpen.value = false;
   action();
@@ -355,6 +356,7 @@ function trackActiveCard() {
 }
 
 onMounted(() => {
+  hasSlot.value = !!document.getElementById("fab-slot");
   kept.value = loadSavedPlans().some((p) => p.slug === props.slug);
   // The rest of the pre-hydration fallback is hidden by the js flag before the
   // first paint, only the title has to go once the planner renders its own.
@@ -583,9 +585,10 @@ onBeforeUnmount(() => {
       {{ anchorLabel }} eingeben, um den Zeitplan zu sehen.
     </p>
 
-    <!-- On a phone the header scrolls away, so the same actions stay in reach
-    down here. -->
-    <div v-if="anchorDate" class="fab" :class="{ open: fabOpen }">
+    <!-- Into the middle of the bottom bar, so the page's own actions sit where
+    the thumb already is. -->
+    <Teleport v-if="anchorDate" to="#fab-slot" :disabled="!hasSlot">
+      <div class="fab" :class="{ open: fabOpen }">
       <div v-if="fabOpen" class="fab-menu">
         <button type="button" @click="fabDo(addTask)">
           <ListPlus :size="16" /> Aufgabe hinzufügen
@@ -601,16 +604,17 @@ onBeforeUnmount(() => {
           {{ kept ? "Nicht mehr merken" : "Plan merken" }}
         </button>
       </div>
-      <button
-        type="button"
-        class="fab-toggle"
-        :aria-expanded="fabOpen"
-        aria-label="Aktionen"
-        @click="fabOpen = !fabOpen"
-      >
-        <component :is="fabOpen ? X : Plus" :size="22" />
-      </button>
-    </div>
+        <button
+          type="button"
+          class="fab-toggle"
+          :aria-expanded="fabOpen"
+          aria-label="Aktionen"
+          @click="fabOpen = !fabOpen"
+        >
+          <component :is="fabOpen ? X : Plus" :size="22" />
+        </button>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -967,21 +971,26 @@ grey text under a chart. */
 }
 
 .fab {
-  position: fixed;
-  right: 1rem;
-  bottom: 1rem;
-  z-index: 50;
+  position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.5rem;
+  justify-content: center;
+}
+/* The menu opens upward, out of the bar. */
+.fab-menu {
+  position: absolute;
+  bottom: calc(100% + 0.6rem);
+  right: 50%;
+  transform: translateX(50%);
+}
+.fab-toggle {
+  margin-top: -1.2rem;
 }
 .fab-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 3.25rem;
-  height: 3.25rem;
+  width: 3.4rem;
+  height: 3.4rem;
   border: 0;
   border-radius: 50%;
   background: var(--accent);
