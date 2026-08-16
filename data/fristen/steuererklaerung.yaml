@@ -1,0 +1,22 @@
+# Fristen that stand on their own: the statute names the day, nothing the
+# visitor enters moves it. Where these get their own page is Phase 3.
+deadlines:
+  - id: steuererklaerung-abgeben
+    kind: statutory-absolute
+    direction: after
+    label: Steuererklärung abgeben
+    offset_days: null
+    source_url: https://www.gesetze-im-internet.de/ao_1977/__149.html
+    source_label: § 149 Abs. 2 AO
+    # Seven months after the end of the calendar year. Landing on a Saturday,
+    # Sunday or public holiday runs the deadline to the next working day
+    # (§ 108 Abs. 3 AO). Art. 97 § 36 EGAO stretched the Corona years up to and
+    # including 2023, so this wording only applies from 2024.
+    rule:
+      from: end-of-year
+      add_months: 7
+      roll: next-working-day
+      first_year: 2024
+    note: >-
+      Gilt, wenn du ohne Steuerberater abgibst. Mit Beratung gilt § 149 Abs. 3
+      AO und damit ein ganz anderer Termin.

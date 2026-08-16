@@ -6,6 +6,7 @@ import { holidaysFor } from "./holidays";
 import type { Holiday } from "./holidays";
 import { bgb573cNoticeDeadline } from "./notice-period";
 import type { DerivationStep } from "./notice-period";
+import { calendarRuleSchema, nextOccurrence } from "./calendar-rule";
 
 // What a task is, before anything computes a date for it.
 //   statutory-absolute  the statute names the day, no user input
@@ -29,6 +30,9 @@ export const deadlineSchema = z
     label: z.string(),
     offset_days: z.number().int().nullable(),
     offset_rule: z.enum(["bgb-573c-notice"]).optional(),
+    // A Frist the statute fixes by itself, spelled out in yaml. Present exactly
+    // on the tasks whose kind is statutory-absolute.
+    rule: calendarRuleSchema.optional(),
     needs_office: z.boolean().optional(),
     earliest_offset_days: z.number().int().optional(),
     lead_time_days: z.number().int().positive().optional(),
@@ -42,6 +46,10 @@ export const deadlineSchema = z
   .refine((d) => (d.kind === "soft") === (d.direction === undefined), {
     message: "statutory tasks need a direction, soft tasks must not have one",
     path: ["direction"],
+  })
+  .refine((d) => (d.kind === "statutory-absolute") === (d.rule !== undefined), {
+    message: "an absolute task is exactly one that carries a rule",
+    path: ["rule"],
   });
 
 export type Deadline = z.infer<typeof deadlineSchema>;
@@ -93,7 +101,13 @@ export function computeSchedule(
     let rescue: { date: string; label: string } | null | undefined;
     let leaseEnd: { date: string; overlapDays: number } | undefined;
     let date: string | null;
-    if (d.offset_days === null) {
+    if (d.rule) {
+      // The statute fixes the day. The anchor only says which occurrence of it
+      // the visitor is looking at.
+      const hit = nextOccurrence(d.rule, anchorDate, countryCode, regionCode);
+      date = hit?.date ?? null;
+      derivation = hit?.derivation;
+    } else if (d.offset_days === null) {
       date = null;
     } else if (d.offset_rule === "bgb-573c-notice") {
       const targetEndMonth = shiftMonth(anchorDate.slice(0, 7), deferMonths);
