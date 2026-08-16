@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "bun scripts/feiertage.mjs && astro build",
+    "build": "bun scripts/feiertage.mjs && bun scripts/schulferien.mjs && astro build",
     "gesetze": "bun scripts/gesetze.mjs",
     "preview": "astro preview",
     "astro": "astro",

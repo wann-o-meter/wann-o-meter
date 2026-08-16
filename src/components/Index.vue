@@ -276,6 +276,7 @@ import {
   spanParts,
 } from "../../lib/date-display";
 import { STATES } from "../../lib/states";
+import { SCHULFERIEN } from "../../lib/schulferien-data";
 import { loadGemeinden, searchGemeinden } from "../../lib/gemeinde-search";
 import type { Gemeinde } from "../../lib/gemeinde-search";
 import { isoToday } from "../../lib/today";
@@ -286,15 +287,8 @@ import { loadSavedPlans } from "../../lib/saved-plans";
 import type { SavedPlan } from "../../lib/saved-plans";
 import type { VorhabenData, VorhabenVariant } from "../../lib/vorhaben-data";
 
-interface Ferien {
-  from: string;
-  to: string;
-  name: string;
-}
-
 const props = defineProps<{
   vorhaben: VorhabenData[];
-  schulferien: Record<string, Ferien[]>;
 }>();
 
 const BUNDESWEIT = "bundesweit";
@@ -438,11 +432,10 @@ const localSteps = computed(() => {
 const ferien = computed(() => {
   const iso = anchorDate.value;
   if (!ort.value || !iso) return null;
-  return (
-    (props.schulferien[ort.value.state] ?? []).find(
-      (w) => w.from <= iso && iso <= w.to,
-    ) ?? null
+  const hit = (SCHULFERIEN[ort.value.state] ?? []).find(
+    ([from, to]) => from <= iso && iso <= to,
   );
+  return hit ? { from: hit[0], to: hit[1], name: hit[2] } : null;
 });
 
 // Without a local variant the plan is the bundesweite one, only the Feiertage

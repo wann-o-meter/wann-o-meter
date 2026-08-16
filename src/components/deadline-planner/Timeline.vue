@@ -258,6 +258,7 @@ import {
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
 import { MONTH_NAMES, longDate, shortDate } from "../../../lib/date-display";
 import { holidaysFor } from "../../../lib/holidays";
+import { SCHULFERIEN } from "../../../lib/schulferien-data";
 import {
   dateOfDay,
   dayNum,
@@ -477,27 +478,13 @@ const holidayDays = computed(() => {
   return map;
 });
 
-const ferien = ref<{ from: number; to: number }[]>([]);
-watch(
-  () => props.regionCode,
-  async (code) => {
-    ferien.value = [];
-    if (!code) return;
-    try {
-      const res = await fetch(
-        `/api/v1/calendar/schulferien--${code.toLowerCase()}.json`,
-      );
-      if (!res.ok) return;
-      const entry = await res.json();
-      ferien.value = (entry?.windows ?? []).map(
-        (w: { from: string; to: string }) => ({
-          from: dayNum(w.from),
-          to: dayNum(w.to),
-        }),
-      );
-    } catch {}
-  },
-  { immediate: true },
+// Straight from the bundled table. This used to fetch one endpoint per
+// Bundesland, which meant the band appeared a moment after the timeline did.
+const ferien = computed(() =>
+  (SCHULFERIEN[props.regionCode ?? ""] ?? []).map(([from, to]) => ({
+    from: dayNum(from),
+    to: dayNum(to),
+  })),
 );
 
 function dayType(d: number): string {

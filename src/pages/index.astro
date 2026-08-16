@@ -1,7 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import IndexTimeline from "../components/Index.vue";
-import { getPagesInCategory } from "../../lib/pages";
 import { loadAllVorhaben } from "../../lib/vorhaben-data";
 import { allFristTasks } from "../../lib/tasks";
 import FristenFinder from "../components/FristenFinder.vue";
@@ -30,29 +29,10 @@ const fristen = allFristTasks().map(({ task, vorhaben }) => ({
   plans: vorhaben.map((v) => ({ slug: v.slug, label: v.label })),
 }));
 
-// Schulferien of every Bundesland, trimmed to the range the date picker allows,
-// so the picked Termin can be checked against them in the browser.
-const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
-const today = new Date().toISOString().slice(0, 10);
-const horizon = new Date(Date.now() + 400 * 86400000).toISOString().slice(0, 10);
-const schulferien = Object.fromEntries(
-  getPagesInCategory("schulferien").map((page) => [
-    page.slug.toUpperCase(),
-    page.data.windows
-      .filter(
-        (w) =>
-          ISO_DAY.test(w.from) &&
-          ISO_DAY.test(w.to) &&
-          w.to >= today &&
-          w.from <= horizon,
-      )
-      .map((w) => ({ from: w.from, to: w.to, name: w.name ?? "Schulferien" })),
-  ]),
-);
 ---
 
 <Layout title="Wann muss ich anfangen?" description={homeDescription} structuredData={structuredData}>
-  <IndexTimeline client:load vorhaben={vorhaben} schulferien={schulferien} />
+  <IndexTimeline client:load vorhaben={vorhaben} />
 
   <FristenFinder client:load fristen={fristen} />
 </Layout>
