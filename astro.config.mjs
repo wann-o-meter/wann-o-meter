@@ -1,40 +1,21 @@
-import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { defineConfig } from "astro/config";
 import vue from "@astrojs/vue";
 import sitemap from "@astrojs/sitemap";
+import { lastChanged } from "./lib/git-dates.ts";
 
 // lastmod comes from the last commit that touched the data behind a page, not
-// from the build clock: a rebuild does not make the content newer.
-function lastCommitDate(...paths) {
-  try {
-    const out = execFileSync(
-      "git",
-      ["log", "-1", "--no-show-signature", "--format=%cI", "--", ...paths],
-      { encoding: "utf-8" },
-    ).trim();
-    return out || undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-const lastmodCache = new Map();
-function lastmodFor(url) {
-  const path = new URL(url).pathname;
-  const slug = path.split("/").filter(Boolean)[0];
-  const key = slug ?? "";
-  if (!lastmodCache.has(key)) {
-    lastmodCache.set(
-      key,
-      key === "frist"
-        ? // A Frist page is only as old as the task data and its template.
-        lastCommitDate("data", "src/pages/frist")
-        : slug
-          ? lastCommitDate(`data/${slug}`, "data/vorhaben.yaml")
-          : lastCommitDate("data", "src/pages/index.astro"),
-    );
-  }
-  return lastmodCache.get(key);
+// from the build clock: a rebuild does not make the content newer. Narrow
+// enough that two pages sharing no yaml do not share a date either, otherwise
+// every page moves whenever any of them does and the whole signal is noise.
+function sourcesFor(url) {
+  const [first, second] = new URL(url).pathname.split("/").filter(Boolean);
+  if (!first) return ["data/vorhaben.yaml", "src/pages/index.astro"];
+  // A year page reads the same yaml as its parent, so both move together.
+  if (first === "frist") return [`data/fristen/${second}.yaml`, "src/pages/frist"];
+  if (second) return [`data/${first}/${second}.yaml`, `data/${first}/_bundesweit.yaml`];
+  const dir = `data/${first}`;
+  return existsSync(dir) ? [dir] : [`src/pages/${first}.astro`];
 }
 
 export default defineConfig({
@@ -51,7 +32,7 @@ export default defineConfig({
       // Noindex pages do not belong in the sitemap.
       filter: (page) => !page.includes("/feedback/"),
       serialize(item) {
-        const lastmod = lastmodFor(item.url);
+        const lastmod = lastChanged(...sourcesFor(item.url));
         return lastmod ? { ...item, lastmod } : item;
       },
     }),

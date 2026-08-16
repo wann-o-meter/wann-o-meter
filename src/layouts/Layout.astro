@@ -29,6 +29,15 @@ const vorhabenLinks = loadAllVorhaben().map((v) => ({
 }));
 const ogDescription =
   description ?? "Strukturierte Antworten auf Wann-Fragen, als Kalender-Abo.";
+// One publisher for the whole site, so every page names the same entity instead
+// of each page standing on its own.
+const organization = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Wann-O-Meter",
+  url: new URL("/", Astro.site).href,
+  logo: new URL("/web-app-manifest-512x512.png", Astro.site).href,
+};
 ---
 
 <!doctype html>
@@ -75,6 +84,10 @@ const ogDescription =
       content={new URL("/og-image.png", Astro.site).href}
     />
 
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(organization)}
+    />
     {
       structuredData && (
         <script
@@ -135,7 +148,10 @@ const ogDescription =
             ))
           }
         </nav>
-        <p>Angaben ohne Gewähr, keine Rechtsberatung.</p>
+        <p>
+          Angaben ohne Gewähr, keine Rechtsberatung.{" "}
+          <a href="/impressum/#ki">Wie die Inhalte entstehen</a>.
+        </p>
         <p>
           <a href="/impressum">Impressum</a> &middot; <a href="/datenschutz"
             >Datenschutz</a
