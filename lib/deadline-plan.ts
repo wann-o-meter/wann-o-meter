@@ -7,21 +7,42 @@ import type { Holiday } from "./holidays";
 import { bgb573cNoticeDeadline } from "./notice-period";
 import type { DerivationStep } from "./notice-period";
 
-export const deadlineSchema = z.object({
-  id: z.string(),
-  label: z.string(),
-  offset_days: z.number().int().nullable(),
-  offset_rule: z.enum(["bgb-573c-notice"]).optional(),
-  needs_office: z.boolean().optional(),
-  earliest_offset_days: z.number().int().optional(),
-  lead_time_days: z.number().int().positive().optional(),
-  lead_time_source: z.string().optional(),
-  source_url: z.url().nullable(),
-  source_label: z.string().optional(),
-  no_source_needed: z.boolean().optional(),
-  applies_if: z.array(z.enum(FACET_IDS)).optional(),
-  note: z.string().optional(),
-});
+// What a task is, before anything computes a date for it.
+//   statutory-absolute  the statute names the day, no user input
+//   statutory-relative  the statute names an offset from a date the user gives
+//   soft                no legal anchor, so no defensible date either
+export const TASK_KINDS = [
+  "statutory-absolute",
+  "statutory-relative",
+  "soft",
+] as const;
+
+export const deadlineSchema = z
+  .object({
+    id: z.string(),
+    kind: z.enum(TASK_KINDS),
+    // before: the deadline precedes the anchor. after: the clock starts at it.
+    direction: z.enum(["before", "after"]).optional(),
+    // The Vorhaben this task appears in. Filled in by the loader from the
+    // directory, one entry until a second Vorhaben genuinely reuses a task.
+    belongsTo: z.array(z.string()).default([]),
+    label: z.string(),
+    offset_days: z.number().int().nullable(),
+    offset_rule: z.enum(["bgb-573c-notice"]).optional(),
+    needs_office: z.boolean().optional(),
+    earliest_offset_days: z.number().int().optional(),
+    lead_time_days: z.number().int().positive().optional(),
+    lead_time_source: z.string().optional(),
+    source_url: z.url().nullable(),
+    source_label: z.string().optional(),
+    no_source_needed: z.boolean().optional(),
+    applies_if: z.array(z.enum(FACET_IDS)).optional(),
+    note: z.string().optional(),
+  })
+  .refine((d) => (d.kind === "soft") === (d.direction === undefined), {
+    message: "statutory tasks need a direction, soft tasks must not have one",
+    path: ["direction"],
+  });
 
 export type Deadline = z.infer<typeof deadlineSchema>;
 

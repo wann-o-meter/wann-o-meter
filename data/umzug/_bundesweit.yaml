@@ -7,6 +7,8 @@
 # the Laender, so it lives on a Landesrecht portal, not gesetze-im-internet.de.
 deadlines:
   - id: wohnung-kuendigen
+    kind: statutory-relative
+    direction: before
     label: Wohnung kündigen
     offset_days: -90 # nur Näherung für die Sortierung - das echte Datum kommt aus offset_rule
     offset_rule: bgb-573c-notice
@@ -14,6 +16,7 @@ deadlines:
     source_label: § 573c BGB
     note: Schriftlich und unterschrieben, am besten per Einwurf-Einschreiben.
   - id: umzugsurlaub-beantragen
+    kind: soft
     label: Umzugsurlaub beim Arbeitgeber beantragen
     offset_days: -60
     source_url: null
@@ -22,6 +25,7 @@ deadlines:
       zum Umzug. Steht nichts drin, ist es normaler Urlaub und der will früh
       eingetragen sein.
   - id: umzugsfirma-beauftragen
+    kind: soft
     label: Umzugsfirma beauftragen oder Transporter reservieren
     offset_days: -60
     source_url: null
@@ -30,6 +34,7 @@ deadlines:
       Zum Monatsende und zum Quartalswechsel sind die guten Termine als erstes
       weg.
   - id: schoenheitsreparaturen-planen
+    kind: soft
     label: Schönheitsreparaturen in der alten Wohnung planen
     offset_days: -60
     source_url: null
@@ -37,6 +42,8 @@ deadlines:
       Was du zurückbauen und streichen musst, steht im Mietvertrag. Fachfirmen
       sind zum Monatsende Wochen im Voraus ausgebucht, deshalb jetzt anfragen.
   - id: internetanbieter-kuendigen-ummelden
+    kind: statutory-relative
+    direction: before
     label: Internetanbieter kündigen oder umziehen lassen
     offset_days: -42
     source_url: https://www.gesetze-im-internet.de/tkg_2021/__60.html
@@ -46,6 +53,7 @@ deadlines:
       Frist von einem Monat gekündigt werden. Die sechs Wochen Vorlauf sind
       Erfahrungswert, der Techniktermin ist der Engpass.
   - id: kita-schule-anmelden
+    kind: soft
     label: Kita- oder Schulplatz am neuen Wohnort anmelden
     applies_if: [kinder]
     offset_days: -60
@@ -54,6 +62,7 @@ deadlines:
       Die Anmeldefristen setzt jede Kommune selbst, Kita-Plätze sind oft ein
       halbes Jahr im Voraus vergeben.
   - id: umzugskartons-besorgen
+    kind: soft
     label: Umzugskartons und Packmaterial besorgen
     offset_days: -28
     source_url: null
@@ -61,6 +70,7 @@ deadlines:
       Kartons, Klebeband, Luftpolsterfolie, Decken und Tragegurte. Speditionen
       verleihen Kartons oft günstiger, als der Kauf im Baumarkt kostet.
   - id: packen-beginnen
+    kind: soft
     label: Mit dem Packen anfangen
     offset_days: -28
     source_url: null
@@ -68,6 +78,7 @@ deadlines:
       Erst alles, was du bis zum Umzug nicht brauchst. Jeden Karton außen
       beschriften, sonst suchst du nachher in der neuen Wohnung.
   - id: wohnungsuebergabe-termin
+    kind: soft
     label: Termin für die Wohnungsübergabe vereinbaren
     offset_days: -28
     source_url: null
@@ -75,6 +86,7 @@ deadlines:
       Dabei gleich klären, ob Nachmieter oder Vermieter Einbauküche und andere
       Einbauten übernehmen oder ob du sie zurückbauen musst.
   - id: handwerker-termine
+    kind: soft
     label: Handwerkertermine für Ab- und Aufbau vereinbaren
     offset_days: -28
     source_url: null
@@ -82,6 +94,7 @@ deadlines:
       Waschmaschine, Herd und Einbauküche, in der alten und in der neuen
       Wohnung. Wenn die Umzugsfirma das mitmacht, hier nur bestätigen lassen.
   - id: bank-adresse-aendern
+    kind: soft
     label: Bank über die neue Adresse informieren
     offset_days: -21
     source_url: null
@@ -89,6 +102,7 @@ deadlines:
       Adresse ändern, Daueraufträge für Miete anpassen und prüfen, ob die
       Filiale am neuen Ort noch passt.
   - id: finanzamt-informieren
+    kind: soft
     label: Finanzamt über die neue Adresse informieren
     offset_days: -21
     source_url: null
@@ -96,6 +110,7 @@ deadlines:
       Innerhalb derselben Stadt reicht die nächste Steuererklärung. Bei einem
       Umzug in eine andere Stadt schreibst du dem alten Finanzamt.
   - id: vertraege-mitgliedschaften
+    kind: soft
     label: Verträge und Mitgliedschaften ummelden
     offset_days: -21
     source_url: null
@@ -104,6 +119,7 @@ deadlines:
       Online-Konten. Zeitschriften sendet die Post auch mit Nachsendeauftrag
       nicht nach.
   - id: hausratversicherung-ummelden
+    kind: soft
     label: Hausratversicherung auf die neue Wohnung ummelden
     offset_days: -14
     source_url: null
@@ -111,16 +127,19 @@ deadlines:
       Ohne Meldung deckt die Police im Zweifel die falsche Adresse. Wohnfläche
       und Beitrag ändern sich meist mit.
   - id: strom-gas-ummeldung
+    kind: soft
     label: Strom- und Gasanbieter über den Umzug informieren
     note: Entweder Vertrag mitnehmen oder am alten Ort kündigen und am neuen neu abschließen.
     offset_days: -14
     source_url: null
   - id: nachsendeauftrag
+    kind: soft
     label: Nachsendeauftrag bei der Post einrichten
     note: Leitet Briefe an die neue Adresse weiter, solange nicht überall umgemeldet ist.
     offset_days: -14
     source_url: null
   - id: gefriertruhe-leeren
+    kind: soft
     label: Kühl- und Gefriergerät leer essen
     offset_days: -14
     source_url: null
@@ -128,6 +147,7 @@ deadlines:
       Abtauen braucht einen Tag, und Tiefgefrorenes übersteht keinen
       Umzugstag im Transporter.
   - id: helfer-und-zufahrt
+    kind: soft
     label: Helfer, Nachbarn und Hausmeister informieren
     offset_days: -7
     source_url: null
@@ -135,6 +155,7 @@ deadlines:
       Freunde an den Termin erinnern, Handwerkertermine bestätigen lassen und
       beim Hausmeister klären, dass Zufahrt und Aufzug frei sind.
   - id: wertsachen-selbst-transportieren
+    kind: soft
     label: Papiere, Bargeld und Schmuck getrennt packen
     offset_days: -2
     source_url: null
@@ -142,6 +163,7 @@ deadlines:
       Kommt nicht in den Umzugswagen, sondern in die eigene Tasche. Dazu ein
       Koffer mit Kleidung, Waschzeug und Verpflegung für den Umzugstag.
   - id: moebel-abbauen
+    kind: soft
     label: Möbel abbauen
     offset_days: -1
     source_url: null
@@ -149,6 +171,7 @@ deadlines:
       Schrauben und Kleinteile in beschriftete Beutel, am besten direkt an das
       Möbelstück geklebt. Übernimmt die Umzugsfirma das, entfällt der Schritt.
   - id: kinder-haustiere-betreuen
+    kind: soft
     label: Betreuung für Kinder und Haustiere organisieren
     applies_if: [kinder, haustier_hund, haustier_katze]
     offset_days: 0
@@ -158,12 +181,14 @@ deadlines:
       Offene Türen, Treppenhaus und Träger sind für beide keine gute
       Kombination. Am besten den ganzen Tag woanders.
   - id: zaehlerstaende-ablesen
+    kind: soft
     label: Zählerstände ablesen (Strom, Gas, Wasser)
     note: Am besten mit Foto, damit die Schlussrechnung überprüfbar bleibt.
     offset_days: 0
     source_url: null
     no_source_needed: true # keine Frist, sondern eine Aufgabe am Umzugstag selbst
   - id: umzugsgut-protokoll
+    kind: soft
     label: Umzugsgut auf Schäden prüfen
     offset_days: 0
     source_url: null
@@ -172,12 +197,14 @@ deadlines:
       Vor dem Verladen und nach dem Ausladen, Schäden sofort schriftlich
       festhalten und vom Vorarbeiter gegenzeichnen lassen.
   - id: uebergabeprotokoll
+    kind: soft
     label: Übergabeprotokoll für die alte Wohnung unterschreiben
     note: Hält Zustand, Mängel und Schlüsselzahl fest und ist die Grundlage für die Kaution.
     offset_days: 0
     source_url: null
     no_source_needed: true # keine Frist, das Protokoll entsteht bei der Übergabe
   - id: alte-wohnung-uebergeben
+    kind: soft
     label: Alte Wohnung besenrein übergeben
     offset_days: 2
     source_url: null
@@ -185,6 +212,8 @@ deadlines:
       Reinigen, Namensschilder an Tür, Klingel und Briefkasten abnehmen,
       Briefkasten leeren und alle Schlüssel abgeben.
   - id: ummeldung-einwohnermeldeamt
+    kind: statutory-relative
+    direction: after
     label: Ummeldung beim Einwohnermeldeamt
     needs_office: true
     note: Braucht die Wohnungsgeberbestätigung des Vermieters und einen Termin beim Bürgeramt.
@@ -193,6 +222,8 @@ deadlines:
     source_url: https://www.gesetze-im-internet.de/bmg/__17.html
     source_label: § 17 BMG
   - id: kfz-ummeldung
+    kind: statutory-relative
+    direction: after
     label: Kfz beim neuen Wohnort ummelden
     needs_office: true
     applies_if: [auto]
@@ -206,6 +237,7 @@ deadlines:
       Praxisempfehlung. Wer es liegen lässt, dem kann die Zulassungsbehörde den
       Betrieb des Fahrzeugs untersagen.
   - id: hundesteuer-ummelden
+    kind: soft
     label: Hund bei der neuen Gemeinde zur Hundesteuer anmelden
     applies_if: [haustier_hund]
     offset_days: 14
@@ -215,6 +247,8 @@ deadlines:
       Die Frist steht in der Hundesteuersatzung der Gemeinde, nicht im
       Bundesrecht. Am alten Wohnort abmelden, sonst zahlst du doppelt.
   - id: rundfunkbeitrag
+    kind: statutory-relative
+    direction: after
     label: Rundfunkbeitrag ummelden
     note: >-
       Die Beitragsnummer zieht mit um, eine zweite Anmeldung wäre eine
@@ -224,6 +258,7 @@ deadlines:
     source_url: https://www.gesetze-bayern.de/Content/Document/RBeitrStV-8
     source_label: § 8 RBStV
   - id: umzugskosten-steuer
+    kind: soft
     label: Umzugsbelege für die Steuererklärung sammeln
     offset_days: 30
     source_url: null

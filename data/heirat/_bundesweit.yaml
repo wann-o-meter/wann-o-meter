@@ -5,27 +5,32 @@
 # a given deadline against its actual Gesetz and fills in a real link.
 deadlines:
   - id: eheschliessung-anmelden
+    kind: soft
     label: Eheschließung beim Standesamt anmelden
     offset_days: -180
     source_url: null
     note: Kein gesetzlicher Vorlauf. Standesämter sind oft Monate ausgebucht, Dokumente wie die Ledigkeitsbescheinigung gelten nur begrenzt. Nicht verifiziert.
   - id: dokumente-beschaffen
+    kind: soft
     label: Personenstandsurkunden und Ausweisdokumente beschaffen
     offset_days: -120
     source_url: null
     no_source_needed: true
     note: Welche Dokumente nötig sind, hängt vom Standesamt und Familienstand ab - dort direkt erfragen.
   - id: namensaenderung-ausweis
+    kind: soft
     label: Personalausweis/Reisepass mit neuem Namen beantragen
     offset_days: 30
     source_url: null
     note: Keine feste gesetzliche Frist danach, aber Ausweisdaten sollten zeitnah aktuell gehalten werden - Frist nicht verifiziert.
   - id: namensaenderung-mitteilen
+    kind: soft
     label: Arbeitgeber, Bank und Versicherungen über Namensänderung informieren
     offset_days: 30
     source_url: null
     no_source_needed: true
   - id: steuerklasse-wechseln
+    kind: soft
     label: Steuerklasse wechseln (Ehegattensplitting prüfen)
     offset_days: 30
     source_url: null

@@ -4,18 +4,21 @@ name: Rottenburg am Neckar
 state: BW
 deadlines:
   - id: rottenburg-halteverbotszone
+    kind: soft
     label: Halteverbotszone für den Umzugswagen beim Ordnungsamt beantragen
     needs_office: true
     offset_days: -14
     source_url: null
     note: Ohne freie Fläche vor der Tür trägt das Möbelteam jeden Karton die halbe Straße entlang.
   - id: rottenburg-anwohnerparkausweis
+    kind: soft
     label: Anwohnerparkausweis ummelden
     needs_office: true
     applies_if: [auto] # die Halteverbotszone braucht dagegen jeder Umzugswagen
     offset_days: 14
     source_url: null
   - id: rottenburg-sperrmuell
+    kind: soft
     label: Sperrmüllabholung für alte Möbel anmelden
     needs_office: true
     offset_days: -7

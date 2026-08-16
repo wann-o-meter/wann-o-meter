@@ -30,7 +30,10 @@ export function usePlannerSchedule(
     if (!anchorDate.value || !selected.value) return [];
     const withAnchor: Deadline[] = [
       {
+        // The anchor is the day itself, not an obligation of any kind.
         id: ANCHOR_ID,
+        kind: "soft" as const,
+        belongsTo: [],
         label: anchorLabel(),
         offset_days: 0,
         source_url: null,

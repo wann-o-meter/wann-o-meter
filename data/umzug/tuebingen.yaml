@@ -2,15 +2,18 @@ name: Tübingen
 state: BW
 deadlines:
   - id: tuebingen-halteverbotszone
+    kind: soft
     label: Halteverbotszone für den Umzugswagen beim Ordnungsamt beantragen
     offset_days: -14
     source_url: null
   - id: tuebingen-anwohnerparkausweis
+    kind: soft
     label: Anwohnerparkausweis ummelden
     applies_if: [auto]
     offset_days: 14
     source_url: null
   - id: tuebingen-sperrmuell
+    kind: soft
     label: Sperrmüllabholung für alte Möbel anmelden
     offset_days: -7
     source_url: null

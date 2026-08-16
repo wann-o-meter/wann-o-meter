@@ -64,6 +64,10 @@ function loadVorhaben(slug: string): VorhabenData | null {
   const meta = VORHABEN.find((v) => v.slug === slug);
   if (!meta) return null;
   const dir = join(DATA_ROOT, slug);
+  // Membership is the directory today. The field exists so a task can later
+  // belong to more than one Vorhaben without every consumer changing.
+  const own = (list: Deadline[]) =>
+    list.map((d) => ({ ...d, belongsTo: [slug] }));
   const bundesweit = deadlineListSchema.parse(readYaml(join(dir, BUNDESWEIT_FILE)));
 
   const local = readdirSync(dir, { withFileTypes: true })
@@ -74,7 +78,7 @@ function loadVorhaben(slug: string): VorhabenData | null {
         slug: e.name.replace(/\.yaml$/, ""),
         label: doc.name,
         regionCode: doc.state,
-        deadlines: [...bundesweit.deadlines, ...doc.deadlines],
+        deadlines: own([...bundesweit.deadlines, ...doc.deadlines]),
       };
     })
     .sort((a, b) => a.label.localeCompare(b.label, "de"));
@@ -82,7 +86,7 @@ function loadVorhaben(slug: string): VorhabenData | null {
   // Bundesweit is always a variant: a place without its own file still needs a
   // plan, and the Feiertage of its Bundesland come from the region parameter.
   const variants = [
-    { slug: BUNDESWEIT_SLUG, label: "Bundesweit", deadlines: bundesweit.deadlines },
+    { slug: BUNDESWEIT_SLUG, label: "Bundesweit", deadlines: own(bundesweit.deadlines) },
     ...local,
   ];
   return { ...meta, variants };

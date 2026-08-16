@@ -38,6 +38,8 @@ export function useTaskEditor(
     if (!selected.value) return [];
     const custom: Deadline[] = customTasks.value.map((t) => ({
       id: t.id,
+      kind: "soft" as const,
+      belongsTo: [],
       label: t.label,
       offset_days: t.offsetDays,
       source_url: null,

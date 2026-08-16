@@ -81,8 +81,12 @@ export function snapshotDeadlines(
   base: Deadline[],
   snap: PlanSnapshot,
 ): Deadline[] {
+  // A task the visitor wrote themselves carries no citation, so it is soft
+  // and belongs to no Vorhaben.
   const custom: Deadline[] = snap.custom.map((t) => ({
     id: t.id,
+    kind: "soft" as const,
+    belongsTo: [],
     label: t.label,
     offset_days: t.offsetDays,
     source_url: null,
