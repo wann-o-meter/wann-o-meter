@@ -11,8 +11,7 @@ Deadline planner: it works backwards from your date and tells you when to start.
 /lib                  Zod schema, holiday rules, deadline math, ICS generator
 /data/vorhaben.yaml   Vorhaben definitions, deadlines per variant
 /data/_sources        One YAML per upstream source
-/data/{category}/...  data.yaml + page.yaml + meta.toml per subject
-/data/{category}/generator.ts  Derived categories (feiertage, urlaubsfenster)
+/data/{category}/...  data.yaml + page.yaml per subject
 /src/components       DeadlinePlanner.vue and Index.vue, the Vue islands
 /src/pages            Astro pages, /api/v1/ JSON, /feeds/ ICS
 ```
