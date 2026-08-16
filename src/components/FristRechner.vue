@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { CalendarDays } from "lucide-vue-next";
+import { ArrowRight, CalendarDays } from "lucide-vue-next";
 import { computeSchedule } from "../../lib/deadline-plan";
 import { formatDate } from "../../lib/format-date";
 import { isPast } from "../../lib/today";
 import type { Deadline } from "../../lib/deadline-plan";
 
-const props = defineProps<{ task: Deadline; anchorLabel: string }>();
+const props = defineProps<{
+  task: Deadline;
+  anchorLabel: string;
+  planSlug?: string;
+  planLabel?: string;
+}>();
 
 const anchorDate = ref("");
 
@@ -36,11 +41,19 @@ const inputId = `frist-anchor-${props.task.id}`;
         <span class="k">{{
           task.direction === "before" ? "Erledigt bis" : "Frist endet am"
         }}</span>
-        <span class="v mono" :class="{ late }">{{
+        <span class="v" :class="{ late }">{{
           formatDate(result.date!)
         }}</span>
       </p>
       <p v-if="late" class="warn">Dieser Termin liegt schon in der Vergangenheit.</p>
+      <a
+        v-if="planSlug"
+        class="cta"
+        :href="`/${planSlug}/?date=${anchorDate}`"
+      >
+        {{ planLabel ?? "Kompletten Plan" }} für diesen Termin öffnen
+        <ArrowRight :size="16" />
+      </a>
       <details v-if="result.derivation?.length" class="steps">
         <summary>Wie wird das gerechnet?</summary>
         <ol>
@@ -101,8 +114,8 @@ input {
   color: var(--muted);
 }
 .v {
-  font-family: var(--font-mono);
   font-size: var(--fs-lg);
+  font-weight: 600;
   color: var(--accent);
 }
 .v.late {
@@ -112,6 +125,11 @@ input {
   margin: 0.3rem 0 0;
   color: var(--warn);
   font-size: var(--fs-sm);
+}
+.cta {
+  margin-top: 1rem;
+  font-size: var(--fs-sm);
+  padding: 0.45rem 0.9rem;
 }
 .steps {
   margin-top: 0.7rem;

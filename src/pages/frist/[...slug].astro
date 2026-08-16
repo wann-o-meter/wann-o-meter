@@ -1,5 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import { CalendarPlus } from "@lucide/astro";
 import FristRechner from "../../components/FristRechner.vue";
 import { evaluateRule, nextOccurrence } from "../../../lib/calendar-rule";
 import { formatDate } from "../../../lib/format-date";
@@ -80,7 +81,7 @@ const structuredData = {
         <p class="eyebrow">
           {year ? `Steuerjahr ${year}` : "Als Nächstes fällig"}
         </p>
-        <p class="date mono">{formatDate(answer.date)}</p>
+        <p class="date">{formatDate(answer.date)}</p>
         <h1>{title}</h1>
         <p class="basis">
           Grundlage:{" "}
@@ -94,11 +95,19 @@ const structuredData = {
 
   {
     isAbsolute && answer && (
-      <ol class="steps">
-        {answer.derivation.map((s) => (
-          <li>{s.label}</li>
-        ))}
-      </ol>
+      <>
+        <ol class="steps">
+          {answer.derivation.map((s) => (
+            <li>{s.label}</li>
+          ))}
+        </ol>
+        <a
+          class="cta"
+          href={`/${fristPath(task.id, year ?? Number(answer.date.slice(0, 4)) - 1)}.ics`}
+        >
+          <CalendarPlus size={16} /> Termin in den Kalender
+        </a>
+      </>
     )
   }
 
@@ -127,6 +136,8 @@ const structuredData = {
         client:load
         task={task}
         anchorLabel={vorhaben?.anchorLabel ?? "Termin"}
+        planSlug={vorhaben?.slug}
+        planLabel={vorhaben?.label}
       />
     )
   }
@@ -156,9 +167,7 @@ const structuredData = {
             </li>
           ))}
         </ul>
-        <a class="cta" href={`/${vorhaben.slug}/`}>
-          Kompletten Plan öffnen
-        </a>
+        <a href={`/${vorhaben.slug}/`}>Alle Fristen im {vorhaben.label}-Plan</a>
       </nav>
     )
   }
@@ -192,8 +201,8 @@ const structuredData = {
   }
   .answer .date {
     margin: 0.2rem 0 0.6rem;
-    font-family: var(--font-mono);
-    font-size: 2.4rem;
+    font-size: 2.6rem;
+    font-weight: 600;
     line-height: 1.1;
     letter-spacing: -0.02em;
     color: var(--accent);
