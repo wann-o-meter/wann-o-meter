@@ -689,11 +689,11 @@ grey text under a chart. */
     box-shadow 0.18s;
 }
 .planner-header :deep(.timeline) {
-  --d-werktag: var(--paper);
+  --d-werktag: var(--paper-raised);
 }
 .compact .planner-header {
   padding: 0.45rem var(--wrap-pad, 0px);
-  background: var(--paper-raised);
+  background: var(--paper);
   box-shadow: var(--shadow-card);
 }
 

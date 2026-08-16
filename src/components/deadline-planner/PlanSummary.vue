@@ -122,9 +122,10 @@ const anchorIsSunday = computed(
   gap: 0.3rem;
   min-width: 0;
   margin: 0;
-  padding: 0.45rem 0.6rem;
-  background: var(--paper);
-  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.7rem;
+  background: var(--paper-raised);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
   color: var(--ink);
   text-decoration: none;
   transition:
@@ -132,7 +133,7 @@ const anchorIsSunday = computed(
     background 0.12s;
 }
 a.stat:hover {
-  background: color-mix(in srgb, var(--accent) 10%, var(--paper));
+  background: color-mix(in srgb, var(--accent) 8%, var(--paper-raised));
 }
 .row {
   display: flex;
@@ -169,7 +170,7 @@ a.stat:hover {
   display: block;
   height: 0.3rem;
   border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--ink) 14%, var(--paper));
+  background: color-mix(in srgb, var(--ink) 14%, var(--paper-raised));
   overflow: hidden;
 }
 .bar i {
