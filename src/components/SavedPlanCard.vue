@@ -169,7 +169,8 @@ const href = computed(() =>
   justify-content: space-between;
   gap: 0.6rem 1.2rem;
   height: 100%;
-  background: var(--paper-raised);
+  /* The visitor's own plan is the one card worth lifting off the page. */
+  background: var(--grad-card);
   border: 1px solid var(--line);
   border-left: 3px solid var(--anchor);
   border-radius: var(--radius);

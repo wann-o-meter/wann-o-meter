@@ -1,6 +1,16 @@
 <template>
   <div class="wom-start">
-    <TransitionGroup id="plaene" name="plan" tag="div" class="plans">
+    <section class="intro">
+      <h1>Damit dir keine Frist durchrutscht.</h1>
+      <p class="lede">
+        Wann-O-Meter rechnet jede Frist rückwärts von deinem Termin: mit dem
+        Datum, bis wann sie erledigt sein muss, <strong>mit Paragraf</strong>,
+        und mit den Feiertagen deines Bundeslands schon eingerechnet.
+      </p>
+    </section>
+
+    <h2 v-if="planCards.length > 0" id="plaene" class="q mine">Deine Pläne</h2>
+    <TransitionGroup name="plan" tag="div" class="plans">
       <SavedPlanCard
         v-for="card in planCards"
         :key="card.plan.slug"
@@ -18,15 +28,6 @@
         Plan erstellen
       </button>
     </TransitionGroup>
-
-    <section class="intro">
-      <h1>Damit dir keine Frist durchrutscht.</h1>
-      <p class="lede">
-        Wann-O-Meter rechnet jede Frist rückwärts von deinem Termin: mit dem
-        Datum, bis wann sie erledigt sein muss, <strong>mit Paragraf</strong>,
-        und mit den Feiertagen deines Bundeslands schon eingerechnet.
-      </p>
-    </section>
 
     <section class="step">
       <h2 class="q" id="q1">Plan erstellen</h2>
@@ -555,7 +556,11 @@ h1 {
 }
 
 /* Two plans fit side by side, four stack into two rows, one fills the row. */
+.mine {
+  margin-top: 2.5rem;
+}
 .plans {
+  margin-top: 0.75rem;
   display: grid;
   /* min() or the 22rem track stays 22rem on a narrower screen and the card
   pushes the page sideways. */

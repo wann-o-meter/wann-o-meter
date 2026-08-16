@@ -34,6 +34,18 @@
   --fs-md: 1rem;
   --fs-lg: 1.4rem;
   --fs-xl: 1.85rem;
+  /* Reserved for the few places worth lifting: the primary action and the
+  card that holds the visitor's own plan. Everything else stays flat. */
+  --grad-accent: linear-gradient(
+    135deg,
+    var(--accent),
+    color-mix(in srgb, var(--anchor) 55%, var(--accent))
+  );
+  --grad-card: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--anchor) 7%, var(--paper-raised)),
+    var(--paper-raised) 55%
+  );
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
@@ -196,21 +208,25 @@ Only for controls that hold a choice, everything else stays flat. */
   margin-top: 1.5rem;
   padding: 0.6rem 1.2rem;
   border-radius: var(--radius);
-  background: var(--accent);
+  background: var(--grad-accent);
   color: var(--accent-ink);
   font-size: var(--fs-md);
   font-weight: 600;
   text-decoration: none;
-  transition: background-color 0.15s;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--accent) 45%, transparent);
+  transition:
+    filter 0.15s,
+    box-shadow 0.15s;
 }
 .after-cta {
   margin: 0.8rem 0 0;
   font-size: var(--fs-sm);
   color: var(--muted);
 }
-/* Filled button: darken it, accent on accent would erase the label. */
+/* Filled button: deepen it, accent on accent would erase the label. */
 .cta:hover {
-  background: color-mix(in srgb, var(--accent) 88%, var(--ink));
+  filter: brightness(0.94);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 :focus-visible {
