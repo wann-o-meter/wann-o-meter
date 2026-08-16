@@ -13,6 +13,29 @@ deadlines:
     source_url: https://www.gesetze-im-internet.de/bgb/__573c.html
     source_label: § 573c BGB
     note: Schriftlich und unterschrieben, am besten per Einwurf-Einschreiben.
+  - id: umzugsurlaub-beantragen
+    label: Umzugsurlaub beim Arbeitgeber beantragen
+    offset_days: -60
+    source_url: null
+    note: >-
+      Manche Tarif- und Arbeitsverträge geben Sonderurlaub oder einen Zuschuss
+      zum Umzug. Steht nichts drin, ist es normaler Urlaub und der will früh
+      eingetragen sein.
+  - id: umzugsfirma-beauftragen
+    label: Umzugsfirma beauftragen oder Transporter reservieren
+    offset_days: -60
+    source_url: null
+    note: >-
+      Für ein verbindliches Angebot braucht die Firma einen Besichtigungstermin.
+      Zum Monatsende und zum Quartalswechsel sind die guten Termine als erstes
+      weg.
+  - id: schoenheitsreparaturen-planen
+    label: Schönheitsreparaturen in der alten Wohnung planen
+    offset_days: -60
+    source_url: null
+    note: >-
+      Was du zurückbauen und streichen musst, steht im Mietvertrag. Fachfirmen
+      sind zum Monatsende Wochen im Voraus ausgebucht, deshalb jetzt anfragen.
   - id: internetanbieter-kuendigen-ummelden
     label: Internetanbieter kündigen oder umziehen lassen
     offset_days: -42
@@ -30,6 +53,56 @@ deadlines:
     note: >-
       Die Anmeldefristen setzt jede Kommune selbst, Kita-Plätze sind oft ein
       halbes Jahr im Voraus vergeben.
+  - id: umzugskartons-besorgen
+    label: Umzugskartons und Packmaterial besorgen
+    offset_days: -28
+    source_url: null
+    note: >-
+      Kartons, Klebeband, Luftpolsterfolie, Decken und Tragegurte. Speditionen
+      verleihen Kartons oft günstiger, als der Kauf im Baumarkt kostet.
+  - id: packen-beginnen
+    label: Mit dem Packen anfangen
+    offset_days: -28
+    source_url: null
+    note: >-
+      Erst alles, was du bis zum Umzug nicht brauchst. Jeden Karton außen
+      beschriften, sonst suchst du nachher in der neuen Wohnung.
+  - id: wohnungsuebergabe-termin
+    label: Termin für die Wohnungsübergabe vereinbaren
+    offset_days: -28
+    source_url: null
+    note: >-
+      Dabei gleich klären, ob Nachmieter oder Vermieter Einbauküche und andere
+      Einbauten übernehmen oder ob du sie zurückbauen musst.
+  - id: handwerker-termine
+    label: Handwerkertermine für Ab- und Aufbau vereinbaren
+    offset_days: -28
+    source_url: null
+    note: >-
+      Waschmaschine, Herd und Einbauküche, in der alten und in der neuen
+      Wohnung. Wenn die Umzugsfirma das mitmacht, hier nur bestätigen lassen.
+  - id: bank-adresse-aendern
+    label: Bank über die neue Adresse informieren
+    offset_days: -21
+    source_url: null
+    note: >-
+      Adresse ändern, Daueraufträge für Miete anpassen und prüfen, ob die
+      Filiale am neuen Ort noch passt.
+  - id: finanzamt-informieren
+    label: Finanzamt über die neue Adresse informieren
+    offset_days: -21
+    source_url: null
+    note: >-
+      Innerhalb derselben Stadt reicht die nächste Steuererklärung. Bei einem
+      Umzug in eine andere Stadt schreibst du dem alten Finanzamt.
+  - id: vertraege-mitgliedschaften
+    label: Verträge und Mitgliedschaften ummelden
+    offset_days: -21
+    source_url: null
+    note: >-
+      Kfz-Versicherung (der Beitrag hängt am Wohnort), Vereine, Abos und
+      Online-Konten. Zeitschriften sendet die Post auch mit Nachsendeauftrag
+      nicht nach.
   - id: hausratversicherung-ummelden
     label: Hausratversicherung auf die neue Wohnung ummelden
     offset_days: -14
@@ -47,6 +120,70 @@ deadlines:
     note: Leitet Briefe an die neue Adresse weiter, solange nicht überall umgemeldet ist.
     offset_days: -14
     source_url: null
+  - id: gefriertruhe-leeren
+    label: Kühl- und Gefriergerät leer essen
+    offset_days: -14
+    source_url: null
+    note: >-
+      Abtauen braucht einen Tag, und Tiefgefrorenes übersteht keinen
+      Umzugstag im Transporter.
+  - id: helfer-und-zufahrt
+    label: Helfer, Nachbarn und Hausmeister informieren
+    offset_days: -7
+    source_url: null
+    note: >-
+      Freunde an den Termin erinnern, Handwerkertermine bestätigen lassen und
+      beim Hausmeister klären, dass Zufahrt und Aufzug frei sind.
+  - id: wertsachen-selbst-transportieren
+    label: Papiere, Bargeld und Schmuck getrennt packen
+    offset_days: -2
+    source_url: null
+    note: >-
+      Kommt nicht in den Umzugswagen, sondern in die eigene Tasche. Dazu ein
+      Koffer mit Kleidung, Waschzeug und Verpflegung für den Umzugstag.
+  - id: moebel-abbauen
+    label: Möbel abbauen
+    offset_days: -1
+    source_url: null
+    note: >-
+      Schrauben und Kleinteile in beschriftete Beutel, am besten direkt an das
+      Möbelstück geklebt. Übernimmt die Umzugsfirma das, entfällt der Schritt.
+  - id: kinder-haustiere-betreuen
+    label: Betreuung für Kinder und Haustiere organisieren
+    applies_if: [kinder, haustier_hund, haustier_katze]
+    offset_days: 0
+    source_url: null
+    no_source_needed: true # keine Frist, eine Aufgabe für den Umzugstag selbst
+    note: >-
+      Offene Türen, Treppenhaus und Träger sind für beide keine gute
+      Kombination. Am besten den ganzen Tag woanders.
+  - id: zaehlerstaende-ablesen
+    label: Zählerstände ablesen (Strom, Gas, Wasser)
+    note: Am besten mit Foto, damit die Schlussrechnung überprüfbar bleibt.
+    offset_days: 0
+    source_url: null
+    no_source_needed: true # keine Frist, sondern eine Aufgabe am Umzugstag selbst
+  - id: umzugsgut-protokoll
+    label: Umzugsgut auf Schäden prüfen
+    offset_days: 0
+    source_url: null
+    no_source_needed: true # keine Frist, das passiert beim Ver- und Ausladen
+    note: >-
+      Vor dem Verladen und nach dem Ausladen, Schäden sofort schriftlich
+      festhalten und vom Vorarbeiter gegenzeichnen lassen.
+  - id: uebergabeprotokoll
+    label: Übergabeprotokoll für die alte Wohnung unterschreiben
+    note: Hält Zustand, Mängel und Schlüsselzahl fest und ist die Grundlage für die Kaution.
+    offset_days: 0
+    source_url: null
+    no_source_needed: true # keine Frist, das Protokoll entsteht bei der Übergabe
+  - id: alte-wohnung-uebergeben
+    label: Alte Wohnung besenrein übergeben
+    offset_days: 2
+    source_url: null
+    note: >-
+      Reinigen, Namensschilder an Tür, Klingel und Briefkasten abnehmen,
+      Briefkasten leeren und alle Schlüssel abgeben.
   - id: ummeldung-einwohnermeldeamt
     label: Ummeldung beim Einwohnermeldeamt
     needs_office: true
@@ -68,18 +205,6 @@ deadlines:
       keine Tagesfrist, nur "unverzüglich" - 14 Tage ist die übliche
       Praxisempfehlung. Wer es liegen lässt, dem kann die Zulassungsbehörde den
       Betrieb des Fahrzeugs untersagen.
-  - id: zaehlerstaende-ablesen
-    label: Zählerstände ablesen (Strom, Gas, Wasser)
-    note: Am besten mit Foto, damit die Schlussrechnung überprüfbar bleibt.
-    offset_days: 0
-    source_url: null
-    no_source_needed: true # keine Frist, sondern eine Aufgabe am Umzugstag selbst
-  - id: uebergabeprotokoll
-    label: Übergabeprotokoll für die alte Wohnung unterschreiben
-    note: Hält Zustand, Mängel und Schlüsselzahl fest und ist die Grundlage für die Kaution.
-    offset_days: 0
-    source_url: null
-    no_source_needed: true # keine Frist, das Protokoll entsteht bei der Übergabe
   - id: hundesteuer-ummelden
     label: Hund bei der neuen Gemeinde zur Hundesteuer anmelden
     applies_if: [haustier_hund]
@@ -98,3 +223,10 @@ deadlines:
     offset_days: 14
     source_url: https://www.gesetze-bayern.de/Content/Document/RBeitrStV-8
     source_label: § 8 RBStV
+  - id: umzugskosten-steuer
+    label: Umzugsbelege für die Steuererklärung sammeln
+    offset_days: 30
+    source_url: null
+    note: >-
+      Rechnungen der Spedition, Kartons, Fahrtkosten und doppelte Miete.
+      Berufliche Umzüge sind absetzbar, private nur eingeschränkt.
