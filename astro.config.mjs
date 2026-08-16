@@ -26,9 +26,12 @@ function lastmodFor(url) {
   if (!lastmodCache.has(key)) {
     lastmodCache.set(
       key,
-      slug
-        ? lastCommitDate(`data/${slug}`, "data/vorhaben.yaml")
-        : lastCommitDate("data", "src/pages/index.astro"),
+      key === "frist"
+        ? // A Frist page is only as old as the task data and its template.
+        lastCommitDate("data", "src/pages/frist")
+        : slug
+          ? lastCommitDate(`data/${slug}`, "data/vorhaben.yaml")
+          : lastCommitDate("data", "src/pages/index.astro"),
     );
   }
   return lastmodCache.get(key);

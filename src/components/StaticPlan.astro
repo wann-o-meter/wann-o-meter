@@ -28,6 +28,11 @@ labels, notes and sources, so with JS this stays hidden. -->
           <h3>{d.label}</h3>
           {d.note && <p class="note">{d.note}</p>}
           <p class="src">
+            {d.kind !== "soft" && (
+              <a class="frist" href={`/frist/${d.id}/`}>
+                Frist im Detail
+              </a>
+            )}
             {d.source_url ? (
               <a href={d.source_url} rel="nofollow noopener">
                 {sourceLabel(d)}
@@ -83,5 +88,9 @@ labels, notes and sources, so with JS this stays hidden. -->
   }
   .flag.missing {
     color: var(--warn);
+  }
+  /* The task has a page of its own, this list only summarises it. */
+  .src .frist {
+    margin-right: 0.6rem;
   }
 </style>

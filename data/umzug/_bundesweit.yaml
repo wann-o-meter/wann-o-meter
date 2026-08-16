@@ -24,23 +24,23 @@ deadlines:
       Manche Tarif- und Arbeitsverträge geben Sonderurlaub oder einen Zuschuss
       zum Umzug. Steht nichts drin, ist es normaler Urlaub und der will früh
       eingetragen sein.
-  - id: umzugsfirma-beauftragen
-    kind: soft
-    label: Umzugsfirma beauftragen oder Transporter reservieren
-    offset_days: -60
-    source_url: null
-    note: >-
-      Für ein verbindliches Angebot braucht die Firma einen Besichtigungstermin.
-      Zum Monatsende und zum Quartalswechsel sind die guten Termine als erstes
-      weg.
-  - id: schoenheitsreparaturen-planen
-    kind: soft
-    label: Schönheitsreparaturen in der alten Wohnung planen
-    offset_days: -60
-    source_url: null
-    note: >-
-      Was du zurückbauen und streichen musst, steht im Mietvertrag. Fachfirmen
-      sind zum Monatsende Wochen im Voraus ausgebucht, deshalb jetzt anfragen.
+  # - id: umzugsfirma-beauftragen
+  #   kind: soft
+  #   label: Umzugsfirma beauftragen oder Transporter reservieren
+  #   offset_days: -60
+  #   source_url: null
+  #   note: >-
+  #     Für ein verbindliches Angebot braucht die Firma einen Besichtigungstermin.
+  #     Zum Monatsende und zum Quartalswechsel sind die guten Termine als erstes
+  #     weg.
+  # - id: schoenheitsreparaturen-planen
+  #   kind: soft
+  #   label: Schönheitsreparaturen in der alten Wohnung planen
+  #   offset_days: -60
+  #   source_url: null
+  #   note: >-
+  #     Was du zurückbauen und streichen musst, steht im Mietvertrag. Fachfirmen
+  #     sind zum Monatsende Wochen im Voraus ausgebucht, deshalb jetzt anfragen.
   - id: internetanbieter-kuendigen-ummelden
     kind: statutory-relative
     direction: before
@@ -61,22 +61,22 @@ deadlines:
     note: >-
       Die Anmeldefristen setzt jede Kommune selbst, Kita-Plätze sind oft ein
       halbes Jahr im Voraus vergeben.
-  - id: umzugskartons-besorgen
-    kind: soft
-    label: Umzugskartons und Packmaterial besorgen
-    offset_days: -28
-    source_url: null
-    note: >-
-      Kartons, Klebeband, Luftpolsterfolie, Decken und Tragegurte. Speditionen
-      verleihen Kartons oft günstiger, als der Kauf im Baumarkt kostet.
-  - id: packen-beginnen
-    kind: soft
-    label: Mit dem Packen anfangen
-    offset_days: -28
-    source_url: null
-    note: >-
-      Erst alles, was du bis zum Umzug nicht brauchst. Jeden Karton außen
-      beschriften, sonst suchst du nachher in der neuen Wohnung.
+  # - id: umzugskartons-besorgen
+  #   kind: soft
+  #   label: Umzugskartons und Packmaterial besorgen
+  #   offset_days: -28
+  #   source_url: null
+  #   note: >-
+  #     Kartons, Klebeband, Luftpolsterfolie, Decken und Tragegurte. Speditionen
+  #     verleihen Kartons oft günstiger, als der Kauf im Baumarkt kostet.
+  # - id: packen-beginnen
+  #   kind: soft
+  #   label: Mit dem Packen anfangen
+  #   offset_days: -28
+  #   source_url: null
+  #   note: >-
+  #     Erst alles, was du bis zum Umzug nicht brauchst. Jeden Karton außen
+  #     beschriften, sonst suchst du nachher in der neuen Wohnung.
   - id: wohnungsuebergabe-termin
     kind: soft
     label: Termin für die Wohnungsübergabe vereinbaren
@@ -85,47 +85,47 @@ deadlines:
     note: >-
       Dabei gleich klären, ob Nachmieter oder Vermieter Einbauküche und andere
       Einbauten übernehmen oder ob du sie zurückbauen musst.
-  - id: handwerker-termine
-    kind: soft
-    label: Handwerkertermine für Ab- und Aufbau vereinbaren
-    offset_days: -28
-    source_url: null
-    note: >-
-      Waschmaschine, Herd und Einbauküche, in der alten und in der neuen
-      Wohnung. Wenn die Umzugsfirma das mitmacht, hier nur bestätigen lassen.
-  - id: bank-adresse-aendern
-    kind: soft
-    label: Bank über die neue Adresse informieren
-    offset_days: -21
-    source_url: null
-    note: >-
-      Adresse ändern, Daueraufträge für Miete anpassen und prüfen, ob die
-      Filiale am neuen Ort noch passt.
-  - id: finanzamt-informieren
-    kind: soft
-    label: Finanzamt über die neue Adresse informieren
-    offset_days: -21
-    source_url: null
-    note: >-
-      Innerhalb derselben Stadt reicht die nächste Steuererklärung. Bei einem
-      Umzug in eine andere Stadt schreibst du dem alten Finanzamt.
-  - id: vertraege-mitgliedschaften
-    kind: soft
-    label: Verträge und Mitgliedschaften ummelden
-    offset_days: -21
-    source_url: null
-    note: >-
-      Kfz-Versicherung (der Beitrag hängt am Wohnort), Vereine, Abos und
-      Online-Konten. Zeitschriften sendet die Post auch mit Nachsendeauftrag
-      nicht nach.
-  - id: hausratversicherung-ummelden
-    kind: soft
-    label: Hausratversicherung auf die neue Wohnung ummelden
-    offset_days: -14
-    source_url: null
-    note: >-
-      Ohne Meldung deckt die Police im Zweifel die falsche Adresse. Wohnfläche
-      und Beitrag ändern sich meist mit.
+  # - id: handwerker-termine
+  #   kind: soft
+  #   label: Handwerkertermine für Ab- und Aufbau vereinbaren
+  #   offset_days: -28
+  #   source_url: null
+  #   note: >-
+  #     Waschmaschine, Herd und Einbauküche, in der alten und in der neuen
+  #     Wohnung. Wenn die Umzugsfirma das mitmacht, hier nur bestätigen lassen.
+  # - id: bank-adresse-aendern
+  #   kind: soft
+  #   label: Bank über die neue Adresse informieren
+  #   offset_days: -21
+  #   source_url: null
+  #   note: >-
+  #     Adresse ändern, Daueraufträge für Miete anpassen und prüfen, ob die
+  #     Filiale am neuen Ort noch passt.
+  # - id: finanzamt-informieren
+  #   kind: soft
+  #   label: Finanzamt über die neue Adresse informieren
+  #   offset_days: -21
+  #   source_url: null
+  #   note: >-
+  #     Innerhalb derselben Stadt reicht die nächste Steuererklärung. Bei einem
+  #     Umzug in eine andere Stadt schreibst du dem alten Finanzamt.
+  # - id: vertraege-mitgliedschaften
+  #   kind: soft
+  #   label: Verträge und Mitgliedschaften ummelden
+  #   offset_days: -21
+  #   source_url: null
+  #   note: >-
+  #     Kfz-Versicherung (der Beitrag hängt am Wohnort), Vereine, Abos und
+  #     Online-Konten. Zeitschriften sendet die Post auch mit Nachsendeauftrag
+  #     nicht nach.
+  # - id: hausratversicherung-ummelden
+  #   kind: soft
+  #   label: Hausratversicherung auf die neue Wohnung ummelden
+  #   offset_days: -14
+  #   source_url: null
+  #   note: >-
+  #     Ohne Meldung deckt die Police im Zweifel die falsche Adresse. Wohnfläche
+  #     und Beitrag ändern sich meist mit.
   - id: strom-gas-ummeldung
     kind: soft
     label: Strom- und Gasanbieter über den Umzug informieren
@@ -138,38 +138,38 @@ deadlines:
     note: Leitet Briefe an die neue Adresse weiter, solange nicht überall umgemeldet ist.
     offset_days: -14
     source_url: null
-  - id: gefriertruhe-leeren
-    kind: soft
-    label: Kühl- und Gefriergerät leer essen
-    offset_days: -14
-    source_url: null
-    note: >-
-      Abtauen braucht einen Tag, und Tiefgefrorenes übersteht keinen
-      Umzugstag im Transporter.
-  - id: helfer-und-zufahrt
-    kind: soft
-    label: Helfer, Nachbarn und Hausmeister informieren
-    offset_days: -7
-    source_url: null
-    note: >-
-      Freunde an den Termin erinnern, Handwerkertermine bestätigen lassen und
-      beim Hausmeister klären, dass Zufahrt und Aufzug frei sind.
-  - id: wertsachen-selbst-transportieren
-    kind: soft
-    label: Papiere, Bargeld und Schmuck getrennt packen
-    offset_days: -2
-    source_url: null
-    note: >-
-      Kommt nicht in den Umzugswagen, sondern in die eigene Tasche. Dazu ein
-      Koffer mit Kleidung, Waschzeug und Verpflegung für den Umzugstag.
-  - id: moebel-abbauen
-    kind: soft
-    label: Möbel abbauen
-    offset_days: -1
-    source_url: null
-    note: >-
-      Schrauben und Kleinteile in beschriftete Beutel, am besten direkt an das
-      Möbelstück geklebt. Übernimmt die Umzugsfirma das, entfällt der Schritt.
+  # - id: gefriertruhe-leeren
+  #   kind: soft
+  #   label: Kühl- und Gefriergerät leer essen
+  #   offset_days: -14
+  #   source_url: null
+  #   note: >-
+  #     Abtauen braucht einen Tag, und Tiefgefrorenes übersteht keinen
+  #     Umzugstag im Transporter.
+  # - id: helfer-und-zufahrt
+  #   kind: soft
+  #   label: Helfer, Nachbarn und Hausmeister informieren
+  #   offset_days: -7
+  #   source_url: null
+  #   note: >-
+  #     Freunde an den Termin erinnern, Handwerkertermine bestätigen lassen und
+  #     beim Hausmeister klären, dass Zufahrt und Aufzug frei sind.
+  # - id: wertsachen-selbst-transportieren
+  #   kind: soft
+  #   label: Papiere, Bargeld und Schmuck getrennt packen
+  #   offset_days: -2
+  #   source_url: null
+  #   note: >-
+  #     Kommt nicht in den Umzugswagen, sondern in die eigene Tasche. Dazu ein
+  #     Koffer mit Kleidung, Waschzeug und Verpflegung für den Umzugstag.
+  # - id: moebel-abbauen
+  #   kind: soft
+  #   label: Möbel abbauen
+  #   offset_days: -1
+  #   source_url: null
+  #   note: >-
+  #     Schrauben und Kleinteile in beschriftete Beutel, am besten direkt an das
+  #     Möbelstück geklebt. Übernimmt die Umzugsfirma das, entfällt der Schritt.
   - id: kinder-haustiere-betreuen
     kind: soft
     label: Betreuung für Kinder und Haustiere organisieren

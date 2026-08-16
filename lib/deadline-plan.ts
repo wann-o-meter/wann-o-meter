@@ -33,6 +33,9 @@ export const deadlineSchema = z
     // A Frist the statute fixes by itself, spelled out in yaml. Present exactly
     // on the tasks whose kind is statutory-absolute.
     rule: calendarRuleSchema.optional(),
+    // Give this task one page per year. Only makes sense where the answer
+    // actually moves from year to year, so only for a rule-fixed date.
+    year_pages: z.boolean().optional(),
     needs_office: z.boolean().optional(),
     earliest_offset_days: z.number().int().optional(),
     lead_time_days: z.number().int().positive().optional(),
@@ -50,6 +53,10 @@ export const deadlineSchema = z
   .refine((d) => (d.kind === "statutory-absolute") === (d.rule !== undefined), {
     message: "an absolute task is exactly one that carries a rule",
     path: ["rule"],
+  })
+  .refine((d) => !d.year_pages || d.rule !== undefined, {
+    message: "year pages need a rule, otherwise every year says the same thing",
+    path: ["year_pages"],
   });
 
 export type Deadline = z.infer<typeof deadlineSchema>;

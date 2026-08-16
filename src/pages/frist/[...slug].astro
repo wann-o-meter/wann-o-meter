@@ -1,0 +1,270 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import FristRechner from "../../components/FristRechner.vue";
+import { evaluateRule, nextOccurrence } from "../../../lib/calendar-rule";
+import { formatDate } from "../../../lib/format-date";
+import { offsetLabel, sourceLabel } from "../../../lib/offset-label";
+import { allFristTasks, fristPath, yearsFor } from "../../../lib/tasks";
+import { isoToday } from "../../../lib/today";
+
+export function getStaticPaths() {
+  return allFristTasks().flatMap(({ task, vorhaben }) => {
+    const base = {
+      path: fristPath(task.id),
+      params: { slug: `${task.id}` },
+      props: { task, vorhaben, year: null },
+    };
+    return [
+      base,
+      ...yearsFor(task).map((year) => ({
+        params: { slug: `${task.id}/${year}` },
+        props: { task, vorhaben, year },
+      })),
+    ];
+  });
+}
+
+const { task, vorhaben, year } = Astro.props;
+const isAbsolute = task.kind === "statutory-absolute";
+
+// The answer is only computed here for a date the statute fixes by itself. A
+// task that counts from the visitor's own date is worked out in the browser,
+// never baked into HTML that goes stale.
+const answer = isAbsolute
+  ? year
+    ? evaluateRule(task.rule!, year, "DE")
+    : nextOccurrence(task.rule!, isoToday(), "DE")
+  : null;
+
+const title = year
+  ? `${task.label} für ${year}: bis wann?`
+  : `${task.label}: welche Frist gilt?`;
+const description = isAbsolute
+  ? `${task.label}${year ? ` für ${year}` : ""}: Stichtag nach ${task.source_label ?? "Gesetz"}, mit Rechenweg.`
+  : `${task.label}: die Frist nach ${task.source_label ?? "Gesetz"}, erklärt und mit Rechner für deinen Termin.`;
+
+const siblings = (vorhaben?.variants[0]?.deadlines ?? []).filter(
+  (d) => d.id !== task.id && d.kind !== "soft",
+);
+
+const crumbs = [
+  { name: "Startseite", url: new URL("/", Astro.site).href },
+  { name: task.label, url: new URL(`/${fristPath(task.id)}/`, Astro.site).href },
+  ...(year
+    ? [
+      {
+        name: String(year),
+        url: new URL(`/${fristPath(task.id, year)}/`, Astro.site).href,
+      },
+    ]
+    : []),
+];
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: crumbs.map((c, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: c.name,
+    item: c.url,
+  })),
+};
+---
+
+<Layout title={title} description={description} structuredData={structuredData}>
+  <p class="back"><a href="/">&larr; Startseite</a></p>
+
+  {
+    isAbsolute && answer && (
+      <div class="answer">
+        <p class="eyebrow">
+          {year ? `Steuerjahr ${year}` : "Als Nächstes fällig"}
+        </p>
+        <p class="date mono">{formatDate(answer.date)}</p>
+        <h1>{title}</h1>
+        <p class="basis">
+          Grundlage:{" "}
+          <a href={task.source_url} rel="nofollow noopener">
+            {sourceLabel(task)}
+          </a>
+        </p>
+      </div>
+    )
+  }
+
+  {
+    isAbsolute && answer && (
+      <ol class="steps">
+        {answer.derivation.map((s) => (
+          <li>{s.label}</li>
+        ))}
+      </ol>
+    )
+  }
+
+  {
+    !isAbsolute && (
+      <>
+        <h1>{title}</h1>
+        <p class="rule">
+          <b>{offsetLabel(task, vorhaben?.anchorLabel ?? "Termin")}</b>{`, gerechnet vom ${vorhaben?.anchorLabel ?? "Termin"}.`}
+        </p>
+        <p class="basis">
+          Grundlage:{" "}
+          <a href={task.source_url} rel="nofollow noopener">
+            {sourceLabel(task)}
+          </a>
+        </p>
+      </>
+    )
+  }
+
+  {task.note && <p class="note">{task.note}</p>}
+
+  {
+    !isAbsolute && (
+      <FristRechner
+        client:load
+        task={task}
+        anchorLabel={vorhaben?.anchorLabel ?? "Termin"}
+      />
+    )
+  }
+
+  {
+    !isAbsolute && vorhaben && (
+      <p class="regionhint">
+        Gerechnet wird hier mit den bundesweiten Feiertagen. Im{" "}
+        <a href={`/${vorhaben.slug}/`}>vollständigen Plan</a> kannst du deinen Ort
+        angeben, dann zählen die Feiertage deines Bundeslands.
+      </p>
+    )
+  }
+
+  {
+    vorhaben && siblings.length > 0 && (
+      <nav class="bundle">
+        <h2>Gehört zu: {vorhaben.label}</h2>
+        <p class="lede">
+          Diese Frist steht nicht allein. Der Plan rechnet alle zusammen von
+          deinem {vorhaben.anchorLabel} zurück.
+        </p>
+        <ul>
+          {siblings.map((s) => (
+            <li>
+              <a href={`/${fristPath(s.id)}/`}>{s.label}</a>
+            </li>
+          ))}
+        </ul>
+        <a class="cta" href={`/${vorhaben.slug}/`}>
+          Kompletten Plan öffnen
+        </a>
+      </nav>
+    )
+  }
+
+  {
+    year && (
+      <p class="otheryears">
+        Andere Jahre:{" "}
+        {yearsFor(task)
+          .filter((y) => y !== year)
+          .map((y) => (
+            <a href={`/${fristPath(task.id, y)}/`}>{y}</a>
+          ))}
+      </p>
+    )
+  }
+</Layout>
+
+<style>
+  .back {
+    font-size: var(--fs-sm);
+  }
+  /* The date is the answer, so it comes before the question. */
+  .answer .eyebrow {
+    margin: 0;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .answer .date {
+    margin: 0.2rem 0 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 2.4rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+  }
+  .answer h1 {
+    margin: 0 0 0.5rem;
+    font-size: var(--fs-lg);
+  }
+  .basis {
+    margin: 0 0 1rem;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+  }
+  .rule {
+    max-width: 62ch;
+    font-size: var(--fs-md);
+  }
+  .rule b {
+    color: var(--ink);
+  }
+  .note {
+    max-width: 62ch;
+    color: var(--muted);
+  }
+  .steps {
+    max-width: 62ch;
+    margin: 0 0 2rem;
+    padding-left: 1.2rem;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+  }
+  .steps li {
+    margin-bottom: 0.3rem;
+  }
+  .regionhint {
+    max-width: 62ch;
+    margin-top: 1rem;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+  }
+  .bundle {
+    margin-top: 2.5rem;
+  }
+  .bundle .lede {
+    max-width: 62ch;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+  }
+  .bundle ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .bundle a {
+    font-size: var(--fs-sm);
+  }
+  .bundle li a {
+    display: inline-block;
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    padding: 0.4rem 0.9rem;
+    text-decoration: none;
+  }
+  .otheryears {
+    margin-top: 2rem;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .otheryears a {
+    margin-right: 0.6rem;
+  }
+</style>

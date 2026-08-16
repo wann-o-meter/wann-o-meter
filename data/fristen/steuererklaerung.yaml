@@ -17,6 +17,7 @@ deadlines:
       add_months: 7
       roll: next-working-day
       first_year: 2024
+    year_pages: true
     note: >-
       Gilt, wenn du ohne Steuerberater abgibst. Mit Beratung gilt § 149 Abs. 3
       AO und damit ein ganz anderer Termin.

@@ -56,6 +56,12 @@ const fallbackLabel = () =>
     </div>
 
     <p class="src">
+      <a
+        v-if="entry.kind !== 'soft'"
+        class="frist"
+        :href="`/frist/${entry.id}/`"
+        >Frist im Detail</a
+      >
       Grundlage:
       <a
         v-if="entry.source_url"
@@ -140,6 +146,9 @@ const fallbackLabel = () =>
   border-top: 1px solid var(--line);
   font-size: var(--fs-xs);
   color: var(--muted);
+}
+.src .frist {
+  margin-right: 0.6rem;
 }
 .src a {
   display: inline-flex;
