@@ -5,9 +5,6 @@
   teaser: Kündigung, Ummeldung, Halteverbot
   # backwards: the Fristen run up to the anchor, forwards: the clock starts there.
   direction: backwards
-  description: >-
-    Ort und Umzugstag eingeben, kompletten Rückwärts-Zeitplan mit Fristen sehen -
-    mit Wochenend- und Feiertagswarnung.
   vorhaben: Umzug innerhalb Deutschlands
   possessive: Dein
   anchorLabel: Umzugstag
@@ -23,9 +20,6 @@
   teaser: Elterngeld, Kindergeld, Urkunde
   direction: forwards
   titleSubject: Nach der Geburt
-  description: >-
-    Geburtstermin eingeben, Fristen für Geburtsanzeige, Elterngeld und Kindergeld
-    rückwärts geplant - mit Quelle.
   vorhaben: Geburt eines Kindes
   possessive: Deine
   anchorLabel: Geburtstermin
@@ -37,9 +31,6 @@
   label: Hochzeit
   teaser: Standesamt, Urkunden, Namen
   direction: backwards
-  description: >-
-    Hochzeitstermin eingeben, Anmeldung beim Standesamt, Dokumente und
-    Namensänderung rückwärts geplant.
   vorhaben: Standesamtliche Hochzeit
   possessive: Deine
   anchorLabel: Hochzeitstermin
@@ -53,9 +44,6 @@
   direction: backwards
   # The anchor as the title says it, after "vom".
   anchorDative: letzten Arbeitstag
-  description: >-
-    Letzten Arbeitstag eingeben, Kündigungsfrist und Arbeitsuchendmeldung
-    rückwärts geplant - mit Quelle.
   vorhaben: Jobwechsel
   possessive: Dein
   anchorLabel: Letzter Arbeitstag

@@ -6,10 +6,10 @@
 - [x] Retitle `/frist/` pages to the literal query with the number and §, e.g. `Ummeldung nach Umzug: 2 Wochen Frist (§ 17 BMG)`
 - [x] Retitle hub pages by direction: `Umzug: 15 Fristen rückwärts vom Umzugstag` / `Nach der Geburt: 5 Fristen, die erste nach 7 Tagen`
 - [x] Add a `direction` flag (backwards/forwards) per Vorhaben to drive the title template
-- [ ] Rewrite meta descriptions to state outcomes with numbers; derive location descriptions from local data, not a template
+- [x] Rewrite meta descriptions to state outcomes with numbers; derive location descriptions from local data, not a template
 - [x] Fix the passed-year `.ics` example on `/api/`
 - [x] Collapse robots.txt to a single `User-agent: *` group
-- [ ] Build client-side full-timeline `.ics` export: all deadlines from the user's date, `VALARM` a few days before, § in the `DESCRIPTION`
+- [x] Build client-side full-timeline `.ics` export: all deadlines from the user's date, `VALARM` a few days before, § in the `DESCRIPTION`
 - [x] Add a `@media print` stylesheet (also gives PDF export free via the browser)
 - [ ] Accessibility pass: semantic HTML, ARIA labels, focus states, keyboard nav, WCAG AA contrast
 - [ ] Add `<input type="date">` if not already, and audit mobile touch targets

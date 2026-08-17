@@ -6,6 +6,9 @@ export interface IcsEvent {
   title: string;
   description?: string;
   url?: string;
+  // Days before the date a reminder should fire. A Frist you read about on the
+  // due date is a Frist you missed.
+  alarmDays?: number;
 }
 
 function toIcsDate(iso: string): string {
@@ -54,6 +57,15 @@ export function generateIcs(events: IcsEvent[], calendarName: string): string {
     );
     if (e.description) lines.push(`DESCRIPTION:${escapeText(e.description)}`);
     if (e.url) lines.push(`URL:${e.url}`);
+    if (e.alarmDays) {
+      lines.push(
+        "BEGIN:VALARM",
+        "ACTION:DISPLAY",
+        `TRIGGER:-P${e.alarmDays}D`,
+        `DESCRIPTION:${escapeText(e.title)}`,
+        "END:VALARM",
+      );
+    }
     lines.push("END:VEVENT");
   }
   lines.push("END:VCALENDAR");

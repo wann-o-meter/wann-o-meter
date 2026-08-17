@@ -1,5 +1,6 @@
 import { BUNDESWEIT_SLUG, loadAllVorhaben } from "./vorhaben-data";
 import { appliesTo } from "./facets";
+import { durationLabel } from "./offset-label";
 import type { VorhabenData, VorhabenVariant } from "./vorhaben-data";
 
 interface VorhabenRoute {
@@ -35,8 +36,9 @@ function shown(variant: VorhabenVariant) {
   return variant.deadlines.filter((d) => appliesTo(d, []));
 }
 
-function days(n: number): string {
-  return n === 1 ? "1 Tag" : `${n} Tagen`;
+// "3 Monate" reads as "nach 3 Monaten" once a preposition takes the dative.
+function dative(amount: string): string {
+  return amount.endsWith("e") ? `${amount}n` : amount;
 }
 
 // The title says what the page answers: how many Fristen, and which way they
@@ -53,9 +55,36 @@ function planTitle(
       .map((d) => d.offset_days)
       .filter((o): o is number => o !== null && o > 0);
     if (after.length === 0) return `${subject}: ${count}`;
-    return `${subject}: ${count}, die erste nach ${days(Math.min(...after))}`;
+    return `${subject}: ${count}, die erste nach ${dative(durationLabel(Math.min(...after)))}`;
   }
   return `${subject}: ${count} rückwärts vom ${v.anchorDative ?? v.anchorLabel}`;
+}
+
+// What the page delivers, in numbers taken from the plan itself. A description
+// that counts its own Fristen cannot promise a step the page does not have.
+function planDescription(v: VorhabenData, variant: VorhabenVariant): string {
+  const entries = shown(variant);
+  const count = `${entries.length} ${entries.length === 1 ? "Frist" : "Fristen"}`;
+  const offsets = entries
+    .map((d) => d.offset_days)
+    .filter((o): o is number => o !== null && o !== 0);
+  const local = variant.localDeadlines.map((d) => d.label.split(" ")[0]);
+  const where = local.length > 0 ? ` In ${variant.label} dazu: ${local.join(", ")}.` : "";
+
+  if (v.direction === "forwards") {
+    const after = offsets.filter((o) => o > 0);
+    const first =
+      after.length > 0 ? `, die erste nach ${dative(durationLabel(Math.min(...after)))}` : "";
+    // Only the first letter drops its capital, the noun after it keeps its own.
+    const subject = v.titleSubject
+      ? v.titleSubject[0].toLowerCase() + v.titleSubject.slice(1)
+      : `nach ${v.anchorName}`;
+    return `${count} ${subject}${first}. Termin eingeben und jede Frist mit Datum, Quelle und Kalender-Export bekommen.${where}`;
+  }
+  const before = offsets.filter((o) => o < 0).map((o) => -o);
+  const start =
+    before.length > 0 ? `, die früheste ${durationLabel(Math.max(...before))} vorher` : "";
+  return `${count} rückwärts vom ${v.anchorDative ?? v.anchorLabel}${start}. Mit Quelle, Feiertagen deines Bundeslands und Kalender-Export.${where}`;
 }
 
 export function vorhabenRoutes(): VorhabenRoute[] {
@@ -65,7 +94,7 @@ export function vorhabenRoutes(): VorhabenRoute[] {
       v,
       variant: defaultVariant(v),
       title: planTitle(v, defaultVariant(v), v.titleSubject ?? v.label),
-      description: v.description,
+      description: planDescription(v, defaultVariant(v)),
       noindex: false,
     };
     const local = v.variants.filter((x) => x.slug !== BUNDESWEIT_SLUG);
@@ -77,7 +106,7 @@ export function vorhabenRoutes(): VorhabenRoute[] {
         v,
         variant,
         title: planTitle(v, variant, `${v.label} in ${variant.label}`),
-        description: `${v.label} in ${variant.label}: alle Fristen rückwärts vom ${v.anchorDative ?? v.anchorLabel} geplant, mit Quelle - inklusive der örtlichen Schritte.`,
+        description: planDescription(v, variant),
         noindex: !shouldIndex(variant),
       })),
     ];

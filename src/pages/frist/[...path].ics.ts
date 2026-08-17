@@ -29,6 +29,7 @@ export const GET: APIRoute = ({ props, site }) => {
         title: `${task.label} (${year})`,
         description: [task.source_label, task.note].filter(Boolean).join(" - "),
         url: new URL(`/${fristPath(task.id, year)}/`, site).href,
+        alarmDays: 3,
       },
     ],
     `${task.label} ${year}`,

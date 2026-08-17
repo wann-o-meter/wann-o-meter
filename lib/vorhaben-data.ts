@@ -44,7 +44,6 @@ const vorhabenSchema = z.object({
   titleSubject: z.string().optional(),
   // The anchor as a title says it after "vom", where the label does not fit.
   anchorDative: z.string().optional(),
-  description: z.string(),
   vorhaben: z.string(),
   anchorLabel: z.string(),
   anchorName: z.string(),
