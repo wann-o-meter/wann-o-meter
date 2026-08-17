@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { Download, Link2, Printer } from "lucide-vue-next";
+import { Bookmark, BookmarkCheck, Download, Link2, Printer } from "lucide-vue-next";
 import { downloadIcs } from "../../../lib/ics-download";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
 
@@ -9,7 +9,10 @@ const props = defineProps<{
   anchorDate: string;
   calendarName: string;
   fileSlug: string;
+  kept: boolean;
 }>();
+
+defineEmits<{ (e: "toggleKept"): void }>();
 
 const linkCopied = ref(false);
 async function copyPlanLink() {
@@ -36,6 +39,10 @@ const print = () => window.print();
   <div class="actions">
     <h2 class="section">Plan mitnehmen</h2>
     <div class="actions-buttons">
+      <button type="button" :aria-pressed="kept" @click="$emit('toggleKept')">
+        <component :is="kept ? BookmarkCheck : Bookmark" :size="14" />
+        {{ kept ? "Plan nicht mehr merken" : "Plan merken" }}
+      </button>
       <button type="button" @click="copyPlanLink">
         <Link2 :size="14" />
         {{ linkCopied ? "Kopiert" : "Plan-Link kopieren" }}

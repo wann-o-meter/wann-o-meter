@@ -18,6 +18,7 @@ import {
   Eye,
   ListPlus,
   Plus,
+  Search,
   X,
 } from "lucide-vue-next";
 import Timeline from "./deadline-planner/Timeline.vue";
@@ -291,6 +292,25 @@ const openNodes = computed(() => {
   return out;
 });
 
+// A plan can run to twenty tasks, so finding one by name beats scrolling.
+const searchOpen = ref(false);
+const taskQuery = ref("");
+const searchEl = useTemplateRef<HTMLInputElement>("searchEl");
+function toggleSearch() {
+  searchOpen.value = !searchOpen.value;
+  if (searchOpen.value) nextTick(() => searchEl.value?.focus());
+  else taskQuery.value = "";
+}
+// While filtering the rail is a list, not a timeline: a gap between two tasks
+// that are no longer neighbours would measure nothing.
+const shownNodes = computed(() => {
+  const q = taskQuery.value.trim().toLowerCase();
+  if (!q) return openNodes.value;
+  return openNodes.value.filter(
+    (n) => n.kind === "item" && n.entry.label.toLowerCase().includes(q),
+  );
+});
+
 const hoveredId = ref<string | null>(null);
 let flashTimer: ReturnType<typeof setTimeout> | undefined;
 function onTimelineSelect(id: string) {
@@ -500,10 +520,32 @@ onBeforeUnmount(() => {
         </div>
       </fieldset>
 
-      <h2 class="section">Aufgaben</h2>
+      <h2 class="section">
+        Aufgaben
+        <button
+          type="button"
+          class="task-search-toggle"
+          :aria-expanded="searchOpen"
+          aria-label="Aufgaben durchsuchen"
+          @click="toggleSearch"
+        >
+          <Search :size="14" />
+        </button>
+      </h2>
+      <input
+        v-if="searchOpen"
+        ref="searchEl"
+        v-model="taskQuery"
+        type="search"
+        class="task-search"
+        placeholder="Aufgabe suchen"
+      />
+      <p v-if="taskQuery && shownNodes.length === 0" class="hint">
+        Keine Aufgabe passt zu „{{ taskQuery }}".
+      </p>
       <div ref="railEl">
         <TaskRail
-          :nodes="openNodes"
+          :nodes="shownNodes"
           :anchor-date="anchorDate"
           :hovered-id="activeId"
           :store="store"
@@ -557,21 +599,13 @@ onBeforeUnmount(() => {
         </ul>
       </div>
 
-      <button
-        type="button"
-        class="save save-end"
-        :aria-pressed="kept"
-        @click="toggleKept"
-      >
-        <component :is="kept ? BookmarkCheck : Bookmark" :size="16" />
-        {{ kept ? "Plan nicht mehr merken" : "Plan merken" }}
-      </button>
-
       <PlanActions
         :entries="timeline"
         :anchor-date="anchorDate"
         :calendar-name="calendarName"
         :file-slug="fileSlug"
+        :kept="kept"
+        @toggle-kept="toggleKept"
       />
     </template>
     <p v-else class="hint">
@@ -664,13 +698,6 @@ grey text under a chart. */
   }
 }
 
-.save-end {
-  display: flex;
-  width: 100%;
-  justify-content: center;
-  margin-top: 1.5rem;
-  padding: 0.6rem;
-}
 .overview {
   max-width: 62ch;
   margin: 0 0 1rem;
@@ -835,6 +862,17 @@ not push it off the screen. */
   margin: 0;
 }
 
+.task-search-toggle {
+  margin-left: 0.4rem;
+  padding: 0.15rem 0.3rem;
+  vertical-align: middle;
+  color: var(--muted);
+}
+.task-search {
+  width: 100%;
+  max-width: 22rem;
+  margin-bottom: 0.75rem;
+}
 .section {
   scroll-margin-top: calc(var(--tl-header-h, 0px) + 1rem);
   font-size: var(--fs-sm);

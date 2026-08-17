@@ -1,5 +1,5 @@
-- [ ] add a small search icon to the plan tasks, directly next to "Aufgaben" and add a filter for the tasks that shows up when clicking the button
-- [ ] move the "Plan merken" on the bottom into the card
+- [x] add a small search icon to the plan tasks, directly next to "Aufgaben" and add a filter for the tasks that shows up when clicking the button
+- [x] move the "Plan merken" on the bottom into the card
 - [x] Replace `?from=umzug` from timeline links and use `document.referrer` instead
 - [x] Build a `/frist/` index: all 11 Fristen with § and length as monospace values, grouped by Lebensereignis
 - [x] Add "Diese Frist gehört zu: …" parent links + breadcrumb on each `/frist/` page (this is what makes `?from=` unnecessary)
