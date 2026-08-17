@@ -1,5 +1,10 @@
 deadlines:
   - id: kfz-ummeldung
+    authority: Zulassungsbehörde am neuen Wohnsitz
+    documents:
+      - Zulassungsbescheinigung Teil I
+      - Zulassungsbescheinigung Teil II
+    checked_on: 2026-08-18
     tags: [auto, zulassung, kennzeichen, fahrzeug]
     kind: statutory-relative
     direction: after

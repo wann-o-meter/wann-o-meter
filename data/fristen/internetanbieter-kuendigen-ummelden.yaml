@@ -1,5 +1,6 @@
 deadlines:
   - id: internetanbieter-kuendigen-ummelden
+    checked_on: 2026-08-18
     tags: [wohnen, internet, dsl, telefon, vertrag]
     kind: statutory-relative
     direction: before

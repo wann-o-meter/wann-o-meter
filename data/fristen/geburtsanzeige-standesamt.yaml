@@ -1,5 +1,7 @@
 deadlines:
   - id: geburtsanzeige-standesamt
+    authority: Standesamt am Geburtsort
+    checked_on: 2026-08-18
     tags: [familie, geburt, standesamt, urkunde]
     kind: statutory-relative
     direction: after

@@ -1,5 +1,6 @@
 deadlines:
   - id: elterngeld-beantragen
+    checked_on: 2026-08-18
     tags: [familie, elternzeit, antrag, elterngeld]
     kind: statutory-relative
     direction: after

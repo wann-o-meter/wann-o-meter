@@ -1,5 +1,6 @@
 deadlines:
   - id: kuendigungsfrist-pruefen
+    checked_on: 2026-08-18
     tags: [arbeit, job, kündigung, arbeitsvertrag]
     kind: statutory-relative
     direction: before

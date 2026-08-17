@@ -25,7 +25,15 @@ const fallbackLabel = () =>
           </li>
         </ol>
       </details>
+      <details v-if="entry.documents?.length" class="derivation">
+        <summary>Was brauche ich dafür?</summary>
+        <ul>
+          <li v-for="doc in entry.documents" :key="doc">{{ doc }}</li>
+        </ul>
+      </details>
     </div>
+
+    <p v-if="entry.authority" class="where">Wo? {{ entry.authority }}</p>
 
     <p class="src">
       <a
@@ -65,6 +73,11 @@ const fallbackLabel = () =>
 @media (min-width: 40rem) {
   }
 
+.where {
+  margin: 0.4rem 0 0;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
 .derivation {
   font-size: var(--fs-xs);
   color: var(--muted);

@@ -72,6 +72,15 @@ export const deadlineSchema = z
     // wrote: scripts/gesetze.mjs refuses to generate if the Satz is not there.
     emphasize: z.record(z.string(), z.array(z.number().int().positive())).optional(),
     needs_office: z.boolean().optional(),
+    // Which office does this. Only ever the one the statute names, or the one a
+    // Gemeinde names for itself. A guessed authority sends someone to the wrong
+    // counter, so an unknown one stays empty.
+    authority: z.string().optional(),
+    // What to bring, from the statute or from the office's own list.
+    documents: z.array(z.string()).optional(),
+    // When a person last held this entry against its source. Not the same as
+    // the file's git date, which moves on a typo too.
+    checked_on: z.iso.date().optional(),
     earliest_offset_days: z.number().int().optional(),
     lead_time_days: z.number().int().positive().optional(),
     lead_time_source: z.string().optional(),

@@ -1,0 +1,91 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { formatDate } from "../../lib/format-date";
+import { dataChanges } from "../../lib/git-dates";
+import { allFristTasks, fristPath } from "../../lib/tasks";
+
+// The history of the data, straight from git. Nobody writes this list, so it
+// cannot claim a change that did not happen or hide one that did.
+const labels = new Map(allFristTasks().map(({ task }) => [task.id, task.label]));
+
+function fristIdOf(file: string): string | null {
+  const m = file.match(/^data\/fristen\/([^/.]+)\./);
+  return m && labels.has(m[1]) ? m[1] : null;
+}
+
+const changes = dataChanges(60).map((c) => ({
+  ...c,
+  fristen: [...new Set(c.files.map(fristIdOf).filter((id) => id !== null))],
+}));
+
+const title = "Änderungen an den Fristen";
+const description =
+  "Jede Änderung an den Fristen und ihren Quellen, mit Datum, direkt aus der Versionsgeschichte.";
+---
+
+<Layout title={title} description={description}>
+  <nav class="crumbs" aria-label="Brotkrumen">
+    <a href="/">Startseite</a>
+    <span aria-hidden="true"> &rsaquo; </span>
+    <span aria-current="page">Änderungen</span>
+  </nav>
+  <h1>{title}</h1>
+  <p class="lede">
+    Diese Liste kommt aus der Versionsgeschichte des Projekts. Jeder Eintrag ist
+    eine Änderung an den Daten hinter den Seiten, nicht an ihrem Aussehen.
+  </p>
+
+  <ol class="changes">
+    {
+      changes.map((c) => (
+        <li>
+          <time datetime={c.date}>{formatDate(c.date.slice(0, 10))}</time>
+          <p class="subject">{c.subject}</p>
+          {c.fristen.length > 0 && (
+            <p class="which">
+              {c.fristen.map((id, i) => (
+                <>
+                  {i > 0 && <span aria-hidden="true"> &middot; </span>}
+                  <a href={`/${fristPath(id)}/`}>{labels.get(id)}</a>
+                </>
+              ))}
+            </p>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</Layout>
+
+<style>
+  .crumbs {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .lede {
+    max-width: 62ch;
+    color: var(--muted);
+  }
+  .changes {
+    list-style: none;
+    padding: 0;
+    max-width: 62ch;
+  }
+  .changes li {
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .changes time {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .subject {
+    margin: 0.2rem 0 0;
+  }
+  .which {
+    margin: 0.3rem 0 0;
+    font-size: var(--fs-sm);
+  }
+</style>

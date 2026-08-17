@@ -16,9 +16,9 @@
 - [ ] Build `/einbetten/`: iframe + script-tag options, CSS custom property theming, `noindex, follow` on all `/embed/` routes, excluded from sitemap
 - [ ] Write the privacy section for `/einbetten/` — no cookies, no third-party assets, hosting chain named, AVV-Muster ready to send
 - [ ] Add a static-image fallback for embedders whose CMS strips iframes
-- [ ] Add `geprueft_am` per Frist; render inline as "Stand: …" and derive an `/aenderungen/` page from git history
-- [ ] Add a `Wo?` field (responsible authority per task) — this is the per-Gemeinde fact that unlocks city page indexing
-- [ ] Add a `Benötigte Unterlagen` field per task
+- [x] Add `geprueft_am` per Frist; render inline as "Stand: …" and derive an `/aenderungen/` page from git history
+- [x] Add a `Wo?` field (responsible authority per task) — this is the per-Gemeinde fact that unlocks city page indexing
+- [x] Add a `Benötigte Unterlagen` field per task
 - [ ] Implement `shouldIndex(ort)` gated on ≥1 Gemeinde-level fact; `noindex, follow`; same function drives sitemap exclusion
 - [ ] Keep text-similarity checking as a CI warning only, never wired to meta robots
 - [ ] Keep plan state in the URL fragment; do not create a `/plan/` page or query-param plan URLs

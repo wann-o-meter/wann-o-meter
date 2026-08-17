@@ -1,5 +1,7 @@
 deadlines:
   - id: kindergeld-beantragen
+    authority: Familienkasse
+    checked_on: 2026-08-18
     tags: [familie, familienkasse, antrag, kindergeld]
     kind: statutory-relative
     direction: after

@@ -1,5 +1,7 @@
 deadlines:
   - id: arbeitsuchend-melden
+    authority: Agentur für Arbeit
+    checked_on: 2026-08-18
     tags: [arbeit, job, arbeitsagentur, arbeitslos]
     kind: statutory-relative
     direction: before

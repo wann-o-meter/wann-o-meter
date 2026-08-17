@@ -1,5 +1,10 @@
 deadlines:
   - id: ummeldung-einwohnermeldeamt
+    authority: Meldebehörde der neuen Gemeinde
+    documents:
+      - Personalausweis oder Reisepass
+      - Wohnungsgeberbestätigung des Vermieters
+    checked_on: 2026-08-18
     tags: [wohnen, anmeldung, bürgeramt, meldepflicht, adresse]
     kind: statutory-relative
     direction: after

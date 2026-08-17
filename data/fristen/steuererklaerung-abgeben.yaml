@@ -2,6 +2,7 @@
 # visitor enters moves it. Where these get their own page is Phase 3.
 deadlines:
   - id: steuererklaerung-abgeben
+    checked_on: 2026-08-18
     kind: statutory-absolute
     direction: after
     label: Steuererklärung abgeben

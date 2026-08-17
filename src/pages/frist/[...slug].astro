@@ -197,6 +197,31 @@ const structuredData = {
   {task.note && <p class="note">{task.note}</p>}
 
   {
+    (task.authority || task.documents) && (
+      <dl class="facts">
+        {task.authority && (
+          <>
+            <dt>Wo?</dt>
+            <dd>{task.authority}</dd>
+          </>
+        )}
+        {task.documents && (
+          <>
+            <dt>Benötigte Unterlagen</dt>
+            <dd>
+              <ul>
+                {task.documents.map((d) => (
+                  <li>{d}</li>
+                ))}
+              </ul>
+            </dd>
+          </>
+        )}
+      </dl>
+    )
+  }
+
+  {
     year && answer && isPast(answer.date) && (
       <p class="expired">
         Dieser Stichtag ist vorbei. Der nächste steht auf{" "}
@@ -314,14 +339,24 @@ const structuredData = {
 
   <p class="stand">
     {
-      updated && (
+      task.checked_on && (
         <>
           Stand:{" "}
-          <time datetime={updated}>{formatDate(updated.slice(0, 10))}</time>. So
-          alt ist die Angabe auf dieser Seite, nicht das Gesetz dahinter.{" "}
+          <time datetime={task.checked_on}>{formatDate(task.checked_on)}</time>,
+          an dem Tag zuletzt gegen den Gesetzestext gehalten.{" "}
         </>
       )
     }
+    {
+      updated && (
+        <>
+          Zuletzt geändert am{" "}
+          <time datetime={updated}>{formatDate(updated.slice(0, 10))}</time>.{" "}
+        </>
+      )
+    }
+    <a href="/aenderungen/">Alle Änderungen</a>
+    <span aria-hidden="true"> &middot; </span>
     <a href="/impressum/#ki">Wie diese Seite entsteht</a>
   </p>
 
@@ -385,6 +420,23 @@ const structuredData = {
   .note {
     max-width: 62ch;
     color: var(--muted);
+  }
+  .facts {
+    max-width: 62ch;
+    margin: 1.2rem 0;
+  }
+  .facts dt {
+    font-size: var(--fs-xs);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .facts dd {
+    margin: 0.2rem 0 0.9rem;
+  }
+  .facts ul {
+    margin: 0;
+    padding-left: 1.2rem;
   }
   .steps {
     max-width: 62ch;

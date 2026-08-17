@@ -7,6 +7,50 @@ import { execFileSync } from "node:child_process";
 // Node only: reads the repo at build time. Never import this from an island.
 const cache = new Map<string, string | undefined>();
 
+export interface DataChange {
+  date: string;
+  subject: string;
+  files: string[];
+}
+
+// Every commit that touched the data, so a visitor can see what moved and when
+// without a changelog anyone has to write by hand.
+export function dataChanges(limit = 50): DataChange[] {
+  let out = "";
+  try {
+    out = execFileSync(
+      "git",
+      [
+        "log",
+        `-${limit}`,
+        "--no-show-signature",
+        "--name-only",
+        // A NUL starts every commit, so the file list below it cannot be
+        // confused with the next subject line.
+        "--format=%x00%cI %s",
+        "--",
+        "data",
+      ],
+      { encoding: "utf-8" },
+    );
+  } catch {
+    return [];
+  }
+  return out
+    .split("\0")
+    .slice(1)
+    .map((block) => {
+      const [head, ...rest] = block.split("\n");
+      const cut = head.indexOf(" ");
+      return {
+        date: head.slice(0, cut),
+        subject: head.slice(cut + 1),
+        files: rest.filter((f) => f.startsWith("data/")),
+      };
+    })
+    .filter((c) => c.files.length > 0);
+}
+
 export function lastChanged(...paths: string[]): string | undefined {
   const key = paths.join("\0");
   if (!cache.has(key)) {
