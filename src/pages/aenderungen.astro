@@ -23,7 +23,9 @@ const description =
   "Jede Änderung an den Fristen und ihren Quellen, mit Datum, direkt aus der Versionsgeschichte.";
 ---
 
-<Layout title={title} description={description}>
+<!-- A log of commits is nothing to rank for, and it would compete with the
+Frist pages it links to. It keeps its links: noindex, follow. -->
+<Layout title={title} description={description} noindex>
   <nav class="crumbs" aria-label="Brotkrumen">
     <a href="/">Startseite</a>
     <span aria-hidden="true"> &rsaquo; </span>

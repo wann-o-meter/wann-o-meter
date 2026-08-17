@@ -25,4 +25,4 @@
 - [ ] For Schwangerschaft build SSW→Datum
 - [ ] Add `errechneter Entbindungstermin` as a second anchor for Geburt if building the pregnancy surface
 - [x] Add a PWA manifest for home-screen install; no service worker (stale law offline is worse than no offline)
-- [ ] Add no-index to /aenderungen
+- [x] Add no-index to /aenderungen

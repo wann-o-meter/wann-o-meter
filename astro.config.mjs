@@ -34,6 +34,7 @@ export default defineConfig({
       // place page without a local fact is noindex and stays out of here too.
       filter: (page) =>
         !page.includes("/feedback/") &&
+        !page.includes("/aenderungen/") &&
         !noindexPaths().some((path) => new URL(page).pathname === path),
       serialize(item) {
         const lastmod = lastChanged(...sourcesFor(item.url));
