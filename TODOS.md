@@ -19,9 +19,10 @@
 - [x] Add `geprueft_am` per Frist; render inline as "Stand: …" and derive an `/aenderungen/` page from git history
 - [x] Add a `Wo?` field (responsible authority per task) — this is the per-Gemeinde fact that unlocks city page indexing
 - [x] Add a `Benötigte Unterlagen` field per task
-- [ ] Implement `shouldIndex(ort)` gated on ≥1 Gemeinde-level fact; `noindex, follow`; same function drives sitemap exclusion
-- [ ] Keep text-similarity checking as a CI warning only, never wired to meta robots
+- [x] Implement `shouldIndex(ort)` gated on ≥1 Gemeinde-level fact; `noindex, follow`; same function drives sitemap exclusion
+- [x] Keep text-similarity checking as a CI warning only, never wired to meta robots (standing constraint: no such check exists, and `shouldIndex` decides indexing on local facts instead)
 - [ ] Keep plan state in the URL fragment; do not create a `/plan/` page or query-param plan URLs
 - [ ] For Schwangerschaft build SSW→Datum
 - [ ] Add `errechneter Entbindungstermin` as a second anchor for Geburt if building the pregnancy surface
 - [x] Add a PWA manifest for home-screen install; no service worker (stale law offline is worse than no offline)
+- [ ] Add no-index to /aenderungen

@@ -64,6 +64,9 @@ export interface VorhabenVariant {
   label: string;
   regionCode?: string;
   deadlines: Deadline[];
+  // The ones this place adds to the bundesweit plan. What makes the page worth
+  // its own url, so indexing is decided on it.
+  localDeadlines: Deadline[];
 }
 
 export interface VorhabenData extends Vorhaben {
@@ -97,6 +100,7 @@ function loadVorhaben(slug: string): VorhabenData | null {
         label: doc.name,
         regionCode: doc.state,
         deadlines: own([...bundesweit.deadlines, ...doc.deadlines]),
+        localDeadlines: own(doc.deadlines),
       };
     })
     .sort((a, b) => a.label.localeCompare(b.label, "de"));
@@ -104,7 +108,12 @@ function loadVorhaben(slug: string): VorhabenData | null {
   // Bundesweit is always a variant: a place without its own file still needs a
   // plan, and the Feiertage of its Bundesland come from the region parameter.
   const variants = [
-    { slug: BUNDESWEIT_SLUG, label: "Bundesweit", deadlines: own(bundesweit.deadlines) },
+    {
+      slug: BUNDESWEIT_SLUG,
+      label: "Bundesweit",
+      deadlines: own(bundesweit.deadlines),
+      localDeadlines: [],
+    },
     ...local,
   ];
   return { ...meta, variants };

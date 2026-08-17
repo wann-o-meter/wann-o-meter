@@ -3,6 +3,7 @@ import { defineConfig } from "astro/config";
 import vue from "@astrojs/vue";
 import sitemap from "@astrojs/sitemap";
 import { lastChanged } from "./lib/git-dates.ts";
+import { noindexPaths } from "./lib/vorhaben-routes.ts";
 
 // lastmod comes from the last commit that touched the data behind a page, not
 // from the build clock: a rebuild does not make the content newer. Narrow
@@ -29,8 +30,11 @@ export default defineConfig({
   integrations: [
     vue(),
     sitemap({
-      // Noindex pages do not belong in the sitemap.
-      filter: (page) => !page.includes("/feedback/"),
+      // Noindex pages do not belong in the sitemap. Same rule, one source: a
+      // place page without a local fact is noindex and stays out of here too.
+      filter: (page) =>
+        !page.includes("/feedback/") &&
+        !noindexPaths().some((path) => new URL(page).pathname === path),
       serialize(item) {
         const lastmod = lastChanged(...sourcesFor(item.url));
         return lastmod ? { ...item, lastmod } : item;

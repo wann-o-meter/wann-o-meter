@@ -8,6 +8,22 @@ interface VorhabenRoute {
   variant: VorhabenVariant;
   title: string;
   description: string;
+  noindex: boolean;
+}
+
+// A place page earns its index entry with at least one fact that is true only
+// there: an own source or the office that handles it. Without one it is the
+// bundesweit plan with a place name swapped in, and that is what a crawler
+// counts as a duplicate. It keeps its links: noindex, follow.
+export function shouldIndex(variant: VorhabenVariant): boolean {
+  return variant.localDeadlines.some((d) => d.source_url || d.authority);
+}
+
+// The same rule, as the paths the sitemap has to leave out.
+export function noindexPaths(): string[] {
+  return vorhabenRoutes()
+    .filter((r) => r.noindex)
+    .map((r) => `/${r.path}/`);
 }
 
 function defaultVariant(v: VorhabenData): VorhabenVariant {
@@ -50,6 +66,7 @@ export function vorhabenRoutes(): VorhabenRoute[] {
       variant: defaultVariant(v),
       title: planTitle(v, defaultVariant(v), v.titleSubject ?? v.label),
       description: v.description,
+      noindex: false,
     };
     const local = v.variants.filter((x) => x.slug !== BUNDESWEIT_SLUG);
     if (local.length === 0) return [base];
@@ -60,7 +77,8 @@ export function vorhabenRoutes(): VorhabenRoute[] {
         v,
         variant,
         title: planTitle(v, variant, `${v.label} in ${variant.label}`),
-        description: `${v.label} in ${variant.label}: alle Fristen rückwärts vom ${v.anchorLabel} geplant, mit Quelle - inklusive der örtlichen Schritte.`,
+        description: `${v.label} in ${variant.label}: alle Fristen rückwärts vom ${v.anchorDative ?? v.anchorLabel} geplant, mit Quelle - inklusive der örtlichen Schritte.`,
+        noindex: !shouldIndex(variant),
       })),
     ];
   });

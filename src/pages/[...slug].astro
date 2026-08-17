@@ -11,7 +11,7 @@ export function getStaticPaths() {
   return vorhabenRoutes().map((r) => ({ params: { slug: r.path }, props: r }));
 }
 
-const { v, variant, title, description } = Astro.props;
+const { v, variant, title, description, noindex } = Astro.props;
 const isPlace = Astro.params.slug !== v.slug;
 const crumbs = [
   { name: "Startseite", url: new URL("/", Astro.site).href },
@@ -73,7 +73,12 @@ const preview = siblings.slice(0, PREVIEW);
 const rest = siblings.slice(PREVIEW);
 ---
 
-<Layout title={title} description={description} structuredData={structuredData}>
+<Layout
+  title={title}
+  description={description}
+  structuredData={structuredData}
+  noindex={noindex}
+>
   <p class="back"><a href="/">&larr; Alle Vorhaben</a></p>
   <h1 id="static-title">{title}</h1>
   <!-- Keep in sync with the .overview paragraph in DeadlinePlanner.vue, which
