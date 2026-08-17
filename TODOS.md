@@ -26,5 +26,5 @@
 - [ ] Add `errechneter Entbindungstermin` as a second anchor for Geburt if building the pregnancy surface
 - [x] Add a PWA manifest for home-screen install; no service worker (stale law offline is worse than no offline)
 - [x] Add no-index to /aenderungen
-- [ ] Link API and Einbetten page in the footer
-- [ ] Quelle vorschlagen is outdated, remove it
+- [x] Link API and Einbetten page in the footer
+- [x] Quelle vorschlagen is outdated, remove it

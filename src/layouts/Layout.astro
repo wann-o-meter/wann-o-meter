@@ -2,7 +2,6 @@
 import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
 import { House, ListChecks, Monitor, Moon, Search, Sun } from "@lucide/astro";
-import { newSourceIssueUrl } from "../../lib/github-issue";
 import { loadAllVorhaben } from "../../lib/vorhaben-data";
 
 interface Props {
@@ -164,7 +163,7 @@ const organization = {
             >Datenschutz</a
           > &middot;{" "}
           <a href="/einbetten/">Einbetten</a> &middot;{" "}
-          <a href={newSourceIssueUrl()}>Quelle vorschlagen</a> &middot;{" "}
+          <a href="/api/">API</a> &middot;{" "}
           <a href="/feedback">Feedback geben</a>
         </p>
       </div>
