@@ -28,7 +28,6 @@ const props = defineProps<{
   editor: EditorKind | null;
   // A soft task is ordered, not dated. Everything that would show a day goes.
   undated?: boolean;
-  planSlug?: string;
 }>();
 
 const emit = defineEmits<{
@@ -211,7 +210,6 @@ const menuItems = computed<MenuItem[]>(() => [
     <TaskFooter
       v-if="!undated"
       :entry="entry"
-      :plan-slug="planSlug"
       :is-custom="isCustom"
     />
   </article>

@@ -1,9 +1,9 @@
 - [ ] add a small search icon to the plan tasks, directly next to "Aufgaben" and add a filter for the tasks that shows up when clicking the button
 - [ ] move the "Plan merken" on the bottom into the card
-- [ ] Replace `?from=umzug` from timeline links and use `document.referrer` instead
-- [ ] Build a `/frist/` index: all 11 Fristen with § and length as monospace values, grouped by Lebensereignis
-- [ ] Add "Diese Frist gehört zu: …" parent links + breadcrumb on each `/frist/` page (this is what makes `?from=` unnecessary)
-- [ ] Retitle `/frist/` pages to the literal query with the number and §, e.g. `Ummeldung nach Umzug: 2 Wochen Frist (§ 17 BMG)`
+- [x] Replace `?from=umzug` from timeline links and use `document.referrer` instead
+- [x] Build a `/frist/` index: all 11 Fristen with § and length as monospace values, grouped by Lebensereignis
+- [x] Add "Diese Frist gehört zu: …" parent links + breadcrumb on each `/frist/` page (this is what makes `?from=` unnecessary)
+- [x] Retitle `/frist/` pages to the literal query with the number and §, e.g. `Ummeldung nach Umzug: 2 Wochen Frist (§ 17 BMG)`
 - [x] Retitle hub pages by direction: `Umzug: 15 Fristen rückwärts vom Umzugstag` / `Nach der Geburt: 5 Fristen, die erste nach 7 Tagen`
 - [x] Add a `direction` flag (backwards/forwards) per Vorhaben to drive the title template
 - [ ] Rewrite meta descriptions to state outcomes with numbers; derive location descriptions from local data, not a template

@@ -1,0 +1,141 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { durationLabel, byOffset } from "../../../lib/offset-label";
+import { allFristTasks, fristPath } from "../../../lib/tasks";
+
+// One place that lists every Frist with a page, grouped by the Lebensereignis
+// it belongs to. A Frist in two plans is listed in both: the groups are the way
+// people arrive, not a filing system.
+interface Row {
+  id: string;
+  label: string;
+  length: string;
+  source: string;
+}
+const tasks = allFristTasks();
+const groups = new Map<string, { label: string; slug: string | null; rows: Row[] }>();
+
+function lengthOf(task: (typeof tasks)[number]["task"]): string {
+  if (task.offset_label) return task.offset_label;
+  if (task.rule) return "fester Stichtag";
+  if (task.offset_days === null) return "nicht recherchiert";
+  const days = Math.abs(task.offset_days);
+  return task.offset_days < 0
+    ? `${durationLabel(days)} vorher`
+    : `${durationLabel(days)} danach`;
+}
+
+for (const { task, vorhaben } of tasks.sort((a, b) => byOffset(a.task, b.task))) {
+  const row: Row = {
+    id: task.id,
+    label: task.search_label ?? task.label,
+    length: lengthOf(task),
+    source: task.source_label ?? "ohne Paragraf",
+  };
+  const targets = vorhaben.length
+    ? vorhaben.map((v) => ({ label: v.label, slug: v.slug }))
+    : [{ label: "Einzelne Fristen", slug: null }];
+  for (const t of targets) {
+    const key = t.slug ?? "einzeln";
+    const group = groups.get(key) ?? { label: t.label, slug: t.slug, rows: [] };
+    group.rows.push(row);
+    groups.set(key, group);
+  }
+}
+const all = [...groups.values()];
+
+const title = `Alle ${tasks.length} Fristen mit Paragraf und Länge`;
+const description = `${tasks.length} deutsche Fristen, nach Lebensereignis sortiert: wie lang sie sind und welcher Paragraf sie festlegt.`;
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Startseite", item: new URL("/", Astro.site).href },
+    { "@type": "ListItem", position: 2, name: "Fristen", item: new URL("/frist/", Astro.site).href },
+  ],
+};
+---
+
+<Layout title={title} description={description} structuredData={structuredData}>
+  <nav class="crumbs" aria-label="Brotkrumen">
+    <a href="/">Startseite</a>
+    <span aria-hidden="true"> &rsaquo; </span>
+    <span aria-current="page">Fristen</span>
+  </nav>
+  <h1>{title}</h1>
+  <p class="lede">
+    Jede Frist hat ihre eigene Seite mit dem Wortlaut des Gesetzes. Die Länge
+    zählt ab dem Termin des jeweiligen Vorhabens.
+  </p>
+
+  {
+    all.map((group) => (
+      <section class="group">
+        <h2>
+          {group.slug ? <a href={`/${group.slug}/`}>{group.label}</a> : group.label}
+        </h2>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Frist</th>
+              <th scope="col">Länge</th>
+              <th scope="col">Paragraf</th>
+            </tr>
+          </thead>
+          <tbody>
+            {group.rows.map((r) => (
+              <tr>
+                <th scope="row">
+                  <a href={`/${fristPath(r.id)}/`}>{r.label}</a>
+                </th>
+                <td class="mono">{r.length}</td>
+                <td class="mono">{r.source}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    ))
+  }
+</Layout>
+
+<style>
+  .crumbs {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .lede {
+    max-width: 62ch;
+    color: var(--muted);
+  }
+  .group {
+    margin-top: 2rem;
+  }
+  .group h2 {
+    font-size: var(--fs-md);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+  th,
+  td {
+    padding: 0.45rem 1.5rem 0.45rem 0;
+    border-bottom: 1px solid var(--line);
+    font-weight: 400;
+    vertical-align: top;
+  }
+  thead th {
+    font-size: var(--fs-xs);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+  }
+</style>

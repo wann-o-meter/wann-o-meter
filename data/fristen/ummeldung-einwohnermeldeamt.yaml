@@ -4,6 +4,7 @@ deadlines:
     kind: statutory-relative
     direction: after
     label: Ummeldung beim Einwohnermeldeamt
+    search_label: Ummeldung nach Umzug
     needs_office: true
     offset_days: 14
     earliest_offset_days: 0

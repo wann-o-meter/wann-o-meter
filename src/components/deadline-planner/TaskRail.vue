@@ -68,7 +68,6 @@ defineEmits<{
         :class="{ focused: hoveredId === node.entry.id }"
         :entry="node.entry"
         :undated="node.entry.kind === 'soft'"
-        :plan-slug="store.planSlug"
         :anchor-date="anchorDate"
         :is-past="isPast(node.entry.date!)"
         :done="!!store.doneIds[node.entry.id]"

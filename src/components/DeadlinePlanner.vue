@@ -217,7 +217,6 @@ function openDatePicker() {
 }
 
 const store = computed<TaskStore>(() => ({
-  planSlug: props.slug,
   doneIds,
   userNotes,
   attachments,

@@ -46,6 +46,9 @@ export const deadlineSchema = z
     // directory, one entry until a second Vorhaben genuinely reuses a task.
     belongsTo: z.array(z.string()).default([]),
     label: z.string(),
+    // The phrase people search for, where the label is not it. Only the Frist's
+    // own page uses it, a plan still lists the label.
+    search_label: z.string().optional(),
     offset_days: z.number().int().nullable(),
     // How to say the Frist when a plain offset would misdescribe it. Set on the
     // Fristen that carry their own solver in data/fristen/<id>.ts.

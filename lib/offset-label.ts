@@ -1,6 +1,7 @@
 import type { Deadline } from "./deadline-plan";
 
-function amount(days: number): string {
+// How long a Frist is, without saying which way it runs.
+export function durationLabel(days: number): string {
   if (days >= 60) return `${Math.round(days / 30)} Monate`;
   if (days >= 14) return `${Math.round(days / 7)} Wochen`;
   return days === 1 ? "1 Tag" : `${days} Tage`;
@@ -12,8 +13,8 @@ export function offsetLabel(d: Deadline, anchorLabel: string): string {
   if (d.offset_days === null) return "Frist noch nicht recherchiert";
   if (d.offset_days === 0) return anchorLabel;
   return d.offset_days < 0
-    ? `${amount(-d.offset_days)} vorher`
-    : `${amount(d.offset_days)} danach`;
+    ? `${durationLabel(-d.offset_days)} vorher`
+    : `${durationLabel(d.offset_days)} danach`;
 }
 
 export function sourceLabel(d: Deadline): string {

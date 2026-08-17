@@ -4,7 +4,7 @@ import { ArrowRight, CalendarPlus } from "@lucide/astro";
 import FristRechner from "../../components/FristRechner.vue";
 import { evaluateRule, nextOccurrence } from "../../../lib/calendar-rule";
 import { formatDate } from "../../../lib/format-date";
-import { offsetLabel, sourceLabel } from "../../../lib/offset-label";
+import { durationLabel, offsetLabel, sourceLabel } from "../../../lib/offset-label";
 import { allFristTasks, fristPath, yearsFor } from "../../../lib/tasks";
 import { isPast, isoToday } from "../../../lib/today";
 import { lastChanged } from "../../../lib/git-dates";
@@ -48,11 +48,19 @@ const yearRows = years.map((y) => {
 });
 
 const source = task.source_label ?? "Gesetz";
+// The title is the question someone types, answered with the number and the
+// Paragraf: "Ummeldung nach Umzug: 2 Wochen Frist (§ 17 BMG)".
+const name = task.search_label ?? task.label;
+const paragraph = task.source_label ? ` (${task.source_label})` : "";
 const title = year
-  ? `${task.label} für ${year}: bis wann?`
+  ? `${name} für ${year}: Stichtag${paragraph}`
   : yearRows.length > 0
-    ? `${task.label}: Frist und alle Stichtage`
-    : `${task.label}: welche Frist gilt?`;
+    ? `${name}: Stichtag für jedes Jahr${paragraph}`
+    : task.offset_label
+      ? `${name}: ${task.offset_label}${paragraph}`
+      : task.offset_days
+        ? `${name}: ${durationLabel(Math.abs(task.offset_days))} Frist${paragraph}`
+        : `${name}: welche Frist gilt?${paragraph}`;
 const description = year
   ? `${task.label} für ${year}: Stichtag nach ${source}, mit Rechenweg.`
   : yearRows.length > 0
@@ -71,6 +79,7 @@ const statute = STATUTE_QUOTES[task.id];
 
 const crumbs = [
   { name: "Startseite", url: new URL("/", Astro.site).href },
+  { name: "Fristen", url: new URL("/frist/", Astro.site).href },
   { name: task.label, url: new URL(`/${fristPath(task.id)}/`, Astro.site).href },
   ...(year
     ? [
@@ -108,7 +117,34 @@ const structuredData = {
 ---
 
 <Layout title={title} description={description} structuredData={structuredData}>
-  <p class="back"><a data-back href="/">&larr; Startseite</a></p>
+  <nav class="crumbs" aria-label="Brotkrumen">
+    {
+      crumbs.map((c, i) => (
+        <>
+          {i > 0 && <span aria-hidden="true"> &rsaquo; </span>}
+          {i === crumbs.length - 1 ? (
+            <span aria-current="page">{c.name}</span>
+          ) : (
+            <a href={new URL(c.url).pathname}>{c.name}</a>
+          )}
+        </>
+      ))
+    }
+  </nav>
+
+  {
+    plans.length > 0 && (
+      <p class="parents" data-parents>
+        Diese Frist gehört zu:{" "}
+        {plans.map((v, i) => (
+          <>
+            {i > 0 && <span aria-hidden="true"> &middot; </span>}
+            <a href={`/${v.slug}/`}>{v.label}</a>
+          </>
+        ))}
+      </p>
+    )
+  }
 
   {
     isAbsolute && answer && (
@@ -290,26 +326,28 @@ const structuredData = {
   </p>
 
   <script is:inline define:vars={{ planIndex }}>
-    // The plan a visitor came from lives in the url: a view transition leaves
-    // document.referrer empty, and a Frist can belong to more than one plan.
+    // Where a visitor came from is the referrer's job, not the url's: the page
+    // is the same page either way and should have one address.
     document.addEventListener("astro:page-load", () => {
-      const from = new URLSearchParams(location.search).get("from");
-      const label = planIndex[from];
-      if (!label) return;
-      const back = document.querySelector("[data-back]");
-      if (back) {
-        back.setAttribute("href", `/${from}/`);
-        back.textContent = `← ${label}-Plan`;
-      }
-      // They came from that plan, so inviting them to start it is noise.
+      const ref = document.referrer;
+      if (!ref || !ref.startsWith(location.origin)) return;
+      const from = new URL(ref).pathname.split("/")[1];
+      if (!planIndex[from]) return;
+      // They just came from that plan, so inviting them to start it is noise.
       document.querySelector(`[data-plan-cta="${from}"]`)?.remove();
     });
   </script>
 </Layout>
 
 <style>
-  .back {
+  .crumbs {
     font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .parents {
+    margin: 0.4rem 0 1.2rem;
+    font-size: var(--fs-sm);
+    color: var(--muted);
   }
   /* The date is the answer, so it comes before the question. */
   .answer .eyebrow {
