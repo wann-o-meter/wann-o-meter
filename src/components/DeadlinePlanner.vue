@@ -536,6 +536,7 @@ onBeforeUnmount(() => {
         v-model="taskQuery"
         type="search"
         class="task-search"
+        aria-label="Aufgaben durchsuchen"
         placeholder="Aufgabe suchen"
       />
       <p v-if="taskQuery && shownNodes.length === 0" class="hint">

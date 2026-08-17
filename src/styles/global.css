@@ -10,6 +10,9 @@
   --ink: #14161a;
   --muted: #4d545e;
   --line: #d5dae2;
+  /* The border of anything you can click or type into. WCAG asks 3:1 for those,
+  which the hairline between two blocks of text does not have to reach. */
+  --line-strong: #7d838d;
   --accent: #1d4f91;
   --accent-ink: #f8fafc;
   --anchor: #7a3fa8;
@@ -56,6 +59,7 @@
   --ink: #e4e7ec;
   --muted: #99a1ad;
   --line: #333a45;
+  --line-strong: #666f7c;
   --accent: #7aa9e6;
   --accent-ink: #0b0d11;
   --anchor: #b89ad8;
@@ -232,7 +236,7 @@ input {
   font: inherit;
   color: inherit;
   background: var(--paper-raised);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius);
   padding: 0.5rem 0.5rem;
   transition:
@@ -263,6 +267,19 @@ button:active {
 select:hover,
 input:hover {
   border-color: var(--accent);
+}
+
+/* A finger needs about 44px, a mouse does not, so only touch pays the space.
+The insert button on the rail is excluded: it sits on a gap whose height the
+plan decides, and stretching it would cover the tasks around it. */
+@media (pointer: coarse) {
+  button:not(.gap-add),
+  select,
+  input:not([type="checkbox"]),
+  .link-button,
+  .tabbar a {
+    min-height: 44px;
+  }
 }
 
 table {
@@ -387,8 +404,8 @@ a[href^="http"]:not(:has(svg))::after {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.25rem 0.5rem;
-  border: 1px solid var(--line);
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--line-strong);
   color: var(--ink);
   text-decoration: none;
   font-size: var(--fs-sm);

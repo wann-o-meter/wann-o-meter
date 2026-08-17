@@ -11,8 +11,8 @@
 - [x] Collapse robots.txt to a single `User-agent: *` group
 - [x] Build client-side full-timeline `.ics` export: all deadlines from the user's date, `VALARM` a few days before, § in the `DESCRIPTION`
 - [x] Add a `@media print` stylesheet (also gives PDF export free via the browser)
-- [ ] Accessibility pass: semantic HTML, ARIA labels, focus states, keyboard nav, WCAG AA contrast
-- [ ] Add `<input type="date">` if not already, and audit mobile touch targets
+- [x] Accessibility pass: semantic HTML, ARIA labels, focus states, keyboard nav, WCAG AA contrast
+- [x] Add `<input type="date">` if not already, and audit mobile touch targets (date inputs were already native, touch targets now 44px on coarse pointers)
 - [ ] Build `/einbetten/`: iframe + script-tag options, CSS custom property theming, `noindex, follow` on all `/embed/` routes, excluded from sitemap
 - [ ] Write the privacy section for `/einbetten/` — no cookies, no third-party assets, hosting chain named, AVV-Muster ready to send
 - [ ] Add a static-image fallback for embedders whose CMS strips iframes
