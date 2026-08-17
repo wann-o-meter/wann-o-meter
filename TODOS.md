@@ -22,9 +22,10 @@
 - [x] Implement `shouldIndex(ort)` gated on ≥1 Gemeinde-level fact; `noindex, follow`; same function drives sitemap exclusion
 - [x] Keep text-similarity checking as a CI warning only, never wired to meta robots (standing constraint: no such check exists, and `shouldIndex` decides indexing on local facts instead)
 - [x] Keep plan state in the URL fragment; do not create a `/plan/` page or query-param plan URLs
-- [ ] For Schwangerschaft build SSW→Datum
-- [ ] Add `errechneter Entbindungstermin` as a second anchor for Geburt if building the pregnancy surface
+- [ ] For Schwangerschaft build SSW→Datum (zurückgestellt, aktuell nicht gewünscht)
+- [ ] Add `errechneter Entbindungstermin` as a second anchor for Geburt if building the pregnancy surface (haengt an der zurückgestellten SSW-Oberfläche)
 - [x] Add a PWA manifest for home-screen install; no service worker (stale law offline is worse than no offline)
 - [x] Add no-index to /aenderungen
 - [x] Link API and Einbetten page in the footer
 - [x] Quelle vorschlagen is outdated, remove it
+- [ ] show only relevant aenderungen, that actually update the data and add a disclaimer that the history is not complete with a reference to the official git: wann-o-meter/wann-o-meter
