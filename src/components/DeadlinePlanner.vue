@@ -384,8 +384,6 @@ onMounted(() => {
   // The rest of the pre-hydration fallback is hidden by the js flag before the
   // first paint, only the title has to go once the planner renders its own.
   document.getElementById("static-title")?.remove();
-  const linked = location.hash.match(/^#task-(.+)$/);
-  if (linked) nextTick(() => onTimelineSelect(linked[1]));
   addEventListener("scroll", trackActiveCard, { passive: true });
   trackActiveCard();
 });

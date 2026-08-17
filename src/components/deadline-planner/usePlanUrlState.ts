@@ -2,6 +2,7 @@ import { computed, ref, watch } from "vue";
 import { FACET_LABELS, appliesTo, facetsUsedBy } from "../../../lib/facets";
 import { STATES } from "../../../lib/states";
 import { isoToday } from "../../../lib/today";
+import { readPlanState, writePlanState } from "../../../lib/plan-url";
 import type { PlanVariant } from "./types";
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -24,10 +25,7 @@ export function usePlanUrlState(
   variants: PlanVariant[],
   defaultSlug: string | undefined,
 ) {
-  const params =
-    typeof window === "undefined"
-      ? null
-      : new URLSearchParams(window.location.search);
+  const params = typeof window === "undefined" ? null : readPlanState();
   const has = (slug: string | null | undefined) =>
     !!slug && variants.some((v) => v.slug === slug);
 
@@ -106,31 +104,22 @@ export function usePlanUrlState(
   watch(
     [touched, anchorDate, selectedSlug, activeFacets, overlapMonths, region, ortName],
     () => {
-      if (typeof window === "undefined") return;
-      const next = new URLSearchParams(window.location.search);
-      next.delete("variant");
       // region and ort only carry an Ort we have no file for. A variant that
       // knows its own Bundesland makes both redundant.
-      if (variants.find((x) => x.slug === selectedSlug.value)?.regionCode) {
-        next.delete("region");
-        next.delete("ort");
-      } else {
-        if (region.value) next.set("region", region.value);
-        else next.delete("region");
-        if (ortName.value) next.set("ort", ortName.value);
-        else next.delete("ort");
-      }
-      if (touched.value) {
-        if (anchorDate.value) next.set("date", anchorDate.value);
-        if (activeFacets.value.length > 0)
-          next.set("facets", activeFacets.value.join(","));
-        else next.delete("facets");
-        if (deferred.value) next.set("overlap", "1");
-        else next.delete("overlap");
-      }
-      const path = variantPath(selected.value?.slug ?? BUNDESWEIT_SLUG);
-      const query = next.toString();
-      history.replaceState(null, "", query ? `${path}?${query}` : path);
+      const hasOwnRegion = !!variants.find(
+        (x) => x.slug === selectedSlug.value,
+      )?.regionCode;
+      writePlanState(variantPath(selected.value?.slug ?? BUNDESWEIT_SLUG), {
+        variant: null,
+        region: hasOwnRegion ? null : region.value || null,
+        ort: hasOwnRegion ? null : ortName.value || null,
+        date: touched.value && anchorDate.value ? anchorDate.value : null,
+        facets:
+          touched.value && activeFacets.value.length > 0
+            ? activeFacets.value.join(",")
+            : null,
+        overlap: touched.value && deferred.value ? "1" : null,
+      });
     },
     { immediate: true },
   );

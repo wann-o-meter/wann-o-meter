@@ -154,8 +154,8 @@ function dayClass(day: string | null): string {
 // bundesweit plan of a place we have no file for.
 const href = computed(() =>
   local.value
-    ? `/${props.v.slug}/${variant.value.slug}/?date=${props.plan.date}`
-    : `/${props.v.slug}/?date=${props.plan.date}` +
+    ? `/${props.v.slug}/${variant.value.slug}/#date=${props.plan.date}`
+    : `/${props.v.slug}/#date=${props.plan.date}` +
       (props.plan.region ? `&region=${props.plan.region}` : "") +
       (props.plan.ort ? `&ort=${encodeURIComponent(props.plan.ort)}` : ""),
 );

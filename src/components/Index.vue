@@ -511,7 +511,7 @@ const planHref = computed(() => {
   if (!selected.value) return "/";
   const params = new URLSearchParams({ date: anchorDate.value });
   if (localVariant.value)
-    return `/${selected.value.slug}/${localVariant.value.slug}/?${params}`;
+    return `/${selected.value.slug}/${localVariant.value.slug}/#${params}`;
   // No variant param: without a local file the plan is the bundesweit one, and
   // that is exactly what /<vorhaben>/ serves. The Ort still travels along, it
   // names the place and its Feiertage.
@@ -519,7 +519,7 @@ const planHref = computed(() => {
     params.set("region", ort.value.state);
     params.set("ort", ort.value.name);
   }
-  return `/${selected.value.slug}/?${params}`;
+  return `/${selected.value.slug}/#${params}`;
 });
 
 // Parked with the one in the planner, see DeadlinePlanner.vue.

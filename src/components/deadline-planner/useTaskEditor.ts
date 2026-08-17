@@ -2,6 +2,7 @@ import { type ComputedRef, computed, reactive, ref, watch } from "vue";
 import type { Deadline, ScheduleEntry } from "../../../lib/deadline-plan";
 import type { PlanVariant } from "./types";
 import { LETTER_TEMPLATE } from "./task-cta";
+import { readPlanState, writePlanState } from "../../../lib/plan-url";
 
 const CUSTOM_PREFIX = "custom-";
 
@@ -16,9 +17,7 @@ interface CustomTask {
 }
 
 function urlHiddenIds(): string[] {
-  if (typeof window === "undefined") return [];
-  const raw = new URLSearchParams(window.location.search).get("hidden");
-  return (raw ?? "").split(",").filter(Boolean);
+  return (readPlanState().get("hidden") ?? "").split(",").filter(Boolean);
 }
 
 export function useTaskEditor(
@@ -184,16 +183,10 @@ export function useTaskEditor(
     hiddenIds,
     () => {
       if (typeof window === "undefined") return;
-      const next = new URLSearchParams(window.location.search);
       const ids = Object.keys(hiddenIds).filter((id) => hiddenIds[id]);
-      if (ids.length > 0) next.set("hidden", ids.join(","));
-      else next.delete("hidden");
-      const query = next.toString();
-      history.replaceState(
-        null,
-        "",
-        query ? `?${query}` : window.location.pathname,
-      );
+      writePlanState(window.location.pathname, {
+        hidden: ids.length > 0 ? ids.join(",") : null,
+      });
     },
     { deep: true },
   );

@@ -58,17 +58,17 @@ const anchorIsSunday = computed(
         </span>
       </div>
 
-      <a
+      <button
         v-if="catchUp"
+        type="button"
         class="stat late"
-        :href="`#task-${catchUp.id}`"
-        @click.prevent="$emit('select', catchUp!.id)"
+        @click="$emit('select', catchUp!.id)"
       >
         <span class="row">
           <span class="k">{{ overdue.length }} verstrichen</span>
           <span class="v">bis {{ shortDate(catchUp.date) }}</span>
         </span>
-      </a>
+      </button>
 
       <p v-else-if="overdue.length > 0" class="stat late">
         <span class="row">
@@ -77,17 +77,17 @@ const anchorIsSunday = computed(
         </span>
       </p>
 
-      <a
+      <button
         v-else-if="nextOpen"
+        type="button"
         class="stat"
-        :href="`#task-${nextOpen.id}`"
-        @click.prevent="$emit('select', nextOpen!.id)"
+        @click="$emit('select', nextOpen!.id)"
       >
         <span class="row">
           <span class="k">Nächste Frist</span>
           <span class="v">{{ shortDate(nextOpen.date) }}</span>
         </span>
-      </a>
+      </button>
 
       <p v-else class="stat done">
         <span class="row">
@@ -132,7 +132,13 @@ const anchorIsSunday = computed(
     padding 0.22s,
     background 0.12s;
 }
-a.stat:hover {
+button.stat {
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+button.stat:hover {
   background: color-mix(in srgb, var(--accent) 8%, var(--paper-raised));
 }
 .row {
