@@ -2,14 +2,20 @@
 import Layout from "../../layouts/Layout.astro";
 import { allFristSummaries } from "../../../lib/frist-api";
 import { allFristTasks, yearsFor } from "../../../lib/tasks";
+import { isoToday } from "../../../lib/today";
 
 // What /.well-known/api-catalog points at as service-doc. Counts and examples
 // come from the data, so the page cannot promise an endpoint that is not there.
 const fristen = allFristSummaries();
 const example = fristen.find((f) => f.id === "wohnung-kuendigen") ?? fristen[0];
 const feeds = allFristTasks().flatMap(({ task }) =>
-  yearsFor(task).map((year) => `${task.id}/${year}`),
+  yearsFor(task).map((year) => ({ year, path: `${task.id}/${year}` })),
 );
+// The oldest feed is a year nobody can still file for, so the example shows the
+// current one, or the newest that exists once the table runs out.
+const thisYear = Number(isoToday().slice(0, 4));
+const exampleFeed =
+  feeds.find((f) => f.year === thisYear) ?? feeds[feeds.length - 1];
 
 const title = "API";
 const description = `${fristen.length} deutsche Fristen als JSON, jede mit dem Paragrafen dahinter und dem Wortlaut des Gesetzes.`;
@@ -24,7 +30,7 @@ const endpoints = [
     what: "Eine Frist, mit den zitierten Absätzen im Wortlaut und, wo das Gesetz den Tag selbst festlegt, dem Termin pro Jahr.",
   },
   {
-    path: `/frist/${feeds[0] ?? "steuererklaerung-abgeben/2026"}.ics`,
+    path: `/frist/${exampleFeed?.path ?? `steuererklaerung-abgeben/${thisYear}`}.ics`,
     what: "Ein fester Stichtag als Kalendereintrag. Nur dort, wo kein Datum von dir nötig ist.",
   },
   { path: "/openapi.json", what: "OpenAPI 3.1, aus denselben Schemas erzeugt." },

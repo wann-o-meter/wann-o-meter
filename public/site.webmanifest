@@ -1,6 +1,11 @@
 {
+  "id": "/",
   "name": "Wann-O-Meter",
   "short_name": "Wann-O",
+  "description": "Fristen für Umzug, Geburt, Hochzeit und Jobwechsel, rückwärts geplant von deinem Datum.",
+  "lang": "de",
+  "start_url": "/",
+  "scope": "/",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png?v=20260720",

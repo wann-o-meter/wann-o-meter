@@ -360,6 +360,16 @@ const organization = {
       padding-bottom: 0;
     }
   }
+  /* Scoped, so it outweighs the grid above that the global print block cannot
+  reach. */
+  @media print {
+    .tabbar {
+      display: none;
+    }
+    body {
+      padding-bottom: 0;
+    }
+  }
 
   footer {
     margin-top: 4.5rem;

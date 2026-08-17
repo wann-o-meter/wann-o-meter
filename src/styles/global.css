@@ -163,9 +163,6 @@ no link decoration that a reader cannot click anyway. */
     color: inherit;
     text-decoration: none;
   }
-  a[href^="http"]:not(:has(svg))::after {
-    content: "";
-  }
 }
 
 /* Physical key: a solid lip under the control, pressed in when active or chosen.

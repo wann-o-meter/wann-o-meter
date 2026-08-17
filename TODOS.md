@@ -1,6 +1,27 @@
-- [x] update the llms.txt. it doesn't reflect the site anymore.
-- [x] should use bun instead of node for gemeinden.mjs
-- [x] why is there gemeinden.json in data and in public?
-- [x] the location input in the plan page still shows only the 4 cities and bundesweit. it.
-- [x] the gemeinden are shown when clicking the input field, but when typing a letter, everything disappears and it reappears when typing two letters. the input field should show about 10 entries, first the validated, then the largest cities (can be a fix list),e.g. münchen, hamburg, berlin, frankfurt. searching should be not a simple word match but instead exact matches should be ranked higher, e.g., typing "singen" should show singen (78224) and not basingen or something else. i thought about it and it could be a ranking based on how many percent of the letters match, e.g., "singen" = singen -> 100%, "singen" -> basingen 75%. but maybe there's a better algorithm.
-- [x] prepare tags: different plans might share properties, e.g., "family" or "work". don't show the tags yet, but prepare everything for it.
+- [ ] add a small search icon to the plan tasks, directly next to "Aufgaben" and add a filter for the tasks that shows up when clicking the button
+- [ ] move the "Plan merken" on the bottom into the card
+- [ ] Replace `?from=umzug` from timeline links and use `document.referrer` instead
+- [ ] Build a `/frist/` index: all 11 Fristen with § and length as monospace values, grouped by Lebensereignis
+- [ ] Add "Diese Frist gehört zu: …" parent links + breadcrumb on each `/frist/` page (this is what makes `?from=` unnecessary)
+- [ ] Retitle `/frist/` pages to the literal query with the number and §, e.g. `Ummeldung nach Umzug: 2 Wochen Frist (§ 17 BMG)`
+- [ ] Retitle hub pages by direction: `Umzug: 15 Fristen rückwärts vom Umzugstag` / `Nach der Geburt: 5 Fristen, die erste nach 7 Tagen`
+- [ ] Add a `direction` flag (backwards/forwards) per Vorhaben to drive the title template
+- [ ] Rewrite meta descriptions to state outcomes with numbers; derive location descriptions from local data, not a template
+- [x] Fix the passed-year `.ics` example on `/api/`
+- [x] Collapse robots.txt to a single `User-agent: *` group
+- [ ] Build client-side full-timeline `.ics` export: all deadlines from the user's date, `VALARM` a few days before, § in the `DESCRIPTION`
+- [x] Add a `@media print` stylesheet (also gives PDF export free via the browser)
+- [ ] Accessibility pass: semantic HTML, ARIA labels, focus states, keyboard nav, WCAG AA contrast
+- [ ] Add `<input type="date">` if not already, and audit mobile touch targets
+- [ ] Build `/einbetten/`: iframe + script-tag options, CSS custom property theming, `noindex, follow` on all `/embed/` routes, excluded from sitemap
+- [ ] Write the privacy section for `/einbetten/` — no cookies, no third-party assets, hosting chain named, AVV-Muster ready to send
+- [ ] Add a static-image fallback for embedders whose CMS strips iframes
+- [ ] Add `geprueft_am` per Frist; render inline as "Stand: …" and derive an `/aenderungen/` page from git history
+- [ ] Add a `Wo?` field (responsible authority per task) — this is the per-Gemeinde fact that unlocks city page indexing
+- [ ] Add a `Benötigte Unterlagen` field per task
+- [ ] Implement `shouldIndex(ort)` gated on ≥1 Gemeinde-level fact; `noindex, follow`; same function drives sitemap exclusion
+- [ ] Keep text-similarity checking as a CI warning only, never wired to meta robots
+- [ ] Keep plan state in the URL fragment; do not create a `/plan/` page or query-param plan URLs
+- [ ] For Schwangerschaft build SSW→Datum
+- [ ] Add `errechneter Entbindungstermin` as a second anchor for Geburt if building the pregnancy surface
+- [x] Add a PWA manifest for home-screen install; no service worker (stale law offline is worse than no offline)
