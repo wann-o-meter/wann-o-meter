@@ -111,30 +111,26 @@ const knobs = [
   </p>
 
   <h2 id="datenschutz">Datenschutz</h2>
+  <!-- Nur was an der Einbettung anders ist. Cookies, Tracking, Fonts und die
+  Hosting-Kette stehen in der Datenschutzerklärung und gelten hier genauso. -->
+  <p>
+    Es gilt unsere <a href="/datenschutz/">Datenschutzerklärung</a>: keine
+    Cookies, kein Tracking, keine Assets von Dritten, Hosting bei GitHub Pages
+    mit dessen Server-Logs. Für die Einbettung kommt nur dazu:
+  </p>
   <ul>
     <li>
-      <b>Keine Cookies, kein Tracking.</b> Weder der iframe noch
-      <code>embed.js</code> setzen Cookies, schreiben in den Local Storage oder
-      laden Analyse-Werkzeuge. Es gibt keine Einwilligung einzuholen.
+      Der eingebettete Inhalt lädt allein von <code>{origin}</code>, auch
+      <code>embed.js</code> schreibt nichts auf das Gerät Eurer Besucher. Eine
+      Einwilligung ist dafür nicht einzuholen.
     </li>
     <li>
-      <b>Keine Drittanbieter-Assets.</b> Der eingebettete Inhalt lädt nur von
-      <code>{origin}</code>. Keine Schriften von einem Font-Server, keine
-      Bibliothek von einem CDN, kein Bild von woanders. Die Schrift ist die des
-      Systems, falls Ihr keine eigene setzt.
+      Wollt Ihr auch den Aufruf unseres Servers vermeiden, nehmt das SVG oben
+      und legt es auf Euren eigenen.
     </li>
     <li>
-      <b>Hosting-Kette.</b> Der Aufruf des iframes geht an GitHub Pages (GitHub,
-      Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA), das
-      dabei technisch notwendige Server-Logs verarbeitet (IP-Adresse,
-      Zeitpunkt, URL, Referrer, User-Agent). Mehr dazu in unserer{" "}
-      <a href="/datenschutz/">Datenschutzerklärung</a>. Wollt Ihr diesen Aufruf
-      vermeiden, nehmt das SVG oben und legt es auf Euren eigenen Server.
-    </li>
-    <li>
-      <b>Auftragsverarbeitung.</b> Wir verarbeiten für Euch keine
-      personenbezogenen Daten, die Einbettung braucht also im Regelfall keinen
-      AVV. Verlangt Eure Rechtsabteilung trotzdem einen, schreibt an{" "}
+      Wir verarbeiten für Euch keine personenbezogenen Daten, ein AVV ist also
+      im Regelfall nicht nötig. Verlangt Eure Rechtsabteilung einen, schreibt an{" "}
       <a href="mailto:hallo@wannometer.de">hallo@wannometer.de</a>, dann schicken
       wir ein unterschriebenes Muster nach Art. 28 DSGVO.
     </li>
