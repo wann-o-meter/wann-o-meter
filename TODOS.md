@@ -4,8 +4,8 @@
 - [ ] Build a `/frist/` index: all 11 Fristen with § and length as monospace values, grouped by Lebensereignis
 - [ ] Add "Diese Frist gehört zu: …" parent links + breadcrumb on each `/frist/` page (this is what makes `?from=` unnecessary)
 - [ ] Retitle `/frist/` pages to the literal query with the number and §, e.g. `Ummeldung nach Umzug: 2 Wochen Frist (§ 17 BMG)`
-- [ ] Retitle hub pages by direction: `Umzug: 15 Fristen rückwärts vom Umzugstag` / `Nach der Geburt: 5 Fristen, die erste nach 7 Tagen`
-- [ ] Add a `direction` flag (backwards/forwards) per Vorhaben to drive the title template
+- [x] Retitle hub pages by direction: `Umzug: 15 Fristen rückwärts vom Umzugstag` / `Nach der Geburt: 5 Fristen, die erste nach 7 Tagen`
+- [x] Add a `direction` flag (backwards/forwards) per Vorhaben to drive the title template
 - [ ] Rewrite meta descriptions to state outcomes with numbers; derive location descriptions from local data, not a template
 - [x] Fix the passed-year `.ics` example on `/api/`
 - [x] Collapse robots.txt to a single `User-agent: *` group

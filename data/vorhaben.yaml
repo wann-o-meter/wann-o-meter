@@ -3,7 +3,8 @@
 - slug: umzug
   label: Umzug
   teaser: Kündigung, Ummeldung, Halteverbot
-  title: "Umzug: wann muss ich anfangen?"
+  # backwards: the Fristen run up to the anchor, forwards: the clock starts there.
+  direction: backwards
   description: >-
     Ort und Umzugstag eingeben, kompletten Rückwärts-Zeitplan mit Fristen sehen -
     mit Wochenend- und Feiertagswarnung.
@@ -20,7 +21,8 @@
 - slug: geburt
   label: Geburt
   teaser: Elterngeld, Kindergeld, Urkunde
-  title: "Geburt: wann muss ich anfangen?"
+  direction: forwards
+  titleSubject: Nach der Geburt
   description: >-
     Geburtstermin eingeben, Fristen für Geburtsanzeige, Elterngeld und Kindergeld
     rückwärts geplant - mit Quelle.
@@ -34,7 +36,7 @@
 - slug: heirat
   label: Hochzeit
   teaser: Standesamt, Urkunden, Namen
-  title: "Hochzeit: wann muss ich anfangen?"
+  direction: backwards
   description: >-
     Hochzeitstermin eingeben, Anmeldung beim Standesamt, Dokumente und
     Namensänderung rückwärts geplant.
@@ -48,7 +50,9 @@
 - slug: jobwechsel
   label: Jobwechsel
   teaser: Kündigung, Arbeitsagentur, Zeugnis
-  title: "Jobwechsel: wann muss ich anfangen?"
+  direction: backwards
+  # The anchor as the title says it, after "vom".
+  anchorDative: letzten Arbeitstag
   description: >-
     Letzten Arbeitstag eingeben, Kündigungsfrist und Arbeitsuchendmeldung
     rückwärts geplant - mit Quelle.

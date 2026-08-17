@@ -36,7 +36,14 @@ const vorhabenSchema = z.object({
   slug: z.string(),
   label: z.string(),
   teaser: z.string(),
-  title: z.string(),
+  // Which way the plan runs. The page titles are built from it, so a Vorhaben
+  // cannot be described backwards while its Fristen all come after the anchor.
+  direction: z.enum(["backwards", "forwards"]),
+  // The subject a title starts with, where the bare label would read wrong
+  // ("Nach der Geburt" instead of "Geburt").
+  titleSubject: z.string().optional(),
+  // The anchor as a title says it after "vom", where the label does not fit.
+  anchorDative: z.string().optional(),
   description: z.string(),
   vorhaben: z.string(),
   anchorLabel: z.string(),
