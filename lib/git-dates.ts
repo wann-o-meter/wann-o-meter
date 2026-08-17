@@ -13,9 +13,10 @@ export interface DataChange {
   files: string[];
 }
 
-// Every commit that touched the data, so a visitor can see what moved and when
-// without a changelog anyone has to write by hand.
-export function dataChanges(limit = 50): DataChange[] {
+// Every commit that touched the rules, so a visitor can see what moved and when
+// without a changelog anyone has to write by hand. Only the hand-written yaml
+// counts: a commit that regenerated the Feiertage changed no Frist.
+export function dataChanges(paths: string[], limit = 50): DataChange[] {
   let out = "";
   try {
     out = execFileSync(
@@ -29,7 +30,7 @@ export function dataChanges(limit = 50): DataChange[] {
         // confused with the next subject line.
         "--format=%x00%cI %s",
         "--",
-        "data",
+        ...paths,
       ],
       { encoding: "utf-8" },
     );

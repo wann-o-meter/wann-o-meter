@@ -28,4 +28,4 @@
 - [x] Add no-index to /aenderungen
 - [x] Link API and Einbetten page in the footer
 - [x] Quelle vorschlagen is outdated, remove it
-- [ ] show only relevant aenderungen, that actually update the data and add a disclaimer that the history is not complete with a reference to the official git: wann-o-meter/wann-o-meter
+- [x] show only relevant aenderungen, that actually update the data and add a disclaimer that the history is not complete with a reference to the official git: wann-o-meter/wann-o-meter

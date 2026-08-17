@@ -1,4 +1,5 @@
 const REPO = "wann-o-meter/wann-o-meter";
+export const REPO_URL = `https://github.com/${REPO}`;
 const FEEDBACK_EMAIL = "hallo@wannometer.de";
 
 export function feedbackIssueUrl(): string {
