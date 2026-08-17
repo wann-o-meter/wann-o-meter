@@ -1,0 +1,126 @@
+---
+import { appliesTo } from "../../../lib/facets";
+import { byOffset, offsetLabel, sourceLabel } from "../../../lib/offset-label";
+import { fristPath } from "../../../lib/tasks";
+import { BUNDESWEIT_SLUG, loadAllVorhaben } from "../../../lib/vorhaben-data";
+
+// The Fristen of one Vorhaben, alone on a page and without the site around it,
+// for anyone who wants them on their own page. No site chrome, no island, no
+// third-party asset: an iframe that costs the host nothing.
+export function getStaticPaths() {
+  return loadAllVorhaben().map((v) => ({ params: { vorhaben: v.slug }, props: { v } }));
+}
+
+const { v } = Astro.props;
+const variant = v.variants.find((x) => x.slug === BUNDESWEIT_SLUG) ?? v.variants[0];
+const entries = variant.deadlines.filter((d) => appliesTo(d, [])).sort(byOffset);
+const site = new URL(`/${v.slug}/`, Astro.site).href;
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, follow" />
+    <title>{v.label}: Fristen</title>
+    <style>
+      :root {
+        --embed-accent: #1d4f91;
+        --embed-ink: #14161a;
+        --embed-muted: #4d545e;
+        --embed-line: #d5dae2;
+        --embed-paper: transparent;
+        --embed-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      body {
+        margin: 0;
+        padding: 0.5rem;
+        font-family: var(--embed-font);
+        line-height: 1.5;
+        color: var(--embed-ink);
+        background: var(--embed-paper);
+      }
+      h1 {
+        margin: 0 0 0.75rem;
+        font-size: 1.1rem;
+      }
+      ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--embed-line);
+      }
+      .when {
+        font-variant-numeric: tabular-nums;
+        font-size: 0.85rem;
+        color: var(--embed-muted);
+      }
+      .label {
+        display: block;
+      }
+      a {
+        color: var(--embed-accent);
+      }
+      .src {
+        font-size: 0.8rem;
+        color: var(--embed-muted);
+      }
+      .by {
+        margin: 0.75rem 0 0;
+        font-size: 0.8rem;
+        color: var(--embed-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>{v.label}: Fristen</h1>
+    <ol>
+      {
+        entries.map((d) => (
+          <li>
+            <span class="when">{offsetLabel(d, v.anchorLabel)}</span>
+            <span class="label">{d.label}</span>
+            <span class="src">
+              <a
+                href={new URL(`/${fristPath(d.id)}/`, Astro.site).href}
+                target="_blank"
+                rel="noopener"
+              >
+                {sourceLabel(d)}
+              </a>
+            </span>
+          </li>
+        ))
+      }
+    </ol>
+    <p class="by">
+      Fristen von <a href={site} target="_blank" rel="noopener">Wann-O-Meter</a>.
+      Termin eingeben und den ganzen Plan rechnen lassen.
+    </p>
+
+    <script is:inline>
+      // Colours and font come from the embedding page through the url, because
+      // a CSS custom property does not cross an iframe boundary.
+      const theme = new URLSearchParams(location.search);
+      for (const key of ["accent", "ink", "muted", "line", "paper", "font"]) {
+        const value = theme.get(key);
+        if (value) document.documentElement.style.setProperty(`--embed-${key}`, value);
+      }
+      // The host cannot measure content it does not own, so the frame says how
+      // tall it is and embed.js resizes it.
+      function reportHeight() {
+        parent.postMessage(
+          { type: "wannometer:height", height: document.documentElement.scrollHeight },
+          "*",
+        );
+      }
+      addEventListener("load", reportHeight);
+      addEventListener("resize", reportHeight);
+      reportHeight();
+    </script>
+  </body>
+</html>

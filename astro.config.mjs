@@ -35,6 +35,7 @@ export default defineConfig({
       filter: (page) =>
         !page.includes("/feedback/") &&
         !page.includes("/aenderungen/") &&
+        !page.includes("/embed/") &&
         !noindexPaths().some((path) => new URL(page).pathname === path),
       serialize(item) {
         const lastmod = lastChanged(...sourcesFor(item.url));

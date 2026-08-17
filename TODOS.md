@@ -13,9 +13,9 @@
 - [x] Add a `@media print` stylesheet (also gives PDF export free via the browser)
 - [x] Accessibility pass: semantic HTML, ARIA labels, focus states, keyboard nav, WCAG AA contrast
 - [x] Add `<input type="date">` if not already, and audit mobile touch targets (date inputs were already native, touch targets now 44px on coarse pointers)
-- [ ] Build `/einbetten/`: iframe + script-tag options, CSS custom property theming, `noindex, follow` on all `/embed/` routes, excluded from sitemap
-- [ ] Write the privacy section for `/einbetten/` — no cookies, no third-party assets, hosting chain named, AVV-Muster ready to send
-- [ ] Add a static-image fallback for embedders whose CMS strips iframes
+- [x] Build `/einbetten/`: iframe + script-tag options, CSS custom property theming, `noindex, follow` on all `/embed/` routes, excluded from sitemap
+- [x] Write the privacy section for `/einbetten/` — no cookies, no third-party assets, hosting chain named, AVV-Muster ready to send
+- [x] Add a static-image fallback for embedders whose CMS strips iframes
 - [x] Add `geprueft_am` per Frist; render inline as "Stand: …" and derive an `/aenderungen/` page from git history
 - [x] Add a `Wo?` field (responsible authority per task) — this is the per-Gemeinde fact that unlocks city page indexing
 - [x] Add a `Benötigte Unterlagen` field per task
@@ -26,3 +26,5 @@
 - [ ] Add `errechneter Entbindungstermin` as a second anchor for Geburt if building the pregnancy surface
 - [x] Add a PWA manifest for home-screen install; no service worker (stale law offline is worse than no offline)
 - [x] Add no-index to /aenderungen
+- [ ] Link API and Einbetten page in the footer
+- [ ] Quelle vorschlagen is outdated, remove it

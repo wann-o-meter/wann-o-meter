@@ -1,0 +1,184 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { loadAllVorhaben } from "../../lib/vorhaben-data";
+
+const vorhaben = loadAllVorhaben();
+const origin = new URL("/", Astro.site).href.replace(/\/$/, "");
+const example = vorhaben[0];
+
+const iframeSnippet = `<iframe
+  src="${origin}/embed/${example.slug}/"
+  title="Fristen für ${example.label}"
+  loading="lazy"
+  style="width:100%;height:600px;border:0"
+></iframe>`;
+
+const scriptSnippet = `<script
+  src="${origin}/embed.js"
+  data-vorhaben="${example.slug}"
+  data-accent="#1d4f91"
+></script>`;
+
+const title = "Fristen einbetten";
+const description =
+  "Die Fristen als iframe oder mit einem Script-Tag auf der eigenen Seite, ohne Cookies und ohne Drittanbieter-Assets.";
+
+const knobs = [
+  ["accent", "Farbe der Links", "#1d4f91"],
+  ["ink", "Textfarbe", "#14161a"],
+  ["muted", "Farbe der Nebenangaben", "#4d545e"],
+  ["line", "Trennlinien", "#d5dae2"],
+  ["paper", "Hintergrund, per Vorgabe durchsichtig", "transparent"],
+  ["font", "Schriftfamilie", "Georgia, serif"],
+];
+---
+
+<Layout title={title} description={description}>
+  <h1>{title}</h1>
+  <p class="lede">
+    Die Fristen eines Vorhabens auf der eigenen Seite, in zwei Zeilen. Kostenlos,
+    ohne Anmeldung, ohne Cookies. Bitte den Link auf die Quelle stehen lassen.
+  </p>
+
+  <h2>Als iframe</h2>
+  <pre><code>{iframeSnippet}</code></pre>
+
+  <h2>Mit einem Script-Tag</h2>
+  <p>
+    Dasselbe, nur passt sich die Höhe dem Inhalt an. Das Script legt den iframe
+    an der Stelle an, an der es steht.
+  </p>
+  <pre><code>{scriptSnippet}</code></pre>
+
+  <h2>Verfügbare Vorhaben</h2>
+  <ul class="slugs">
+    {
+      vorhaben.map((v) => (
+        <li>
+          <code>{v.slug}</code>{" "}
+          <a href={`/embed/${v.slug}/`}>Vorschau</a>{" "}
+          <span aria-hidden="true">&middot;</span>{" "}
+          <a href={`/embed/${v.slug}.svg`}>als Bild</a>
+        </li>
+      ))
+    }
+  </ul>
+
+  <h2>Farben und Schrift</h2>
+  <p>
+    Eine CSS-Variable kommt nicht über die iframe-Grenze, deshalb reisen die
+    Werte in der URL mit (<code>?accent=%231d4f91</code>) oder beim Script-Tag
+    als <code>data-</code>-Attribut. Innen setzen sie die Custom Properties
+    <code>--embed-*</code>.
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Was</th>
+          <th scope="col">Beispiel</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          knobs.map(([name, what, value]) => (
+            <tr>
+              <th scope="row"><code>{name}</code></th>
+              <td>{what}</td>
+              <td><code>{value}</code></td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Wenn das CMS iframes entfernt</h2>
+  <p>
+    Für Systeme, die iframes und Scripts herausfiltern, gibt es dieselbe Liste
+    als Bild: <code>{origin}/embed/{example.slug}.svg</code>. Es ist ein SVG mit
+    echtem Text, bleibt also auf jedem Bildschirm scharf und lässt sich
+    vorlesen. Es rechnet nichts aus, es zeigt die Fristen relativ zum Termin.
+  </p>
+  <p>
+    <img
+      src={`/embed/${example.slug}.svg`}
+      alt={`Fristen für ${example.label} als Bild`}
+      width="640"
+      loading="lazy"
+    />
+  </p>
+
+  <h2 id="datenschutz">Datenschutz</h2>
+  <ul>
+    <li>
+      <b>Keine Cookies, kein Tracking.</b> Weder der iframe noch
+      <code>embed.js</code> setzen Cookies, schreiben in den Local Storage oder
+      laden Analyse-Werkzeuge. Es gibt keine Einwilligung einzuholen.
+    </li>
+    <li>
+      <b>Keine Drittanbieter-Assets.</b> Der eingebettete Inhalt lädt nur von
+      <code>{origin}</code>. Keine Schriften von einem Font-Server, keine
+      Bibliothek von einem CDN, kein Bild von woanders. Die Schrift ist die des
+      Systems, falls Ihr keine eigene setzt.
+    </li>
+    <li>
+      <b>Hosting-Kette.</b> Der Aufruf des iframes geht an GitHub Pages (GitHub,
+      Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA), das
+      dabei technisch notwendige Server-Logs verarbeitet (IP-Adresse,
+      Zeitpunkt, URL, Referrer, User-Agent). Mehr dazu in unserer{" "}
+      <a href="/datenschutz/">Datenschutzerklärung</a>. Wollt Ihr diesen Aufruf
+      vermeiden, nehmt das SVG oben und legt es auf Euren eigenen Server.
+    </li>
+    <li>
+      <b>Auftragsverarbeitung.</b> Wir verarbeiten für Euch keine
+      personenbezogenen Daten, die Einbettung braucht also im Regelfall keinen
+      AVV. Verlangt Eure Rechtsabteilung trotzdem einen, schreibt an{" "}
+      <a href="mailto:hallo@wannometer.de">hallo@wannometer.de</a>, dann schicken
+      wir ein unterschriebenes Muster nach Art. 28 DSGVO.
+    </li>
+  </ul>
+
+  <h2>Bedingungen</h2>
+  <ul>
+    <li>Angaben ohne Gewähr, keine Rechtsberatung. Das gilt eingebettet genauso.</li>
+    <li>Der Link auf die Quelle bleibt im Inhalt stehen.</li>
+    <li>
+      Die Seiten unter <code>/embed/</code> stehen auf <code>noindex, follow</code>
+      und sind aus der Sitemap ausgenommen, Eure Seite bekommt also keine
+      doppelten Inhalte in den Index.
+    </li>
+  </ul>
+</Layout>
+
+<style>
+  .lede {
+    max-width: 62ch;
+    color: var(--muted);
+  }
+  pre {
+    overflow-x: auto;
+    padding: 0.8rem 1rem;
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    font-size: var(--fs-sm);
+  }
+  .slugs {
+    list-style: none;
+    padding: 0;
+  }
+  .slugs li {
+    margin-bottom: 0.4rem;
+  }
+  img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  li {
+    max-width: 62ch;
+  }
+</style>
