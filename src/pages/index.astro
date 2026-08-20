@@ -34,5 +34,9 @@ const fristen = allFristTasks().map(({ task, vorhaben }) => ({
 <Layout title="Wann muss ich anfangen?" description={homeDescription} structuredData={structuredData}>
   <IndexTimeline client:load vorhaben={vorhaben} />
 
-  <FristenFinder client:load fristen={fristen} />
+  <FristenFinder
+    client:load
+    fristen={fristen}
+    plans={vorhaben.map((v) => ({ slug: v.slug, label: v.label }))}
+  />
 </Layout>

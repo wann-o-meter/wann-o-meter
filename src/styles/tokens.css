@@ -31,6 +31,11 @@ change here moves every page at once. scripts/check-tokens.mjs enforces it. */
   --r-sm: 6px;
   --r-lg: 12px;
 
+  /* Code is the one thing on the site set in a second font: it is read
+  character by character, and the sans it would borrow hides that. Nothing
+  that is merely a number belongs here, tabular-nums is what numbers need. */
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+
   /* One gap between page sections, everywhere. */
   --section-gap: var(--s-4);
 }
@@ -118,12 +123,10 @@ strong,
 th {
   font-weight: var(--fw-semibold);
 }
-/* Code is the one thing on the site still set in a second font: it is read
-character by character, and the sans it would otherwise borrow hides that. */
 code,
 pre,
 kbd {
-  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: var(--t-meta);
 }
 

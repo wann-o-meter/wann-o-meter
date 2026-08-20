@@ -1,55 +1,35 @@
 <template>
   <article class="plan">
-    <div class="body">
-      <p class="meta">
-        {{ v.label }}<template v-if="place"> · {{ place }}</template> ·
-        <span>{{ shortDate(plan.date) }}</span>
-      </p>
+    <p class="who t-title">{{ who }}</p>
 
-      <h2 v-if="!next">Alle Fristen erledigt</h2>
-      <h2 v-else-if="span!.days < 0" class="late">
-        <AlertTriangle :size="20" aria-hidden="true" />
-        <span
-          ><span>{{ span!.n }}</span> {{ span!.unit }} überfällig</span
-        >
-      </h2>
-      <h2 v-else-if="span!.days === 0">Heute fällig</h2>
-      <h2 v-else>
-        Fällig in <span>{{ span!.n }}</span> {{ span!.unit }}
-      </h2>
+    <p class="event">
+      <span class="t-label">{{ v.anchorLabel }}</span>
+      <span class="t-meta tnum">{{ shortDate(plan.date) }}</span>
+    </p>
 
-      <p v-if="next" class="next">
-        Als Nächstes: <b>{{ next.label }}</b> bis
-        <span>{{ shortDate(next.date!) }}</span>
-      </p>
+    <h2 v-if="!next" class="t-title">Alle Fristen erledigt</h2>
+    <h2 v-else-if="span!.days < 0" class="t-title late">
+      <AlertTriangle :size="18" aria-hidden="true" />
+      Nächste Frist {{ span!.n }} {{ span!.unit }} überfällig
+    </h2>
+    <h2 v-else-if="span!.days === 0" class="t-title">
+      Nächste Frist heute fällig
+    </h2>
+    <h2 v-else class="t-title">
+      Nächste Frist in {{ span!.n }} {{ dativeUnit(span!.unit) }}
+    </h2>
 
-      <p v-if="doneCount > 0" class="tally">
-        <span>{{ doneCount }}</span> von <span>{{ total }}</span> Fristen
-        erledigt.
-      </p>
+    <p v-if="next" class="next t-meta">
+      {{ next.label }} · bis <span class="tnum">{{ shortDate(next.date!) }}</span>
+    </p>
 
-      <div class="row">
-        <a class="cta" :href="href">
-          Plan öffnen <ArrowRight :size="14" />
-        </a>
-      </div>
-    </div>
+    <p v-if="doneCount > 0" class="tally t-meta">
+      {{ doneCount }} von {{ total }} Fristen erledigt.
+    </p>
 
-    <!-- Only worth a grid while the next Frist is in the month you are in. -->
-    <div v-if="calendar" class="cal" aria-hidden="true">
-      <p class="cal-head">{{ calendar.month }}</p>
-      <div class="grid">
-        <span v-for="wd in WEEKDAY_NAMES_SHORT" :key="wd" class="wd">{{
-          wd
-        }}</span>
-        <span
-          v-for="(day, i) in calendar.days"
-          :key="i"
-          :class="dayClass(day)"
-          >{{ day ? Number(day.slice(-2)) : "" }}</span
-        >
-      </div>
-    </div>
+    <p class="go">
+      <a class="btn-secondary" :href="href">Plan öffnen <ArrowRight :size="14" /></a>
+    </p>
   </article>
 </template>
 
@@ -59,9 +39,8 @@ import { AlertTriangle, ArrowRight } from "lucide-vue-next";
 import { computeSchedule } from "../../lib/deadline-plan";
 import { appliesTo } from "../../lib/facets";
 import {
-  WEEKDAY_NAMES_SHORT,
+  dativeUnit,
   daysUntil,
-  monthLabel,
   shortDate,
   spanParts,
 } from "../../lib/date-display";
@@ -98,6 +77,10 @@ const place = computed(() =>
     : (props.plan.ort ?? STATES[props.plan.region ?? ""] ?? ""),
 );
 
+const who = computed(() =>
+  [props.v.label, place.value].filter(Boolean).join(" · "),
+);
+
 const snap = computed(() =>
   readSnapshot(planStorageKey(props.v.vorhaben, variant.value.slug)),
 );
@@ -129,27 +112,6 @@ const span = computed(() => {
   return { days, ...spanParts(days) };
 });
 
-// Leading blanks so the first day sits under its weekday, Monday first.
-const calendar = computed(() => {
-  const due = next.value?.date;
-  if (!due || due.slice(0, 7) !== TODAY.slice(0, 7)) return null;
-  const [year, month] = TODAY.split("-").map(Number);
-  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  const firstWeekday =
-    (new Date(Date.UTC(year, month - 1, 1)).getUTCDay() + 6) % 7;
-  const days: (string | null)[] = Array(firstWeekday).fill(null);
-  for (let d = 1; d <= lastDay; d++)
-    days.push(`${TODAY.slice(0, 7)}-${String(d).padStart(2, "0")}`);
-  return { days, month: monthLabel(TODAY, year) };
-});
-
-function dayClass(day: string | null): string {
-  if (!day) return "";
-  if (day === next.value?.date)
-    return span.value!.days < 0 ? "due late" : "due";
-  return day === TODAY ? "today" : "";
-}
-
 // An Ort with its own file brings its Bundesland along, region is only for the
 // bundesweit plan of a place we have no file for.
 const href = computed(() =>
@@ -162,117 +124,52 @@ const href = computed(() =>
 </script>
 
 <style scoped>
+/* One card shape, one elevation, and the same height as its neighbours. */
 .plan {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.6rem 1.2rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
   height: 100%;
-  /* The visitor's own plan is the one card worth lifting off the page. */
   background: var(--paper-raised);
   border: 1px solid var(--line);
   border-left: 3px solid var(--accent);
   border-radius: var(--r-lg);
-  padding: 0.9rem 1.1rem;
-}
-.body {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 13rem;
-  min-width: 0;
+  padding: var(--s-2);
   /* Frist labels are long compound nouns, they have to be allowed to break. */
   overflow-wrap: anywhere;
 }
-.meta {
+.who {
   margin: 0;
-  font-size: var(--t-meta);
   color: var(--muted);
+}
+.event {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0 0 var(--s-1);
 }
 h2 {
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  margin: 0 0 0.3rem;
+  margin: 0;
   border: 0;
   padding: 0;
-  font-size: var(--t-section);
 }
 h2.late {
   color: var(--overdue);
 }
-
 .next {
   margin: 0;
-  font-size: var(--t-meta);
 }
 .tally {
   margin: 0.2rem 0 0;
-  font-size: var(--t-meta);
   color: var(--muted);
 }
-
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem 1rem;
-  margin-top: auto;
-}
-.cta {
-  margin-top: 0.7rem;
-  padding: 0.35rem 0.8rem;
-  font-size: var(--t-meta);
-}
-/* Removing a plan sits next to the way in, but reads as an aside. */
-.forget {
-  margin-top: 0.7rem;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--muted);
-  font-size: var(--t-meta);
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
-}
-.forget:hover {
-  color: var(--overdue);
-}
-
-.cal {
-  align-self: flex-start;
-  width: max-content;
-  font-size: var(--t-meta);
-}
-.cal-head {
-  margin: 0 0 0.15rem;
-  color: var(--muted);
-  font-weight: var(--fw-semibold);
-}
-.grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1.3rem);
-  gap: 0.05rem;
-}
-.grid span {
-  line-height: 1.3rem;
-  text-align: center;
-  border-radius: var(--r-sm);
-}
-.wd {
-  color: var(--muted);
-}
-/* Today is a ring, the Frist is filled: the two never read as the same mark. */
-.today {
-  box-shadow: inset 0 0 0 1px var(--muted);
-  font-weight: var(--fw-semibold);
-}
-.due {
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-weight: var(--fw-semibold);
-}
-.due.late {
-  background: var(--overdue);
-  color: var(--overdue-ink);
+/* Pushed to the bottom, so cards of different length end on one line. */
+.go {
+  margin: auto 0 0;
+  padding-top: var(--s-2);
 }
 </style>

@@ -847,7 +847,6 @@ function onMarkerLeave() {
 }
 
 .axis-label {
-  font-family: var(--font-mono);
   font-size: calc(var(--t-label) - 2px * var(--tl-t, 0));
   fill: var(--muted);
 }
@@ -856,7 +855,6 @@ function onMarkerLeave() {
   opacity: 0.85;
 }
 .anchor-label {
-  font-family: var(--font-mono);
   font-weight: var(--fw-semibold);
   font-size: calc(var(--t-label) - 2px * var(--tl-t, 0));
 }
@@ -884,7 +882,6 @@ function onMarkerLeave() {
 .tip-date {
   display: block;
   margin-top: 2px;
-  font-family: var(--font-mono);
   opacity: 0.75;
 }
 </style>

@@ -241,7 +241,6 @@ second line. */
 }
 .plz {
   flex-shrink: 0;
-  font-family: var(--font-mono);
   font-size: var(--t-meta);
   color: var(--muted);
 }

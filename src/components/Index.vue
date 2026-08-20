@@ -40,7 +40,7 @@
           v-for="v in vorhaben"
           :key="v.slug"
           type="button"
-          class="choice key"
+          class="choice"
           :aria-pressed="v.slug === selectedSlug"
           @click="pick(v.slug)"
         >
@@ -125,7 +125,7 @@
             v-for="p in presets"
             :key="p.label"
             type="button"
-            class="chip key"
+            class="chip"
             :aria-pressed="anchorDate === p.iso()"
             @click="anchorDate = p.iso()"
           >
@@ -232,7 +232,7 @@
             >. Dieses Formular legt einen neuen an und ersetzt ihn.
           </p>
 
-          <a class="cta" :href="planHref">
+          <a class="btn-primary" :href="planHref">
             Plan öffnen <ArrowRight :size="16" />
           </a>
           <p class="after-cta">
@@ -850,7 +850,6 @@ apart in the list. */
 }
 .ac .plz {
   flex-shrink: 0;
-  font-family: var(--font-mono);
   font-size: var(--t-meta);
   color: var(--muted);
 }

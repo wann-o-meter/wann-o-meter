@@ -76,7 +76,7 @@ const inputId = `frist-anchor-${props.task.id}`;
       </p>
       <a
         v-if="planSlug"
-        class="cta"
+        class="btn-primary"
         :href="`/${planSlug}/#date=${anchorDate}`"
       >
         {{ planLabel ?? "Plan" }} ab diesem Termin planen

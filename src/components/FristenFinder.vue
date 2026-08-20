@@ -12,18 +12,19 @@ export interface FristEntry {
   plans: { slug: string; label: string }[];
 }
 
-const props = defineProps<{ fristen: FristEntry[] }>();
+const props = defineProps<{
+  fristen: FristEntry[];
+  plans: { slug: string; label: string }[];
+}>();
 
 const query = ref("");
 const filter = ref("");
 
-const title = (s: string) => s[0].toUpperCase() + s.slice(1);
-// A Frist is filed under its plan, or under the first of its own tags when no
-// plan claims it yet. The rest of the tags are words to search for, not groups.
+// A Frist is filed under the plans that use it, and under nothing else. Its
+// tags are words to search for, never a group: a chip nobody can find as a
+// category above is a chip that means nothing.
 const groupsOf = (f: FristEntry) =>
-  f.plans.length > 0
-    ? f.plans.map((p) => ({ id: p.slug, label: p.label }))
-    : f.tags.slice(0, 1).map((t) => ({ id: t, label: title(t) }));
+  f.plans.map((p) => ({ id: p.slug, label: p.label }));
 
 // Someone types muenchen or münchen or munchen and means the same place, so
 // both spellings of every umlaut have to match.
@@ -34,12 +35,13 @@ const forms = (s: string) => [
 const hit = (field: string, query: string) =>
   forms(query).some((q) => forms(field).some((f) => f.includes(q)));
 
-const filters = computed(() => {
-  const seen = new Map<string, string>();
-  for (const f of props.fristen)
-    for (const g of groupsOf(f)) seen.set(g.id, g.label);
-  return [...seen].map(([id, label]) => ({ id, label }));
-});
+// Same order as the category cards above, and only the ones that lead
+// somewhere: a filter that empties the list is a dead end.
+const filters = computed(() =>
+  props.plans
+    .filter((p) => props.fristen.some((f) => f.plans.some((x) => x.slug === p.slug)))
+    .map((p) => ({ id: p.slug, label: p.label })),
+);
 
 const matches = computed(() => {
   const q = query.value.trim();
@@ -80,7 +82,7 @@ const toggle = (id: string) => (filter.value = filter.value === id ? "" : id);
           v-for="f in filters"
           :key="f.id"
           type="button"
-          class="chip key"
+          class="chip"
           :aria-pressed="filter === f.id"
           @click="toggle(f.id)"
         >

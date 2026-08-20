@@ -48,7 +48,7 @@
         </button>
       </div>
       <div class="nav">
-        <button type="button" class="cta" @click="go(2)">Weiter</button>
+        <button type="button" class="btn-primary" @click="go(2)">Weiter</button>
       </div>
     </div>
 
@@ -67,7 +67,7 @@
         </li>
       </ul>
       <div class="nav">
-        <button type="button" class="cta" @click="go(3)">Weiter</button>
+        <button type="button" class="btn-primary" @click="go(3)">Weiter</button>
         <button type="button" class="ghost" @click="skip">
           Überspringen — Plan mit Standardannahmen
         </button>
@@ -95,7 +95,7 @@
         </div>
       </dl>
       <div class="nav">
-        <a class="cta" :href="href">Plan öffnen</a>
+        <a class="btn-primary" :href="href">Plan öffnen</a>
       </div>
     </div>
   </section>

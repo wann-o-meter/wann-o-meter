@@ -421,7 +421,7 @@ onBeforeUnmount(() => {
           {{ facetOptions.length }} Fragen, jede ergänzt weitere Fristen.
         </p>
         <div class="facet-row">
-          <label v-for="id in facetOptions" :key="id" class="facet key">
+          <label v-for="id in facetOptions" :key="id" class="facet">
             <input v-model="activeFacets" type="checkbox" :value="id" />
             <span>{{ facetLabel(id) }}</span>
           </label>

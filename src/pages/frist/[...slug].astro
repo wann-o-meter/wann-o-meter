@@ -168,7 +168,7 @@ const structuredData = {
           ))}
         </ol>
         <a
-          class="cta"
+          class="btn-primary"
           href={`/${fristPath(task.id, year ?? Number(answer.date.slice(0, 4)) - 1)}.ics`}
         >
           <CalendarPlus size={16} /> Termin in den Kalender
@@ -281,7 +281,7 @@ const structuredData = {
           Feiertagen deines Bundeslands.
         </p>
         {plans.map((v) => (
-          <a class="cta" data-plan-cta={v.slug} href={`/${v.slug}/`}>
+          <a class="btn-primary" data-plan-cta={v.slug} href={`/${v.slug}/`}>
             {v.label} planen <ArrowRight size={16} />
           </a>
         ))}
