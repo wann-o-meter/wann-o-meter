@@ -167,12 +167,15 @@ h2 {
   font-size: var(--t-meta);
 }
 
+/* One container, one divider between rows. */
 ul {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  gap: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--paper-raised);
+  overflow: hidden;
 }
 li {
   position: relative;
@@ -181,17 +184,14 @@ li {
   align-items: baseline;
   justify-content: space-between;
   gap: 0.3rem 1rem;
-  padding: 0.6rem 0.9rem;
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--paper-raised);
-  transition:
-    border-color 0.12s,
-    box-shadow 0.12s;
+  padding: var(--s-1) var(--s-2);
+  transition: background 0.12s;
+}
+li + li {
+  border-top: 1px solid var(--line);
 }
 li:hover {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-card);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
 }
 li a {
   font-weight: var(--fw-semibold);
@@ -234,14 +234,7 @@ of drifting with the length of each. */
   gap: 0.3rem;
 }
 .tag {
-  border: 1px solid var(--line);
-  border-radius: var(--r-sm);
-  padding: 0.05rem 0.5rem;
   white-space: nowrap;
-}
-.tag {
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
-  color: var(--accent);
 }
 .empty {
   color: var(--muted);
