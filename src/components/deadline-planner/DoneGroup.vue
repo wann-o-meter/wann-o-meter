@@ -29,7 +29,7 @@ defineEmits<{ (e: "reopen", id: string): void }>();
 <style scoped>
 .done-group {
   margin-top: 1rem;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 .done-group summary {
   cursor: pointer;
@@ -62,8 +62,8 @@ defineEmits<{ (e: "reopen", id: string): void }>();
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  border: 1px solid var(--done-color);
-  background: var(--done-color);
+  border: 1px solid var(--done);
+  background: var(--done);
   color: var(--paper-raised);
 }
 .check::before {

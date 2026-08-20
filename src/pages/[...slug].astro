@@ -186,10 +186,10 @@ const rest = siblings.slice(PREVIEW);
   }
   .overview b {
     color: var(--ink);
-    font-weight: 600;
+    font-weight: var(--fw-semibold);
   }
   .back {
-    font-size: var(--fs-sm);
+    font-size: var(--t-meta);
   }
   /* ponytail: one number for every plan, split it per Vorhaben if the plans
   ever differ enough in length that the reserve reads as empty space. */
@@ -199,7 +199,6 @@ const rest = siblings.slice(PREVIEW);
   h1 {
     margin-top: 0.5rem;
     margin-bottom: 1rem;
-    letter-spacing: -0.01em;
   }
   .places {
     margin-top: 2rem;
@@ -208,7 +207,7 @@ const rest = siblings.slice(PREVIEW);
     max-width: 62ch;
     margin: 0 0 0.75rem;
     color: var(--muted);
-    font-size: var(--fs-sm);
+    font-size: var(--t-meta);
   }
   .places ul {
     list-style: none;
@@ -222,7 +221,7 @@ const rest = siblings.slice(PREVIEW);
     border: 1px solid var(--line);
     border-radius: 100px;
     padding: 0.5rem 1rem;
-    font-size: var(--fs-sm);
+    font-size: var(--t-meta);
     text-decoration: none;
   }
   .places .here {
@@ -230,13 +229,13 @@ const rest = siblings.slice(PREVIEW);
     border: 1px solid var(--accent);
     border-radius: 100px;
     padding: 0.5rem 1rem;
-    font-size: var(--fs-sm);
+    font-size: var(--t-meta);
     background: var(--accent);
     color: var(--accent-ink);
   }
   .places details {
     margin-top: 0.75rem;
-    font-size: var(--fs-sm);
+    font-size: var(--t-meta);
   }
   .places summary {
     cursor: pointer;

@@ -75,11 +75,11 @@ const fallbackLabel = () =>
 
 .where {
   margin: 0.4rem 0 0;
-  font-size: var(--fs-xs);
+  font-size: var(--t-meta);
   color: var(--muted);
 }
 .derivation {
-  font-size: var(--fs-xs);
+  font-size: var(--t-meta);
   color: var(--muted);
 }
 .derivation summary {
@@ -101,7 +101,7 @@ const fallbackLabel = () =>
   margin: 0.4rem 0 0;
   padding-top: 0.4rem;
   border-top: 1px solid var(--line);
-  font-size: var(--fs-xs);
+  font-size: var(--t-meta);
   color: var(--muted);
 }
 .src .frist {

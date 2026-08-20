@@ -50,7 +50,7 @@ function closeOnBlur(e: FocusEvent) {
   width: 1.5rem;
   height: 1.5rem;
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-sm);
   cursor: pointer;
   color: var(--muted);
   list-style: none;
@@ -80,7 +80,7 @@ function closeOnBlur(e: FocusEvent) {
   padding: 0.25rem;
   background: var(--paper-raised);
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-sm);
   box-shadow: var(--shadow-md);
 }
 .tool-menu button {
@@ -91,7 +91,7 @@ function closeOnBlur(e: FocusEvent) {
   border: 0;
   background: transparent;
   color: var(--ink);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   text-align: left;
   padding: 0.4rem 0.5rem;
   cursor: pointer;
@@ -100,7 +100,7 @@ function closeOnBlur(e: FocusEvent) {
   background: var(--paper);
 }
 .tool-menu .danger {
-  color: var(--warn);
+  color: var(--overdue);
 }
 
 @media print {

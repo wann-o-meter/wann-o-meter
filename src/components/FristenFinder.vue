@@ -115,7 +115,7 @@ const toggle = (id: string) => (filter.value = filter.value === id ? "" : id);
 }
 /* Same shape as the picker above: heading, one line, then the controls. */
 h2 {
-  font-size: var(--fs-lg);
+  font-size: var(--t-section);
   border: 0;
   padding: 0;
   margin: 0 0 0.25rem;
@@ -124,7 +124,7 @@ h2 {
   max-width: 62ch;
   margin: 0 0 1.25rem;
   color: var(--muted);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 .controls {
   display: flex;
@@ -141,7 +141,7 @@ h2 {
   width: 100%;
   max-width: 22rem;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   background: var(--paper-raised);
   color: var(--muted);
 }
@@ -160,9 +160,9 @@ h2 {
   gap: 0.4rem;
 }
 .chip {
-  border-radius: var(--radius-pill);
+  border-radius: var(--r-sm);
   padding: 0.25rem 0.75rem;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 
 ul {
@@ -181,7 +181,7 @@ li {
   gap: 0.3rem 1rem;
   padding: 0.6rem 0.9rem;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   background: var(--paper-raised);
   transition:
     border-color 0.12s,
@@ -192,7 +192,7 @@ li:hover {
   box-shadow: var(--shadow-card);
 }
 li a {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   color: var(--ink);
   text-decoration: none;
 }
@@ -214,7 +214,7 @@ of drifting with the length of each. */
   align-items: baseline;
   gap: 0.5rem;
   width: 19rem;
-  font-size: var(--fs-xs);
+  font-size: var(--t-meta);
   color: var(--muted);
 }
 .src {
@@ -233,7 +233,7 @@ of drifting with the length of each. */
 }
 .tag {
   border: 1px solid var(--line);
-  border-radius: var(--radius-pill);
+  border-radius: var(--r-sm);
   padding: 0.05rem 0.5rem;
   white-space: nowrap;
 }
@@ -243,6 +243,6 @@ of drifting with the length of each. */
 }
 .empty {
   color: var(--muted);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 </style>

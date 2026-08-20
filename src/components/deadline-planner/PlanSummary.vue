@@ -124,7 +124,7 @@ const anchorIsSunday = computed(
   margin: 0;
   padding: 0.5rem 0.7rem;
   background: var(--paper-raised);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   box-shadow: var(--shadow-card);
   color: var(--ink);
   text-decoration: none;
@@ -151,22 +151,20 @@ button.stat:hover {
 }
 .k {
   overflow: hidden;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: var(--t-meta);
+  font-weight: var(--fw-semibold);
   color: var(--muted);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .v {
   flex-shrink: 0;
-  font-size: var(--fs-sm);
-  font-weight: 600;
+  font-size: var(--t-meta);
+  font-weight: var(--fw-semibold);
   white-space: nowrap;
 }
 .late .k {
-  color: var(--warn);
+  color: var(--overdue);
 }
 .done .k {
   color: var(--muted);
@@ -175,14 +173,14 @@ button.stat:hover {
 .bar {
   display: block;
   height: 0.3rem;
-  border-radius: var(--radius-pill);
+  border-radius: var(--r-sm);
   background: color-mix(in srgb, var(--ink) 14%, var(--paper-raised));
   overflow: hidden;
 }
 .bar i {
   display: block;
   height: 100%;
-  border-radius: var(--radius-pill);
+  border-radius: var(--r-sm);
   background: var(--accent);
   transition: width 0.3s;
 }
@@ -192,7 +190,7 @@ button.stat:hover {
   overflow: hidden;
   max-height: 3rem;
   margin: 0.4rem 0 0;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   color: var(--muted);
   transition:
     max-height 0.22s,

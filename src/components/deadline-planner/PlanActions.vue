@@ -68,12 +68,12 @@ const print = () => window.print();
   padding: 1rem;
   background: var(--paper-raised);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
 }
 .actions p {
   margin: 0.5rem 0 0;
   color: var(--muted);
-  font-size: var(--fs-xs);
+  font-size: var(--t-meta);
 }
 .actions-buttons {
   display: flex;
@@ -87,11 +87,9 @@ const print = () => window.print();
 }
 .section {
   margin: 0 0 0.75rem;
-  font-size: var(--fs-sm);
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  font-size: var(--t-meta);
   color: var(--muted);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 
 @media print {

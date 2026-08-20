@@ -10,6 +10,7 @@ import type { TaskPicker as Picker } from "./useTaskPicker";
 defineProps<{
   nodes: { kind: string; [key: string]: any }[];
   anchorDate: string;
+  anchorLabel: string;
   hoveredId: string | null;
   store: TaskStore;
   picker: Picker;
@@ -69,6 +70,7 @@ defineEmits<{
         :entry="node.entry"
         :undated="node.entry.kind === 'soft'"
         :anchor-date="anchorDate"
+        :anchor-label="anchorLabel"
         :is-past="isPast(node.entry.date!)"
         :done="!!store.doneIds[node.entry.id]"
         :is-custom="store.isCustom(node.entry.id)"

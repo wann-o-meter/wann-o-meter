@@ -1,7 +1,6 @@
 @import "@fontsource/ibm-plex-sans/400.css";
 @import "@fontsource/ibm-plex-sans/600.css";
-@import "@fontsource/ibm-plex-mono/400.css";
-@import "@fontsource/ibm-plex-mono/500.css";
+@import "./tokens.css";
 
 :root {
   color-scheme: light;
@@ -15,42 +14,19 @@
   --line-strong: #7d838d;
   --accent: #1d4f91;
   --accent-ink: #f8fafc;
-  --anchor: #7a3fa8;
   --today: #14161a;
-  --warn: #a8331f;
-  --warn-ink: #fff8f5;
+  /* Semantic, and only ever used semantically: a state, never a decoration. */
+  --overdue: #a8331f;
+  --overdue-ink: #fff8f5;
+  --due-soon: #8a5a12;
+  --done: #377043;
   --holiday: #8a5a12;
-  --done-color: #377043;
-  --radius: 8px;
-  --radius-sm: 6px;
-  --radius-pill: 999px;
-  /* One gap between page sections, everywhere. */
-  --section-gap: 2.75rem;
   --shadow-card: 0 1px 2px rgb(20 22 26 / 0.06), 0 2px 6px rgb(20 22 26 / 0.07);
   --shadow-md: 0 2px 4px rgb(20 22 26 / 0.06), 0 6px 16px rgb(20 22 26 / 0.1);
   --shadow-lg:
     0 8px 12px rgb(20 22 26 / 0.08), 0 18px 40px rgb(20 22 26 / 0.14);
   --font-sans:
     "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono:
-    "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --fs-xs: 0.72rem;
-  --fs-sm: 0.85rem;
-  --fs-md: 1rem;
-  --fs-lg: 1.4rem;
-  --fs-xl: 1.85rem;
-  /* Reserved for the few places worth lifting: the primary action and the
-  card that holds the visitor's own plan. Everything else stays flat. */
-  --grad-accent: linear-gradient(
-    135deg,
-    var(--accent),
-    color-mix(in srgb, var(--anchor) 55%, var(--accent))
-  );
-  --grad-card: linear-gradient(
-    150deg,
-    color-mix(in srgb, var(--anchor) 7%, var(--paper-raised)),
-    var(--paper-raised) 55%
-  );
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
@@ -62,12 +38,12 @@
   --line-strong: #666f7c;
   --accent: #7aa9e6;
   --accent-ink: #0b0d11;
-  --anchor: #b89ad8;
   --today: #e4e7ec;
-  --warn: #e28873;
-  --warn-ink: #14171d;
+  --overdue: #e28873;
+  --overdue-ink: #14171d;
+  --due-soon: #d6a95f;
+  --done: #6fab7c;
   --holiday: #d6a95f;
-  --done-color: #6fab7c;
   /* Depth in the dark comes from black alone, a tinted shadow reads as a glow. */
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.6);
   --shadow-md: 0 6px 18px rgb(0 0 0 / 0.55);
@@ -79,49 +55,16 @@
 }
 html {
   -webkit-text-size-adjust: 100%;
-  font-size: 112.5%;
 }
 body {
   margin: 0;
   font-family: var(--font-sans);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--fs-md);
-  line-height: 1.6;
   color: var(--ink);
   background: var(--paper);
 }
 
-h1,
-h2,
-h3 {
-  font-weight: 600;
-  line-height: 1.25;
-  margin: 1.75rem 0 0.75rem;
-}
-h1 {
-  font-size: var(--fs-xl);
-  letter-spacing: -0.02em;
-}
-@media (max-width: 40rem) {
-  :root {
-    --section-gap: 2rem;
-  }
-  h1 {
-    font-size: var(--fs-lg);
-  }
-  h1,
-  h2,
-  h3 {
-    margin: 1rem 0 0.5rem;
-  }
-}
-h2 {
-  font-size: var(--fs-lg);
-  padding-bottom: 0.25rem;
-  border-bottom: 1px solid var(--line);
-}
 p {
-  margin: 0 0 1rem;
+  margin: 0 0 var(--s-2);
 }
 
 a {
@@ -144,9 +87,6 @@ no link decoration that a reader cannot click anyway. */
 @media print {
   @page {
     margin: 1.5cm;
-  }
-  html {
-    font-size: 100%;
   }
   body {
     background: #fff;
@@ -203,11 +143,11 @@ Only for controls that hold a choice, everything else stays flat. */
   gap: 0.4rem;
   margin-top: 1.5rem;
   padding: 0.6rem 1.2rem;
-  border-radius: var(--radius);
-  background: var(--grad-accent);
+  border-radius: var(--r-lg);
+  background: var(--accent);
   color: var(--accent-ink);
-  font-size: var(--fs-md);
-  font-weight: 600;
+  font-size: var(--t-body);
+  font-weight: var(--fw-semibold);
   text-decoration: none;
   box-shadow: 0 1px 2px color-mix(in srgb, var(--accent) 45%, transparent);
   transition:
@@ -216,7 +156,7 @@ Only for controls that hold a choice, everything else stays flat. */
 }
 .after-cta {
   margin: 0.8rem 0 0;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   color: var(--muted);
 }
 /* Filled button: deepen it, accent on accent would erase the label. */
@@ -237,7 +177,7 @@ input {
   color: inherit;
   background: var(--paper-raised);
   border: 1px solid var(--line-strong);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   padding: 0.5rem 0.5rem;
   transition:
     border-color 0.12s,
@@ -286,8 +226,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-variant-numeric: tabular-nums;
-  font-family: var(--font-mono);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 th,
 td {
@@ -297,11 +236,7 @@ td {
   white-space: nowrap;
 }
 th {
-  font-weight: 600;
   color: var(--muted);
-  font-size: var(--fs-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 .table-wrap {
   overflow-x: auto;
@@ -330,12 +265,8 @@ th {
 }
 .source-item .label {
   display: block;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   color: var(--accent);
-  margin-bottom: 0.25rem;
+  margin-bottom: var(--s-1);
 }
 .source-item a {
   word-break: break-all;
@@ -343,23 +274,21 @@ th {
 .source-item .note {
   margin: 0.25rem 0 0;
   color: var(--muted);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 .source-item .retrieved {
-  font-family: var(--font-mono);
   color: var(--muted);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 .source-item .contributed-by {
-  font-family: var(--font-mono);
   color: var(--muted);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 .source-item .report-link {
   display: block;
   margin-top: 0.25rem;
   color: var(--muted);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 .source-item .report-link:hover {
   color: var(--accent);
@@ -367,18 +296,8 @@ th {
 
 a[href^="http"]:not(:has(svg))::after {
   content: " \2197";
-  font-size: 0.85em;
 }
 
-.badge {
-  display: inline-block;
-  border-radius: var(--radius-sm);
-  font-size: var(--fs-xs);
-  padding: 0.25rem 0.5rem;
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  margin-left: 0.5rem;
-}
 
 .tag-filter {
   margin-left: 0;
@@ -396,7 +315,6 @@ a[href^="http"]:not(:has(svg))::after {
 }
 
 .date {
-  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
@@ -408,7 +326,7 @@ a[href^="http"]:not(:has(svg))::after {
   border: 1px solid var(--line-strong);
   color: var(--ink);
   text-decoration: none;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 .link-button:hover {
   border-color: var(--accent);
@@ -416,7 +334,7 @@ a[href^="http"]:not(:has(svg))::after {
 }
 
 .back {
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 
 @view-transition {

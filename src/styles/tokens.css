@@ -1,0 +1,152 @@
+/* The whole visual scale of the site. Nothing outside this file names a size, a
+weight, a tracking value or a case change: markup picks a role class, and a
+change here moves every page at once. scripts/check-tokens.mjs enforces it. */
+:root {
+  /* Six roles, and there is no seventh. display is the page heading, section
+  every section header, title a card or row title, body prose, meta everything
+  that annotates it, label the uppercase caption over a value. */
+  --t-display: clamp(1.625rem, 1.3rem + 1.6vw, 2rem);
+  --t-section: 1.3125rem;
+  --t-title: 1.0625rem;
+  --t-body: 1rem;
+  --t-meta: 0.875rem;
+  --t-label: 0.75rem;
+
+  --lh-tight: 1.15;
+  --lh-heading: 1.35;
+  --lh-body: 1.6;
+
+  /* Two weights. Regular reads, semibold marks. Nothing in between. */
+  --fw-regular: 400;
+  --fw-semibold: 600;
+
+  /* Five spacing steps: 8 16 24 40 64. */
+  --s-1: 0.5rem;
+  --s-2: 1rem;
+  --s-3: 1.5rem;
+  --s-4: 2.5rem;
+  --s-5: 4rem;
+
+  /* Two radii. Small for anything you type into or tap, large for containers. */
+  --r-sm: 6px;
+  --r-lg: 12px;
+
+  /* One gap between page sections, everywhere. */
+  --section-gap: var(--s-4);
+}
+
+@media (max-width: 40rem) {
+  :root {
+    --section-gap: var(--s-3);
+  }
+}
+
+.t-display {
+  font-size: var(--t-display);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+}
+.t-section {
+  font-size: var(--t-section);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-heading);
+}
+.t-title {
+  font-size: var(--t-title);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-heading);
+}
+.t-body {
+  font-size: var(--t-body);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+}
+.t-meta {
+  font-size: var(--t-meta);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+}
+/* The only role that shouts, and the only one that may carry tracking: a field
+label sitting over the value it names. Never on a word with a hyphen in it. */
+.t-label {
+  font-size: var(--t-label);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+/* A date is read digit by digit against the date above it, so the columns have
+to line up. That is the whole job, and the body font does it. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Which role each element carries by default. A tag that needs another role
+takes its class, and no rule outside this file names a size again. */
+body {
+  font-size: var(--t-body);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+}
+h1 {
+  font-size: var(--t-display);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+  margin: 0 0 var(--s-2);
+}
+h2 {
+  font-size: var(--t-section);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-heading);
+  margin: var(--s-3) 0 var(--s-1);
+}
+h3 {
+  font-size: var(--t-title);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-heading);
+  margin: var(--s-2) 0 var(--s-1);
+}
+small,
+figcaption {
+  font-size: var(--t-meta);
+  font-weight: var(--fw-regular);
+}
+b,
+strong,
+th {
+  font-weight: var(--fw-semibold);
+}
+/* Code is the one thing on the site still set in a second font: it is read
+character by character, and the sans it would otherwise borrow hides that. */
+code,
+pre,
+kbd {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: var(--t-meta);
+}
+
+/* One status pill, three variants, and every pill in the product is this one. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--r-sm);
+  border: 0;
+  font-size: var(--t-label);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-heading);
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--muted) 14%, transparent);
+  color: var(--muted);
+}
+.pill.warning {
+  background: color-mix(in srgb, var(--due-soon) 16%, transparent);
+  color: var(--due-soon);
+}
+.pill.danger {
+  background: color-mix(in srgb, var(--overdue) 14%, transparent);
+  color: var(--overdue);
+}

@@ -169,10 +169,10 @@ const href = computed(() =>
   gap: 0.6rem 1.2rem;
   height: 100%;
   /* The visitor's own plan is the one card worth lifting off the page. */
-  background: var(--grad-card);
+  background: var(--paper-raised);
   border: 1px solid var(--line);
-  border-left: 3px solid var(--anchor);
-  border-radius: var(--radius);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-lg);
   padding: 0.9rem 1.1rem;
 }
 .body {
@@ -185,7 +185,7 @@ const href = computed(() =>
 }
 .meta {
   margin: 0;
-  font-size: var(--fs-xs);
+  font-size: var(--t-meta);
   color: var(--muted);
 }
 h2 {
@@ -195,19 +195,19 @@ h2 {
   margin: 0 0 0.3rem;
   border: 0;
   padding: 0;
-  font-size: var(--fs-lg);
+  font-size: var(--t-section);
 }
 h2.late {
-  color: var(--warn);
+  color: var(--overdue);
 }
 
 .next {
   margin: 0;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 .tally {
   margin: 0.2rem 0 0;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   color: var(--muted);
 }
 
@@ -221,7 +221,7 @@ h2.late {
 .cta {
   margin-top: 0.7rem;
   padding: 0.35rem 0.8rem;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 /* Removing a plan sits next to the way in, but reads as an aside. */
 .forget {
@@ -230,23 +230,23 @@ h2.late {
   border: 0;
   background: none;
   color: var(--muted);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   text-decoration: underline;
   text-underline-offset: 0.15em;
 }
 .forget:hover {
-  color: var(--warn);
+  color: var(--overdue);
 }
 
 .cal {
   align-self: flex-start;
   width: max-content;
-  font-size: var(--fs-xs);
+  font-size: var(--t-meta);
 }
 .cal-head {
   margin: 0 0 0.15rem;
   color: var(--muted);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .grid {
   display: grid;
@@ -256,7 +256,7 @@ h2.late {
 .grid span {
   line-height: 1.3rem;
   text-align: center;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-sm);
 }
 .wd {
   color: var(--muted);
@@ -264,15 +264,15 @@ h2.late {
 /* Today is a ring, the Frist is filled: the two never read as the same mark. */
 .today {
   box-shadow: inset 0 0 0 1px var(--muted);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .due {
   background: var(--accent);
   color: var(--accent-ink);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .due.late {
-  background: var(--warn);
-  color: var(--warn-ink);
+  background: var(--overdue);
+  color: var(--overdue-ink);
 }
 </style>

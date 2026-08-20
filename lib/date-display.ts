@@ -73,3 +73,11 @@ export function longDate(iso: string): string {
   return `${p.weekdayLong}, ${p.day}. ${MONTH_NAMES[p.month0]} ${p.year}`;
 }
 
+// A soft step carries an offset somebody estimated, not a day a statute fixes.
+// Naming the third of the month it lands in says exactly that much: close
+// enough to plan around, too vague to mistake for a Frist.
+export function windowLabel(iso: string): string {
+  const p = utcParts(iso);
+  const third = p.day <= 10 ? "Anfang" : p.day <= 20 ? "Mitte" : "Ende";
+  return `${third} ${MONTH_NAMES[p.month0]}`;
+}

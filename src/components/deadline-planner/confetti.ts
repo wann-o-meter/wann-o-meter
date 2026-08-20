@@ -1,4 +1,4 @@
-const COLORS = ["var(--accent)", "var(--warn)", "var(--ink)"];
+const COLORS = ["var(--accent)", "var(--overdue)", "var(--ink)"];
 const PIECES = 12;
 
 export function burst(el: Element | null | undefined) {

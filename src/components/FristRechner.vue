@@ -100,23 +100,21 @@ const inputId = `frist-anchor-${props.task.id}`;
   margin: 1.5rem 0;
   padding: 1rem;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   background: var(--paper-raised);
 }
 label {
   display: block;
   margin-bottom: 0.25rem;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: var(--t-meta);
+  font-weight: var(--fw-semibold);
   color: var(--muted);
 }
 input {
   width: 100%;
   max-width: 11rem;
   padding: 0.5rem 0.75rem;
-  font-size: var(--fs-md);
+  font-size: var(--t-body);
 }
 /* The island always says something, even before it has a date to work with. */
 .empty {
@@ -125,7 +123,7 @@ input {
   gap: 0.4rem;
   margin: 0.9rem 0 0;
   color: var(--muted);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 .out {
   display: flex;
@@ -135,39 +133,37 @@ input {
   margin: 0.9rem 0 0;
 }
 .k {
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: var(--t-meta);
+  font-weight: var(--fw-semibold);
   color: var(--muted);
 }
 .v {
-  font-size: var(--fs-lg);
-  font-weight: 600;
+  font-size: var(--t-section);
+  font-weight: var(--fw-semibold);
   color: var(--accent);
 }
 .v.late {
-  color: var(--warn);
+  color: var(--overdue);
 }
 .warn {
   margin: 0.3rem 0 0;
-  color: var(--warn);
-  font-size: var(--fs-sm);
+  color: var(--overdue);
+  font-size: var(--t-meta);
 }
 /* Only ever rendered when a Bundesland really does land on another day. */
 .hint {
   margin: 0.5rem 0 0;
   color: var(--muted);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 .cta {
   margin-top: 1rem;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   padding: 0.45rem 0.9rem;
 }
 .steps {
   margin-top: 0.7rem;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   color: var(--muted);
 }
 .steps summary {

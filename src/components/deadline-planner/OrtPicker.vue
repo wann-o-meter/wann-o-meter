@@ -171,7 +171,7 @@ off the right edge when the Ort sits at the end of a long line. */
   width: min(22rem, 100%);
   padding: 0.4rem;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   background: var(--paper-raised);
   box-shadow: var(--shadow-md);
 }
@@ -181,7 +181,7 @@ off the right edge when the Ort sits at the end of a long line. */
   gap: 0.4rem;
   padding-left: 0.5rem;
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-sm);
   color: var(--muted);
 }
 .field input {
@@ -189,7 +189,7 @@ off the right edge when the Ort sits at the end of a long line. */
   min-width: 0;
   border: 0;
   background: none;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 .field:focus-within {
   border-color: var(--accent);
@@ -208,8 +208,8 @@ li {
   justify-content: space-between;
   gap: 0.6rem;
   padding: 0.4rem 0.5rem;
-  border-radius: var(--radius-sm);
-  font-size: var(--fs-sm);
+  border-radius: var(--r-sm);
+  font-size: var(--t-meta);
   cursor: pointer;
 }
 li.on,
@@ -242,7 +242,7 @@ second line. */
 .plz {
   flex-shrink: 0;
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
+  font-size: var(--t-meta);
   color: var(--muted);
 }
 .tag {
@@ -250,8 +250,8 @@ second line. */
   align-items: center;
   gap: 0.2rem;
   flex-shrink: 0;
-  font-size: var(--fs-xs);
-  color: var(--done-color);
+  font-size: var(--t-meta);
+  color: var(--done);
 }
 
 @media print {

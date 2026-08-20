@@ -585,11 +585,11 @@ h2.mine {
   gap: 0.5rem;
   padding: 0.9rem 1.1rem;
   border: 1px dashed var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   background: none;
   color: var(--muted);
-  font-size: var(--fs-sm);
-  font-weight: 600;
+  font-size: var(--t-meta);
+  font-weight: var(--fw-semibold);
   cursor: pointer;
 }
 .add-plan:hover {
@@ -656,13 +656,13 @@ h2.mine {
   max-width: 62ch;
   margin: 0 0 0.75rem;
   color: var(--muted);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 .what b {
   color: var(--ink);
 }
 .q {
-  font-size: var(--fs-lg);
+  font-size: var(--t-section);
   border: 0;
   padding: 0;
   margin: 0 0 0.25rem;
@@ -671,7 +671,7 @@ h2.mine {
   max-width: 62ch;
   margin: 0 0 1.25rem;
   color: var(--muted);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 
 /* Cards, not pills: the pill shape belongs to the date presets below. */
@@ -687,10 +687,10 @@ h2.mine {
 }
 .choice {
   text-align: left;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   background: var(--paper-raised);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   padding: 0.9rem 0.8rem;
   color: var(--ink);
   line-height: 1.25;
@@ -701,8 +701,8 @@ h2.mine {
 }
 .choice small {
   display: block;
-  font-weight: 400;
-  font-size: var(--fs-xs);
+  font-weight: var(--fw-regular);
+  font-size: var(--t-meta);
   color: var(--muted);
   margin-top: 0.3rem;
   text-wrap: balance;
@@ -729,21 +729,17 @@ h2.mine {
   min-width: 0;
 }
 .field > label {
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: var(--t-meta);
+  font-weight: var(--fw-semibold);
   color: var(--muted);
 }
 .field > label .opt {
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
+  font-weight: var(--fw-regular);
   opacity: 0.75;
 }
 .field input {
   padding: 0.5rem 0.75rem;
-  font-size: var(--fs-md);
+  font-size: var(--t-body);
 }
 input[type="date"] {
   width: 100%;
@@ -755,7 +751,7 @@ input[type="date"] {
   gap: 0.4rem;
   padding-left: 0.6rem;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   background: var(--paper-raised);
   color: var(--muted);
   width: 100%;
@@ -765,10 +761,10 @@ input[type="date"] {
   border-color: var(--accent);
 }
 .ac-input.picked {
-  border-color: var(--done-color);
+  border-color: var(--done);
 }
 .ac-input .ok {
-  color: var(--done-color);
+  color: var(--done);
 }
 .ac-input input {
   flex: 1;
@@ -802,7 +798,7 @@ input[type="date"] {
   list-style: none;
   background: var(--paper-raised);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   box-shadow: var(--shadow-md);
   max-height: 15rem;
   overflow: auto;
@@ -813,7 +809,7 @@ input[type="date"] {
   align-items: baseline;
   gap: 0.6rem;
   padding: 0.4rem 0.5rem;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-sm);
   cursor: pointer;
 }
 .ac li:hover,
@@ -838,12 +834,12 @@ second line. */
   align-items: center;
   gap: 0.2rem;
   flex-shrink: 0;
-  font-size: var(--fs-xs);
+  font-size: var(--t-meta);
   color: var(--muted);
   white-space: nowrap;
 }
 .ac .tag.covered {
-  color: var(--done-color);
+  color: var(--done);
 }
 /* Over 450 Gemeinde names exist more than once, the PLZ is what tells them
 apart in the list. */
@@ -855,7 +851,7 @@ apart in the list. */
 .ac .plz {
   flex-shrink: 0;
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
+  font-size: var(--t-meta);
   color: var(--muted);
 }
 
@@ -866,9 +862,9 @@ apart in the list. */
   margin-top: 1.25rem;
 }
 .chip {
-  border-radius: var(--radius-pill);
+  border-radius: var(--r-sm);
   padding: 0.25rem 0.75rem;
-  font-size: var(--fs-xs);
+  font-size: var(--t-meta);
 }
 .chip[aria-pressed="true"] {
   background: var(--accent);
@@ -882,13 +878,13 @@ apart in the list. */
   align-items: flex-start;
   gap: 0.4rem;
   margin: 1.25rem 0 0;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   color: var(--muted);
   max-width: 60ch;
 }
 .coverage .ok {
   flex-shrink: 0;
-  color: var(--done-color);
+  color: var(--done);
 }
 .coverage .thin {
   flex-shrink: 0;
@@ -903,7 +899,7 @@ apart in the list. */
   align-items: flex-start;
   gap: 0.4rem;
   margin: 0.5rem 0 0;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   color: var(--holiday);
   max-width: 60ch;
 }
@@ -914,7 +910,7 @@ apart in the list. */
 .card {
   background: var(--paper-raised);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   box-shadow: var(--shadow-card);
   padding: 1.75rem 1.75rem 1.5rem;
 }
@@ -923,49 +919,47 @@ apart in the list. */
   align-items: center;
   gap: 0.3rem;
   margin: 0 0 0.5rem;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: var(--t-meta);
+  font-weight: var(--fw-semibold);
   color: var(--muted);
 }
 .eyebrow.late {
-  color: var(--warn);
+  color: var(--overdue);
 }
 .first-task {
   margin: 0 0 0.2rem;
-  font-size: var(--fs-md);
-  font-weight: 600;
+  font-size: var(--t-body);
+  font-weight: var(--fw-semibold);
 }
 .first-date {
   margin: 0;
-  font-size: var(--fs-lg);
-  font-weight: 600;
+  font-size: var(--t-section);
+  font-weight: var(--fw-semibold);
   color: var(--accent);
 }
 .first-date.late {
-  color: var(--warn);
+  color: var(--overdue);
 }
 .countdown {
   margin: 0.2rem 0 0;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   color: var(--muted);
 }
 .countdown.late {
-  color: var(--warn);
+  color: var(--overdue);
 }
 .rescue {
   margin: 0.9rem 0 0;
   padding: 0.6rem 0.8rem;
-  border-left: 3px solid var(--warn);
-  background: color-mix(in srgb, var(--warn) 8%, transparent);
-  font-size: var(--fs-sm);
+  border-left: 3px solid var(--overdue);
+  background: color-mix(in srgb, var(--overdue) 8%, transparent);
+  font-size: var(--t-meta);
 }
 .basis {
   margin: 0.9rem 0 0;
   padding-top: 0.8rem;
   border-top: 1px solid var(--line);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   color: var(--muted);
 }
 .basis b {
@@ -991,7 +985,7 @@ apart in the list. */
 }
 .rest .dt {
   flex-shrink: 0;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   color: var(--muted);
   white-space: nowrap;
 }
@@ -1000,12 +994,12 @@ apart in the list. */
 }
 .more {
   margin: 0.8rem 0 0;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   color: var(--muted);
 }
 .replaces {
   margin: 0.8rem 0 0;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   color: var(--holiday);
 }
 </style>

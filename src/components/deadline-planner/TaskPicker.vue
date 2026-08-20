@@ -60,7 +60,7 @@ defineEmits<{
   border: 0;
   background: transparent;
   color: var(--ink);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   padding: 0.5rem 0.5rem;
   cursor: pointer;
   border-radius: 2px;
@@ -75,9 +75,7 @@ defineEmits<{
   border-top: 1px solid var(--line);
   border-radius: 0;
   color: var(--muted);
-  font-size: var(--fs-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: var(--t-meta);
 }
 .task-picker-blank:hover,
 .task-picker-blank:focus-visible {

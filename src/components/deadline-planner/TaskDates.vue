@@ -1,16 +1,27 @@
 <script setup lang="ts">
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
-import { longDate, shortDate } from "../../../lib/date-display";
+import { longDate, shortDate, windowLabel } from "../../../lib/date-display";
 
 defineProps<{
   entry: ScheduleEntry;
+  anchorLabel: string;
   isPast: boolean;
   done: boolean;
 }>();
 </script>
 
 <template>
-  <p v-if="isPast && !done && entry.rescue" class="dates">
+  <!-- Two treatments, and the wording is the whole difference: a Frist names
+  the day it is due, a recommendation names the window it sits in. -->
+  <p v-if="entry.kind === 'soft'" class="dates soft">
+    <template v-if="entry.offset_days === 0">
+      Empfohlen: am {{ anchorLabel }}
+    </template>
+    <template v-else>
+      Empfohlen: ab <span class="d">{{ windowLabel(entry.date!) }}</span>
+    </template>
+  </p>
+  <p v-else-if="isPast && !done && entry.rescue" class="dates">
     Frist war <span class="d">{{ shortDate(entry.date!) }}</span
     >, nachholen bis <b class="d">{{ longDate(entry.rescue.date) }}</b
     >.
@@ -33,19 +44,18 @@ defineProps<{
 
 <style scoped>
 .dates {
-  margin: 0.35rem 0 0;
-  font-size: var(--fs-sm);
+  margin: var(--s-1) 0 0;
+  font-size: var(--t-meta);
   color: var(--muted);
 }
-/* Monospace marks hard dates only, never the prose around them. */
 .d {
-  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 .dates b {
   color: var(--ink);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .overdue {
-  color: var(--warn);
+  color: var(--overdue);
 }
 </style>

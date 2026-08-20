@@ -74,10 +74,8 @@ import { feedbackIssueUrl } from "../../lib/github-issue";
     margin: 0 0 1rem;
   }
   label {
-    font-size: var(--fs-xs);
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-size: var(--t-meta);
+    font-weight: var(--fw-semibold);
     color: var(--muted);
   }
   input,
@@ -86,7 +84,7 @@ import { feedbackIssueUrl } from "../../lib/github-issue";
     font: inherit;
     padding: 0.5rem 0.75rem;
     border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-radius: var(--r-lg);
     background: var(--paper-raised);
     color: var(--ink);
   }
@@ -94,16 +92,16 @@ import { feedbackIssueUrl } from "../../lib/github-issue";
     display: flex;
     align-items: center;
     gap: 1.2rem;
-    font-size: var(--fs-sm);
+    font-size: var(--t-meta);
   }
   .actions button {
     padding: 0.5rem 1.2rem;
     border: 0;
-    border-radius: var(--radius);
+    border-radius: var(--r-lg);
     background: var(--accent);
     color: var(--accent-ink);
-    font-size: var(--fs-md);
-    font-weight: 600;
+    font-size: var(--t-body);
+    font-weight: var(--fw-semibold);
     cursor: pointer;
   }
 </style>

@@ -702,7 +702,7 @@ function onMarkerLeave() {
   align-items: center;
   justify-content: space-between;
   gap: 0.4rem 1.1rem;
-  font-size: var(--fs-xs);
+  font-size: var(--t-meta);
   color: var(--muted);
   overflow: hidden;
   max-height: calc((1 - var(--tl-t, 0)) * 6rem);
@@ -720,7 +720,7 @@ function onMarkerLeave() {
   gap: 0.4rem 0.9rem;
   padding: 0.15rem 0.5rem;
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-sm);
 }
 .legend .item {
   display: inline-flex;
@@ -763,10 +763,10 @@ function onMarkerLeave() {
   background: var(--paper-raised);
 }
 .ring.late {
-  border-color: var(--warn);
+  border-color: var(--overdue);
 }
 .dot {
-  background: var(--done-color);
+  background: var(--done);
 }
 .capsule {
   width: 1.9rem;
@@ -826,11 +826,11 @@ function onMarkerLeave() {
 }
 .window.erledigt {
   fill: none;
-  stroke: var(--done-color);
+  stroke: var(--done);
   opacity: 0.5;
 }
 .window.ueberfaellig {
-  stroke: var(--warn);
+  stroke: var(--overdue);
 }
 
 .marker {
@@ -853,11 +853,11 @@ function onMarkerLeave() {
   stroke-width: 2.5;
 }
 .marker-dot.erledigt {
-  fill: var(--done-color);
-  stroke: var(--done-color);
+  fill: var(--done);
+  stroke: var(--done);
 }
 .marker-dot.ueberfaellig {
-  stroke: var(--warn);
+  stroke: var(--overdue);
 }
 .halo {
   fill: var(--accent);
@@ -867,10 +867,10 @@ function onMarkerLeave() {
   animation: halo-pulse 1.6s ease-in-out infinite;
 }
 .halo.ueberfaellig {
-  fill: var(--warn);
+  fill: var(--overdue);
 }
 .halo.erledigt {
-  fill: var(--done-color);
+  fill: var(--done);
 }
 @keyframes halo-pulse {
   0%,
@@ -889,10 +889,10 @@ function onMarkerLeave() {
   }
 }
 .halo.erledigt {
-  fill: var(--done-color);
+  fill: var(--done);
 }
 .halo.ueberfaellig {
-  fill: var(--warn);
+  fill: var(--overdue);
 }
 
 .rule {
@@ -903,19 +903,19 @@ function onMarkerLeave() {
   stroke-dasharray: 3 3;
 }
 .rule.event {
-  stroke: var(--anchor);
+  stroke: var(--accent);
   stroke-width: 2;
 }
 .rule.ghost {
-  stroke: var(--anchor);
+  stroke: var(--accent);
   opacity: 0.45;
 }
 .flag {
-  fill: var(--anchor);
+  fill: var(--accent);
 }
 .grip circle {
   fill: var(--paper-raised);
-  stroke: var(--anchor);
+  stroke: var(--accent);
   stroke-width: 3;
   cursor: grab;
   touch-action: none;
@@ -926,25 +926,24 @@ function onMarkerLeave() {
 
 .axis-label {
   font-family: var(--font-mono);
-  font-size: calc(13px - 2px * var(--tl-t, 0));
+  font-size: calc(var(--t-label) - 2px * var(--tl-t, 0));
   fill: var(--muted);
 }
 .axis-label.event {
-  fill: var(--anchor);
+  fill: var(--accent);
   opacity: 0.85;
 }
 .anchor-label {
   font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: calc(13px - 2px * var(--tl-t, 0));
-  letter-spacing: 0.04em;
+  font-weight: var(--fw-semibold);
+  font-size: calc(var(--t-label) - 2px * var(--tl-t, 0));
 }
 .anchor-label.today {
   fill: var(--today);
 }
 .anchor-label.event,
 .anchor-label.ghost {
-  fill: var(--anchor);
+  fill: var(--accent);
 }
 
 .tip {
@@ -955,8 +954,8 @@ function onMarkerLeave() {
   background: var(--ink);
   color: var(--paper);
   padding: 0.4rem 0.6rem;
-  border-radius: var(--radius-sm);
-  font-size: var(--fs-xs);
+  border-radius: var(--r-sm);
+  font-size: var(--t-meta);
   line-height: 1.35;
   max-width: 15rem;
 }

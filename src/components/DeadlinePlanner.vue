@@ -546,6 +546,7 @@ onBeforeUnmount(() => {
         <TaskRail
           :nodes="shownNodes"
           :anchor-date="anchorDate"
+          :anchor-label="anchorLabel"
           :hovered-id="activeId"
           :store="store"
           :picker="picker"
@@ -671,16 +672,16 @@ grey text under a chart. */
   padding: 0.4rem 0.9rem;
   border: 1px solid var(--accent);
   color: var(--accent);
-  font-size: var(--fs-sm);
-  font-weight: 600;
+  font-size: var(--t-meta);
+  font-weight: var(--fw-semibold);
   background: var(--paper-raised);
 }
 .save:hover {
   background: color-mix(in srgb, var(--accent) 10%, var(--paper-raised));
 }
 .save[aria-pressed="true"] {
-  border-color: var(--done-color);
-  color: var(--done-color);
+  border-color: var(--done);
+  color: var(--done);
 }
 .implode-leave-active {
   transition:
@@ -711,7 +712,7 @@ grey text under a chart. */
 
 .overview b {
   color: var(--ink);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 
 .planner-header {
@@ -750,9 +751,8 @@ the two stats be cards, once it has one they flatten into it. */
   align-items: baseline;
   gap: 0 0.3em;
   margin: 0 0 1rem;
-  font-size: var(--fs-lg);
+  font-size: var(--t-section);
   line-height: 1.35;
-  letter-spacing: -0.01em;
 }
 .slot {
   position: relative;
@@ -797,13 +797,13 @@ the two stats be cards, once it has one they flatten into it. */
   border-color: transparent;
   background: transparent;
   color: var(--muted);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 .tl-toggle:hover {
   color: var(--accent);
 }
 .keep[aria-pressed="true"] {
-  color: var(--done-color);
+  color: var(--done);
 }
 .tl-off {
   display: none;
@@ -830,10 +830,8 @@ not push it off the screen. */
   gap: 0.4rem;
 }
 .facets legend {
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: var(--t-meta);
+  font-weight: var(--fw-semibold);
   color: var(--muted);
   padding: 0 0 0.5rem;
 }
@@ -842,10 +840,10 @@ not push it off the screen. */
   align-items: center;
   gap: 0.4rem;
   border: 1px solid var(--line);
-  border-radius: var(--radius-pill);
+  border-radius: var(--r-sm);
   padding: 0.3rem 0.8rem;
   background: var(--paper-raised);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   cursor: pointer;
 }
 .facet:has(input:checked) {
@@ -874,11 +872,9 @@ not push it off the screen. */
 }
 .section {
   scroll-margin-top: calc(var(--tl-header-h, 0px) + 1rem);
-  font-size: var(--fs-sm);
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  font-size: var(--t-meta);
   color: var(--muted);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   border: 0;
   padding: 0;
   margin: 1.75rem 0 0.75rem;
@@ -910,7 +906,7 @@ not push it off the screen. */
 
 .hidden-group {
   margin-top: 1rem;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 .hidden-group summary {
   cursor: pointer;
@@ -939,12 +935,12 @@ not push it off the screen. */
   gap: 0.3rem;
   flex-shrink: 0;
   padding: 0.2rem 0.5rem;
-  font-size: var(--fs-xs);
+  font-size: var(--t-meta);
 }
 
 .undo {
   margin-top: 1rem;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   color: var(--muted);
 }
 .undo button {
@@ -982,7 +978,7 @@ not push it off the screen. */
   /* Wide enough for the timeline, so the header is a card that holds it. */
   .planner-header {
     margin-inline: 0;
-    border-radius: var(--radius);
+    border-radius: var(--r-lg);
     padding: 0.9rem 1rem;
     background: var(--paper-raised);
     box-shadow: var(--shadow-card);
@@ -1069,7 +1065,7 @@ not push it off the screen. */
   gap: 0.3rem;
   padding: 0.4rem;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   background: var(--paper-raised);
   box-shadow: var(--shadow-lg);
 }
@@ -1081,12 +1077,12 @@ not push it off the screen. */
   padding: 0.4rem 0.7rem;
   border: 0;
   background: none;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   white-space: nowrap;
 }
 .fab-menu button:hover {
   background: color-mix(in srgb, var(--accent) 10%, transparent);
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-sm);
 }
 /* A wide screen keeps the header in view, so it needs no floating copy. */
 @media (min-width: 40rem) {

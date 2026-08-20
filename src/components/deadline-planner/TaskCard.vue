@@ -19,6 +19,7 @@ import type { TaskCta } from "./task-cta";
 const props = defineProps<{
   entry: ScheduleEntry;
   anchorDate: string;
+  anchorLabel: string;
   isPast: boolean;
   done: boolean;
   isCustom: boolean;
@@ -26,7 +27,7 @@ const props = defineProps<{
   note?: string;
   attachment?: string;
   editor: EditorKind | null;
-  // A soft task is ordered, not dated. Everything that would show a day goes.
+  // A soft task is recommended, not owed: it names a window, never a Frist.
   undated?: boolean;
 }>();
 
@@ -146,14 +147,20 @@ const menuItems = computed<MenuItem[]>(() => [
       />
       <h3 v-else>
         {{ entry.label }}
-        <span v-if="!undated && isPast && !done" class="badge late">
-          Überfällig
+        <span v-if="entry.needs_office" class="pill">Amtstermin</span>
+        <span v-if="!undated && isPast && !done" class="pill danger">
+          überfällig
         </span>
       </h3>
       <CardMenu :items="menuItems" />
     </div>
 
-    <TaskDates v-if="!undated" :entry="entry" :is-past="isPast" :done="done" />
+    <TaskDates
+      :entry="entry"
+      :anchor-label="anchorLabel"
+      :is-past="isPast"
+      :done="done"
+    />
 
     <p v-if="!done && entry.impossible" class="flag">
       <TriangleAlert :size="14" /> Bei diesem Termin nicht mehr rechtzeitig
@@ -223,7 +230,7 @@ const menuItems = computed<MenuItem[]>(() => [
   padding: 0.5rem;
   margin-bottom: 1.3rem;
   background: var(--paper-raised);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   box-shadow: var(--shadow-card);
   scroll-margin-top: calc(var(--tl-header-h, 0px) + 1rem);
   transition: box-shadow 0.2s;
@@ -247,7 +254,7 @@ const menuItems = computed<MenuItem[]>(() => [
   background: var(--line);
 }
 .card[data-status="ueberfaellig"] .dot {
-  background: var(--warn);
+  background: var(--overdue);
 }
 
 .card[data-status="erledigt"] {
@@ -278,12 +285,12 @@ const menuItems = computed<MenuItem[]>(() => [
   vertical-align: 0.1em;
   margin-left: 0.5rem;
   color: var(--accent);
-  font-size: var(--fs-xs);
-  font-weight: 600;
+  font-size: var(--t-meta);
+  font-weight: var(--fw-semibold);
   white-space: nowrap;
 }
 .badge.late {
-  color: var(--warn);
+  color: var(--overdue);
 }
 
 .head {
@@ -296,14 +303,14 @@ const menuItems = computed<MenuItem[]>(() => [
   flex: 1;
   min-width: 0;
   margin: 0;
-  font-size: var(--fs-md);
+  font-size: var(--t-body);
 }
 .title-input {
   font-family: inherit;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   color: inherit;
   border: 1px solid var(--accent);
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-sm);
   padding: 0.25rem 0.5rem;
   background: var(--paper);
 }
@@ -351,11 +358,11 @@ const menuItems = computed<MenuItem[]>(() => [
 .overlap {
   margin: 0.5rem 0 0;
   max-width: 68ch;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
 }
 .moved {
   margin: 0.35rem 0 0;
-  font-size: var(--fs-xs);
+  font-size: var(--t-meta);
   color: var(--muted);
 }
 .flag {
@@ -364,9 +371,9 @@ const menuItems = computed<MenuItem[]>(() => [
   flex-wrap: wrap;
   gap: 0.4rem;
   margin: 0.5rem 0 0;
-  color: var(--warn);
-  font-size: var(--fs-sm);
-  font-weight: 600;
+  color: var(--overdue);
+  font-size: var(--t-meta);
+  font-weight: var(--fw-semibold);
 }
 
 .cta-row {
@@ -382,7 +389,7 @@ const menuItems = computed<MenuItem[]>(() => [
   gap: 0.25rem;
   min-height: 2.6rem;
   color: var(--accent);
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   text-decoration: underline;
   text-underline-offset: 0.15em;
 }
@@ -393,8 +400,8 @@ const menuItems = computed<MenuItem[]>(() => [
   gap: 0.35rem;
   width: 100%;
   min-height: 2.6rem;
-  font-size: var(--fs-sm);
-  font-weight: 600;
+  font-size: var(--t-meta);
+  font-weight: var(--fw-semibold);
   background: transparent;
   border-color: var(--accent);
   color: var(--accent);
@@ -418,17 +425,17 @@ const menuItems = computed<MenuItem[]>(() => [
   margin-top: 0.5rem;
   padding: 0.5rem;
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-sm);
   background: var(--paper);
   font-family: inherit;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   color: inherit;
   resize: vertical;
 }
 .note {
   margin: 0.5rem 0 0;
   max-width: 68ch;
-  font-size: var(--fs-sm);
+  font-size: var(--t-meta);
   color: var(--muted);
   white-space: pre-wrap;
   cursor: text;
