@@ -9,93 +9,98 @@ interface Props {
 }
 const { deadlines, anchorLabel } = Astro.props;
 
-const all = deadlines.filter((d) => appliesTo(d, []));
-const entries = all.filter((d) => d.kind !== "soft").sort(byOffset);
-// No date, so no place in a list sorted by date.
-const soft = all.filter((d) => d.kind === "soft");
+// One list, in the order things happen. Splitting it would make somebody hold
+// two lists in their head and cross-reference them, which is worse than the
+// mixture it was meant to tidy up.
+const entries = deadlines.filter((d) => appliesTo(d, [])).sort(byOffset);
 ---
 
-<!-- The fallback without JavaScript. The planner renders the same Fristen with
-labels, notes and sources, so with JS this stays hidden. -->
-<section id="static-plan" class="prehydrate">
-  <h2>Fristen und Quellen im Überblick</h2>
-  <p class="lede">
-    Jede Frist relativ zum {anchorLabel}, mit der Quelle dahinter. Oben im
-    Zeitplan wird daraus mit einem Datum ein konkreter Tag.
+<!-- What the page is about, and what a crawler reads. Entering a date on it
+turns every relative offset below into a day. -->
+<section id="static-plan">
+  <h2 class="t-section">Fristen und Quellen im Überblick</h2>
+  <p class="lede t-body">
+    Jede Frist relativ zum {anchorLabel}, mit der Quelle dahinter. Mit einem
+    Datum wird oben daraus ein konkreter Tag.
   </p>
   <ol>
     {
       entries.map((d) => (
         <li>
-          <p class="when">{offsetLabel(d, anchorLabel)}</p>
-          <h3>{d.label}</h3>
-          {d.note && <p class="note">{d.note}</p>}
-          <p class="src">
-            {d.kind !== "soft" && (
+          <p class="when t-meta">
+            {d.kind === "soft" ? "Empfohlen: " : "Frist: "}
+            {offsetLabel(d, anchorLabel)}
+          </p>
+          <h3 class="t-title">
+            {d.label}
+            {d.needs_office && <span class="pill">Amtstermin</span>}
+          </h3>
+          {d.note && <p class="note t-body">{d.note}</p>}
+          {d.kind !== "soft" && (
+            <p class="src t-meta">
               <a class="frist" href={`/frist/${d.id}/`}>
                 Frist im Detail
               </a>
-            )}
-            {d.source_url ? (
-              <a href={d.source_url} rel="nofollow noopener">
-                {sourceLabel(d)}
-              </a>
-            ) : (
-              <span class:list={["flag", { missing: !d.no_source_needed }]}>{sourceLabel(d)}</span>
-            )}
-          </p>
+              {d.source_url ? (
+                <a href={d.source_url} rel="nofollow noopener">
+                  {sourceLabel(d)}
+                </a>
+              ) : (
+                <span class:list={["flag", { missing: !d.no_source_needed }]}>
+                  {sourceLabel(d)}
+                </span>
+              )}
+            </p>
+          )}
         </li>
       ))
     }
   </ol>
-  {
-    soft.length > 0 && (
-      <>
-        <h3 class="softhead">Ohne feste Frist</h3>
-        <ul class="soft">
-          {soft.map((d) => (
-            <li>{d.label}</li>
-          ))}
-        </ul>
-      </>
-    )
-  }
 </section>
 
 <style>
   #static-plan {
-    margin-top: 2rem;
+    margin-top: var(--section-gap);
   }
   .lede {
     color: var(--muted);
     max-width: 52ch;
   }
+  /* One container, one divider between rows. */
   ol {
     list-style: none;
     padding: 0;
-    margin: 1.5rem 0 0;
+    margin: var(--s-3) 0 0;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--paper-raised);
+    overflow: hidden;
   }
   li {
-    padding: 1rem 0;
+    padding: var(--s-2);
   }
   li + li {
     border-top: 1px solid var(--line);
   }
   .when {
-    font-size: var(--t-meta);
     color: var(--muted);
     margin: 0;
   }
   h3 {
-    font-size: var(--t-body);
-    margin: 0.35rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-1);
+    margin: 0.15rem 0;
   }
   .note,
   .src {
-    font-size: var(--t-meta);
     margin: 0.35rem 0 0;
   }
   .note {
+    max-width: 68ch;
+  }
+  .src {
     color: var(--muted);
   }
   .flag.missing {
@@ -104,16 +109,5 @@ labels, notes and sources, so with JS this stays hidden. -->
   /* The task has a page of its own, this list only summarises it. */
   .src .frist {
     margin-right: 0.6rem;
-  }
-  .softhead {
-    margin-top: 1.5rem;
-    font-size: var(--t-meta);
-    color: var(--muted);
-  }
-  .soft {
-    margin: 0;
-    padding-left: 1.2rem;
-    color: var(--muted);
-    font-size: var(--t-meta);
   }
 </style>

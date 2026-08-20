@@ -326,9 +326,6 @@ function trackActiveCard() {
 }
 
 onMounted(() => {
-  // The rest of the pre-hydration fallback is hidden by the js flag before the
-  // first paint, only the title has to go once the planner renders its own.
-  document.getElementById("static-title")?.remove();
   addEventListener("scroll", trackActiveCard, { passive: true });
   trackActiveCard();
 });
@@ -421,7 +418,7 @@ onBeforeUnmount(() => {
           {{ facetOptions.length }} Fragen, jede ergänzt weitere Fristen.
         </p>
         <div class="facet-row">
-          <label v-for="id in facetOptions" :key="id" class="facet">
+          <label v-for="id in facetOptions" :key="id" class="chip">
             <input v-model="activeFacets" type="checkbox" :value="id" />
             <span>{{ facetLabel(id) }}</span>
           </label>
@@ -701,29 +698,6 @@ not push it off the screen. */
 .refine-lede {
   margin: 0.15rem 0 var(--s-1);
   color: var(--muted);
-}
-.facet {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  border: 1px solid var(--line);
-  border-radius: var(--r-sm);
-  padding: 0.3rem 0.8rem;
-  background: var(--paper-raised);
-  font-size: var(--t-meta);
-  cursor: pointer;
-}
-.facet:has(input:checked) {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.facet:has(input:focus-visible) {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-.facet input {
-  accent-color: var(--accent);
-  margin: 0;
 }
 
 .task-search-toggle {

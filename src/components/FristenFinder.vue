@@ -161,11 +161,6 @@ h2 {
   flex-wrap: wrap;
   gap: 0.4rem;
 }
-.chip {
-  border-radius: var(--r-sm);
-  padding: 0.25rem 0.75rem;
-  font-size: var(--t-meta);
-}
 
 /* One container, one divider between rows. */
 ul {

@@ -78,20 +78,20 @@
       <h2>Dein Plan</h2>
       <dl class="stats">
         <div>
-          <dt>Zeitraum</dt>
-          <dd>{{ summary.span }}</dd>
+          <dt class="t-label">Zeitraum</dt>
+          <dd class="t-title">{{ summary.span }}</dd>
         </div>
         <div>
-          <dt>Fristen</dt>
-          <dd>{{ summary.count }}</dd>
+          <dt class="t-label">Fristen</dt>
+          <dd class="t-title tnum">{{ summary.count }}</dd>
         </div>
         <div>
-          <dt>Erste Frist</dt>
-          <dd>{{ summary.first }}</dd>
+          <dt class="t-label">Erste Frist</dt>
+          <dd class="t-title tnum">{{ summary.first }}</dd>
         </div>
         <div>
-          <dt>Mit Amtstermin</dt>
-          <dd>{{ summary.office }}</dd>
+          <dt class="t-label">Mit Amtstermin</dt>
+          <dd class="t-title tnum">{{ summary.office }}</dd>
         </div>
       </dl>
       <div class="nav">
@@ -106,7 +106,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, useId, watch } from "v
 import OrtPicker from "./deadline-planner/OrtPicker.vue";
 import { FACET_LABELS, appliesTo, facetLabel, facetsUsedBy } from "../../lib/facets";
 import { computeSchedule } from "../../lib/deadline-plan";
-import { shortDate } from "../../lib/date-display";
+import { daysUntil, shortDate, spanParts } from "../../lib/date-display";
 import { planHref } from "../../lib/plan-url";
 import { addDays, isoOf, utcDay } from "../../lib/timeline-geometry";
 import type { Gemeinde } from "../../lib/gemeinde-search";
@@ -147,11 +147,13 @@ const presets = [
   { label: "Nächster Monatserste", iso: () => firstOfMonthFromNow(1) },
 ];
 
-// Everything the wizard knows sits in the query, so a refresh lands on the same
-// step with the same answers.
+// Everything the wizard knows sits in the fragment, so a refresh lands on the
+// same step with the same answers and every crawler still sees one address.
 const url = () =>
   new URLSearchParams(
-    typeof window === "undefined" ? "" : window.location.search,
+    typeof window === "undefined"
+      ? ""
+      : window.location.hash.replace(/^#/, ""),
   );
 const initial = url();
 
@@ -218,13 +220,18 @@ const summary = computed(() => {
     .filter((e) => e.date !== null)
     .sort((a, b) => a.date!.localeCompare(b.date!));
   const office = schedule.value.filter((e) => e.needs_office).length;
+  // The plan page says every date. Here the numbers say how big the plan is,
+  // and only the first Frist gets a day, because that one is the appointment
+  // somebody has to make now.
+  const days =
+    dated.length > 0
+      ? daysUntil(dated[dated.length - 1].date!, dated[0].date!)
+      : 0;
+  const span = spanParts(days);
   return {
-    span:
-      dated.length > 0
-        ? `${shortDate(dated[0].date!)} bis ${shortDate(dated[dated.length - 1].date!)}`
-        : "—",
+    span: dated.length > 0 ? `${span.n} ${span.unit}` : "—",
     count: String(schedule.value.length),
-    first: dated.length > 0 ? `${dated[0].label}, ${shortDate(dated[0].date!)}` : "—",
+    first: dated.length > 0 ? shortDate(dated[0].date!) : "—",
     office: String(office),
   };
 });
@@ -243,8 +250,8 @@ function writeUrl(push: boolean) {
   for (const [key, value] of Object.entries(params.value))
     if (value) next.set(key, value);
   if (step.value > 1) next.set("schritt", String(step.value));
-  const query = next.toString();
-  const to = query ? `${location.pathname}?${query}` : location.pathname;
+  const fragment = next.toString();
+  const to = fragment ? `${location.pathname}#${fragment}` : location.pathname;
   if (push) history.pushState({ schritt: step.value }, "", to);
   else history.replaceState({ schritt: step.value }, "", to);
 }
@@ -281,8 +288,8 @@ onUnmounted(() => window.removeEventListener("popstate", onPop));
 
 <style scoped>
 .wizard {
-  margin: var(--space-3) 0 var(--section-gap);
-  padding: var(--space-3);
+  margin: var(--s-3) 0 var(--section-gap);
+  padding: var(--s-3);
   border-radius: var(--r-lg);
   background: var(--paper-raised);
   box-shadow: var(--shadow-card);
@@ -297,8 +304,8 @@ h2 {
 
 .steps {
   display: flex;
-  gap: var(--space-1);
-  margin: 0 0 var(--space-2);
+  gap: var(--s-1);
+  margin: 0 0 var(--s-2);
   padding: 0;
   list-style: none;
 }
@@ -327,12 +334,12 @@ h2 {
 .fields {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--s-2);
 }
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--s-1);
   min-width: 0;
 }
 .field label,
@@ -345,54 +352,27 @@ h2 {
 .questions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1);
-  margin: var(--space-2) 0 0;
+  gap: var(--s-1);
+  margin: var(--s-2) 0 0;
   padding: 0;
   list-style: none;
-}
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-sm);
-  background: var(--paper-raised);
-  font-size: var(--t-meta);
-  cursor: pointer;
-}
-.chip[aria-pressed="true"],
-.chip:has(input:checked) {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, var(--paper-raised));
-  color: var(--accent);
 }
 
 .stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  gap: var(--space-2);
+  gap: var(--s-2);
   margin: 0;
-}
-.stats dt {
-  font-size: var(--t-meta);
-  font-weight: var(--fw-semibold);
-  color: var(--muted);
 }
 .stats dd {
   margin: 0;
-  font-size: var(--t-body);
-  font-weight: var(--fw-semibold);
 }
 
 .nav {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-}
-.nav .cta {
-  margin-top: 0;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
 }
 </style>

@@ -2,7 +2,7 @@ import { computed, ref, watch } from "vue";
 import { FACET_LABELS, appliesTo, facetsUsedBy } from "../../../lib/facets";
 import { STATES } from "../../../lib/states";
 import { isoToday } from "../../../lib/today";
-import { readPlanState, writePlanState } from "../../../lib/plan-url";
+import { PLAN_SEGMENT, readPlanState, writePlanState } from "../../../lib/plan-url";
 import type { PlanVariant } from "./types";
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -91,13 +91,9 @@ export function usePlanUrlState(
       : undefined,
   );
 
-  // The Ort belongs in the path, otherwise /umzug/rottenburg/?variant=singen
-  // shows two different places at once. The query is still read on arrival so
-  // links shared before this stay valid.
-  const variantPath = (slug: string) =>
-    slug === BUNDESWEIT_SLUG
-      ? `/${vorhabenSlug}/`
-      : `/${vorhabenSlug}/${slug}/`;
+  // One address for the plan of a Vorhaben. The Ort is part of the state, not
+  // part of the path: changing it must not walk the visitor onto another page.
+  const planPath = `/${vorhabenSlug}/${PLAN_SEGMENT}/`;
 
   // The other state only reaches the URL once the visitor picked something, an
   // untouched page keeps its clean URL and stays out of the saved plans.
@@ -109,8 +105,9 @@ export function usePlanUrlState(
       const hasOwnRegion = !!variants.find(
         (x) => x.slug === selectedSlug.value,
       )?.regionCode;
-      writePlanState(variantPath(selected.value?.slug ?? BUNDESWEIT_SLUG), {
-        variant: null,
+      writePlanState(planPath, {
+        variant:
+          selectedSlug.value === BUNDESWEIT_SLUG ? null : selectedSlug.value,
         region: hasOwnRegion ? null : region.value || null,
         ort: hasOwnRegion ? null : ortName.value || null,
         date: touched.value && anchorDate.value ? anchorDate.value : null,

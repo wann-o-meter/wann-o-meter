@@ -1,3 +1,18 @@
+// The plan of a Vorhaben lives one segment deeper, so /<vorhaben>/ can be the
+// page a search result points at. A Gemeinde named like this would take that
+// address, which is what the test in lib/vorhaben-routes.test.ts prevents.
+export const PLAN_SEGMENT = "plan";
+
+export function planHref(
+  slug: string,
+  values: Record<string, string | null>,
+): string {
+  const state = new URLSearchParams();
+  for (const [key, value] of Object.entries(values)) if (value) state.set(key, value);
+  const fragment = state.toString();
+  return `/${slug}/${PLAN_SEGMENT}/${fragment ? `#${fragment}` : ""}`;
+}
+
 // Plan state lives in the fragment, never in the query. The server and every
 // crawler see one address per plan page, while the visitor can still copy their
 // own date, Ort and filters out of the address bar.

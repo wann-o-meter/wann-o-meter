@@ -2,14 +2,16 @@
   <div class="wom-start">
     <section class="intro">
       <h1>Damit dir keine Frist durchrutscht.</h1>
-      <p class="lede">
+      <p class="lede t-body">
         Wann-O-Meter rechnet jede Frist rückwärts von deinem Termin: mit dem
         Datum, bis wann sie erledigt sein muss, <strong>mit Paragraf</strong>,
         und mit den Feiertagen deines Bundeslands schon eingerechnet.
       </p>
     </section>
 
-    <h2 v-if="planCards.length > 0" id="plaene" class="q mine">Deine Pläne</h2>
+    <h2 v-if="planCards.length > 0" id="plaene" class="t-section mine">
+      Deine Pläne
+    </h2>
     <TransitionGroup name="plan" tag="div" class="plans">
       <SavedPlanCard
         v-for="card in planCards"
@@ -17,281 +19,32 @@
         :plan="card.plan"
         :v="card.v"
       />
-      <button
-        v-if="planCards.length > 0"
-        key="__add"
-        type="button"
-        class="add-plan"
-        @click="goToPicker"
-      >
-        <Plus :size="22" aria-hidden="true" />
-        Plan erstellen
-      </button>
     </TransitionGroup>
 
     <section class="step">
-      <h2 class="q" id="q1">Plan erstellen</h2>
-      <p class="section-lede">
-        Kategorie wählen, Termin festlegen und Plan mit konkreten Fristen
-        erstellen.
+      <h2 id="q1" class="t-section">Plan erstellen</h2>
+      <p class="section-lede t-meta">
+        Kategorie wählen, Termin eingeben und Plan mit konkreten Fristen
+        bekommen.
       </p>
-      <div class="choices" role="group" aria-labelledby="q1">
-        <button
-          v-for="v in vorhaben"
-          :key="v.slug"
-          type="button"
-          class="choice"
-          :aria-pressed="v.slug === selectedSlug"
-          @click="pick(v.slug)"
-        >
-          {{ v.label }}<small>{{ v.teaser }}</small>
-        </button>
+      <div class="choices">
+        <a v-for="v in vorhaben" :key="v.slug" class="choice" :href="`/${v.slug}/`">
+          <span class="t-title">{{ v.label }}</span>
+          <small class="t-meta">{{ v.teaser }}</small>
+        </a>
       </div>
     </section>
-
-    <Transition name="reveal">
-      <section v-if="selected" class="step">
-        <p v-if="planSummary" class="what">
-          <b>{{ planSummary.dated }} Fristen mit Paragraf</b>
-          <template v-if="planSummary.soft > 0">
-            und {{ planSummary.soft }} Schritte ohne feste Frist</template
-          >.
-          <template v-if="planSummary.first">
-            Als Erstes: {{ planSummary.first }}.
-          </template>
-        </p>
-        <h2 class="q">Wann und wo?</h2>
-        <div class="fields">
-          <div class="field">
-            <label for="anchor">{{ selected.anchorLabel }}</label>
-            <input
-              id="anchor"
-              type="date"
-              :value="anchorDate"
-              :min="minDate"
-              :max="maxDate"
-              @change="anchorDate = ($event.target as HTMLInputElement).value"
-            />
-          </div>
-          <div class="field ac">
-            <label for="ort">Ort <span class="opt">optional</span></label>
-            <div class="ac-input" :class="{ picked: ort }">
-              <Search v-if="!ort" :size="16" aria-hidden="true" />
-              <MapPin v-else :size="16" class="ok" aria-hidden="true" />
-              <input
-                id="ort"
-                v-model="ortQuery"
-                type="text"
-                autocomplete="off"
-                placeholder="Gemeinde suchen und auswählen"
-                role="combobox"
-                aria-controls="aclist"
-                :aria-expanded="suggestions.length > 0"
-                @input="ort = null"
-                @focus="
-                  suggestionsOpen = true;
-                  fillGemeinden();
-                "
-                @blur="closeSuggestions"
-                @keydown.esc="closeSuggestions"
-              />
-            </div>
-            <Transition name="drop">
-              <ul v-if="suggestions.length > 0" id="aclist" role="listbox">
-                <li
-                  v-for="g in suggestions"
-                  :key="`${g.name}-${g.plz}`"
-                  role="option"
-                  :aria-selected="g.name === ort?.name"
-                  @mousedown.prevent="chooseOrt(g)"
-                >
-                  <span class="name">
-                    <MapPin :size="14" class="pin" aria-hidden="true" />
-                    <span v-if="g.plz" class="plz">{{ g.plz }}</span>
-                    <span class="label">{{ g.name }}</span>
-                  </span>
-                  <span v-if="variantFor(g)" class="tag covered">
-                    <Check :size="13" aria-hidden="true" /> örtliche Fristen
-                  </span>
-                  <span v-else class="tag">{{ stateName(g) }}</span>
-                </li>
-              </ul>
-            </Transition>
-          </div>
-        </div>
-
-        <div class="chips">
-          <button
-            v-for="p in presets"
-            :key="p.label"
-            type="button"
-            class="chip"
-            :aria-pressed="anchorDate === p.iso()"
-            @click="anchorDate = p.iso()"
-          >
-            {{ p.label }}
-          </button>
-        </div>
-
-        <p v-if="ort" class="coverage">
-          <Check v-if="localVariant" :size="15" class="ok" aria-hidden="true" />
-          <Info v-else :size="15" class="thin" aria-hidden="true" />
-          <span>
-            <b>{{ ort.name }}: </b>
-            <template v-if="localVariant">
-              {{ localSteps }} sind als eigene Fristen hinterlegt, dazu die
-              Feiertage in {{ stateName(ort) }}. Liegt dein Termin in den
-              Schulferien, sagen wir es darunter.
-            </template>
-            <template v-else>
-              Die Feiertage in {{ stateName(ort) }} sind eingerechnet, und liegt
-              dein Termin in den Schulferien, sagen wir es darunter.
-              <template v-if="hasLocalVariants">
-                Örtliche Fristen wie Halteverbotszone oder Sperrmüll haben wir
-                hier noch nicht, der Plan zeigt die bundesweiten Schritte.
-              </template>
-            </template>
-          </span>
-        </p>
-
-        <p v-if="ferien" class="ferien">
-          <Info :size="15" aria-hidden="true" />
-          <span>
-            Der <span>{{ shortDate(anchorDate) }}</span> liegt in den
-            {{ ferien.name }} ({{ shortDate(ferien.from) }} bis
-            {{ shortDate(ferien.to) }}).
-          </span>
-        </p>
-      </section>
-    </Transition>
-
-    <Transition name="reveal">
-      <section v-if="preview" class="step">
-        <div class="card">
-          <p class="eyebrow" :class="{ late: overdue }">
-            <AlertTriangle v-if="overdue" :size="14" aria-hidden="true" />
-            {{
-              overdue ? "Diese Frist ist bereits verstrichen" : "Als Nächstes"
-            }}
-          </p>
-          <p class="first-task">{{ preview.first.label }}</p>
-          <template v-if="span">
-            <p class="first-date mono" :class="{ late: overdue }">
-              {{ shortDate(preview.first.date!) }}
-            </p>
-            <p class="countdown" :class="{ late: overdue }">
-              <template v-if="overdue">
-                <span>{{ span.n }}</span> {{ span.unit }} überfällig
-              </template>
-              <template v-else-if="span.days === 0">heute fällig</template>
-              <template v-else>
-                in <span>{{ span.n }}</span> {{ span.unit }}
-              </template>
-            </p>
-          </template>
-          <p v-else class="first-date">Termin erfragen</p>
-
-          <p v-if="preview.first.rescue" class="rescue">
-            <b>Ausweg:</b> kündige bis
-            <b>{{ shortDate(preview.first.rescue.date) }}</b
-            >. {{ preview.first.rescue.label }}. Für den
-            <span>{{ shortDate(anchorDate) }}</span> als
-            {{ selected!.anchorLabel }} ist die Frist nicht mehr zu halten.
-          </p>
-
-          <p v-if="basis" class="basis">
-            <template v-if="basis.label"
-              >Grundlage: <b>{{ basis.label }}</b
-              ><template v-if="basis.rule">, </template></template
-            >{{ basis.rule }}.
-            <a
-              v-if="basis.url"
-              class="source"
-              :href="basis.url"
-              target="_blank"
-              rel="noopener"
-              >Quelle</a
-            >
-          </p>
-
-          <ol class="rest">
-            <li v-for="t in preview.rest" :key="t.id">
-              <span>{{ t.label }}</span>
-              <span v-if="t.date" class="dt mono">{{ dayMonth(t.date) }}</span>
-              <span v-else class="dt none">Termin erfragen</span>
-            </li>
-          </ol>
-          <p v-if="preview.more > 0" class="more">
-            und <span>{{ preview.more }}</span> weitere Fristen im vollständigen
-            Plan.
-          </p>
-
-          <p v-if="savedForSelected" class="replaces">
-            Du hast schon einen Plan für {{ selected!.label }} vom
-            <span>{{ shortDate(savedForSelected.date) }}</span
-            >. Dieses Formular legt einen neuen an und ersetzt ihn.
-          </p>
-
-          <a class="btn-primary" :href="planHref">
-            Plan öffnen <ArrowRight :size="16" />
-          </a>
-          <p class="after-cta">
-            Im Plan: abhaken, Aufgaben ergänzen und alles als Kalender
-            exportieren.
-          </p>
-        </div>
-      </section>
-    </Transition>
-
-    <Teleport v-if="SHOW_FAB && hasSlot" to="#fab-slot">
-      <button
-        type="button"
-        class="fab-toggle"
-        aria-label="Plan erstellen"
-        @click="goToPicker"
-      >
-        <Plus :size="22" />
-      </button>
-    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from "vue";
-import {
-  AlertTriangle,
-  ArrowRight,
-  Check,
-  Info,
-  MapPin,
-  Plus,
-  Search,
-} from "lucide-vue-next";
-import { appliesTo } from "../../lib/facets";
-import { byOffset } from "../../lib/offset-label";
-import {
-  dayMonth,
-  daysUntil,
-  shortDate,
-  spanParts,
-} from "../../lib/date-display";
-import { STATES } from "../../lib/states";
-import { SCHULFERIEN } from "../../lib/schulferien-data";
-import { loadGemeinden, searchGemeinden } from "../../lib/gemeinde-search";
-import type { Gemeinde } from "../../lib/gemeinde-search";
-import { isoToday } from "../../lib/today";
-import { addDays, isoOf, utcDay } from "../../lib/timeline-geometry";
+import { computed, onMounted, ref } from "vue";
 import SavedPlanCard from "./SavedPlanCard.vue";
-import { usePlannerSchedule } from "./deadline-planner/usePlannerSchedule";
 import { loadSavedPlans } from "../../lib/saved-plans";
 import type { SavedPlan } from "../../lib/saved-plans";
-import type { VorhabenData, VorhabenVariant } from "../../lib/vorhaben-data";
+import type { VorhabenData } from "../../lib/vorhaben-data";
 
-const props = defineProps<{
-  vorhaben: VorhabenData[];
-}>();
-
-const BUNDESWEIT = "bundesweit";
+const props = defineProps<{ vorhaben: VorhabenData[] }>();
 
 const savedPlans = ref<SavedPlan[]>([]);
 const planCards = computed(() =>
@@ -301,243 +54,18 @@ const planCards = computed(() =>
   }),
 );
 
-const selectedSlug = ref<string | null>(null);
-const selected = computed(
-  () => props.vorhaben.find((v) => v.slug === selectedSlug.value) ?? null,
-);
-// The form always starts empty and always creates a new plan, the saved card
-// above is the only place that edits one.
-const savedForSelected = computed(
-  () => savedPlans.value.find((p) => p.slug === selectedSlug.value) ?? null,
-);
-
-const TODAY = utcDay(new Date());
-const minDate = isoOf(addDays(TODAY, -14));
-const maxDate = isoOf(addDays(TODAY, 365));
-const anchorDate = ref("");
-
-function endOfMonthFromNow(n: number): string {
-  const d = new Date(TODAY);
-  d.setUTCMonth(d.getUTCMonth() + n + 1, 0);
-  return isoOf(d);
-}
-function firstOfMonthFromNow(n: number): string {
-  const d = new Date(TODAY);
-  d.setUTCMonth(d.getUTCMonth() + n, 1);
-  return isoOf(d);
-}
-const presets = [
-  { label: "In 3 Monaten", iso: () => isoOf(addDays(TODAY, 90)) },
-  { label: "Zum Monatsende", iso: () => endOfMonthFromNow(0) },
-  { label: "Nächster Monatserste", iso: () => firstOfMonthFromNow(1) },
-];
-
-/* ---------- Ort ---------- */
-const ortQuery = ref("");
-const ort = ref<Gemeinde | null>(null);
-// Closed until the field is focused: an empty query now answers with the
-// default list, so an open one would hang under the form from the start.
-const suggestionsOpen = ref(false);
-
-// All 11k Gemeinden are too much for the page bundle, so they arrive the first
-// time someone actually reaches for the field.
-const gemeinden = ref<Gemeinde[]>([]);
-const fillGemeinden = async () => (gemeinden.value = await loadGemeinden());
-
-// Clicking the field should already offer something, and the Orte with their
-// own Fristen are the ones worth offering. They come from the variants, so the
-// list is there before the fetch lands.
-const coveredOrte = computed<Gemeinde[]>(() =>
-  (selected.value?.variants ?? [])
-    .filter((v) => v.slug !== BUNDESWEIT)
-    .map((v) => ({
-      name: v.label,
-      plz: gemeinden.value.find((g) => g.name === v.label)?.plz ?? "",
-      state: v.regionCode ?? "",
-    })),
-);
-
-// The four biggest, so the empty field is not just the handful of Orte we
-// happen to have Fristen for.
-const BIG_CITIES = ["Berlin", "Hamburg", "München", "Frankfurt am Main"];
-
-const SUGGESTION_COUNT = 10;
-
-const suggestions = computed(() => {
-  if (!suggestionsOpen.value || ort.value) return [];
-  const covered = coveredOrte.value;
-  if (ortQuery.value.trim().length === 0)
-    return [
-      ...covered,
-      ...BIG_CITIES.map((n) =>
-        gemeinden.value.find((g) => g.name === n),
-      ).filter(
-        (g): g is Gemeinde => !!g && !covered.some((c) => c.name === g.name),
-      ),
-    ].slice(0, SUGGESTION_COUNT);
-  return searchGemeinden(gemeinden.value, ortQuery.value, SUGGESTION_COUNT);
-});
-function chooseOrt(g: Gemeinde) {
-  ort.value = g;
-  ortQuery.value = g.name;
-}
-function closeSuggestions() {
-  suggestionsOpen.value = false;
-}
-watch(ortQuery, () => (suggestionsOpen.value = true));
-
-const stateName = (g: Gemeinde) => STATES[g.state] ?? g.state;
-
-// A Gemeinde is covered when the Vorhaben has a variant file naming it, the
-// yaml `name:` is what public/gemeinden.json has to match.
-function variantFor(g: Gemeinde): VorhabenVariant | undefined {
-  return selected.value?.variants.find((v) => v.label === g.name);
-}
-const localVariant = computed(() =>
-  ort.value ? variantFor(ort.value) : undefined,
-);
-const hasLocalVariants = computed(
-  () => (selected.value?.variants.length ?? 0) > 1,
-);
-const baseVariant = computed(() =>
-  selected.value?.variants.find((v) => v.slug === BUNDESWEIT),
-);
-
-// What the picked plan actually contains, in one line, so the choice is not a
-// leap of faith.
-const planSummary = computed(() => {
-  const all = baseVariant.value?.deadlines ?? [];
-  if (all.length === 0) return null;
-  const dated = all.filter((d) => d.kind !== "soft");
-  return {
-    dated: dated.length,
-    soft: all.length - dated.length,
-    first: [...dated].sort(byOffset)[0]?.label ?? "",
-  };
-});
-
-// Name the local steps instead of promising "örtliche Schritte".
-// ponytail: the first word of the label is the step's name in every Kommune
-// file so far, add a short label to the schema if that ever reads wrong.
-const localSteps = computed(() => {
-  const base = new Set(baseVariant.value?.deadlines.map((d) => d.id) ?? []);
-  const names = (localVariant.value?.deadlines ?? [])
-    .filter((d) => !base.has(d.id))
-    .map((d) => d.label.split(" ")[0]);
-  if (names.length < 2) return names[0] ?? "Örtliche Fristen";
-  return `${names.slice(0, -1).join(", ")} und ${names[names.length - 1]}`;
-});
-
-// Schulferien do not move a Frist, they only warn about the Termin itself.
-const ferien = computed(() => {
-  const iso = anchorDate.value;
-  if (!ort.value || !iso) return null;
-  const hit = (SCHULFERIEN[ort.value.state] ?? []).find(
-    ([from, to]) => from <= iso && iso <= to,
-  );
-  return hit ? { from: hit[0], to: hit[1], name: hit[2] } : null;
-});
-
-// Without a local variant the plan is the bundesweite one, only the Feiertage
-// follow the Bundesland of the Ort.
-const previewVariant = computed<VorhabenVariant | undefined>(() => {
-  if (!selected.value) return undefined;
-  if (localVariant.value) return localVariant.value;
-  const base = baseVariant.value ?? selected.value.variants[0];
-  return base && ort.value ? { ...base, regionCode: ort.value.state } : base;
-});
-
-function goToPicker() {
-  document.getElementById("q1")?.scrollIntoView({ behavior: "smooth" });
-  (document.querySelector(".choice") as HTMLElement | null)?.focus();
-}
-
-function pick(slug: string) {
-  if (slug === selectedSlug.value) return;
-  selectedSlug.value = slug;
-}
-
-/* ---------- preview ---------- */
-const doneIds = reactive<Record<string, boolean>>({});
-
-const workingDeadlines = computed(() =>
-  (previewVariant.value?.deadlines ?? []).filter((d) => appliesTo(d, [])),
-);
-
-const { tasks } = usePlannerSchedule(
-  anchorDate,
-  previewVariant,
-  workingDeadlines,
-  () => selected.value?.anchorLabel ?? "",
-  doneIds,
-);
-
-// Tasks arrive sorted by date, undated last.
-const preview = computed(() => {
-  if (!selected.value || !anchorDate.value) return null;
-  const [first, ...others] = tasks.value;
-  if (!first) return null;
-  return {
-    first,
-    rest: others.slice(0, 3),
-    more: Math.max(0, others.length - 3),
-  };
-});
-
-const span = computed(() => {
-  const date = preview.value?.first.date;
-  if (!date) return null;
-  const days = daysUntil(date, isoToday());
-  return { days, ...spanParts(days) };
-});
-const overdue = computed(() => (span.value?.days ?? 0) < 0);
-
-// The paragraph alone is a seal, the sentence behind it is the argument.
-const basis = computed(() => {
-  const first = preview.value?.first;
-  if (!first) return null;
-  const rule =
-    first.derivation?.find((d) => d.step === "notice-month")?.label ?? null;
-  const text = (rule ?? first.note ?? "").replace(/\.$/, "");
-  if (!first.source_label && !text) return null;
-  return {
-    label: first.source_label ?? null,
-    rule: text || null,
-    url: first.source_url,
-  };
-});
-
-const planHref = computed(() => {
-  if (!selected.value) return "/";
-  const params = new URLSearchParams({ date: anchorDate.value });
-  if (localVariant.value)
-    return `/${selected.value.slug}/${localVariant.value.slug}/#${params}`;
-  // No variant param: without a local file the plan is the bundesweit one, and
-  // that is exactly what /<vorhaben>/ serves. The Ort still travels along, it
-  // names the place and its Feiertage.
-  if (ort.value) {
-    params.set("region", ort.value.state);
-    params.set("ort", ort.value.name);
-  }
-  return `/${selected.value.slug}/#${params}`;
-});
-
-// Parked with the one in the planner, see DeadlinePlanner.vue.
-const SHOW_FAB = false;
-const hasSlot = ref(false);
-onMounted(() => {
-  hasSlot.value = !!document.getElementById("fab-slot");
-  savedPlans.value = loadSavedPlans();
-});
+// localStorage is not there while the island renders on the server, so the
+// cards arrive one tick later and fade in.
+onMounted(() => (savedPlans.value = loadSavedPlans()));
 </script>
 
 <style scoped>
 .intro {
-  padding: 1rem 0 0.5rem;
+  padding: var(--s-2) 0 var(--s-1);
 }
 h1 {
   max-width: 20ch;
-  margin: 0 0 1rem;
+  margin: 0 0 var(--s-2);
 }
 .lede {
   color: var(--muted);
@@ -550,54 +78,17 @@ h1 {
 
 /* Two plans fit side by side, four stack into two rows, one fills the row. */
 h2.mine {
-  margin: var(--section-gap) 0 0.75rem;
+  margin: var(--section-gap) 0 var(--s-1);
 }
 .plans {
-  margin-top: 0.75rem;
   display: grid;
   /* min() or the 22rem track stays 22rem on a narrower screen and the card
   pushes the page sideways. */
   grid-template-columns: repeat(auto-fit, minmax(min(22rem, 100%), 1fr));
-  gap: 1.25rem;
-  margin-bottom: 1rem;
+  gap: var(--s-2);
 }
 
 /* Saved plans fade in after the storage read and slide out when forgotten. */
-.fab-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3.4rem;
-  height: 3.4rem;
-  margin-top: -1.2rem;
-  border: 0;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--accent-ink);
-  box-shadow: var(--shadow-lg);
-}
-
-.add-plan {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  align-self: start;
-  gap: 0.5rem;
-  padding: 0.9rem 1.1rem;
-  border: 1px dashed var(--line);
-  border-radius: var(--r-lg);
-  background: none;
-  color: var(--muted);
-  font-size: var(--t-meta);
-  font-weight: var(--fw-semibold);
-  cursor: pointer;
-}
-.add-plan:hover {
-  border-color: var(--accent);
-  border-style: solid;
-  color: var(--accent);
-}
-
 .plan-enter-active {
   transition:
     opacity 0.3s ease,
@@ -620,65 +111,25 @@ h2.mine {
   transition: transform 0.3s ease;
 }
 
-/* Steps arrive, they do not pop: fade up on enter, fade out on leave. */
-.reveal-enter-active {
-  transition:
-    opacity 0.24s ease,
-    transform 0.24s cubic-bezier(0.2, 0.8, 0.3, 1);
-}
-.reveal-leave-active {
-  transition: opacity 0.14s ease;
-}
-.reveal-enter-from {
-  opacity: 0;
-  transform: translateY(0.5rem);
-}
-.reveal-leave-to {
-  opacity: 0;
-}
-.drop-enter-active,
-.drop-leave-active {
-  transition:
-    opacity 0.14s ease,
-    transform 0.14s ease;
-}
-.drop-enter-from,
-.drop-leave-to {
-  opacity: 0;
-  transform: translateY(-0.25rem);
-}
-
 /* One rhythm: every block of the page starts the same distance below the last. */
 .step {
   margin-top: var(--section-gap);
 }
-.what {
-  max-width: 62ch;
-  margin: 0 0 0.75rem;
-  color: var(--muted);
-  font-size: var(--t-meta);
-}
-.what b {
-  color: var(--ink);
-}
-.q {
-  font-size: var(--t-section);
-  border: 0;
-  padding: 0;
+h2 {
   margin: 0 0 0.25rem;
 }
 .section-lede {
   max-width: 62ch;
-  margin: 0 0 1.25rem;
+  margin: 0 0 var(--s-2);
   color: var(--muted);
-  font-size: var(--t-meta);
 }
 
-/* Cards, not pills: the pill shape belongs to the date presets below. */
+/* Cards, because they lead somewhere. The chip shape belongs to a choice you
+make on the page you are on. */
 .choices {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.6rem;
+  gap: var(--s-1);
 }
 @media (max-width: 40rem) {
   .choices {
@@ -686,319 +137,24 @@ h2.mine {
   }
 }
 .choice {
-  text-align: left;
-  font-weight: var(--fw-semibold);
+  display: block;
   background: var(--paper-raised);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 0.9rem 0.8rem;
+  padding: var(--s-2);
   color: var(--ink);
-  line-height: 1.25;
-  cursor: pointer;
+  text-decoration: none;
 }
 .choice:hover {
   border-color: var(--accent);
 }
+.choice:hover .t-title {
+  color: var(--accent);
+}
 .choice small {
   display: block;
-  font-weight: var(--fw-regular);
-  font-size: var(--t-meta);
   color: var(--muted);
   margin-top: 0.3rem;
   text-wrap: balance;
-}
-.choice[aria-pressed="true"] {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-ink);
-}
-.choice[aria-pressed="true"] small {
-  color: var(--accent-ink);
-  opacity: 0.8;
-}
-
-.fields {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.25rem 1.75rem;
-}
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  min-width: 0;
-}
-.field > label {
-  font-size: var(--t-meta);
-  font-weight: var(--fw-semibold);
-  color: var(--muted);
-}
-.field > label .opt {
-  font-weight: var(--fw-regular);
-  opacity: 0.75;
-}
-.field input {
-  padding: 0.5rem 0.75rem;
-  font-size: var(--t-body);
-}
-input[type="date"] {
-  width: 100%;
-  max-width: 11rem;
-}
-.ac-input {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding-left: 0.6rem;
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--paper-raised);
-  color: var(--muted);
-  width: 100%;
-  max-width: 19rem;
-}
-.ac-input:focus-within {
-  border-color: var(--accent);
-}
-.ac-input.picked {
-  border-color: var(--done);
-}
-.ac-input .ok {
-  color: var(--done);
-}
-.ac-input input {
-  flex: 1;
-  min-width: 0;
-  border: 0;
-  background: none;
-  padding-left: 0;
-}
-.ac-input input:focus-visible {
-  outline: none;
-}
-@media (max-width: 40rem) {
-  .field,
-  .field input,
-  .ac-input {
-    width: 100%;
-  }
-}
-
-.ac {
-  position: relative;
-}
-.ac ul {
-  position: absolute;
-  z-index: 5;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin: 0.25rem 0 0;
-  padding: 0.25rem;
-  list-style: none;
-  background: var(--paper-raised);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-md);
-  max-height: 15rem;
-  overflow: auto;
-}
-.ac li {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.6rem;
-  padding: 0.4rem 0.5rem;
-  border-radius: var(--r-sm);
-  cursor: pointer;
-}
-.ac li:hover,
-.ac li[aria-selected="true"] {
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-}
-/* The name owns the leftover width and clips, the tag never gets pushed onto a
-second line. */
-.ac .name {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  min-width: 0;
-}
-.ac .label {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.ac .tag {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-  flex-shrink: 0;
-  font-size: var(--t-meta);
-  color: var(--muted);
-  white-space: nowrap;
-}
-.ac .tag.covered {
-  color: var(--done);
-}
-/* Over 450 Gemeinde names exist more than once, the PLZ is what tells them
-apart in the list. */
-.ac .pin {
-  flex-shrink: 0;
-  align-self: center;
-  color: var(--muted);
-}
-.ac .plz {
-  flex-shrink: 0;
-  font-size: var(--t-meta);
-  color: var(--muted);
-}
-
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1.25rem;
-}
-.chip {
-  border-radius: var(--r-sm);
-  padding: 0.25rem 0.75rem;
-  font-size: var(--t-meta);
-}
-.chip[aria-pressed="true"] {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-ink);
-}
-
-/* Coverage is marked by icon and wording, never by colour alone. */
-.coverage {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.4rem;
-  margin: 1.25rem 0 0;
-  font-size: var(--t-meta);
-  color: var(--muted);
-  max-width: 60ch;
-}
-.coverage .ok {
-  flex-shrink: 0;
-  color: var(--done);
-}
-.coverage .thin {
-  flex-shrink: 0;
-  color: var(--holiday);
-}
-.coverage b {
-  color: var(--ink);
-}
-
-.ferien {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.4rem;
-  margin: 0.5rem 0 0;
-  font-size: var(--t-meta);
-  color: var(--holiday);
-  max-width: 60ch;
-}
-.ferien svg {
-  flex-shrink: 0;
-}
-
-.card {
-  background: var(--paper-raised);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-card);
-  padding: 1.75rem 1.75rem 1.5rem;
-}
-.eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  margin: 0 0 0.5rem;
-  font-size: var(--t-meta);
-  font-weight: var(--fw-semibold);
-  color: var(--muted);
-}
-.eyebrow.late {
-  color: var(--overdue);
-}
-.first-task {
-  margin: 0 0 0.2rem;
-  font-size: var(--t-body);
-  font-weight: var(--fw-semibold);
-}
-.first-date {
-  margin: 0;
-  font-size: var(--t-section);
-  font-weight: var(--fw-semibold);
-  color: var(--accent);
-}
-.first-date.late {
-  color: var(--overdue);
-}
-.countdown {
-  margin: 0.2rem 0 0;
-  font-size: var(--t-meta);
-  color: var(--muted);
-}
-.countdown.late {
-  color: var(--overdue);
-}
-.rescue {
-  margin: 0.9rem 0 0;
-  padding: 0.6rem 0.8rem;
-  border-left: 3px solid var(--overdue);
-  background: color-mix(in srgb, var(--overdue) 8%, transparent);
-  font-size: var(--t-meta);
-}
-.basis {
-  margin: 0.9rem 0 0;
-  padding-top: 0.8rem;
-  border-top: 1px solid var(--line);
-  font-size: var(--t-meta);
-  color: var(--muted);
-}
-.basis b {
-  color: var(--ink);
-}
-.source {
-  margin-left: 0.3rem;
-}
-
-.rest {
-  list-style: none;
-  margin: 1.4rem 0 0;
-  padding: 0;
-  border-top: 1px solid var(--line);
-}
-.rest li {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 1rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--line);
-}
-.rest .dt {
-  flex-shrink: 0;
-  font-size: var(--t-meta);
-  color: var(--muted);
-  white-space: nowrap;
-}
-.rest .dt.none {
-  color: var(--holiday);
-}
-.more {
-  margin: 0.8rem 0 0;
-  font-size: var(--t-meta);
-  color: var(--muted);
-}
-.replaces {
-  margin: 0.8rem 0 0;
-  font-size: var(--t-meta);
-  color: var(--holiday);
 }
 </style>

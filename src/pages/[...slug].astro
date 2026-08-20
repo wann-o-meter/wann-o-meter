@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import DeadlinePlanner from "../components/DeadlinePlanner.vue";
+import PlanWizard from "../components/PlanWizard.vue";
 import StaticPlan from "../components/StaticPlan.astro";
 import { vorhabenRoutes } from "../../lib/vorhaben-routes";
 import { BUNDESWEIT_SLUG } from "../../lib/vorhaben-data";
@@ -80,10 +80,10 @@ const rest = siblings.slice(PREVIEW);
   noindex={noindex}
 >
   <p class="back"><a href="/">&larr; Alle Vorhaben</a></p>
-  <h1 id="static-title">{title}</h1>
+  <h1>{title}</h1>
   <!-- Keep in sync with the .overview paragraph in DeadlinePlanner.vue, which
   recounts the same sentences once the Ort or the facets change. -->
-  <p class="overview prehydrate">
+  <p class="overview t-body">
     Der Zeitplan für {v.vorhaben} umfasst <b>{entries.length} Fristen</b>.{" "}
     {earliest && (
       <>
@@ -112,15 +112,14 @@ const rest = siblings.slice(PREVIEW);
       <>In {variant.label} kommen dazu: {localSteps.join(", ")}.</>
     )}
   </p>
-  <!-- Holds the height the planner will take, so the page below it does not
+  <!-- Holds the height the wizard will take, so the page below it does not
   jump when the island renders. -->
   <div class="planner-slot">
-    <DeadlinePlanner
+    <PlanWizard
       client:only="vue"
       slug={v.slug}
       vorhaben={v.vorhaben}
       anchorLabel={v.anchorLabel}
-      anchorName={v.anchorName}
       variantLabel={v.variantLabel}
       variantPreposition={v.variantPreposition}
       variants={v.variants}
@@ -194,7 +193,7 @@ const rest = siblings.slice(PREVIEW);
   /* ponytail: one number for every plan, split it per Vorhaben if the plans
   ever differ enough in length that the reserve reads as empty space. */
   html[data-js] .planner-slot {
-    min-height: 32rem;
+    min-height: 20rem;
   }
   h1 {
     margin-top: 0.5rem;
@@ -214,24 +213,15 @@ const rest = siblings.slice(PREVIEW);
     padding: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.4rem 1.2rem;
   }
-  .places a {
-    display: inline-block;
-    border: 1px solid var(--line);
-    border-radius: 100px;
-    padding: 0.5rem 1rem;
+  /* Links, not chips: the chip shape belongs to a choice you make here. */
+  .places a,
+  .places .here {
     font-size: var(--t-meta);
-    text-decoration: none;
   }
   .places .here {
-    display: inline-block;
-    border: 1px solid var(--accent);
-    border-radius: 100px;
-    padding: 0.5rem 1rem;
-    font-size: var(--t-meta);
-    background: var(--accent);
-    color: var(--accent-ink);
+    color: var(--muted);
   }
   .places details {
     margin-top: 0.75rem;

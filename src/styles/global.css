@@ -76,12 +76,6 @@ a:hover {
   text-decoration-thickness: 2px;
 }
 
-/* The crawlable and no-JS version of what an island renders. With JS it never
-appears, so the page does not shift when the island takes over. */
-html[data-js] .prehydrate {
-  display: none;
-}
-
 /* On paper the plan is a checklist, not a web page: no site chrome, no colour,
 no link decoration that a reader cannot click anyway. */
 @media print {
@@ -154,6 +148,34 @@ screen, secondary carries a border, tertiary is text in the accent colour. */
   text-decoration: underline;
   text-underline-offset: 0.15em;
 }
+/* One chip shape, two states: a choice you can make, and the one you made.
+Nothing that is not a choice may borrow it. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  background: var(--paper-raised);
+  font-size: var(--t-meta);
+  color: var(--ink);
+  cursor: pointer;
+}
+.chip:hover {
+  border-color: var(--accent);
+}
+.chip[aria-pressed="true"],
+.chip:has(input:checked) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--paper-raised));
+  color: var(--accent);
+}
+.chip input {
+  accent-color: var(--accent);
+  margin: 0;
+}
+
 .after-cta {
   margin: var(--s-1) 0 0;
   font-size: var(--t-meta);
