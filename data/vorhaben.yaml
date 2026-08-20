@@ -9,6 +9,10 @@
   possessive: Dein
   anchorLabel: Umzugstag
   anchorName: Umzug
+  # Four of six local searches are about ummelden, not about umziehen, and the
+  # preposition would shut out everybody moving within the same town.
+  placeTitle: "Umzug {ort}: Ummeldefrist, Termine & Checkliste"
+  placeHeading: "Ummelden und umziehen in {ort}"
   tags: [wohnen]
   variantLabel: Ort
   variantPreposition: nach

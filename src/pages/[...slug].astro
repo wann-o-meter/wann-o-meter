@@ -11,7 +11,7 @@ export function getStaticPaths() {
   return vorhabenRoutes().map((r) => ({ params: { slug: r.path }, props: r }));
 }
 
-const { v, variant, title, description, noindex } = Astro.props;
+const { v, variant, title, heading, description, noindex } = Astro.props;
 const isPlace = Astro.params.slug !== v.slug;
 const crumbs = [
   { name: "Startseite", url: new URL("/", Astro.site).href },
@@ -80,7 +80,7 @@ const rest = siblings.slice(PREVIEW);
   noindex={noindex}
 >
   <p class="back"><a href="/">&larr; Alle Vorhaben</a></p>
-  <h1>{title}</h1>
+  <h1>{heading}</h1>
   <!-- Keep in sync with the .overview paragraph in DeadlinePlanner.vue, which
   recounts the same sentences once the Ort or the facets change. -->
   <p class="overview t-body">

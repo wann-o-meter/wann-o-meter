@@ -44,6 +44,11 @@ const vorhabenSchema = z.object({
   titleSubject: z.string().optional(),
   // The anchor as a title says it after "vom", where the label does not fit.
   anchorDative: z.string().optional(),
+  // What a place page is called, where the query people actually type is not
+  // the one the generated title answers. {ort} is the Gemeinde. Without these
+  // a place page keeps the counted title every other page gets.
+  placeTitle: z.string().optional(),
+  placeHeading: z.string().optional(),
   vorhaben: z.string(),
   anchorLabel: z.string(),
   anchorName: z.string(),

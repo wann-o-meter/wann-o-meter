@@ -8,6 +8,9 @@ interface VorhabenRoute {
   v: VorhabenData;
   variant: VorhabenVariant;
   title: string;
+  // What the page says as its H1. The same as the title unless the Vorhaben
+  // gives its place pages a heading of their own.
+  heading: string;
   description: string;
   noindex: boolean;
 }
@@ -94,6 +97,7 @@ export function vorhabenRoutes(): VorhabenRoute[] {
       v,
       variant: defaultVariant(v),
       title: planTitle(v, defaultVariant(v), v.titleSubject ?? v.label),
+      heading: planTitle(v, defaultVariant(v), v.titleSubject ?? v.label),
       description: planDescription(v, defaultVariant(v)),
       noindex: false,
     };
@@ -105,7 +109,12 @@ export function vorhabenRoutes(): VorhabenRoute[] {
         path: `${v.slug}/${variant.slug}`,
         v,
         variant,
-        title: planTitle(v, variant, `${v.label} in ${variant.label}`),
+        title:
+          v.placeTitle?.replace("{ort}", variant.label) ??
+          planTitle(v, variant, `${v.label} in ${variant.label}`),
+        heading:
+          v.placeHeading?.replace("{ort}", variant.label) ??
+          planTitle(v, variant, `${v.label} in ${variant.label}`),
         description: planDescription(v, variant),
         noindex: !shouldIndex(variant),
       })),

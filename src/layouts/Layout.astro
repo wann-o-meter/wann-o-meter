@@ -10,6 +10,9 @@ interface Props {
   wide?: boolean;
   structuredData?: object;
   noindex?: boolean;
+  // Where this page's content really lives, when it is a working surface for
+  // another address rather than a page of its own.
+  canonical?: string;
 }
 const {
   title,
@@ -17,9 +20,10 @@ const {
   wide = false,
   structuredData,
   noindex = false,
+  canonical,
 } = Astro.props;
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
-const pageTitle = `${title} · Wann-O-Meter`;
+const canonicalUrl = new URL(canonical ?? Astro.url.pathname, Astro.site).href;
+const pageTitle = title;
 // Every Vorhaben is reachable from every page: the startpage picker is a set
 // of buttons, so without this the plan pages have no incoming internal links.
 const vorhabenLinks = loadAllVorhaben().map((v) => ({
