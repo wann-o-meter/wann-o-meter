@@ -342,11 +342,7 @@ h2 {
   outline: none;
 }
 
-/* Positioned, because the Ort popover anchors to the nearest positioned
-ancestor: from the row it opens under the fields at full width, from the field
-box it would inherit that box's few centimetres. */
 .fields {
-  position: relative;
   display: flex;
   flex-wrap: wrap;
   gap: var(--s-2);

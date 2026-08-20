@@ -24,6 +24,23 @@ const query = ref("");
 const active = ref(0);
 const gemeinden = ref<Gemeinde[]>([]);
 const inputEl = useTemplateRef<HTMLInputElement>("inputEl");
+const popEl = useTemplateRef<HTMLElement>("popEl");
+// How far the popover has to slide back to stay on screen. It opens under its
+// own trigger, and a trigger at the end of a long heading sits close enough to
+// the right edge that a fixed-width panel would hang off it.
+const shift = ref(0);
+
+// ponytail: measured once on open, not on resize. Rotating the phone with the
+// list open is the only way to see it stale, and closing it is one tap.
+async function place() {
+  shift.value = 0;
+  await nextTick();
+  const box = popEl.value?.getBoundingClientRect();
+  if (!box) return;
+  const margin = 8;
+  const over = box.right - (window.innerWidth - margin);
+  if (over > 0) shift.value = -Math.min(over, box.left - margin);
+}
 
 const covered = computed<Gemeinde[]>(() =>
   props.variants
@@ -53,9 +70,10 @@ async function openPicker() {
   open.value = true;
   query.value = "";
   active.value = 0;
-  await nextTick();
+  await place();
   inputEl.value?.focus();
   gemeinden.value = await loadGemeinden();
+  await place();
 }
 
 function close() {
@@ -93,7 +111,12 @@ function move(step: number) {
       <MapPin :size="16" class="pin" aria-hidden="true" />{{ label }}
     </button>
 
-    <div v-if="open" class="pop t-meta">
+    <div
+      v-if="open"
+      ref="popEl"
+      class="pop t-meta"
+      :style="{ marginLeft: `${shift}px` }"
+    >
       <div class="search">
         <Search :size="15" aria-hidden="true" />
         <input
@@ -143,10 +166,10 @@ function move(step: number) {
 </template>
 
 <style scoped>
-/* Deliberately not positioned: the popover anchors to the nearest positioned
-ancestor instead, so it opens at the left of the whole heading and cannot hang
-off the right edge when the Ort sits at the end of a long line. */
+/* The popover belongs to its trigger, so it hangs off it. Staying on screen is
+place()'s job, because no ancestor is a better guess than the button itself. */
 .ort {
+  position: relative;
   display: inline-block;
 }
 .slot {
@@ -168,7 +191,8 @@ off the right edge when the Ort sits at the end of a long line. */
   top: calc(100% + 0.4rem);
   left: 0;
   z-index: 60;
-  width: min(22rem, 100%);
+  width: 22rem;
+  max-width: calc(100vw - 2rem);
   padding: 0.4rem;
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
