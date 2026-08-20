@@ -93,8 +93,8 @@ function move(step: number) {
       <MapPin :size="16" class="pin" aria-hidden="true" />{{ label }}
     </button>
 
-    <div v-if="open" class="pop">
-      <div class="field">
+    <div v-if="open" class="pop t-meta">
+      <div class="search">
         <Search :size="15" aria-hidden="true" />
         <input
           ref="inputEl"
@@ -175,23 +175,23 @@ off the right edge when the Ort sits at the end of a long line. */
   background: var(--paper-raised);
   box-shadow: var(--shadow-md);
 }
-.field {
+.search {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   padding-left: 0.5rem;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: var(--r-sm);
   color: var(--muted);
 }
-.field input {
+.search input {
   flex: 1;
   min-width: 0;
   border: 0;
   background: none;
   font-size: var(--t-meta);
 }
-.field:focus-within {
+.search:focus-within {
   border-color: var(--accent);
 }
 
