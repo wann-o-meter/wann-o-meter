@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { shortDate } from "../../../lib/date-display";
+import { daysUntil, dativeUnit, spanParts } from "../../../lib/date-display";
 import { toDate } from "../../../lib/format-date";
-import { isPast } from "../../../lib/today";
+import { isPast, isoToday } from "../../../lib/today";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
 
 const props = defineProps<{
@@ -24,20 +24,16 @@ const pct = computed(() =>
   total.value === 0 ? 0 : Math.round((doneCount.value / total.value) * 100),
 );
 
+// The list below owns every date on this page, so the status says how far away
+// the next one is and lets the row itself say which day that is.
 const nextOpen = computed(() => {
   const upcoming = dated.value.filter((e) => !isPast(e.date!));
   if (upcoming.length === 0) return null;
   const next = upcoming.reduce((a, b) => (a.date! <= b.date! ? a : b));
-  return { id: next.id, label: next.label, date: next.date! };
-});
-
-const catchUp = computed(() => {
-  const withRescue = overdue.value.filter((e) => e.rescue);
-  if (withRescue.length === 0) return null;
-  const first = withRescue.reduce((a, b) =>
-    a.rescue!.date <= b.rescue!.date ? a : b,
-  );
-  return { id: first.id, date: first.rescue!.date };
+  const days = daysUntil(next.date!, isoToday());
+  if (days === 0) return { id: next.id, when: "heute" };
+  const span = spanParts(days);
+  return { id: next.id, when: `in ${span.n} ${dativeUnit(span.unit)}` };
 });
 
 const anchorIsSunday = computed(
@@ -49,31 +45,17 @@ const anchorIsSunday = computed(
   <div class="summary">
     <div class="stats">
       <div class="stat">
-        <span class="row">
-          <span class="k">Erledigt</span>
-          <span class="v">{{ doneCount }}/{{ total }}</span>
-        </span>
+        <span class="t-label">Erledigt</span>
+        <span class="t-title tnum">{{ doneCount }}/{{ total }}</span>
         <span class="bar" aria-hidden="true">
           <i :style="{ width: pct + '%' }"></i>
         </span>
       </div>
 
-      <button
-        v-if="catchUp"
-        type="button"
-        class="stat late"
-        @click="$emit('select', catchUp!.id)"
-      >
-        <span class="row">
-          <span class="k">{{ overdue.length }} verstrichen</span>
-          <span class="v">bis {{ shortDate(catchUp.date) }}</span>
-        </span>
-      </button>
-
-      <p v-else-if="overdue.length > 0" class="stat late">
-        <span class="row">
-          <span class="k">{{ overdue.length }} verstrichen</span>
-          <span class="v">vorbei</span>
+      <p v-if="overdue.length > 0" class="stat late">
+        <span class="t-label">Verstrichen</span>
+        <span class="t-title tnum">
+          {{ overdue.length }} {{ overdue.length === 1 ? "Frist" : "Fristen" }}
         </span>
       </p>
 
@@ -83,21 +65,17 @@ const anchorIsSunday = computed(
         class="stat"
         @click="$emit('select', nextOpen!.id)"
       >
-        <span class="row">
-          <span class="k">Nächste Frist</span>
-          <span class="v">{{ shortDate(nextOpen.date) }}</span>
-        </span>
+        <span class="t-label">Nächste Frist</span>
+        <span class="t-title">{{ nextOpen.when }}</span>
       </button>
 
-      <p v-else class="stat done">
-        <span class="row">
-          <span class="k">Fertig</span>
-          <span class="v">{{ total }}/{{ total }}</span>
-        </span>
+      <p v-else class="stat">
+        <span class="t-label">Fertig</span>
+        <span class="t-title tnum">{{ total }}/{{ total }}</span>
       </p>
     </div>
 
-    <p v-if="anchorIsSunday" class="sunday">
+    <p v-if="anchorIsSunday" class="sunday t-meta">
       {{ anchorLabel }} ist ein Sonntag - Ämter und Übergaben brauchen einen
       Werktag.
     </p>
@@ -105,100 +83,64 @@ const anchorIsSunday = computed(
 </template>
 
 <style scoped>
+/* Plain: two facts on the page itself, no container to look at. */
 .summary {
-  margin: 0.6rem 0 0.2rem;
+  margin: var(--s-2) 0;
 }
 .stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: var(--s-1) var(--s-4);
 }
 .stat {
   display: flex;
-  /* Side by side even on the narrowest phone: two short facts, one row. */
-  flex: 1 1 0;
   flex-direction: column;
-  justify-content: center;
-  gap: 0.3rem;
+  gap: 0.15rem;
   min-width: 0;
   margin: 0;
-  padding: 0.5rem 0.7rem;
-  background: var(--paper-raised);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-card);
+  padding: 0;
+  border: 0;
+  background: none;
   color: var(--ink);
-  text-decoration: none;
-  transition:
-    padding 0.22s,
-    background 0.12s;
+  text-align: left;
 }
 button.stat {
-  border: 0;
-  font: inherit;
-  text-align: left;
   cursor: pointer;
 }
-button.stat:hover {
-  background: color-mix(in srgb, var(--accent) 8%, var(--paper-raised));
+button.stat:hover .t-title {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0 0.6rem;
-  min-width: 0;
-}
-.k {
-  overflow: hidden;
-  font-size: var(--t-meta);
-  font-weight: var(--fw-semibold);
-  color: var(--muted);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.v {
-  flex-shrink: 0;
-  font-size: var(--t-meta);
-  font-weight: var(--fw-semibold);
-  white-space: nowrap;
-}
-.late .k {
+.late .t-title {
   color: var(--overdue);
-}
-.done .k {
-  color: var(--muted);
 }
 
 .bar {
   display: block;
-  height: 0.3rem;
+  height: 0.25rem;
+  width: 100%;
+  min-width: 8rem;
+  margin-top: 0.15rem;
   border-radius: var(--r-sm);
-  background: color-mix(in srgb, var(--ink) 14%, var(--paper-raised));
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
   overflow: hidden;
 }
 .bar i {
   display: block;
   height: 100%;
-  border-radius: var(--r-sm);
   background: var(--accent);
   transition: width 0.3s;
 }
 
 .sunday {
-  display: block;
   overflow: hidden;
   max-height: 3rem;
-  margin: 0.4rem 0 0;
-  font-size: var(--t-meta);
+  margin: var(--s-1) 0 0;
   color: var(--muted);
   transition:
     max-height 0.22s,
     opacity 0.22s;
-}
-
-.compact .stat {
-  padding: 0.3rem 0.5rem;
 }
 .compact .sunday {
   max-height: 0;

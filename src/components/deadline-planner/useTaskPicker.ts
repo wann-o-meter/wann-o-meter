@@ -1,23 +1,14 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 
-type TaskPickerTarget =
-  | { kind: "gap"; id: string; afterOffset: number; beforeOffset: number }
-  | { kind: "end" };
+type TaskPickerTarget = { kind: "end" };
 
 export type TaskPicker = ReturnType<typeof useTaskPicker>;
 
-export function useTaskPicker(handlers: {
-  insertInGap(afterOffset: number, beforeOffset: number, label?: string): void;
-  addAtEnd(label?: string): void;
-}) {
+export function useTaskPicker(handlers: { addAtEnd(label?: string): void }) {
   const target = ref<TaskPickerTarget | null>(null);
 
   function isOpen(candidate: TaskPickerTarget): boolean {
-    const t = target.value;
-    if (!t || t.kind !== candidate.kind) return false;
-    return t.kind === "gap" && candidate.kind === "gap"
-      ? t.id === candidate.id
-      : true;
+    return target.value?.kind === candidate.kind;
   }
 
   function toggle(candidate: TaskPickerTarget) {
@@ -29,18 +20,15 @@ export function useTaskPicker(handlers: {
   }
 
   function pick(label?: string) {
-    const t = target.value;
-    if (!t) return;
-    if (t.kind === "gap")
-      handlers.insertInGap(t.afterOffset, t.beforeOffset, label);
-    else handlers.addAtEnd(label);
+    if (!target.value) return;
+    handlers.addAtEnd(label);
     close();
   }
 
   function onClick(event: MouseEvent) {
     if (!target.value) return;
     const el = event.target as HTMLElement | null;
-    if (el?.closest(".task-picker, .gap-add, .add-end")) return;
+    if (el?.closest(".task-picker, .add-end")) return;
     close();
   }
   function onKeydown(event: KeyboardEvent) {

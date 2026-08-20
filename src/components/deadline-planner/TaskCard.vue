@@ -9,7 +9,8 @@ import {
   TriangleAlert,
 } from "lucide-vue-next";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
-import { shortDate } from "../../../lib/date-display";
+import { daysUntil, shortDate } from "../../../lib/date-display";
+import { isoToday } from "../../../lib/today";
 import CardMenu from "./CardMenu.vue";
 import TaskDates from "./TaskDates.vue";
 import TaskFooter from "./TaskFooter.vue";
@@ -27,9 +28,10 @@ const props = defineProps<{
   note?: string;
   attachment?: string;
   editor: EditorKind | null;
-  // A soft task is recommended, not owed: it names a window, never a Frist.
-  undated?: boolean;
 }>();
+
+// A soft task is recommended, not owed: it names a window, never a Frist.
+const undated = computed(() => props.entry.kind === "soft");
 
 const emit = defineEmits<{
   (e: "update:editor", value: EditorKind | null): void;
@@ -84,9 +86,14 @@ const textEditor = computed(() => {
   return null;
 });
 
-const status = computed(() =>
-  props.done ? "erledigt" : props.isPast ? "ueberfaellig" : "offen",
-);
+const status = computed(() => {
+  if (props.done) return "erledigt";
+  if (undated.value) return "empfohlen";
+  if (props.isPast) return "ueberfaellig";
+  // The rail is the only place urgency is said, so the row carries no pill
+  // repeating what the status block above already counts.
+  return daysUntil(props.entry.date!, isoToday()) <= 14 ? "demnaechst" : "offen";
+});
 
 const doubleRent = computed(() => {
   const lease = props.entry.leaseEnd;
@@ -115,17 +122,13 @@ const menuItems = computed<MenuItem[]>(() => [
 
 <template>
   <article
-    class="card"
+    class="row"
     :data-entry-id="entry.id"
     :data-entry-date="entry.date"
     :data-status="status"
+    :data-dot-key="undated ? null : entry.id"
   >
     <div class="head">
-      <span
-        class="dot"
-        :class="{ undated }"
-        :data-dot-key="undated ? null : entry.id"
-      ></span>
       <button
         type="button"
         class="check"
@@ -145,7 +148,7 @@ const menuItems = computed<MenuItem[]>(() => [
         @keydown.enter="($event.target as HTMLInputElement).blur()"
         @blur="commit('label', ($event.target as HTMLInputElement).value)"
       />
-      <h3 v-else>
+      <h3 v-else class="t-title">
         {{ entry.label }}
         <span v-if="entry.needs_office" class="pill">Amtstermin</span>
         <span v-if="!undated && isPast && !done" class="pill danger">
@@ -171,7 +174,7 @@ const menuItems = computed<MenuItem[]>(() => [
       nächste Werktag.
     </p>
 
-    <p v-if="entry.note && !entry.rescue" class="hint">{{ entry.note }}</p>
+    <p v-if="entry.note && !entry.rescue" class="hint t-body">{{ entry.note }}</p>
 
     <textarea
       v-if="textEditor"
@@ -225,88 +228,60 @@ const menuItems = computed<MenuItem[]>(() => [
 </template>
 
 <style scoped>
-.card {
+/* A row in one list. The left rail is the only thing that changes with the
+state of the task: how soon it is due, and whether it is the one in view. */
+.row {
   position: relative;
-  padding: 0.5rem;
-  margin-bottom: 1.3rem;
-  background: var(--paper-raised);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-card);
+  padding: var(--s-2) var(--s-2) var(--s-2) calc(var(--s-2) - 3px);
+  border-left: 3px solid var(--line);
   scroll-margin-top: calc(var(--tl-header-h, 0px) + 1rem);
-  transition: box-shadow 0.2s;
+  transition: background 0.15s;
 }
-.dot {
-  position: absolute;
-  left: var(--dot-x, -1.5rem);
-  top: 0.8rem;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--accent);
-  border: 0;
+.row + .row {
+  border-top: 1px solid var(--line);
 }
-/* Hollow, because there is no day under it. */
-.dot.undated {
-  background: none;
-  border: 1px solid var(--line);
+.row[data-status="ueberfaellig"] {
+  border-left-color: var(--overdue);
 }
-.card[data-status="erledigt"] .dot {
-  background: var(--line);
+.row[data-status="demnaechst"] {
+  border-left-color: var(--due-soon);
 }
-.card[data-status="ueberfaellig"] .dot {
-  background: var(--overdue);
+.row[data-status="empfohlen"] {
+  border-left-color: transparent;
 }
-
-.card[data-status="erledigt"] {
+.row[data-status="erledigt"] {
+  border-left-color: var(--done);
   opacity: 0.7;
 }
-@media (hover: hover) {
-  .card:hover {
-    box-shadow: var(--shadow-md);
-  }
-}
-.card.focused {
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent),
-    var(--shadow-md);
-}
-.card[data-status="erledigt"] .hint,
-.card[data-status="erledigt"] .cta-row,
-.card[data-status="erledigt"] :deep(.footer) {
-  display: none;
-}
-.card[data-status="erledigt"] h3 {
-  text-decoration: line-through;
-  color: var(--muted);
+.row.focused {
+  border-left-color: var(--accent);
+  background: var(--tint-accent);
 }
 
-.badge {
-  display: inline-block;
-  vertical-align: 0.1em;
-  margin-left: 0.5rem;
-  color: var(--accent);
-  font-size: var(--t-meta);
-  font-weight: var(--fw-semibold);
-  white-space: nowrap;
+.row[data-status="erledigt"] .hint,
+.row[data-status="erledigt"] .cta-row,
+.row[data-status="erledigt"] :deep(.footer) {
+  display: none;
 }
-.badge.late {
-  color: var(--overdue);
+.row[data-status="erledigt"] h3 {
+  text-decoration: line-through;
+  color: var(--muted);
 }
 
 .head {
   display: flex;
   align-items: flex-start;
-  gap: 0.5rem;
+  gap: var(--s-1);
 }
 .head h3,
 .title-input {
   flex: 1;
   min-width: 0;
   margin: 0;
-  font-size: var(--t-body);
 }
 .title-input {
   font-family: inherit;
+  font-size: var(--t-title);
   font-weight: var(--fw-semibold);
   color: inherit;
   border: 1px solid var(--accent);
@@ -319,8 +294,8 @@ const menuItems = computed<MenuItem[]>(() => [
   flex-shrink: 0;
   width: 1.1rem;
   height: 1.1rem;
-  margin-top: 0.15rem;
-  border: 1px solid var(--line);
+  margin-top: 0.2rem;
+  border: 1px solid var(--line-strong);
   background: var(--paper);
   border-radius: 50%;
   cursor: pointer;
@@ -331,8 +306,8 @@ const menuItems = computed<MenuItem[]>(() => [
   color: var(--paper);
 }
 .check[aria-pressed="true"] {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--done);
+  border-color: var(--done);
 }
 .check::before {
   content: "";
@@ -343,7 +318,7 @@ const menuItems = computed<MenuItem[]>(() => [
 :deep(.tools) {
   opacity: 0;
 }
-.card:hover :deep(.tools),
+.row:hover :deep(.tools),
 :deep(.tools[open]),
 :deep(.tools:focus-within) {
   opacity: 1;
@@ -354,11 +329,9 @@ const menuItems = computed<MenuItem[]>(() => [
   }
 }
 
-.hint,
-.overlap {
-  margin: 0.5rem 0 0;
+.hint {
+  margin: var(--s-1) 0 0;
   max-width: 68ch;
-  font-size: var(--t-meta);
 }
 .moved {
   margin: 0.35rem 0 0;
@@ -370,7 +343,7 @@ const menuItems = computed<MenuItem[]>(() => [
   align-items: center;
   flex-wrap: wrap;
   gap: 0.4rem;
-  margin: 0.5rem 0 0;
+  margin: var(--s-1) 0 0;
   color: var(--overdue);
   font-size: var(--t-meta);
   font-weight: var(--fw-semibold);
@@ -380,34 +353,36 @@ const menuItems = computed<MenuItem[]>(() => [
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.6rem;
+  gap: var(--s-1);
+  margin-top: var(--s-1);
 }
-.cta-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  min-height: 2.6rem;
-  color: var(--accent);
-  font-size: var(--t-meta);
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
-}
+.cta-link,
 .cta-button {
   display: inline-flex;
   align-items: center;
+  gap: 0.3rem;
+  font-size: var(--t-meta);
+}
+.cta-link {
+  min-height: 2.6rem;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+/* Secondary: this is an action, and it is not the page's one action. */
+.cta-button {
   justify-content: center;
-  gap: 0.35rem;
   width: 100%;
   min-height: 2.6rem;
-  font-size: var(--t-meta);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
   font-weight: var(--fw-semibold);
   background: transparent;
-  border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink);
 }
 .cta-button:hover {
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 @media (min-width: 40rem) {
   .cta-button {
@@ -422,8 +397,8 @@ const menuItems = computed<MenuItem[]>(() => [
 .note-input {
   display: block;
   width: 100%;
-  margin-top: 0.5rem;
-  padding: 0.5rem;
+  margin-top: var(--s-1);
+  padding: var(--s-1);
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
   background: var(--paper);
@@ -433,7 +408,7 @@ const menuItems = computed<MenuItem[]>(() => [
   resize: vertical;
 }
 .note {
-  margin: 0.5rem 0 0;
+  margin: var(--s-1) 0 0;
   max-width: 68ch;
   font-size: var(--t-meta);
   color: var(--muted);
@@ -442,24 +417,17 @@ const menuItems = computed<MenuItem[]>(() => [
 }
 
 @media print {
-  .cta-row,
-  .dot {
+  .cta-row {
     display: none;
   }
-  /* A row on a checklist, not a card: no fill, no shadow, and never split
-  across two sheets. */
-  .card {
+  .row {
     break-inside: avoid;
-    margin-bottom: 0;
     padding: 0.4rem 0;
+    border-left: 0;
     border-bottom: 1px solid #bbb;
-    border-radius: 0;
-    background: none;
-    box-shadow: none;
   }
-  /* The scroll spy marks whatever card the screen was on, meaningless here. */
-  .card.focused {
-    box-shadow: none;
+  .row.focused {
+    background: none;
   }
   .check {
     border-color: #000;

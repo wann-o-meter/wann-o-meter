@@ -37,16 +37,19 @@ const print = () => window.print();
 
 <template>
   <div class="actions">
-    <h2 class="section">Plan mitnehmen</h2>
+    <h2 class="t-section">Plan speichern &amp; teilen</h2>
     <div class="actions-buttons">
       <button type="button" :aria-pressed="kept" @click="$emit('toggleKept')">
         <component :is="kept ? BookmarkCheck : Bookmark" :size="14" />
         {{ kept ? "Plan nicht mehr merken" : "Plan merken" }}
       </button>
-      <button type="button" @click="copyPlanLink">
-        <Link2 :size="14" />
-        {{ linkCopied ? "Kopiert" : "Plan-Link kopieren" }}
-      </button>
+      <span class="with-note">
+        <button type="button" @click="copyPlanLink">
+          <Link2 :size="14" />
+          {{ linkCopied ? "Kopiert" : "Plan-Link kopieren" }}
+        </button>
+        <small class="t-meta">Datum, Ort und Einstellungen, sonst nichts</small>
+      </span>
       <button type="button" @click="exportIcs">
         <Download :size="14" /> Als ICS exportieren
       </button>
@@ -54,42 +57,48 @@ const print = () => window.print();
         <Printer :size="14" /> Checkliste drucken
       </button>
     </div>
-    <p>
-      Der Link enthält Datum, Ort und Einstellungen. Häkchen, Notizen und eigene
-      Aufgaben bleiben nur in diesem Browser, auf einem anderen Gerät ist der
-      Plan wieder leer.
+    <p class="t-meta">
+      Häkchen, Notizen und eigene Aufgaben bleiben nur in diesem Browser, auf
+      einem anderen Gerät ist der Plan wieder leer.
     </p>
   </div>
 </template>
 
 <style scoped>
+/* Plain: four things you can do, on the page itself. */
 .actions {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: var(--paper-raised);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
+  margin-top: var(--s-4);
+}
+.actions h2 {
+  margin: 0 0 var(--s-2);
 }
 .actions p {
-  margin: 0.5rem 0 0;
+  margin: var(--s-2) 0 0;
+  max-width: 62ch;
   color: var(--muted);
-  font-size: var(--t-meta);
 }
 .actions-buttons {
   display: flex;
-  gap: 0.6rem;
+  gap: var(--s-1) var(--s-2);
   flex-wrap: wrap;
+  align-items: flex-start;
 }
 .actions-buttons button {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-}
-.section {
-  margin: 0 0 0.75rem;
+  border-radius: var(--r-sm);
   font-size: var(--t-meta);
-  color: var(--muted);
   font-weight: var(--fw-semibold);
+}
+/* The caveat belongs to the one button it is about, not to the block. */
+.with-note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.with-note small {
+  color: var(--muted);
 }
 
 @media print {

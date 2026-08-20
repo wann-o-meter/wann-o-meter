@@ -152,7 +152,6 @@ off the right edge when the Ort sits at the end of a long line. */
 .slot {
   padding: 0;
   border: 0;
-  border-bottom: 2px dashed var(--line);
   border-radius: 0;
   background: none;
   color: var(--accent);
@@ -160,7 +159,8 @@ off the right edge when the Ort sits at the end of a long line. */
   cursor: pointer;
 }
 .slot:hover {
-  border-bottom-color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 .pop {

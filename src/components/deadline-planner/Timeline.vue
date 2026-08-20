@@ -4,31 +4,6 @@
     :class="{ armed: clickable }"
     :style="{ '--tl-t': shrink }"
   >
-    <div v-if="showLegend" class="legend">
-      <div class="keys">
-        <span class="item"
-          ><span class="capsule"></span> möglich ab – Frist</span
-        >
-        <span class="item"><span class="ring"></span> offen</span>
-        <span class="item"><span class="ring late"></span> überfällig</span>
-        <span class="item"><span class="dot"></span> erledigt</span>
-      </div>
-      <div class="filters" role="group" aria-label="Bänder einblenden">
-        <span class="item"><span class="swatch werktag"></span> Werktag</span>
-        <span class="item"
-          ><span class="swatch wochenende"></span> Wochenende</span
-        >
-        <label class="item">
-          <input v-model="showFeiertage" type="checkbox" />
-          <span class="swatch feiertag"></span> Feiertage
-        </label>
-        <label class="item">
-          <input v-model="showSchulferien" type="checkbox" />
-          <span class="swatch ferien"></span> Schulferien
-        </label>
-      </div>
-    </div>
-
     <figure ref="figureEl" class="figure">
       <svg
         :viewBox="`0 0 ${L.w} ${L.height}`"
@@ -145,30 +120,12 @@
             HEUTE
           </text>
           <text
-            v-if="todayDateLabel"
-            class="axis-label today"
-            :x="L.todayX + 8"
-            :y="L.m.labelY + 16"
-            :opacity="Math.max(0, 1 - shrink * 2)"
-          >
-            {{ todayDateLabel }}
-          </text>
-          <text
             class="anchor-label event"
             :x="L.eventFlip ? L.eventX - 8 : L.eventX + 32"
             :y="L.m.labelY"
             :text-anchor="L.eventFlip ? 'end' : 'start'"
           >
             {{ anchorName.toUpperCase() }}
-          </text>
-          <text
-            class="axis-label event"
-            :x="L.eventFlip ? L.eventX - 8 : L.eventX + 32"
-            :y="L.m.labelY + 16"
-            :text-anchor="L.eventFlip ? 'end' : 'start'"
-            :opacity="Math.max(0, 1 - shrink * 2)"
-          >
-            {{ anchorDateLabel }}
           </text>
           <text
             v-if="ghost"
@@ -243,6 +200,16 @@
         <span class="tip-date">{{ tip.sub }}</span>
       </div>
     </figure>
+
+    <div v-if="showLegend" class="legend">
+      <span class="item"><span class="capsule"></span> möglich ab – Frist</span>
+      <span class="item"><span class="ring"></span> offen</span>
+      <span class="item"><span class="ring late"></span> überfällig</span>
+      <span class="item"><span class="dot"></span> erledigt</span>
+      <span class="item"><span class="swatch wochenende"></span> Wochenende</span>
+      <span class="item"><span class="swatch feiertag"></span> Feiertag</span>
+      <span class="item"><span class="swatch ferien"></span> Schulferien</span>
+    </div>
   </div>
 </template>
 
@@ -393,8 +360,6 @@ onMounted(() => {
 });
 onBeforeUnmount(() => resizeObserver?.disconnect());
 
-const showFeiertage = ref(true);
-const showSchulferien = ref(true);
 const ghost = ref<{ x: number; label: string } | null>(null);
 const tip = ref<{ x: number; y: number; title: string; sub: string } | null>(
   null,
@@ -412,27 +377,6 @@ function dayLong(n: number): string {
   return longDate(isoOfDay(n));
 }
 
-function labelW(text: string): number {
-  return text.length * (13 - 2 * shrink.value) * 0.6;
-}
-
-const anchorDateLabel = computed(() => {
-  const l = L.value;
-  const room = l.eventFlip
-    ? l.eventX - 8 - (l.todayX + 8 + labelW(dayShort(today)) + 12)
-    : l.w - (l.eventX + 32);
-  const long = dayLong(anchorDay.value);
-  return labelW(long) < room ? long : dayShort(anchorDay.value);
-});
-
-const todayDateLabel = computed(() => {
-  const l = L.value;
-  const text = dayShort(today);
-  const anchorLeft = l.eventFlip
-    ? l.eventX - 8 - labelW(anchorDateLabel.value)
-    : l.eventX + 32;
-  return l.todayX + 8 + labelW(text) + 8 < anchorLeft ? text : "";
-});
 
 const dated = computed(() =>
   props.tasks
@@ -488,9 +432,8 @@ const ferien = computed(() =>
 );
 
 function dayType(d: number): string {
-  if (showFeiertage.value && holidayDays.value.has(d)) return "feiertag";
+  if (holidayDays.value.has(d)) return "feiertag";
   if (
-    showSchulferien.value &&
     ferien.value.some((f) => d >= f.from && d <= f.to)
   )
     return "ferien";
@@ -700,39 +643,18 @@ function onMarkerLeave() {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: 0.4rem 1.1rem;
   font-size: var(--t-meta);
   color: var(--muted);
   overflow: hidden;
   max-height: calc((1 - var(--tl-t, 0)) * 6rem);
   opacity: calc(1 - var(--tl-t, 0) * 1.6);
-  margin-bottom: calc((1 - var(--tl-t, 0)) * 0.7rem);
-}
-.keys,
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem 1.1rem;
-}
-.filters {
-  gap: 0.4rem 0.9rem;
-  padding: 0.15rem 0.5rem;
-  border: 1px solid var(--line);
-  border-radius: var(--r-sm);
+  margin-top: calc((1 - var(--tl-t, 0)) * 0.7rem);
 }
 .legend .item {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-}
-.legend label {
-  cursor: pointer;
-}
-.legend input {
-  accent-color: var(--accent);
-  margin: 0;
 }
 .swatch {
   width: 0.7rem;

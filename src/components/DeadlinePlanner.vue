@@ -8,26 +8,16 @@ import {
   useTemplateRef,
   watch,
 } from "vue";
-import {
-  Bookmark,
-  BookmarkCheck,
-  CalendarDays,
-  CalendarPlus,
-  ChevronDown,
-  ChevronUp,
-  Eye,
-  ListPlus,
-  Plus,
-  Search,
-  X,
-} from "lucide-vue-next";
+import { ChevronDown, ChevronUp, Eye, Search } from "lucide-vue-next";
 import Timeline from "./deadline-planner/Timeline.vue";
-import TaskRail from "./deadline-planner/TaskRail.vue";
+import TaskCard from "./deadline-planner/TaskCard.vue";
 import TaskPicker from "./deadline-planner/TaskPicker.vue";
 import OrtPicker from "./deadline-planner/OrtPicker.vue";
 import PlanSummary from "./deadline-planner/PlanSummary.vue";
 import PlanActions from "./deadline-planner/PlanActions.vue";
 import DoneGroup from "./deadline-planner/DoneGroup.vue";
+import { taskCtaFor } from "./deadline-planner/task-cta";
+import { isPast } from "../../lib/today";
 import { facetLabel } from "../../lib/facets";
 import { formatDate } from "../../lib/format-date";
 import { offsetLabel } from "../../lib/offset-label";
@@ -37,7 +27,6 @@ import {
   planStorageKey,
   savePlan,
 } from "../../lib/saved-plans";
-import { downloadIcs } from "../../lib/ics-download";
 import { burst } from "./deadline-planner/confetti";
 import { useTaskEditor } from "./deadline-planner/useTaskEditor";
 import { usePlanUrlState } from "./deadline-planner/usePlanUrlState";
@@ -67,7 +56,7 @@ const props = defineProps<{
 }>();
 
 const rootEl = useTemplateRef<HTMLElement>("rootEl");
-const railEl = useTemplateRef<HTMLElement>("railEl");
+const listEl = useTemplateRef<HTMLElement>("listEl");
 const headerEl = useTemplateRef<HTMLElement>("headerEl");
 const sentinelEl = useTemplateRef<HTMLElement>("sentinelEl");
 
@@ -104,13 +93,6 @@ function planRecord() {
   };
 }
 
-// The same burst the checkboxes use, then the button collapses into the space
-// it just filled: the plan is kept, the ask is done.
-function keepWithBurst(event: MouseEvent) {
-  burst(event.currentTarget as Element);
-  toggleKept();
-}
-
 function toggleKept() {
   if (kept.value) {
     forgetPlan(props.slug);
@@ -140,14 +122,13 @@ const {
   ensureAttachment,
   hideEntry,
   unhide,
-  insertCustomTask,
   addTaskAtEnd,
 } = useTaskEditor(
   selectedForPlan,
   computed(() => planStorageKey(props.vorhaben, selectedSlug.value)),
 );
 
-const { timeline, tasks, unscheduled, railNodes } = usePlannerSchedule(
+const { timeline, tasks, unscheduled } = usePlannerSchedule(
   anchorDate,
   selected,
   workingDeadlines,
@@ -167,8 +148,6 @@ function nameIfBlank(id: string, label?: string) {
 }
 
 const picker = useTaskPicker({
-  insertInGap: (after, before, label) =>
-    nameIfBlank(insertCustomTask(after, before, label), label),
   addAtEnd: (label) =>
     nameIfBlank(
       addTaskAtEnd(
@@ -281,16 +260,9 @@ const overview = computed(() => {
 // a dot would sit on a day nobody can defend.
 const datedTasks = computed(() => tasks.value.filter((t) => t.kind !== "soft"));
 
-const openNodes = computed(() => {
-  const out: typeof railNodes.value = [];
-  for (const node of railNodes.value) {
-    if (node.kind === "item" && node.entry.id === ANCHOR_ID) continue;
-    if (node.kind === "gap" && out[out.length - 1]?.kind !== "item") continue;
-    out.push(node);
-  }
-  while (out.length > 0 && out[out.length - 1].kind === "gap") out.pop();
-  return out;
-});
+const openEntries = computed(() =>
+  timeline.value.filter((e) => e.id !== ANCHOR_ID && !doneIds[e.id]),
+);
 
 // A plan can run to twenty tasks, so finding one by name beats scrolling.
 const searchOpen = ref(false);
@@ -301,20 +273,16 @@ function toggleSearch() {
   if (searchOpen.value) nextTick(() => searchEl.value?.focus());
   else taskQuery.value = "";
 }
-// While filtering the rail is a list, not a timeline: a gap between two tasks
-// that are no longer neighbours would measure nothing.
-const shownNodes = computed(() => {
+const shownEntries = computed(() => {
   const q = taskQuery.value.trim().toLowerCase();
-  if (!q) return openNodes.value;
-  return openNodes.value.filter(
-    (n) => n.kind === "item" && n.entry.label.toLowerCase().includes(q),
-  );
+  if (!q) return openEntries.value;
+  return openEntries.value.filter((e) => e.label.toLowerCase().includes(q));
 });
 
 const hoveredId = ref<string | null>(null);
 let flashTimer: ReturnType<typeof setTimeout> | undefined;
 function onTimelineSelect(id: string) {
-  railEl.value
+  listEl.value
     ?.querySelector(`[data-entry-id="${id}"]`)
     ?.scrollIntoView({ block: "start", behavior: "smooth" });
   hoveredId.value = id;
@@ -326,32 +294,10 @@ function onTimelineSelect(id: string) {
 
 const timelineHidden = ref(false);
 
-// Parked, not deleted: the bar keeps the slot, we bring this back later.
-const SHOW_FAB = false;
-const fabOpen = ref(false);
-const hasSlot = ref(false);
-function fabDo(action: () => void) {
-  fabOpen.value = false;
-  action();
-}
-function addTask() {
-  picker.toggle({ kind: "end" });
-  rootEl.value
-    ?.querySelector(".add-end-wrap")
-    ?.scrollIntoView({ block: "center", behavior: "smooth" });
-}
-
 const calendarName = computed(
   () => `${props.vorhaben} - ${selected.value?.label ?? ""}`,
 );
 const fileSlug = computed(() => selected.value?.slug ?? "plan");
-const exportIcs = () =>
-  downloadIcs(
-    timeline.value,
-    calendarName.value,
-    fileSlug.value,
-    anchorDate.value,
-  );
 
 const scrollActiveId = ref<string | null>(null);
 const activeId = computed(() => hoveredId.value ?? scrollActiveId.value);
@@ -362,7 +308,7 @@ function trackActiveCard() {
   spyFrame = requestAnimationFrame(() => {
     spyFrame = 0;
     const cards =
-      railEl.value?.querySelectorAll<HTMLElement>("[data-entry-id]") ?? [];
+      listEl.value?.querySelectorAll<HTMLElement>("[data-entry-id]") ?? [];
     const line = (headerEl.value?.offsetHeight ?? 0) + 80;
     let best: string | null = null;
     let bestDistance = Infinity;
@@ -380,7 +326,6 @@ function trackActiveCard() {
 }
 
 onMounted(() => {
-  hasSlot.value = !!document.getElementById("fab-slot");
   // The rest of the pre-hydration fallback is hidden by the js flag before the
   // first paint, only the title has to go once the planner renders its own.
   document.getElementById("static-title")?.remove();
@@ -397,7 +342,7 @@ onBeforeUnmount(() => {
 <template>
   <div ref="rootEl" class="deadline-planner" :class="{ compact: stuck }">
     <div class="title-row">
-      <h1 class="title">
+      <h1 class="title t-display">
       {{ anchorName }} am
       <span class="slot" @click="openDatePicker">
         <span aria-hidden="true">{{
@@ -421,47 +366,16 @@ onBeforeUnmount(() => {
         />
       </template>
       </h1>
-      <Transition name="implode">
-        <button v-if="!kept" type="button" class="save" @click="keepWithBurst">
-          <Bookmark :size="16" /> Plan merken
-        </button>
-      </Transition>
     </div>
 
-    <p v-if="overview.total > 0" class="overview">
-      Der Zeitplan für {{ vorhaben }} umfasst
-      <b>{{ overview.total }} Fristen</b>.
-      <template v-if="overview.earliest">
-        Die erste ist {{ overview.earliest.label }} ({{
-          offsetLabel(overview.earliest, anchorLabel)
-        }}).
-      </template>
-      <template v-if="overview.afterAnchor > 0">
-        {{ overview.afterAnchor }} davon fallen erst nach dem
-        {{ anchorLabel }} an.
-      </template>
-      <template v-if="overview.officeSteps.length > 0">
-        <b>
-          {{ overview.officeSteps.length }}
-          {{
-            overview.officeSteps.length === 1
-              ? "Frist braucht"
-              : "Fristen brauchen"
-          }}
-          einen Termin beim Amt</b
-        >
-        ({{ overview.officeSteps.join(", ") }}). Solche Termine sind je nach
-        Stadt Wochen im Voraus vergeben, deshalb steht der Plan rückwärts und
-        nicht als Liste zum Abarbeiten.
-      </template>
-      <template v-if="overview.softCount > 0">
-        Dazu kommen {{ overview.softCount }} Schritte ohne feste Frist.
-      </template>
-      <template v-if="overview.localSteps.length > 0">
-        In {{ selected?.label }} kommen dazu:
-        {{ overview.localSteps.join(", ") }}.
-      </template>
-    </p>
+    <PlanSummary
+      v-if="anchorDate"
+      :entries="planEntries"
+      :done-ids="doneIds"
+      :anchor-date="anchorDate"
+      :anchor-label="anchorLabel"
+      @select="onTimelineSelect"
+    />
 
     <div ref="sentinelEl" class="sentinel"></div>
 
@@ -471,13 +385,6 @@ onBeforeUnmount(() => {
       :style="{ marginBottom: headerGap + 'px' }"
     >
       <template v-if="anchorDate">
-        <PlanSummary
-          :entries="planEntries"
-          :done-ids="doneIds"
-          :anchor-date="anchorDate"
-          :anchor-label="anchorLabel"
-          @select="onTimelineSelect"
-        />
         <Timeline
           id="plan-timeline"
           :class="{ 'tl-off': timelineHidden }"
@@ -509,7 +416,10 @@ onBeforeUnmount(() => {
 
     <template v-if="anchorDate">
       <fieldset v-if="facetOptions.length > 1" class="facets">
-        <legend>Trifft auf mich zu</legend>
+        <legend class="t-section">Plan verfeinern</legend>
+        <p class="t-meta refine-lede">
+          {{ facetOptions.length }} Fragen, jede ergänzt weitere Fristen.
+        </p>
         <div class="facet-row">
           <label v-for="id in facetOptions" :key="id" class="facet key">
             <input v-model="activeFacets" type="checkbox" :value="id" />
@@ -518,7 +428,7 @@ onBeforeUnmount(() => {
         </div>
       </fieldset>
 
-      <h2 class="section">
+      <h2 class="section t-section">
         Aufgaben
         <button
           type="button"
@@ -539,35 +449,45 @@ onBeforeUnmount(() => {
         aria-label="Aufgaben durchsuchen"
         placeholder="Aufgabe suchen"
       />
-      <p v-if="taskQuery && shownNodes.length === 0" class="hint">
+      <p v-if="taskQuery && shownEntries.length === 0" class="hint">
         Keine Aufgabe passt zu „{{ taskQuery }}".
       </p>
-      <div ref="railEl">
-        <TaskRail
-          :nodes="shownNodes"
+      <div ref="listEl" class="list">
+        <TaskCard
+          v-for="entry in shownEntries"
+          :key="entry.id"
+          :class="{ focused: activeId === entry.id }"
+          :entry="entry"
           :anchor-date="anchorDate"
           :anchor-label="anchorLabel"
-          :hovered-id="activeId"
-          :store="store"
-          :picker="picker"
-          @hover="hoveredId = $event"
-          @toggle-done="onToggleDone"
+          :is-past="isPast(entry.date!)"
+          :done="!!doneIds[entry.id]"
+          :is-custom="store.isCustom(entry.id)"
+          :cta="taskCtaFor(entry.id)"
+          :note="store.userNotes[entry.id]"
+          :attachment="store.attachments[entry.id]"
+          :editor="store.editorFor(entry.id)"
+          @update:editor="store.setEditor(entry.id, $event)"
+          @update="store.applyPatch(entry, $event)"
+          @hide="store.hideEntry(entry)"
+          @toggle-done="onToggleDone(entry.id)"
+          @mouseenter="hoveredId = entry.id"
+          @mouseleave="hoveredId = null"
         />
-      </div>
-
-      <div class="add-end-wrap">
-        <button
-          type="button"
-          class="add-end"
-          @click="picker.toggle({ kind: 'end' })"
-        >
-          + Eigene Aufgabe hinzufügen
-        </button>
-        <TaskPicker
-          v-if="picker.isOpen({ kind: 'end' })"
-          @pick-preset="picker.pick($event)"
-          @pick-blank="picker.pick()"
-        />
+        <div class="add-end-wrap">
+          <button
+            type="button"
+            class="add-end t-meta"
+            @click="picker.toggle({ kind: 'end' })"
+          >
+            + Eigene Aufgabe hinzufügen
+          </button>
+          <TaskPicker
+            v-if="picker.isOpen({ kind: 'end' })"
+            @pick-preset="picker.pick($event)"
+            @pick-blank="picker.pick()"
+          />
+        </div>
       </div>
 
       <DoneGroup :entries="doneEntries" @reopen="toggleDone" />
@@ -590,14 +510,40 @@ onBeforeUnmount(() => {
       </p>
 
       <div v-if="unscheduled.length > 0" class="unscheduled">
-        <h2 class="section">Noch nicht terminiert</h2>
+        <h2 class="section t-section">Noch nicht terminiert</h2>
         <ul>
           <li v-for="entry in unscheduled" :key="entry.id">
             <span class="label">{{ entry.label }}</span>
-            <span class="badge missing">Erfahrungswert</span>
+            <span class="pill">kein Datum</span>
           </li>
         </ul>
       </div>
+
+      <p v-if="overview.total > 0" class="overview t-body">
+        Der Zeitplan für {{ vorhaben }} umfasst
+        <b>{{ overview.total }} Fristen</b>.
+        <template v-if="overview.earliest">
+          Die erste ist {{ overview.earliest.label }} ({{
+            offsetLabel(overview.earliest, anchorLabel)
+          }}).
+        </template>
+        <template v-if="overview.afterAnchor > 0">
+          {{ overview.afterAnchor }} davon fallen erst nach dem
+          {{ anchorLabel }} an.
+        </template>
+        <template v-if="overview.officeSteps.length > 0">
+          Termine beim Amt sind je nach Stadt Wochen im Voraus vergeben, deshalb
+          steht der Plan rückwärts und nicht als Liste zum Abarbeiten.
+        </template>
+        <template v-if="overview.softCount > 0">
+          Dazu kommen {{ overview.softCount }} empfohlene Schritte ohne
+          gesetzliche Frist.
+        </template>
+        <template v-if="overview.localSteps.length > 0">
+          In {{ selected?.label }} kommen dazu:
+          {{ overview.localSteps.join(", ") }}.
+        </template>
+      </p>
 
       <PlanActions
         :entries="timeline"
@@ -612,36 +558,6 @@ onBeforeUnmount(() => {
       {{ anchorLabel }} eingeben, um den Zeitplan zu sehen.
     </p>
 
-    <!-- Into the middle of the bottom bar, so the page's own actions sit where
-    the thumb already is. -->
-    <Teleport v-if="SHOW_FAB && anchorDate" to="#fab-slot" :disabled="!hasSlot">
-      <div class="fab" :class="{ open: fabOpen }">
-      <div v-if="fabOpen" class="fab-menu">
-        <button type="button" @click="fabDo(addTask)">
-          <ListPlus :size="16" /> Aufgabe hinzufügen
-        </button>
-        <button type="button" @click="fabDo(openDatePicker)">
-          <CalendarDays :size="16" /> {{ anchorLabel }} ändern
-        </button>
-        <button type="button" @click="fabDo(exportIcs)">
-          <CalendarPlus :size="16" /> In den Kalender
-        </button>
-        <button type="button" @click="fabDo(toggleKept)">
-          <component :is="kept ? BookmarkCheck : Bookmark" :size="16" />
-          {{ kept ? "Nicht mehr merken" : "Plan merken" }}
-        </button>
-      </div>
-        <button
-          type="button"
-          class="fab-toggle"
-          :aria-expanded="fabOpen"
-          aria-label="Aktionen"
-          @click="fabOpen = !fabOpen"
-        >
-          <component :is="fabOpen ? X : Plus" :size="22" />
-        </button>
-      </div>
-    </Teleport>
   </div>
 </template>
 
@@ -662,52 +578,10 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 0.5rem 1.5rem;
 }
-/* Keeping a plan is a real action, so it looks like one instead of hiding as
-grey text under a chart. */
-.save {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-shrink: 0;
-  padding: 0.4rem 0.9rem;
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  font-size: var(--t-meta);
-  font-weight: var(--fw-semibold);
-  background: var(--paper-raised);
-}
-.save:hover {
-  background: color-mix(in srgb, var(--accent) 10%, var(--paper-raised));
-}
-.save[aria-pressed="true"] {
-  border-color: var(--done);
-  color: var(--done);
-}
-.implode-leave-active {
-  transition:
-    transform 0.3s cubic-bezier(0.4, 0, 1, 1),
-    opacity 0.3s ease-in;
-}
-.implode-leave-to {
-  transform: scale(0.2) rotate(-8deg);
-  opacity: 0;
-}
-@media (prefers-reduced-motion: reduce) {
-  .implode-leave-active {
-    transition: none;
-  }
-}
-
 .overview {
   max-width: 62ch;
-  margin: 0 0 1rem;
+  margin: var(--s-4) 0 0;
   color: var(--muted);
-}
-/* A phone opens this page for the plan, not for the reasoning behind it. */
-@media (max-width: 40rem) {
-  .overview {
-    display: none;
-  }
 }
 
 .overview b {
@@ -728,17 +602,9 @@ grey text under a chart. */
 .planner-header :deep(.timeline) {
   --d-werktag: var(--paper-raised);
 }
-/* Whoever owns the surface decides: with no surface of its own the header lets
-the two stats be cards, once it has one they flatten into it. */
 .compact .planner-header {
   background: var(--paper-raised);
   box-shadow: var(--shadow-card);
-}
-.compact .planner-header :deep(.stat) {
-  background: var(--paper);
-  box-shadow: none;
-}
-.compact .planner-header {
   padding: 0.45rem var(--wrap-pad, 0px);
 }
 
@@ -750,20 +616,20 @@ the two stats be cards, once it has one they flatten into it. */
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0 0.3em;
-  margin: 0 0 1rem;
-  font-size: var(--t-section);
-  line-height: 1.35;
+  margin: 0 0 var(--s-2);
 }
+/* One signal that a word is editable: it carries the accent, and hovering it
+underlines it. A dotted rule under a word reads as a spelling mistake. */
 .slot {
   position: relative;
   display: inline-block;
   overflow: hidden;
   color: var(--accent);
-  border-bottom: 2px dashed var(--line);
   cursor: pointer;
 }
 .slot:hover {
-  border-bottom-color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 .slot:focus-within {
   outline: 2px solid var(--accent);
@@ -830,10 +696,11 @@ not push it off the screen. */
   gap: 0.4rem;
 }
 .facets legend {
-  font-size: var(--t-meta);
-  font-weight: var(--fw-semibold);
+  padding: 0;
+}
+.refine-lede {
+  margin: 0.15rem 0 var(--s-1);
   color: var(--muted);
-  padding: 0 0 0.5rem;
 }
 .facet {
   display: inline-flex;
@@ -872,35 +739,42 @@ not push it off the screen. */
 }
 .section {
   scroll-margin-top: calc(var(--tl-header-h, 0px) + 1rem);
-  font-size: var(--t-meta);
-  color: var(--muted);
-  font-weight: var(--fw-semibold);
   border: 0;
   padding: 0;
-  margin: 1.75rem 0 0.75rem;
+  margin: var(--s-4) 0 var(--s-2);
 }
 
+/* One container, one divider between rows. The active row is marked inside it,
+by a rail and a tint, never by becoming a different shape. */
+.list {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--paper-raised);
+  overflow: hidden;
+}
+
+/* The last row of the list, not a button orphaned under it. */
 .add-end-wrap {
   position: relative;
+  border-top: 1px solid var(--line);
 }
 .add-end {
   display: block;
   width: 100%;
-  margin-top: 0.5rem;
-  padding: 0.75rem 1rem;
-  border: 1px dashed var(--line);
+  padding: var(--s-1) var(--s-2);
+  border: 0;
+  border-radius: 0;
   background: transparent;
   color: var(--muted);
   text-align: left;
   cursor: pointer;
 }
 .add-end:hover {
-  border-style: solid;
-  border-color: var(--accent);
   color: var(--accent);
+  background: var(--tint-accent);
 }
 .add-end-wrap :deep(.task-picker) {
-  left: 0;
+  left: var(--s-2);
   top: calc(100% + 0.4rem);
 }
 
@@ -966,10 +840,7 @@ not push it off the screen. */
   border-bottom: 1px solid var(--line);
   color: var(--muted);
 }
-.unscheduled .badge.missing {
-  border-color: var(--line);
-  color: var(--muted);
-}
+
 
 @media (min-width: 40rem) {
   .deadline-planner {
@@ -982,10 +853,6 @@ not push it off the screen. */
     padding: 0.9rem 1rem;
     background: var(--paper-raised);
     box-shadow: var(--shadow-card);
-  }
-  .planner-header :deep(.stat) {
-    background: var(--paper);
-    box-shadow: none;
   }
   .compact .planner-header {
     padding: 0.6rem 1rem;
@@ -1031,70 +898,6 @@ not push it off the screen. */
   }
 }
 
-.fab {
-  position: relative;
-  display: flex;
-  justify-content: center;
-}
-/* The menu opens upward, out of the bar. */
-.fab-menu {
-  position: absolute;
-  bottom: calc(100% + 0.6rem);
-  right: 50%;
-  transform: translateX(50%);
-}
-.fab-toggle {
-  margin-top: -1.2rem;
-}
-.fab-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3.4rem;
-  height: 3.4rem;
-  border: 0;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--accent-ink);
-  box-shadow: var(--shadow-lg);
-}
-.fab-menu {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.3rem;
-  padding: 0.4rem;
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--paper-raised);
-  box-shadow: var(--shadow-lg);
-}
-.fab-menu button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 2.4rem;
-  padding: 0.4rem 0.7rem;
-  border: 0;
-  background: none;
-  font-size: var(--t-meta);
-  white-space: nowrap;
-}
-.fab-menu button:hover {
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-  border-radius: var(--r-sm);
-}
-/* A wide screen keeps the header in view, so it needs no floating copy. */
-@media (min-width: 40rem) {
-  .fab {
-    display: none;
-  }
-}
-@media print {
-  .fab {
-    display: none;
-  }
-}
 
 :global(.wom-confetti) {
   position: fixed;
