@@ -49,6 +49,7 @@ import {
   readSnapshot,
   snapshotDeadlines,
 } from "../../lib/saved-plans";
+import { planHref } from "../../lib/plan-url";
 import { STATES } from "../../lib/states";
 import { isoToday } from "../../lib/today";
 import type { SavedPlan } from "../../lib/saved-plans";
@@ -112,14 +113,17 @@ const span = computed(() => {
   return { days, ...spanParts(days) };
 });
 
-// An Ort with its own file brings its Bundesland along, region is only for the
-// bundesweit plan of a place we have no file for.
+// Straight back into the plan, with every answer the visitor gave. An Ort with
+// its own file brings its Bundesland along, so region and ort are only for a
+// place we have no file for.
 const href = computed(() =>
-  local.value
-    ? `/${props.v.slug}/${variant.value.slug}/#date=${props.plan.date}`
-    : `/${props.v.slug}/#date=${props.plan.date}` +
-      (props.plan.region ? `&region=${props.plan.region}` : "") +
-      (props.plan.ort ? `&ort=${encodeURIComponent(props.plan.ort)}` : ""),
+  planHref(props.v.slug, {
+    date: props.plan.date,
+    variant: local.value ? variant.value.slug : null,
+    region: local.value ? null : (props.plan.region ?? null),
+    ort: local.value ? null : (props.plan.ort ?? null),
+    facets: props.plan.facets.length > 0 ? props.plan.facets.join(",") : null,
+  }),
 );
 </script>
 

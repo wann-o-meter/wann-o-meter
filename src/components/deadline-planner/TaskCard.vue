@@ -249,23 +249,9 @@ state of the task: how soon it is due, and whether it is the one in view. */
 .row[data-status="empfohlen"] {
   border-left-color: transparent;
 }
-.row[data-status="erledigt"] {
-  border-left-color: var(--done);
-  opacity: 0.7;
-}
 .row.focused {
   border-left-color: var(--accent);
   background: var(--tint-accent);
-}
-
-.row[data-status="erledigt"] .hint,
-.row[data-status="erledigt"] .cta-row,
-.row[data-status="erledigt"] :deep(.footer) {
-  display: none;
-}
-.row[data-status="erledigt"] h3 {
-  text-decoration: line-through;
-  color: var(--muted);
 }
 
 .head {
