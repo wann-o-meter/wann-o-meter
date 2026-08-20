@@ -39,21 +39,26 @@ const print = () => window.print();
   <div class="actions">
     <h2 class="t-section">Plan speichern &amp; teilen</h2>
     <div class="actions-buttons">
-      <button type="button" :aria-pressed="kept" @click="$emit('toggleKept')">
+      <button
+        type="button"
+        class="btn-primary"
+        :aria-pressed="kept"
+        @click="$emit('toggleKept')"
+      >
         <component :is="kept ? BookmarkCheck : Bookmark" :size="14" />
         {{ kept ? "Plan nicht mehr merken" : "Plan merken" }}
       </button>
       <span class="with-note">
-        <button type="button" @click="copyPlanLink">
+        <button type="button" class="btn-secondary" @click="copyPlanLink">
           <Link2 :size="14" />
           {{ linkCopied ? "Kopiert" : "Plan-Link kopieren" }}
         </button>
         <small class="t-meta">Datum, Ort und Einstellungen, sonst nichts</small>
       </span>
-      <button type="button" @click="exportIcs">
+      <button type="button" class="btn-secondary" @click="exportIcs">
         <Download :size="14" /> Als ICS exportieren
       </button>
-      <button type="button" @click="print">
+      <button type="button" class="btn-secondary" @click="print">
         <Printer :size="14" /> Checkliste drucken
       </button>
     </div>
@@ -83,14 +88,7 @@ const print = () => window.print();
   flex-wrap: wrap;
   align-items: flex-start;
 }
-.actions-buttons button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  border-radius: var(--r-sm);
-  font-size: var(--t-meta);
-  font-weight: var(--fw-semibold);
-}
+
 /* The caveat belongs to the one button it is about, not to the block. */
 .with-note {
   display: flex;

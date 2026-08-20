@@ -1,7 +1,6 @@
 import { type ComputedRef, type Ref, computed } from "vue";
 import type { Deadline, ScheduleEntry } from "../../../lib/deadline-plan";
 import { computeSchedule } from "../../../lib/deadline-plan";
-import { formatDate } from "../../../lib/format-date";
 import type { PlanVariant } from "./types";
 
 export const ANCHOR_ID = "__anchor";
@@ -50,26 +49,5 @@ export function usePlannerSchedule(
     schedule.value.filter((e) => e.id !== ANCHOR_ID),
   );
 
-  const stats = computed(() => {
-    const open = tasks.value.filter((e) => !doneIds[e.id]);
-    const firstOpen = timeline.value.find(
-      (e) => e.id !== ANCHOR_ID && !doneIds[e.id],
-    );
-    const warnings = timeline.value.filter(
-      (e) =>
-        e.id !== ANCHOR_ID &&
-        !doneIds[e.id] &&
-        (e.weekend || e.collision || e.impossible),
-    ).length;
-    return {
-      open: open.length,
-      done: tasks.value.length - open.length,
-      first: firstOpen
-        ? formatDate(firstOpen.date!).replace(/\.\d{4}$/, "")
-        : "—",
-      warnings,
-    };
-  });
-
-  return { schedule, timeline, unscheduled, tasks, stats };
+  return { schedule, timeline, unscheduled, tasks };
 }

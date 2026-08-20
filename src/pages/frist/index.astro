@@ -88,8 +88,8 @@ const structuredData = {
                 <th scope="row">
                   <a href={`/${fristPath(r.id)}/`}>{r.label}</a>
                 </th>
-                <td class="mono">{r.length}</td>
-                <td class="mono">{r.source}</td>
+                <td class="num">{r.length}</td>
+                <td class="num">{r.source}</td>
               </tr>
             ))}
           </tbody>
@@ -130,7 +130,7 @@ const structuredData = {
     font-size: var(--t-meta);
     color: var(--muted);
   }
-  .mono {
+  .num {
     font-variant-numeric: tabular-nums;
     font-size: var(--t-meta);
     white-space: nowrap;
