@@ -10,6 +10,7 @@ import {
 } from "lucide-vue-next";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
 import { daysUntil, shortDate } from "../../../lib/date-display";
+import { sourceLabel } from "../../../lib/offset-label";
 import { isoToday } from "../../../lib/today";
 import CardMenu from "./CardMenu.vue";
 import TaskDates from "./TaskDates.vue";
@@ -148,13 +149,22 @@ const menuItems = computed<MenuItem[]>(() => [
         @keydown.enter="($event.target as HTMLInputElement).blur()"
         @blur="commit('label', ($event.target as HTMLInputElement).value)"
       />
-      <h3 v-else class="t-title">
-        {{ entry.label }}
+      <h3 v-else class="t-title">{{ entry.label }}</h3>
+      <!-- Everything that says what kind of Frist this is, in one corner. -->
+      <span class="marks">
         <span v-if="entry.needs_office" class="pill">Amtstermin</span>
         <span v-if="!undated && isPast && !done" class="pill danger">
           überfällig
         </span>
-      </h3>
+        <a
+          v-if="entry.source_url"
+          class="pill source"
+          :href="entry.source_url"
+          target="_blank"
+          rel="noopener"
+          >{{ sourceLabel(entry) }} <ArrowUpRight :size="11" /></a
+        >
+      </span>
       <CardMenu :items="menuItems" />
     </div>
 
@@ -222,6 +232,7 @@ const menuItems = computed<MenuItem[]>(() => [
     <TaskFooter
       v-if="!undated"
       :entry="entry"
+      :anchor-date="anchorDate"
       :is-custom="isCustom"
     />
   </article>
@@ -256,8 +267,28 @@ state of the task: how soon it is due, and whether it is the one in view. */
 
 .head {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--s-1);
+}
+/* Top right, and it stays there: the title takes the rest of the line and
+wraps under the marks rather than pushing them off it. */
+.marks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.3rem;
+  margin-left: auto;
+}
+/* The one pill you can click, so it takes the arrow every link that leaves the
+site takes. No second pill shape, only the link affordance on the first. */
+.pill.source {
+  gap: 0.2rem;
+  text-decoration: none;
+}
+.pill.source:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 .head h3,
 .title-input {

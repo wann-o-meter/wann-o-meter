@@ -31,23 +31,26 @@ turns every relative offset below into a day. -->
             {d.kind === "soft" ? "Empfohlen: " : "Frist: "}
             {offsetLabel(d, anchorLabel)}
           </p>
-          <h3 class="t-title">
-            {d.label}
-            {d.needs_office && <span class="pill">Amtstermin</span>}
-          </h3>
+          <div class="head">
+            <h3 class="t-title">{d.label}</h3>
+            <span class="marks">
+              {d.needs_office && <span class="pill">Amtstermin</span>}
+              {d.source_url && (
+                <a class="pill source" href={d.source_url} rel="nofollow noopener">
+                  {sourceLabel(d)}
+                </a>
+              )}
+            </span>
+          </div>
           {d.note && <p class="note t-body">{d.note}</p>}
           {d.kind !== "soft" && (
             <p class="src t-meta">
               <a class="frist" href={`/frist/${d.id}/`}>
                 Frist im Detail
               </a>
-              {d.source_url ? (
-                <a href={d.source_url} rel="nofollow noopener">
-                  {sourceLabel(d)}
-                </a>
-              ) : (
+              {!d.source_url && (
                 <span class:list={["flag", { missing: !d.no_source_needed }]}>
-                  {sourceLabel(d)}
+                  Grundlage: {sourceLabel(d)}
                 </span>
               )}
             </p>
@@ -86,12 +89,30 @@ turns every relative offset below into a day. -->
     color: var(--muted);
     margin: 0;
   }
-  h3 {
+  .head {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: baseline;
     gap: var(--s-1);
     margin: 0.15rem 0;
+  }
+  h3 {
+    margin: 0;
+  }
+  /* Top right of the row, the same corner the plan puts them in. */
+  .marks {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.3rem;
+    margin-left: auto;
+  }
+  .pill.source {
+    text-decoration: none;
+  }
+  .pill.source:hover {
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
   }
   .note,
   .src {

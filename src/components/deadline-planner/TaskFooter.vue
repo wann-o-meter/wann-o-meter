@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { ArrowUpRight } from "lucide-vue-next";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
 import { sourceLabel } from "../../../lib/offset-label";
 
 const props = defineProps<{
   entry: ScheduleEntry;
+  anchorDate: string;
   isCustom: boolean;
 }>();
+
+// The Frist's own page recalculates from a date. Carrying the one already
+// entered here means it opens with the answer instead of an empty field.
+const fristHref = () =>
+  `/frist/${props.entry.id}/${props.anchorDate ? `#date=${props.anchorDate}` : ""}`;
 
 const fallbackLabel = () =>
   props.isCustom && !props.entry.derivation?.length
@@ -17,15 +22,7 @@ const fallbackLabel = () =>
 <template>
   <div class="footer">
     <div class="controls">
-      <details v-if="entry.derivation?.length" class="derivation">
-        <summary>Wie wird das berechnet?</summary>
-        <ol>
-          <li v-for="step in entry.derivation" :key="step.step">
-            {{ step.label }}
-          </li>
-        </ol>
-      </details>
-      <details v-if="entry.documents?.length" class="derivation">
+      <details v-if="entry.documents?.length" class="documents">
         <summary>Was brauche ich dafür?</summary>
         <ul>
           <li v-for="doc in entry.documents" :key="doc">{{ doc }}</li>
@@ -35,22 +32,16 @@ const fallbackLabel = () =>
 
     <p v-if="entry.authority" class="where">Wo? {{ entry.authority }}</p>
 
+    <!-- The statute itself is a pill in the corner of the row. What is left
+    down here is the page about it, and the honest note where there is none. -->
     <p class="src">
       <a
         v-if="entry.kind !== 'soft'"
         class="frist"
-        :href="`/frist/${entry.id}/`"
+        :href="fristHref()"
         >Frist im Detail</a
       >
-      Grundlage:
-      <a
-        v-if="entry.source_url"
-        :href="entry.source_url"
-        target="_blank"
-        rel="noopener"
-        >{{ entry.source_label ?? "Quelle" }} <ArrowUpRight :size="12"
-      /></a>
-      <span v-else>{{ fallbackLabel() }}</span>
+      <span v-if="!entry.source_url">Grundlage: {{ fallbackLabel() }}</span>
     </p>
   </div>
 </template>
@@ -78,23 +69,23 @@ const fallbackLabel = () =>
   font-size: var(--t-meta);
   color: var(--muted);
 }
-.derivation {
+.documents {
   font-size: var(--t-meta);
   color: var(--muted);
 }
-.derivation summary {
+.documents summary {
   cursor: pointer;
   padding: 0.4rem 0;
   color: var(--muted);
 }
-.derivation summary:hover {
+.documents summary:hover {
   color: var(--accent);
 }
-.derivation ol {
+.documents ul {
   margin: 0.5rem 0 0;
   padding-left: 1.5rem;
 }
-.derivation li {
+.documents li {
   margin-bottom: 0.25rem;
 }
 .src {

@@ -14,7 +14,18 @@ const props = defineProps<{
   planLabel?: string;
 }>();
 
-const anchorDate = ref("");
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+// Arriving from a plan, the day is already in the fragment: answer straight
+// away rather than asking for a date the visitor just gave somewhere else.
+function dateFromUrl(): string {
+  if (typeof window === "undefined") return "";
+  const given = new URLSearchParams(
+    window.location.hash.replace(/^#/, ""),
+  ).get("date");
+  return given && ISO_DAY.test(given) ? given : "";
+}
+
+const anchorDate = ref(dateFromUrl());
 
 // Everything is worked out here, in the browser. The page around this island is
 // about the rule, which does not go stale, and never about a date.
