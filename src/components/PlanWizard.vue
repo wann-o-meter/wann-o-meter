@@ -2,12 +2,12 @@
   <section class="wizard" :aria-label="`Plan für ${vorhaben}`">
     <ol class="steps" aria-label="Fortschritt">
       <li
-        v-for="n in 3"
+        v-for="n in stepCount"
         :key="n"
-        :class="{ on: n <= step }"
-        :aria-current="n === step ? 'step' : undefined"
+        :class="{ on: n <= shownStep }"
+        :aria-current="n === shownStep ? 'step' : undefined"
       >
-        <span class="sr">Schritt {{ n }} von 3</span>
+        <span class="sr">Schritt {{ n }} von {{ stepCount }}</span>
       </li>
     </ol>
 
@@ -48,15 +48,17 @@
         </button>
       </div>
       <div class="nav">
-        <button type="button" class="btn-primary" @click="go(2)">Weiter</button>
+        <button type="button" class="btn-primary" @click="go(hasFacets ? 2 : 3)">
+          Weiter
+        </button>
       </div>
     </div>
 
     <div v-show="step === 2" ref="pane2" class="pane" tabindex="-1">
       <h2>Was trifft auf dich zu?</h2>
       <p class="lede">
-        Jede Antwort steht auf der Standardannahme. Was du nicht anfasst, bleibt
-        wie es ist.
+        Nichts davon ist Pflicht. Was du stehen lässt, bleibt auf der
+        Standardannahme, und Weiter überspringt die Frage.
       </p>
       <ul class="questions">
         <li v-for="f in facetOptions" :key="f">
@@ -67,10 +69,8 @@
         </li>
       </ul>
       <div class="nav">
+        <button type="button" class="btn-tertiary" @click="back">Zurück</button>
         <button type="button" class="btn-primary" @click="go(3)">Weiter</button>
-        <button type="button" class="ghost" @click="skip">
-          Überspringen — Plan mit Standardannahmen
-        </button>
       </div>
     </div>
 
@@ -95,6 +95,7 @@
         </div>
       </dl>
       <div class="nav">
+        <button type="button" class="btn-tertiary" @click="back">Zurück</button>
         <a class="btn-primary" :href="href">Plan öffnen</a>
       </div>
     </div>
@@ -157,7 +158,6 @@ const url = () =>
   );
 const initial = url();
 
-const step = ref(clampStep(Number(initial.get("schritt"))));
 const anchorDate = ref(initial.get("date") || presets[0].iso());
 const selectedSlug = ref(
   pickVariant(initial.get("variant") ?? props.defaultSlug),
@@ -168,8 +168,12 @@ const activeFacets = ref(
   (initial.get("facets") ?? "").split(",").filter((f) => f in FACET_LABELS),
 );
 
+// A Vorhaben without questions has no second step, so the plan is two steps
+// and the address can never point at a pane that would render empty.
 function clampStep(n: number): number {
-  return n === 2 || n === 3 ? n : 1;
+  if (n === 3) return 3;
+  if (n === 2) return hasFacets.value ? 2 : 3;
+  return 1;
 }
 function pickVariant(slug: string | null | undefined): string {
   return slug && props.variants.some((v) => v.slug === slug)
@@ -186,6 +190,14 @@ const ortLabel = computed(
   () => ortName.value || selected.value?.label || "ganz Deutschland",
 );
 const facetOptions = computed(() => facetsUsedBy(selected.value?.deadlines ?? []));
+const hasFacets = computed(() => facetOptions.value.length > 0);
+
+const step = ref(clampStep(Number(initial.get("schritt"))));
+const stepCount = computed(() => (hasFacets.value ? 3 : 2));
+// What the dots count, which is not the pane number once step 2 is gone.
+const shownStep = computed(() =>
+  hasFacets.value ? step.value : step.value === 1 ? 1 : 2,
+);
 
 function pickOrt(g: Gemeinde | null) {
   const own = props.variants.find((v) => v.label === g?.name);
@@ -262,9 +274,10 @@ function go(n: number) {
   focusPane();
 }
 
-function skip() {
-  activeFacets.value = [];
-  go(3);
+// A step, not history.back(): somebody who arrived on step 2 by link has no
+// previous step to pop, and the browser would take them off the page.
+function back() {
+  go(step.value === 3 && hasFacets.value ? 2 : 1);
 }
 
 function focusPane() {

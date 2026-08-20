@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { ArrowRight, CalendarDays } from "lucide-vue-next";
 import { computeSchedule } from "../../lib/deadline-plan";
 import { formatDate } from "../../lib/format-date";
@@ -26,6 +26,24 @@ function dateFromUrl(): string {
 }
 
 const anchorDate = ref(dateFromUrl());
+
+// A client-side navigation swaps this island in before the address bar has
+// caught up, so the first read can still see the page we came from. Reading
+// again once the new address is in place is what makes an arrival by link
+// behave like an arrival by reload.
+function syncFromUrl() {
+  const given = dateFromUrl();
+  if (given) anchorDate.value = given;
+}
+onMounted(() => {
+  syncFromUrl();
+  addEventListener("astro:page-load", syncFromUrl);
+  addEventListener("hashchange", syncFromUrl);
+});
+onBeforeUnmount(() => {
+  removeEventListener("astro:page-load", syncFromUrl);
+  removeEventListener("hashchange", syncFromUrl);
+});
 
 // Everything is worked out here, in the browser. The page around this island is
 // about the rule, which does not go stale, and never about a date.

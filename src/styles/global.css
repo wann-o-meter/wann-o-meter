@@ -148,6 +148,26 @@ screen, secondary carries a border, tertiary is text in the accent colour. */
   text-decoration: underline;
   text-underline-offset: 0.15em;
 }
+/* A button that is only an icon has to stay square: the touch rule below adds
+height, and without a matching width it would stretch the shape into an oval. */
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.icon-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* One chip shape, two states: a choice you can make, and the one you made.
 Nothing that is not a choice may borrow it. */
 .chip {
@@ -227,15 +247,20 @@ input:hover {
 }
 
 /* A finger needs about 44px, a mouse does not, so only touch pays the space.
-The insert button on the rail is excluded: it sits on a gap whose height the
-plan decides, and stretching it would cover the tasks around it. */
+A round check is excluded: stretching it would make an ellipse of it, so it
+grows its hit area with a pseudo-element instead. */
 @media (pointer: coarse) {
-  button:not(.gap-add),
+  button:not(.check):not(.icon-button),
   select,
   input:not([type="checkbox"]),
   .link-button,
   .tabbar a {
     min-height: 44px;
+  }
+  /* Square, and big enough for a finger. */
+  .icon-button {
+    width: 44px;
+    height: 44px;
   }
 }
 

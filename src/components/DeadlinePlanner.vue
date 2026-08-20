@@ -429,7 +429,7 @@ onBeforeUnmount(() => {
         Aufgaben
         <button
           type="button"
-          class="task-search-toggle"
+          class="task-search-toggle icon-button"
           :aria-expanded="searchOpen"
           aria-label="Aufgaben durchsuchen"
           @click="toggleSearch"
@@ -702,9 +702,7 @@ not push it off the screen. */
 
 .task-search-toggle {
   margin-left: 0.4rem;
-  padding: 0.15rem 0.3rem;
   vertical-align: middle;
-  color: var(--muted);
 }
 .task-search {
   width: 100%;

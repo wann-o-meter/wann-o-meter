@@ -19,7 +19,7 @@ function closeOnBlur(e: FocusEvent) {
 
 <template>
   <details ref="root" class="tools" @focusout="closeOnBlur">
-    <summary aria-label="Aktionen" title="Aktionen">
+    <summary class="icon-button" aria-label="Aktionen" title="Aktionen">
       <Ellipsis :size="14" />
     </summary>
     <div class="tool-menu">
@@ -44,15 +44,6 @@ function closeOnBlur(e: FocusEvent) {
 }
 .tools summary {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border: 1px solid transparent;
-  border-radius: var(--r-sm);
-  cursor: pointer;
-  color: var(--muted);
   list-style: none;
 }
 .tools summary::-webkit-details-marker {

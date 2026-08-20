@@ -331,6 +331,11 @@ site takes. No second pill shape, only the link affordance on the first. */
   position: absolute;
   inset: -0.6rem;
 }
+@media (pointer: coarse) {
+  .check::before {
+    inset: calc((1.1rem - 44px) / 2);
+  }
+}
 
 :deep(.tools) {
   opacity: 0;

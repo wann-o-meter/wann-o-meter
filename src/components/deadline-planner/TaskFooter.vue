@@ -39,6 +39,7 @@ const fallbackLabel = () =>
         v-if="entry.kind !== 'soft'"
         class="frist"
         :href="fristHref()"
+        data-astro-reload
         >Frist im Detail</a
       >
       <span v-if="!entry.source_url">Grundlage: {{ fallbackLabel() }}</span>
