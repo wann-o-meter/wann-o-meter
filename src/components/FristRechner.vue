@@ -77,13 +77,14 @@ const differingLabel = computed(() => {
     ? `${names.slice(0, -1).join(", ")} und ${names[names.length - 1]}`
     : names[0];
 });
-const inputId = `frist-anchor-${props.task.id}`;
 </script>
 
 <template>
   <div class="rechner">
-    <label :for="inputId">{{ anchorLabel }}</label>
-    <input :id="inputId" v-model="anchorDate" type="date" />
+    <label class="field">
+      <span class="label">{{ anchorLabel }}</span>
+      <input v-model="anchorDate" type="date" />
+    </label>
 
     <p v-if="!result" class="empty">
       <CalendarDays :size="16" aria-hidden="true" />
@@ -132,18 +133,8 @@ const inputId = `frist-anchor-${props.task.id}`;
   border-radius: var(--r-lg);
   background: var(--paper-raised);
 }
-label {
-  display: block;
-  margin-bottom: 0.25rem;
-  font-size: var(--t-meta);
-  font-weight: var(--fw-semibold);
-  color: var(--muted);
-}
-input {
-  width: 100%;
+.field {
   max-width: 11rem;
-  padding: 0.5rem 0.75rem;
-  font-size: var(--t-body);
 }
 /* The island always says something, even before it has a date to work with. */
 .empty {

@@ -142,8 +142,8 @@ h2 {
   padding-left: 0.6rem;
   width: 100%;
   max-width: 22rem;
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
   background: var(--paper-raised);
   color: var(--muted);
 }

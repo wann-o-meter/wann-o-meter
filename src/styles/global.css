@@ -207,6 +207,8 @@ Nothing that is not a choice may borrow it. */
   outline-offset: 2px;
 }
 
+/* Small radius: you type into it or you tap it. The large one belongs to the
+containers those things sit in. */
 button,
 select,
 input {
@@ -214,7 +216,7 @@ input {
   color: inherit;
   background: var(--paper-raised);
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-sm);
   padding: 0.5rem 0.5rem;
   transition:
     border-color 0.12s,
@@ -262,6 +264,59 @@ grows its hit area with a pseudo-element instead. */
     width: 44px;
     height: 44px;
   }
+}
+
+/* The label lives inside the box, above the value it names: one bordered thing
+per question, instead of a caption floating over a second rectangle. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.3rem 0.7rem 0.4rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  background: var(--paper-raised);
+  text-align: left;
+}
+label.field {
+  cursor: text;
+}
+.field:focus-within {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.field > .label {
+  font-size: var(--t-meta);
+  color: var(--muted);
+  cursor: inherit;
+}
+.field > .label .opt {
+  font-weight: var(--fw-regular);
+  opacity: 0.75;
+}
+/* The box carries the border, the background and the focus ring. The control
+inside carries none of them, or the field reads as two things. */
+.field > input,
+.field > select,
+.field > textarea {
+  min-height: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+.field > textarea {
+  resize: vertical;
+}
+.field > input:focus-visible,
+.field > select:focus-visible,
+.field > textarea:focus-visible {
+  outline: none;
 }
 
 table {

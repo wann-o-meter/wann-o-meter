@@ -16,25 +16,25 @@ import { feedbackIssueUrl } from "../../lib/github-issue";
   </p>
 
   <form id="feedback-form">
-    <p class="field">
-      <label for="topic">Worum geht es?</label>
+    <label class="field">
+      <span class="label">Worum geht es?</span>
       <select id="topic" name="topic">
         <option>Eine Frist fehlt</option>
         <option>Ein Datum oder eine Quelle stimmt nicht</option>
         <option>Meine Gemeinde fehlt</option>
         <option>Etwas anderes</option>
       </select>
-    </p>
-    <p class="field">
-      <label for="page">Welche Seite betrifft es? (optional)</label>
+    </label>
+    <label class="field">
+      <span class="label">Welche Seite betrifft es? <span class="opt">optional</span></span>
       <input id="page" name="page" type="text" placeholder="z. B. Umzug in Tübingen" />
-    </p>
-    <p class="field">
-      <label for="message">Deine Nachricht</label>
+    </label>
+    <label class="field">
+      <span class="label">Deine Nachricht</span>
       <textarea id="message" name="message" rows="6" required></textarea>
-    </p>
+    </label>
     <p class="actions">
-      <button type="submit">Mail öffnen</button>
+      <button type="submit" class="btn-primary">Mail öffnen</button>
       <a href={feedbackIssueUrl()} rel="noopener">Lieber als GitHub-Issue</a>
     </p>
   </form>
@@ -68,25 +68,7 @@ import { feedbackIssueUrl } from "../../lib/github-issue";
     max-width: 34rem;
   }
   .field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    margin: 0 0 1rem;
-  }
-  label {
-    font-size: var(--t-meta);
-    font-weight: var(--fw-semibold);
-    color: var(--muted);
-  }
-  input,
-  select,
-  textarea {
-    font: inherit;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--line);
-    border-radius: var(--r-lg);
-    background: var(--paper-raised);
-    color: var(--ink);
+    margin: 0 0 var(--s-2);
   }
   .actions {
     display: flex;
@@ -94,14 +76,5 @@ import { feedbackIssueUrl } from "../../lib/github-issue";
     gap: 1.2rem;
     font-size: var(--t-meta);
   }
-  .actions button {
-    padding: 0.5rem 1.2rem;
-    border: 0;
-    border-radius: var(--r-lg);
-    background: var(--accent);
-    color: var(--accent-ink);
-    font-size: var(--t-body);
-    font-weight: var(--fw-semibold);
-    cursor: pointer;
-  }
+
 </style>

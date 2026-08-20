@@ -14,16 +14,15 @@
     <div v-show="step === 1" ref="pane1" class="pane" tabindex="-1">
       <h2>Wann und wo?</h2>
       <div class="fields">
-        <div class="field">
-          <label :for="dateId">{{ anchorLabel }}</label>
+        <label class="field">
+          <span class="label">{{ anchorLabel }}</span>
           <input
-            :id="dateId"
             v-model="anchorDate"
             type="date"
             :min="minDate"
             :max="maxDate"
           />
-        </div>
+        </label>
         <div v-if="variants.length > 1" class="field">
           <span class="label">{{ variantLabel }}</span>
           <OrtPicker
@@ -103,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, useId, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import OrtPicker from "./deadline-planner/OrtPicker.vue";
 import { FACET_LABELS, appliesTo, facetLabel, facetsUsedBy } from "../../lib/facets";
 import { computeSchedule } from "../../lib/deadline-plan";
@@ -124,7 +123,6 @@ const props = defineProps<{
 }>();
 
 const BUNDESWEIT = "bundesweit";
-const dateId = useId();
 
 const TODAY = utcDay(new Date());
 const minDate = isoOf(addDays(TODAY, -14));
@@ -348,17 +346,6 @@ h2 {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s-2);
-}
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-1);
-  min-width: 0;
-}
-.field label,
-.field .label {
-  font-size: var(--t-meta);
-  color: var(--muted);
 }
 
 .chips,

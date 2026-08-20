@@ -114,7 +114,7 @@ const organization = {
           >Wann-<span class="brand-accent">O</span>-Meter</a
         >
         <div class="header-actions">
-          <a href="/" class="home" aria-label="Zur Startseite" title="Zur Startseite">
+          <a href="/" class="home icon-button" aria-label="Zur Startseite" title="Zur Startseite">
             <House size={16} />
           </a>
           <button
@@ -271,16 +271,9 @@ const organization = {
     gap: 0.5rem;
   }
   .home {
-    display: inline-flex;
-    padding: 0.35rem;
-    border: 1px solid var(--line);
-    border-radius: var(--r-lg);
+    border-color: var(--line);
     background: var(--paper-raised);
     color: var(--ink);
-  }
-  .home:hover {
-    border-color: var(--accent);
-    color: var(--accent);
   }
   /* The bottom bar already has Start on a phone. */
   @media (max-width: 40rem) {
