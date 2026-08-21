@@ -4,6 +4,7 @@ import {
   ArrowUpRight,
   Check,
   EyeOff,
+  MapPin,
   MessageSquarePlus,
   Pencil,
   Trash2,
@@ -29,6 +30,7 @@ const props = defineProps<{
   cta: TaskCta | null;
   note?: string;
   attachment?: string;
+  place?: string;
   editor: EditorKind | null;
 }>();
 
@@ -59,8 +61,13 @@ function close() {
 function currentValue(field: EditorKind) {
   if (field === "label") return props.entry.label ?? "";
   if (field === "note") return props.note ?? "";
+  if (field === "place") return props.place ?? "";
   return props.attachment ?? "";
 }
+
+// The office a statute names is a guess about which counter. A visitor who
+// knows the branch says so, and their words win.
+const where = computed(() => props.place || props.entry.authority);
 function commit(field: EditorKind, value: string) {
   if (value !== currentValue(field)) emit("update", { [field]: value });
   close();
@@ -122,6 +129,7 @@ const menuItems = computed<MenuItem[]>(() => [
     ? [{ label: "Titel ändern", icon: Pencil, onSelect: () => open("label") }]
     : []),
   { label: "Notiz", icon: MessageSquarePlus, onSelect: () => open("note") },
+  { label: "Ort", icon: MapPin, onSelect: () => open("place") },
   // A Frist stays in the list once it is put aside, because the law does not
   // care that it was. A task the visitor wrote is theirs to throw away.
   props.isCustom
@@ -204,6 +212,26 @@ const menuItems = computed<MenuItem[]>(() => [
       :is-past="isPast"
       :done="done"
     />
+
+    <input
+      v-if="!collapsed && editor === 'place'"
+      ref="editorEl"
+      class="place-input"
+      :value="place ?? ''"
+      aria-label="Ort"
+      placeholder="Ort - z. B. Bürgeramt Mitte oder eine Adresse"
+      @keydown.enter="($event.target as HTMLInputElement).blur()"
+      @blur="commit('place', ($event.target as HTMLInputElement).value)"
+    />
+    <p
+      v-else-if="!collapsed && where"
+      class="where"
+      :title="`Wo? ${where}`"
+    >
+      <MapPin class="ico" :size="12" aria-hidden="true" /><span class="sr"
+        >Wo?</span
+      >{{ where }}
+    </p>
 
     <p v-if="!collapsed && !done && entry.impossible" class="flag">
       <TriangleAlert :size="14" /> Bei diesem Termin nicht mehr rechtzeitig
@@ -301,9 +329,39 @@ state of the task: how soon it is due, and whether it is the one in view. */
 /* The line has to sit on the button too: a button is not in the flow the
 title's own text-decoration reaches. */
 .t-title.struck,
-.t-title.struck .reveal {
+.t-title.struck .where {
+  margin: 0.4rem 0 0;
+  font-size: var(--t-meta);
+  color: var(--muted);
+}
+.where .ico {
+  vertical-align: -0.15em;
+  margin-right: 0.35rem;
+}
+.place-input {
+  width: 100%;
+  max-width: 24rem;
+  margin-top: 0.4rem;
+  font-size: var(--t-meta);
+}
+.reveal {
   color: var(--muted);
   text-decoration: line-through;
+}
+.where {
+  margin: 0.4rem 0 0;
+  font-size: var(--t-meta);
+  color: var(--muted);
+}
+.where .ico {
+  vertical-align: -0.15em;
+  margin-right: 0.35rem;
+}
+.place-input {
+  width: 100%;
+  max-width: 24rem;
+  margin-top: 0.4rem;
+  font-size: var(--t-meta);
 }
 .reveal {
   border: 0;

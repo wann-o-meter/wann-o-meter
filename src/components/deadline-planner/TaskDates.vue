@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Clock } from "lucide-vue-next";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
 import { longDate, shortDate, windowLabel } from "../../../lib/date-display";
 
@@ -11,8 +12,8 @@ defineProps<{
 </script>
 
 <template>
-  <!-- Two treatments, and the wording is the whole difference: a Frist names
-  the day it is due, a recommendation names the window it sits in. -->
+  <!-- Two treatments, and the difference is the whole point: a Frist names the
+  day it is due, under a clock, a recommendation names the window it sits in. -->
   <p v-if="entry.kind === 'soft'" class="dates soft">
     <template v-if="entry.offset_days === 0">
       Empfohlen: am {{ anchorLabel }}
@@ -27,8 +28,12 @@ defineProps<{
     >.
   </p>
   <p v-else class="dates">
-    <span :class="{ overdue: isPast }"
-      >Frist: <b class="d">{{ longDate(entry.date!) }}</b
+    <span
+      :class="{ overdue: isPast }"
+      :title="`Frist: ${longDate(entry.date!)}`"
+      ><Clock class="ico" :size="12" aria-hidden="true" /><span class="sr"
+        >Frist:</span
+      ><b class="d">{{ longDate(entry.date!) }}</b
       ><template v-if="isPast"> (verstrichen)</template></span
     >
     <template v-if="entry.earliestDate !== entry.date">
@@ -57,5 +62,9 @@ defineProps<{
 }
 .overdue {
   color: var(--overdue);
+}
+.ico {
+  vertical-align: -0.15em;
+  margin-right: 0.35rem;
 }
 </style>

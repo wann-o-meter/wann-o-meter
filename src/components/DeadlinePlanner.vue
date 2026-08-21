@@ -112,6 +112,7 @@ const {
   doneIds,
   userNotes,
   attachments,
+  places,
   lastHidden,
   hiddenTasks,
   workingDeadlines,
@@ -119,6 +120,7 @@ const {
   toggleDone,
   commitLabel,
   commitNote,
+  commitPlace,
   commitAttachment,
   ensureAttachment,
   hideEntry,
@@ -198,6 +200,7 @@ const store = computed<TaskStore>(() => ({
   doneIds,
   userNotes,
   attachments,
+  places,
   isCustom,
   editorFor: (id) => (editor.value?.id === id ? editor.value.kind : null),
   setEditor: (id, kind) => {
@@ -209,6 +212,7 @@ const store = computed<TaskStore>(() => ({
   applyPatch: (entry: ScheduleEntry, patch: TaskPatch) => {
     if (patch.label !== undefined) commitLabel(entry.id, patch.label);
     if (patch.note !== undefined) commitNote(entry.id, patch.note);
+    if (patch.place !== undefined) commitPlace(entry.id, patch.place);
     if (patch.attachment !== undefined)
       commitAttachment(entry.id, patch.attachment);
   },
@@ -478,6 +482,7 @@ onBeforeUnmount(() => {
           :cta="taskCtaFor(entry.id)"
           :note="store.userNotes[entry.id]"
           :attachment="store.attachments[entry.id]"
+          :place="store.places[entry.id]"
           :editor="store.editorFor(entry.id)"
           @update:editor="store.setEditor(entry.id, $event)"
           @update="store.applyPatch(entry, $event)"

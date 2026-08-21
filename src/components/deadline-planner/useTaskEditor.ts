@@ -30,6 +30,9 @@ export function useTaskEditor(
   const hiddenIds = reactive<Record<string, boolean>>({});
   const userNotes = reactive<Record<string, string>>({});
   const labelOverrides = reactive<Record<string, string>>({});
+  // Where the visitor actually has to go, which the plan only knows as the name
+  // of an office. Kept per task, and their words are the ones that count.
+  const places = reactive<Record<string, string>>({});
   const attachments = reactive<Record<string, string>>({});
   const lastHidden = ref<{ id: string; label: string } | null>(null);
 
@@ -67,6 +70,12 @@ export function useTaskEditor(
     const trimmed = value.trim();
     if (trimmed) userNotes[id] = trimmed;
     else delete userNotes[id];
+  }
+
+  function commitPlace(id: string, value: string) {
+    const trimmed = value.trim();
+    if (trimmed) places[id] = trimmed;
+    else delete places[id];
   }
 
   function commitAttachment(id: string, value: string) {
@@ -120,6 +129,7 @@ export function useTaskEditor(
     hidden: hiddenIds,
     notes: userNotes,
     labels: labelOverrides,
+    places,
     attachments,
   } as const;
 
@@ -152,7 +162,7 @@ export function useTaskEditor(
       immediate: true,
     });
     watch(
-      [doneIds, hiddenIds, userNotes, labelOverrides, attachments, customTasks],
+      [doneIds, hiddenIds, userNotes, labelOverrides, attachments, places, customTasks],
       () => {
         const snapshot = Object.fromEntries(
           Object.entries(maps).map(([name, map]) => [name, { ...map }]),
@@ -188,6 +198,7 @@ export function useTaskEditor(
     doneIds,
     userNotes,
     attachments,
+    places,
     lastHidden,
     hiddenTasks,
     workingDeadlines,
@@ -195,6 +206,7 @@ export function useTaskEditor(
     toggleDone,
     commitLabel,
     commitNote,
+    commitPlace,
     commitAttachment,
     ensureAttachment,
     hideEntry,

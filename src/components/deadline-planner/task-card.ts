@@ -1,6 +1,6 @@
 import type { Component } from "vue";
 
-export type EditorKind = "label" | "note" | "attachment";
+export type EditorKind = "label" | "note" | "attachment" | "place";
 
 export type TaskPatch = Partial<Record<EditorKind, string>>;
 

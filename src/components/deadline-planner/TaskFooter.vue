@@ -30,8 +30,6 @@ const fallbackLabel = () =>
       </details>
     </div>
 
-    <p v-if="entry.authority" class="where">Wo? {{ entry.authority }}</p>
-
     <!-- The statute itself is a pill in the corner of the row. What is left
     down here is the page about it, and the honest note where there is none. -->
     <p class="src">
@@ -65,11 +63,6 @@ const fallbackLabel = () =>
 @media (min-width: 40rem) {
   }
 
-.where {
-  margin: 0.4rem 0 0;
-  font-size: var(--t-meta);
-  color: var(--muted);
-}
 .documents {
   font-size: var(--t-meta);
   color: var(--muted);
