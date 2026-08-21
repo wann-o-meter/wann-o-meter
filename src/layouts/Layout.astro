@@ -58,6 +58,15 @@ const organization = {
       // Runs before the first paint, so anything an island replaces later never
       // gets drawn and then pulled away.
       document.documentElement.dataset.js = "1";
+      // An entrance belongs to an arrival from outside. A reload, a step back
+      // and a click from another page of this site are not arrivals, and the
+      // startpage checks this mark before it animates anything.
+      const nav = performance.getEntriesByType("navigation")[0];
+      if (
+        document.referrer.startsWith(location.origin) ||
+        (nav && nav.type !== "navigate")
+      )
+        document.documentElement.dataset.visited = "1";
     </script>
     <title>{pageTitle}</title>
     {description && <meta name="description" content={description} />}
@@ -182,6 +191,10 @@ const organization = {
       // fallback comes back on every soft navigation.
       document.addEventListener("astro:before-swap", (event) => {
         event.newDocument.documentElement.dataset.js = "1";
+        // Whatever comes in was reached from inside the site, so it has been
+        // visited by definition. Set before the swap, so nothing animates for
+        // a frame and is then told to stop.
+        event.newDocument.documentElement.dataset.visited = "1";
       });
 
       document.addEventListener("astro:page-load", () => {

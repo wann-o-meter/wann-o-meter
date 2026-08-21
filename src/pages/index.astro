@@ -65,6 +65,14 @@ const fristen = allFristTasks().map(({ task, vorhaben }) => ({
 </Layout>
 
 <style>
+  /* Reached from inside the site: the page is simply there. */
+  html[data-visited] [data-astro-fade-in-text] {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
   .intro {
     padding: var(--s-2) 0 var(--s-1);
   }
