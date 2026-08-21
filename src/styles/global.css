@@ -180,16 +180,6 @@ height, and without a matching width it would stretch the shape into an oval. */
   color: var(--accent);
 }
 
-/* An icon says it to the eye, this says the same word to a screen reader. */
-.sr {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
 /* One chip shape, two states: a choice you can make, and the one you made.
 Nothing that is not a choice may borrow it. */
 .chip {

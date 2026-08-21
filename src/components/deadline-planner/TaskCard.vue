@@ -103,6 +103,9 @@ const textEditor = computed(() => {
   return null;
 });
 
+// The one day the plan is about while you are looking at it.
+const isToday = computed(() => props.entry.date === isoToday());
+
 const status = computed(() => {
   if (props.done) return "erledigt";
   if (undated.value) return "empfohlen";
@@ -190,6 +193,7 @@ const menuItems = computed<MenuItem[]>(() => [
       <!-- Everything that says what kind of Frist this is, in one corner. -->
       <span v-if="!collapsed" class="marks">
         <span v-if="entry.needs_office" class="pill">Amtstermin</span>
+        <span v-if="isToday && !done" class="pill warning">Heute</span>
         <span v-if="!undated && isPast && !done" class="pill danger">
           überfällig
         </span>
@@ -223,14 +227,8 @@ const menuItems = computed<MenuItem[]>(() => [
       @keydown.enter="($event.target as HTMLInputElement).blur()"
       @blur="commit('place', ($event.target as HTMLInputElement).value)"
     />
-    <p
-      v-else-if="!collapsed && where"
-      class="where"
-      :title="`Wo? ${where}`"
-    >
-      <MapPin class="ico" :size="12" aria-hidden="true" /><span class="sr"
-        >Wo?</span
-      >{{ where }}
+    <p v-else-if="!collapsed && where" class="where">
+      Zuständig: {{ where }}
     </p>
 
     <p v-if="!collapsed && !done && entry.impossible" class="flag">
@@ -334,10 +332,6 @@ title's own text-decoration reaches. */
   font-size: var(--t-meta);
   color: var(--muted);
 }
-.where .ico {
-  vertical-align: -0.15em;
-  margin-right: 0.35rem;
-}
 .place-input {
   width: 100%;
   max-width: 24rem;
@@ -352,10 +346,6 @@ title's own text-decoration reaches. */
   margin: 0.4rem 0 0;
   font-size: var(--t-meta);
   color: var(--muted);
-}
-.where .ico {
-  vertical-align: -0.15em;
-  margin-right: 0.35rem;
 }
 .place-input {
   width: 100%;
