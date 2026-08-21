@@ -54,6 +54,11 @@ const vorhabenSchema = z.object({
   // "Deine" Geburt. Left out where nobody owns the event, and then no surface
   // puts a pronoun in front of it.
   possessive: z.string().optional(),
+  // The anchor as the plan headline says it to the visitor: "Dein Umzugstag".
+  // One phrase and not a pronoun, because the article follows the anchor's own
+  // gender and case, which no rule derives from the label. Left out where the
+  // date belongs to nobody, and then the headline names it plainly.
+  anchorPersonal: z.string().optional(),
   variantLabel: z.string(),
   variantPreposition: z.string().default("in"),
   defaultVariant: z.string().optional(),

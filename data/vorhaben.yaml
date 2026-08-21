@@ -6,6 +6,7 @@
   vorhaben: Umzug innerhalb Deutschlands
   possessive: Dein
   anchorLabel: Umzugstag
+  anchorPersonal: Dein Umzugstag
   anchorName: Umzug
   # Four of six local searches are about ummelden, not about umziehen, and the
   # preposition would shut out everybody moving within the same town.
@@ -22,8 +23,8 @@
   teaser: Elterngeld, Kindergeld, Urkunde
   titleSubject: Nach der Geburt
   vorhaben: Geburt eines Kindes
-  possessive: Deine
   anchorLabel: Geburtstermin
+  anchorPersonal: Dein Geburtstermin
   anchorName: Geburt
   tags: [familie]
   variantLabel: Ort
@@ -35,8 +36,8 @@
   # really has: how much Vorlauf each one needs.
   titleFallback: "Hochzeit planen: Vorlaufzeiten vom Standesamt bis Namensänderung"
   vorhaben: Standesamtliche Hochzeit
-  possessive: Deine
   anchorLabel: Hochzeitstermin
+  anchorPersonal: Dein Hochzeitstermin
   anchorName: Hochzeit
   tags: [familie]
   variantLabel: Ort
@@ -47,6 +48,7 @@
   vorhaben: Jobwechsel
   possessive: Dein
   anchorLabel: Letzter Arbeitstag
+  anchorPersonal: Dein letzter Arbeitstag
   anchorName: Jobwechsel
   tags: [arbeit]
   variantLabel: Ort

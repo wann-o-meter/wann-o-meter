@@ -4,7 +4,9 @@ type TaskPickerTarget = { kind: "end" };
 
 export type TaskPicker = ReturnType<typeof useTaskPicker>;
 
-export function useTaskPicker(handlers: { addAtEnd(label?: string): void }) {
+export function useTaskPicker(handlers: {
+  addAtEnd(label: string, date: string): void;
+}) {
   const target = ref<TaskPickerTarget | null>(null);
 
   function isOpen(candidate: TaskPickerTarget): boolean {
@@ -19,16 +21,16 @@ export function useTaskPicker(handlers: { addAtEnd(label?: string): void }) {
     target.value = null;
   }
 
-  function pick(label?: string) {
+  function pick(label: string, date: string) {
     if (!target.value) return;
-    handlers.addAtEnd(label);
+    handlers.addAtEnd(label, date);
     close();
   }
 
   function onClick(event: MouseEvent) {
     if (!target.value) return;
     const el = event.target as HTMLElement | null;
-    if (el?.closest(".task-picker, .add-end")) return;
+    if (el?.closest(".task-add, .add-end")) return;
     close();
   }
   function onKeydown(event: KeyboardEvent) {

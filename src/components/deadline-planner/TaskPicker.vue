@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed, onMounted, ref, useTemplateRef } from "vue";
+import { X } from "lucide-vue-next";
+
 const PRESET_TASKS = [
   "Bank- und Versicherungsadresse ändern",
   "Arbeitgeber über neue Adresse informieren",
@@ -10,80 +13,120 @@ const PRESET_TASKS = [
   "Tierarzt informieren oder wechseln",
 ];
 
-defineEmits<{
-  (e: "pick-preset", label: string): void;
-  (e: "pick-blank"): void;
+const emit = defineEmits<{
+  (e: "pick", label: string, date: string): void;
+  (e: "close"): void;
 }>();
+
+const query = ref("");
+// Empty means the plan picks the day: the end of the list, where a task nobody
+// dated can do no harm.
+const date = ref("");
+const inputEl = useTemplateRef<HTMLInputElement>("inputEl");
+onMounted(() => inputEl.value?.focus());
+
+// The same field filters the list and writes a task of its own, so nobody has
+// to decide up front which of the two they are doing.
+const matches = computed(() => {
+  const q = query.value.trim().toLowerCase();
+  return q
+    ? PRESET_TASKS.filter((t) => t.toLowerCase().includes(q))
+    : PRESET_TASKS;
+});
+
+function submit() {
+  const label = query.value.trim();
+  if (label) emit("pick", label, date.value);
+}
 </script>
 
 <template>
-  <div class="task-picker" role="menu" aria-label="Aufgabe auswählen">
-    <button
-      v-for="preset in PRESET_TASKS"
-      :key="preset"
-      type="button"
-      class="task-picker-option"
-      role="menuitem"
-      @click="$emit('pick-preset', preset)"
-    >
-      {{ preset }}
-    </button>
-    <button
-      type="button"
-      class="task-picker-option task-picker-blank"
-      role="menuitem"
-      @click="$emit('pick-blank')"
-    >
-      + Eigene Aufgabe
-    </button>
+  <div class="task-add">
+    <form class="task-add-row" @submit.prevent="submit">
+      <input
+        ref="inputEl"
+        v-model="query"
+        type="text"
+        class="task-add-input"
+        placeholder="Eigene Aufgabe"
+        aria-label="Eigene Aufgabe"
+        @keydown.esc="emit('close')"
+      />
+      <button type="submit" class="btn-secondary" :disabled="!query.trim()">
+        Hinzufügen
+      </button>
+      <button
+        type="button"
+        class="icon-button"
+        aria-label="Abbrechen"
+        @click="emit('close')"
+      >
+        <X :size="14" />
+      </button>
+    </form>
+    <label class="task-add-date t-meta">
+      <span>Termin</span>
+      <input v-model="date" type="date" />
+    </label>
+    <ul v-if="matches.length > 0" class="task-add-presets">
+      <li v-for="preset in matches" :key="preset">
+        <button type="button" @click="emit('pick', preset, date)">
+          {{ preset }}
+        </button>
+      </li>
+    </ul>
   </div>
 </template>
 
 <style scoped>
-.task-picker {
-  position: absolute;
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  min-width: 15rem;
-  max-width: 19rem;
+.task-add {
+  padding: var(--s-2);
   background: var(--paper-raised);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow-lg);
-  padding: 0.25rem;
 }
-.task-picker-option {
+.task-add-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+/* Takes the room the two buttons leave, and no more. */
+.task-add-input {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+.task-add-date {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  color: var(--muted);
+}
+.task-add-presets {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  max-height: 11rem;
+  overflow-y: auto;
+}
+.task-add-presets button {
   display: block;
   width: 100%;
   text-align: left;
   border: 0;
   background: transparent;
-  color: var(--ink);
-  font-size: var(--t-meta);
-  padding: 0.5rem 0.5rem;
-  cursor: pointer;
-  border-radius: 2px;
-}
-.task-picker-option:hover,
-.task-picker-option:focus-visible {
-  background: var(--tint-accent);
-  color: var(--accent);
-}
-.task-picker-blank {
-  margin-top: 0.25rem;
-  border-top: 1px solid var(--line);
-  border-radius: 0;
   color: var(--muted);
   font-size: var(--t-meta);
+  padding: 0.4rem 0.5rem;
+  border-radius: 2px;
+  cursor: pointer;
 }
-.task-picker-blank:hover,
-.task-picker-blank:focus-visible {
+.task-add-presets button:hover,
+.task-add-presets button:focus-visible {
+  background: var(--tint-accent);
   color: var(--accent);
 }
 
 @media print {
-  .task-picker {
+  .task-add {
     display: none;
   }
 }

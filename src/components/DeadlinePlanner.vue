@@ -15,11 +15,10 @@ import TaskPicker from "./deadline-planner/TaskPicker.vue";
 import OrtPicker from "./deadline-planner/OrtPicker.vue";
 import PlanSummary from "./deadline-planner/PlanSummary.vue";
 import PlanActions from "./deadline-planner/PlanActions.vue";
-import DoneGroup from "./deadline-planner/DoneGroup.vue";
 import { taskCtaFor } from "./deadline-planner/task-cta";
 import { isPast } from "../../lib/today";
-import { possessiveLabel } from "../../lib/vorhaben-label";
 import { facetLabel } from "../../lib/facets";
+import { daysUntil } from "../../lib/date-display";
 import { formatDate } from "../../lib/format-date";
 import { offsetLabel } from "../../lib/offset-label";
 import {
@@ -50,7 +49,7 @@ const props = defineProps<{
   vorhaben: string;
   anchorLabel: string;
   anchorName: string;
-  possessive?: string;
+  anchorPersonal?: string;
   variantLabel: string;
   variantPreposition?: string;
   variants: PlanVariant[];
@@ -143,22 +142,18 @@ const { stuck, headerGap } = useStickyHeader(rootEl, headerEl, sentinelEl);
 
 const editor = ref<{ id: string; kind: EditorKind } | null>(null);
 
-// A task added without a preset has no title yet, so it opens straight into
-// its title editor.
-function nameIfBlank(id: string, label?: string) {
-  if (!label) editor.value = { id, kind: "label" };
-}
-
 const picker = useTaskPicker({
-  addAtEnd: (label) =>
-    nameIfBlank(
-      addTaskAtEnd(
-        timeline.value
-          .filter((e) => e.offset_days !== null)
-          .map((e) => e.offset_days!),
-        label,
-      ),
+  // A day the visitor names is kept as its distance from the anchor, so the
+  // task moves with the plan like every other one.
+  addAtEnd: (label, date) =>
+    addTaskAtEnd(
+      timeline.value
+        .filter((e) => e.offset_days !== null)
+        .map((e) => e.offset_days!),
       label,
+      date && anchorDate.value
+        ? daysUntil(date, anchorDate.value)
+        : undefined,
     ),
 });
 
@@ -228,10 +223,6 @@ function onToggleDone(id: string) {
 const planEntries = computed(() =>
   timeline.value.filter((e) => e.id !== ANCHOR_ID),
 );
-const doneEntries = computed(() =>
-  planEntries.value.filter((e) => doneIds[e.id]),
-);
-
 const fristCount = (n: number) => `${n} ${n === 1 ? "Frist" : "Fristen"}`;
 
 // The same sentences the page renders before hydration, counted from the plan
@@ -275,10 +266,6 @@ const overview = computed(() => {
 // a dot would sit on a day nobody can defend.
 const datedTasks = computed(() => tasks.value.filter((t) => t.kind !== "soft"));
 
-const openEntries = computed(() =>
-  timeline.value.filter((e) => e.id !== ANCHOR_ID && !doneIds[e.id]),
-);
-
 // A plan can run to twenty tasks, so finding one by name beats scrolling.
 const searchOpen = ref(false);
 const taskQuery = ref("");
@@ -295,8 +282,8 @@ function closeSearch() {
 }
 const shownEntries = computed(() => {
   const q = taskQuery.value.trim().toLowerCase();
-  if (!q) return openEntries.value;
-  return openEntries.value.filter((e) => e.label.toLowerCase().includes(q));
+  if (!q) return planEntries.value;
+  return planEntries.value.filter((e) => e.label.toLowerCase().includes(q));
 });
 
 const hoveredId = ref<string | null>(null);
@@ -360,7 +347,7 @@ onBeforeUnmount(() => {
   <div ref="rootEl" class="deadline-planner" :class="{ compact: stuck }">
     <div class="title-row">
       <h1 class="title t-display">
-        {{ possessiveLabel({ label: anchorName, possessive }) }} am
+        {{ anchorPersonal ?? anchorLabel }} am
         <span class="slot" @click="openDatePicker">
           <span aria-hidden="true">{{
             anchorDate ? formatDate(anchorDate) : anchorLabel
@@ -498,22 +485,21 @@ onBeforeUnmount(() => {
           @mouseleave="hoveredId = null"
         />
         <div class="add-end-wrap">
+          <TaskPicker
+            v-if="picker.isOpen({ kind: 'end' })"
+            @pick="picker.pick"
+            @close="picker.close()"
+          />
           <button
+            v-else
             type="button"
             class="add-end t-meta"
             @click="picker.toggle({ kind: 'end' })"
           >
             + Eigene Aufgabe hinzufügen
           </button>
-          <TaskPicker
-            v-if="picker.isOpen({ kind: 'end' })"
-            @pick-preset="picker.pick($event)"
-            @pick-blank="picker.pick()"
-          />
         </div>
       </div>
-
-      <DoneGroup :entries="doneEntries" @reopen="toggleDone" />
 
       <details v-if="hiddenTasks.length > 0" class="hidden-group">
         <summary>Nicht relevant für mich ({{ hiddenTasks.length }})</summary>
@@ -777,21 +763,11 @@ by a rail and a tint, never by becoming a different shape. */
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   background: var(--paper-raised);
-}
-/* No clipping here: the picker at the last row hangs below the list and would
-be cut off. The rows round their own corners instead. */
-.list > :first-child {
-  border-start-start-radius: inherit;
-  border-start-end-radius: inherit;
-}
-.list > :last-child {
-  border-end-start-radius: inherit;
-  border-end-end-radius: inherit;
+  overflow: hidden;
 }
 
 /* The last row of the list, not a button orphaned under it. */
 .add-end-wrap {
-  position: relative;
   border-top: 1px solid var(--line);
 }
 .add-end {
@@ -800,8 +776,6 @@ be cut off. The rows round their own corners instead. */
   padding: var(--s-1) var(--s-2);
   border: 0;
   border-radius: 0;
-  border-end-start-radius: inherit;
-  border-end-end-radius: inherit;
   background: transparent;
   color: var(--muted);
   text-align: left;
@@ -811,11 +785,6 @@ be cut off. The rows round their own corners instead. */
   color: var(--accent);
   background: var(--tint-accent);
 }
-.add-end-wrap :deep(.task-picker) {
-  left: var(--s-2);
-  top: calc(100% + 0.4rem);
-}
-
 .hidden-group {
   margin-top: 1rem;
   font-size: var(--t-meta);

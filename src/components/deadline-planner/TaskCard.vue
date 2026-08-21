@@ -34,6 +34,13 @@ const props = defineProps<{
 // A soft task is recommended, not owed: it names a window, never a Frist.
 const undated = computed(() => props.entry.kind === "soft");
 
+// A ticked task keeps its place in the list and gives up its body, not its row:
+// a card that vanishes is one the visitor has to go looking for to undo.
+const expanded = ref(false);
+const collapsed = computed(() => props.done && !expanded.value);
+// Ticking a card off collapses it again, even one that was opened while done.
+watch(() => props.done, () => (expanded.value = false));
+
 const emit = defineEmits<{
   (e: "update:editor", value: EditorKind | null): void;
   (e: "update", patch: TaskPatch): void;
@@ -149,9 +156,20 @@ const menuItems = computed<MenuItem[]>(() => [
         @keydown.enter="($event.target as HTMLInputElement).blur()"
         @blur="commit('label', ($event.target as HTMLInputElement).value)"
       />
-      <h3 v-else class="t-title">{{ entry.label }}</h3>
+      <h3 v-else class="t-title" :class="{ struck: done }">
+        <button
+          v-if="done"
+          type="button"
+          class="reveal"
+          :aria-expanded="expanded"
+          @click="expanded = !expanded"
+        >
+          {{ entry.label }}
+        </button>
+        <template v-else>{{ entry.label }}</template>
+      </h3>
       <!-- Everything that says what kind of Frist this is, in one corner. -->
-      <span class="marks">
+      <span v-if="!collapsed" class="marks">
         <span v-if="entry.needs_office" class="pill">Amtstermin</span>
         <span v-if="!undated && isPast && !done" class="pill danger">
           überfällig
@@ -165,29 +183,30 @@ const menuItems = computed<MenuItem[]>(() => [
           >{{ sourceLabel(entry) }} <ArrowUpRight :size="11" /></a
         >
       </span>
-      <CardMenu :items="menuItems" />
+      <CardMenu v-if="!collapsed" :items="menuItems" />
     </div>
 
     <TaskDates
+      v-if="!collapsed"
       :entry="entry"
       :anchor-label="anchorLabel"
       :is-past="isPast"
       :done="done"
     />
 
-    <p v-if="!done && entry.impossible" class="flag">
+    <p v-if="!collapsed && !done && entry.impossible" class="flag">
       <TriangleAlert :size="14" /> Bei diesem Termin nicht mehr rechtzeitig
       möglich – Termin sofort buchen.
     </p>
-    <p v-else-if="entry.movedFrom && !done" class="moved">
+    <p v-else-if="!collapsed && entry.movedFrom && !done" class="moved">
       {{ shortDate(entry.movedFrom) }} wäre ein geschlossener Tag, deshalb der
       nächste Werktag.
     </p>
 
-    <p v-if="entry.note && !entry.rescue" class="hint t-body">{{ entry.note }}</p>
+    <p v-if="!collapsed && entry.note && !entry.rescue" class="hint t-body">{{ entry.note }}</p>
 
     <textarea
-      v-if="textEditor"
+      v-if="!collapsed && textEditor"
       ref="editorEl"
       class="note-input"
       :aria-label="textEditor.placeholder || 'Notiz'"
@@ -200,7 +219,7 @@ const menuItems = computed<MenuItem[]>(() => [
       "
     ></textarea>
     <p
-      v-else-if="note"
+      v-else-if="!collapsed && note"
       class="note"
       tabindex="0"
       role="button"
@@ -210,7 +229,7 @@ const menuItems = computed<MenuItem[]>(() => [
       {{ note }}
     </p>
 
-    <div v-if="cta" class="cta-row">
+    <div v-if="!collapsed && cta" class="cta-row">
       <a
         v-if="cta.kind === 'link'"
         class="cta-link"
@@ -230,7 +249,7 @@ const menuItems = computed<MenuItem[]>(() => [
     </div>
 
     <TaskFooter
-      v-if="!undated"
+      v-if="!collapsed && !undated"
       :entry="entry"
       :anchor-date="anchorDate"
       :is-custom="isCustom"
@@ -263,6 +282,26 @@ state of the task: how soon it is due, and whether it is the one in view. */
 .row.focused {
   border-left-color: var(--accent);
   background: var(--tint-accent);
+}
+.row[data-status="erledigt"] {
+  border-left-color: var(--done);
+}
+/* The whole title is the handle that opens the card again. */
+/* The line has to sit on the button too: a button is not in the flow the
+title's own text-decoration reaches. */
+.t-title.struck,
+.t-title.struck .reveal {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.reveal {
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .head {

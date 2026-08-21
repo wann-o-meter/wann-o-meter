@@ -100,9 +100,9 @@ export function useTaskEditor(
       .map((d) => ({ id: d.id, label: labelOverrides[d.id] ?? d.label })),
   );
 
-  function addTaskAtEnd(knownOffsets: number[], label = "") {
+  function addTaskAtEnd(knownOffsets: number[], label = "", offsetDays?: number) {
     const offset =
-      (knownOffsets.length > 0 ? Math.max(...knownOffsets) : 0) + 3;
+      offsetDays ?? (knownOffsets.length > 0 ? Math.max(...knownOffsets) : 0) + 3;
     const id = `${CUSTOM_PREFIX}${++customUid}`;
     customTasks.value.push({ id, label, offsetDays: offset });
     return id;
