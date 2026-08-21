@@ -216,7 +216,9 @@ const params = computed(() => ({
   facets: activeFacets.value.length > 0 ? activeFacets.value.join(",") : null,
 }));
 
-const href = computed(() => planHref(props.slug, params.value));
+// neu marks the first arrival, so the plan can come in rather than just be
+// there. The plan page drops it again right away.
+const href = computed(() => planHref(props.slug, { ...params.value, neu: "1" }));
 
 const schedule = computed(() => {
   const v = selected.value;

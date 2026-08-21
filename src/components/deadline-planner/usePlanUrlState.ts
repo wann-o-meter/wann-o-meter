@@ -95,6 +95,12 @@ export function usePlanUrlState(
   // part of the path: changing it must not walk the visitor onto another page.
   const planPath = `/${vorhabenSlug}/${PLAN_SEGMENT}/`;
 
+  // The wizard marks the arrival that follows "Plan öffnen". The mark is spent
+  // on arrival: a reload, a bookmark or a shared link opens the plan without the
+  // entrance, which is what makes it an entrance.
+  const fresh = ref(params?.get("neu") === "1");
+  if (fresh.value) writePlanState(planPath, { neu: null });
+
   // The other state only reaches the URL once the visitor picked something, an
   // untouched page keeps its clean URL and stays out of the saved plans.
   watch(
@@ -134,5 +140,6 @@ export function usePlanUrlState(
     deferred,
     toggleDefer,
     touched,
+    fresh,
   };
 }

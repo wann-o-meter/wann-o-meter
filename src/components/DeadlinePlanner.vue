@@ -72,6 +72,7 @@ const {
   facetOptions,
   overlapMonths,
   touched,
+  fresh,
 } = usePlanUrlState(props.slug, props.variants, props.defaultSlug);
 
 // Keeping a plan is the visitor's decision, not a side effect of opening one.
@@ -341,6 +342,9 @@ function trackActiveCard() {
 onMounted(() => {
   addEventListener("scroll", trackActiveCard, { passive: true });
   trackActiveCard();
+  // Once the entrance has played, the plan is a plan: a card that appears later
+  // because the Ort changed has nothing to announce.
+  if (fresh.value) setTimeout(() => (fresh.value = false), 1200);
 });
 
 onBeforeUnmount(() => {
@@ -350,7 +354,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="rootEl" class="deadline-planner" :class="{ compact: stuck }">
+  <div
+    ref="rootEl"
+    class="deadline-planner"
+    :class="{ compact: stuck, fresh }"
+  >
     <div class="title-row">
       <h1 class="title t-display">
         {{ anchorPersonal ?? anchorLabel }} am
@@ -470,9 +478,10 @@ onBeforeUnmount(() => {
       </p>
       <div ref="listEl" class="list">
         <TaskCard
-          v-for="entry in shownEntries"
+          v-for="(entry, i) in shownEntries"
           :key="entry.id"
           :class="{ focused: activeId === entry.id }"
+          :style="{ '--i': i }"
           :entry="entry"
           :anchor-date="anchorDate"
           :anchor-label="anchorLabel"
@@ -763,6 +772,25 @@ sit in the same slot and trade widths. */
   border: 0;
   padding: 0;
   margin: var(--s-4) 0 var(--s-2);
+}
+
+/* The plan arrives once, on the step out of the wizard: the rows come in from
+below, each a moment after the one above it, and the last few together so the
+wait never grows with the plan. */
+.fresh :deep(.list > *) {
+  animation: rise 0.3s ease both;
+  animation-delay: calc(min(var(--i, 0), 8) * 45ms);
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fresh :deep(.list > *) {
+    animation: none;
+  }
 }
 
 /* One container, one divider between rows. The active row is marked inside it,
