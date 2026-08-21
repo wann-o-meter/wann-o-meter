@@ -18,6 +18,7 @@ import PlanActions from "./deadline-planner/PlanActions.vue";
 import DoneGroup from "./deadline-planner/DoneGroup.vue";
 import { taskCtaFor } from "./deadline-planner/task-cta";
 import { isPast } from "../../lib/today";
+import { possessiveLabel } from "../../lib/vorhaben-label";
 import { facetLabel } from "../../lib/facets";
 import { formatDate } from "../../lib/format-date";
 import { offsetLabel } from "../../lib/offset-label";
@@ -49,6 +50,7 @@ const props = defineProps<{
   vorhaben: string;
   anchorLabel: string;
   anchorName: string;
+  possessive?: string;
   variantLabel: string;
   variantPreposition?: string;
   variants: PlanVariant[];
@@ -166,7 +168,7 @@ const isBundesweit = computed(() => selectedSlug.value === "bundesweit");
 
 const ortLabel = computed(() =>
   isBundesweit.value
-    ? (ortName.value || "ganz Deutschland")
+    ? ortName.value || "ganz Deutschland"
     : (selected.value?.label ?? ""),
 );
 
@@ -264,8 +266,8 @@ const overview = computed(() => {
     localSteps: isBundesweit.value
       ? []
       : entries
-        .filter((e) => !base.has(e.id) && !isCustom(e.id))
-        .map((e) => e.label.split(" ")[0]),
+          .filter((e) => !base.has(e.id) && !isCustom(e.id))
+          .map((e) => e.label.split(" ")[0]),
   };
 });
 
@@ -285,6 +287,11 @@ function toggleSearch() {
   searchOpen.value = !searchOpen.value;
   if (searchOpen.value) nextTick(() => searchEl.value?.focus());
   else taskQuery.value = "";
+}
+// Leaving an empty field puts the button back. A field with a query stays: it
+// is the only thing saying why the list is short.
+function closeSearch() {
+  if (!taskQuery.value.trim()) searchOpen.value = false;
 }
 const shownEntries = computed(() => {
   const q = taskQuery.value.trim().toLowerCase();
@@ -353,28 +360,28 @@ onBeforeUnmount(() => {
   <div ref="rootEl" class="deadline-planner" :class="{ compact: stuck }">
     <div class="title-row">
       <h1 class="title t-display">
-      {{ anchorName }} am
-      <span class="slot" @click="openDatePicker">
-        <span aria-hidden="true">{{
-          anchorDate ? formatDate(anchorDate) : anchorLabel
-        }}</span>
-        <input
-          ref="dateEl"
-          v-model="anchorDate"
-          type="date"
-          :aria-label="anchorLabel"
-        />
-      </span>
-      <template v-if="variants.length > 1">
-        {{ isBundesweit && !ortName ? "in" : (variantPreposition ?? "in") }}
-        <OrtPicker
-          :label="ortLabel"
-          :variant-label="variantLabel"
-          :variants="variants"
-          bundesweit-slug="bundesweit"
-          @pick="onPickOrt"
-        />
-      </template>
+        {{ possessiveLabel({ label: anchorName, possessive }) }} am
+        <span class="slot" @click="openDatePicker">
+          <span aria-hidden="true">{{
+            anchorDate ? formatDate(anchorDate) : anchorLabel
+          }}</span>
+          <input
+            ref="dateEl"
+            v-model="anchorDate"
+            type="date"
+            :aria-label="anchorLabel"
+          />
+        </span>
+        <template v-if="variants.length > 1">
+          {{ isBundesweit && !ortName ? "in" : (variantPreposition ?? "in") }}
+          <OrtPicker
+            :label="ortLabel"
+            :variant-label="variantLabel"
+            :variants="variants"
+            bundesweit-slug="bundesweit"
+            @pick="onPickOrt"
+          />
+        </template>
       </h1>
     </div>
 
@@ -418,7 +425,10 @@ onBeforeUnmount(() => {
           aria-controls="plan-timeline"
           @click="timelineHidden = !timelineHidden"
         >
-          <component :is="timelineHidden ? ChevronDown : ChevronUp" :size="14" />
+          <component
+            :is="timelineHidden ? ChevronDown : ChevronUp"
+            :size="14"
+          />
           {{ timelineHidden ? "Zeitstrahl zeigen" : "Zeitstrahl ausblenden" }}
         </button>
       </template>
@@ -440,25 +450,28 @@ onBeforeUnmount(() => {
 
       <h2 class="section t-section">
         Aufgaben
-        <button
-          type="button"
-          class="task-search-toggle icon-button"
-          :aria-expanded="searchOpen"
-          aria-label="Aufgaben durchsuchen"
-          @click="toggleSearch"
-        >
-          <Search :size="14" />
-        </button>
+        <span class="search-slot" :class="{ open: searchOpen }">
+          <button
+            type="button"
+            class="task-search-toggle icon-button"
+            :aria-expanded="searchOpen"
+            aria-label="Aufgaben durchsuchen"
+            @click="toggleSearch"
+          >
+            <Search :size="14" />
+          </button>
+          <input
+            ref="searchEl"
+            v-model="taskQuery"
+            type="search"
+            class="task-search"
+            aria-label="Aufgaben durchsuchen"
+            placeholder="Aufgabe suchen"
+            @keydown.esc="closeSearch"
+            @blur="closeSearch"
+          />
+        </span>
       </h2>
-      <input
-        v-if="searchOpen"
-        ref="searchEl"
-        v-model="taskQuery"
-        type="search"
-        class="task-search"
-        aria-label="Aufgaben durchsuchen"
-        placeholder="Aufgabe suchen"
-      />
       <p v-if="taskQuery && shownEntries.length === 0" class="hint">
         Keine Aufgabe passt zu „{{ taskQuery }}".
       </p>
@@ -530,8 +543,8 @@ onBeforeUnmount(() => {
       </div>
 
       <p v-if="overview.total > 0" class="overview t-body">
-        Der Zeitplan für {{ vorhaben }} umfasst
-        <b>{{ overview.headline }}</b>{{ overview.tail }}.
+        Der Zeitplan für {{ vorhaben }} umfasst <b>{{ overview.headline }}</b
+        >{{ overview.tail }}.
         <template v-if="overview.first">
           Es geht los mit {{ overview.first.label }} ({{
             offsetLabel(overview.first, anchorLabel)
@@ -564,7 +577,6 @@ onBeforeUnmount(() => {
     <p v-else class="hint">
       {{ anchorLabel }} eingeben, um den Zeitplan zu sehen.
     </p>
-
   </div>
 </template>
 
@@ -710,14 +722,47 @@ not push it off the screen. */
   color: var(--muted);
 }
 
-.task-search-toggle {
+/* The field takes the button's place instead of opening a row under it: both
+sit in the same slot and trade widths. */
+.search-slot {
+  display: inline-flex;
+  align-items: center;
   margin-left: 0.4rem;
   vertical-align: middle;
 }
+.task-search-toggle,
 .task-search {
-  width: 100%;
-  max-width: 22rem;
-  margin-bottom: 0.75rem;
+  transition:
+    width 0.18s ease,
+    opacity 0.14s ease;
+}
+.task-search {
+  width: 0;
+  min-width: 0;
+  padding-inline: 0;
+  border-width: 0;
+  opacity: 0;
+  visibility: hidden;
+  font-size: var(--t-meta);
+}
+.search-slot.open .task-search {
+  width: min(14rem, 50vw);
+  padding-inline: 0.5rem;
+  border-width: 1px;
+  opacity: 1;
+  visibility: visible;
+}
+.search-slot.open .task-search-toggle {
+  width: 0;
+  opacity: 0;
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task-search-toggle,
+  .task-search {
+    transition: none;
+  }
 }
 .section {
   scroll-margin-top: calc(var(--tl-header-h, 0px) + 1rem);
@@ -732,7 +777,16 @@ by a rail and a tint, never by becoming a different shape. */
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   background: var(--paper-raised);
-  overflow: hidden;
+}
+/* No clipping here: the picker at the last row hangs below the list and would
+be cut off. The rows round their own corners instead. */
+.list > :first-child {
+  border-start-start-radius: inherit;
+  border-start-end-radius: inherit;
+}
+.list > :last-child {
+  border-end-start-radius: inherit;
+  border-end-end-radius: inherit;
 }
 
 /* The last row of the list, not a button orphaned under it. */
@@ -746,6 +800,8 @@ by a rail and a tint, never by becoming a different shape. */
   padding: var(--s-1) var(--s-2);
   border: 0;
   border-radius: 0;
+  border-end-start-radius: inherit;
+  border-end-end-radius: inherit;
   background: transparent;
   color: var(--muted);
   text-align: left;
@@ -823,7 +879,6 @@ by a rail and a tint, never by becoming a different shape. */
   color: var(--muted);
 }
 
-
 @media (min-width: 40rem) {
   .deadline-planner {
     padding-bottom: 0;
@@ -879,7 +934,6 @@ by a rail and a tint, never by becoming a different shape. */
     color: inherit;
   }
 }
-
 
 :global(.wom-confetti) {
   position: fixed;

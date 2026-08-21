@@ -2,6 +2,7 @@
 import Layout from "../../layouts/Layout.astro";
 import DeadlinePlanner from "../../components/DeadlinePlanner.vue";
 import { loadAllVorhaben, BUNDESWEIT_SLUG } from "../../../lib/vorhaben-data";
+import { possessiveLabel } from "../../../lib/vorhaben-label";
 
 // One page per Vorhaben, and the whole plan is in its query. Nothing here is
 // worth indexing: the address a search result should carry is /<vorhaben>/.
@@ -13,7 +14,7 @@ const { v } = Astro.props;
 ---
 
 <Layout
-  title={`${v.label}: dein Plan`}
+  title={`${possessiveLabel(v)}: der Plan`}
   description={`Dein Zeitplan für ${v.vorhaben} mit Datum, Quelle und Kalender-Export.`}
   noindex={true}
   canonical={`/${v.slug}/`}
@@ -25,6 +26,7 @@ const { v } = Astro.props;
     vorhaben={v.vorhaben}
     anchorLabel={v.anchorLabel}
     anchorName={v.anchorName}
+    possessive={v.possessive}
     variantLabel={v.variantLabel}
     variantPreposition={v.variantPreposition}
     variants={v.variants}

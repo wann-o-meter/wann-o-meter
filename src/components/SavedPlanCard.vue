@@ -51,6 +51,7 @@ import {
 } from "../../lib/saved-plans";
 import { planHref } from "../../lib/plan-url";
 import { STATES } from "../../lib/states";
+import { possessiveLabel } from "../../lib/vorhaben-label";
 import { isoToday } from "../../lib/today";
 import type { SavedPlan } from "../../lib/saved-plans";
 import type { VorhabenData } from "../../lib/vorhaben-data";
@@ -79,7 +80,7 @@ const place = computed(() =>
 );
 
 const who = computed(() =>
-  [props.v.label, place.value].filter(Boolean).join(" · "),
+  [possessiveLabel(props.v), place.value].filter(Boolean).join(" · "),
 );
 
 const snap = computed(() =>

@@ -50,7 +50,10 @@ const vorhabenSchema = z.object({
   vorhaben: z.string(),
   anchorLabel: z.string(),
   anchorName: z.string(),
-  possessive: z.string().default("Dein"),
+  // How the site says this Vorhaben belongs to the visitor: "Dein" Umzug,
+  // "Deine" Geburt. Left out where nobody owns the event, and then no surface
+  // puts a pronoun in front of it.
+  possessive: z.string().optional(),
   variantLabel: z.string(),
   variantPreposition: z.string().default("in"),
   defaultVariant: z.string().optional(),
