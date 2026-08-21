@@ -55,7 +55,7 @@ const anchorIsSunday = computed(
       <p v-if="overdue.length > 0" class="stat late">
         <span class="t-label">Verstrichen</span>
         <span class="t-title tnum">
-          {{ overdue.length }} {{ overdue.length === 1 ? "Frist" : "Fristen" }}
+          {{ overdue.length }} {{ overdue.length === 1 ? "Aufgabe" : "Aufgaben" }}
         </span>
       </p>
 

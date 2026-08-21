@@ -60,7 +60,7 @@ const title = year
       ? `${name}: ${task.offset_label}${paragraph}`
       : task.offset_days
         ? `${name}: ${durationLabel(Math.abs(task.offset_days))} Frist${paragraph}`
-        : `${name}: welche Frist gilt?${paragraph}`;
+        : `${name}: Frist${paragraph}`;
 const description = year
   ? `${task.label} für ${year}: Stichtag nach ${source}, mit Rechenweg.`
   : yearRows.length > 0

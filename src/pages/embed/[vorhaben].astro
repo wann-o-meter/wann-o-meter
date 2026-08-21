@@ -23,7 +23,7 @@ const site = new URL(`/${v.slug}/`, Astro.site).href;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, follow" />
-    <title>{v.label}: Fristen</title>
+    <title>{v.label}: Zeitplan</title>
     <style>
       :root {
         --embed-accent: #1d4f91;
@@ -77,7 +77,7 @@ const site = new URL(`/${v.slug}/`, Astro.site).href;
     </style>
   </head>
   <body>
-    <h1>{v.label}: Fristen</h1>
+    <h1>{v.label}: Zeitplan</h1>
     <ol>
       {
         entries.map((d) => (

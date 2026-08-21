@@ -230,6 +230,8 @@ const doneEntries = computed(() =>
   planEntries.value.filter((e) => doneIds[e.id]),
 );
 
+const fristCount = (n: number) => `${n} ${n === 1 ? "Frist" : "Fristen"}`;
+
 // The same sentences the page renders before hydration, counted from the plan
 // the visitor sees now. Keep in sync with the .overview paragraph in
 // src/pages/[...slug].astro.
@@ -241,13 +243,24 @@ const overview = computed(() => {
     ),
   );
   const dated = entries.filter((e) => e.kind !== "soft");
+  const after = dated.filter((e) => (e.offset_days ?? 0) > 0).length;
+  const soft = entries.length - dated.length;
   return {
-    total: dated.length,
-    softCount: entries.length - dated.length,
-    earliest: dated[0] ?? null,
-    afterAnchor: dated.filter((e) => (e.offset_days ?? 0) > 0).length,
+    total: entries.length,
+    headline:
+      dated.length > 0
+        ? fristCount(dated.length)
+        : `${entries.length} Schritte`,
+    tail:
+      dated.length === 0
+        ? " ohne gesetzliche Frist"
+        : soft > 0
+          ? ` und ${soft} weitere Schritte`
+          : "",
+    first: entries[0] ?? null,
+    // Only worth a sentence where it splits the Fristen.
+    afterAnchor: after === dated.length ? 0 : after,
     officeSteps: entries.filter((e) => e.needs_office).map((e) => e.label),
-    undated: dated.filter((e) => e.offset_days === null).length,
     localSteps: isBundesweit.value
       ? []
       : entries
@@ -415,7 +428,7 @@ onBeforeUnmount(() => {
       <fieldset v-if="facetOptions.length > 1" class="facets">
         <legend class="t-section">Plan verfeinern</legend>
         <p class="t-meta refine-lede">
-          {{ facetOptions.length }} Fragen, jede ergänzt weitere Fristen.
+          {{ facetOptions.length }} Fragen, jede ergänzt weitere Aufgaben.
         </p>
         <div class="facet-row">
           <label v-for="id in facetOptions" :key="id" class="chip">
@@ -518,23 +531,20 @@ onBeforeUnmount(() => {
 
       <p v-if="overview.total > 0" class="overview t-body">
         Der Zeitplan für {{ vorhaben }} umfasst
-        <b>{{ overview.total }} Fristen</b>.
-        <template v-if="overview.earliest">
-          Die erste ist {{ overview.earliest.label }} ({{
-            offsetLabel(overview.earliest, anchorLabel)
+        <b>{{ overview.headline }}</b>{{ overview.tail }}.
+        <template v-if="overview.first">
+          Es geht los mit {{ overview.first.label }} ({{
+            offsetLabel(overview.first, anchorLabel)
           }}).
         </template>
         <template v-if="overview.afterAnchor > 0">
-          {{ overview.afterAnchor }} davon fallen erst nach dem
-          {{ anchorLabel }} an.
+          {{ fristCount(overview.afterAnchor) }} laufen erst nach dem
+          {{ anchorLabel }}.
         </template>
         <template v-if="overview.officeSteps.length > 0">
-          Termine beim Amt sind je nach Stadt Wochen im Voraus vergeben, deshalb
-          steht der Plan rückwärts und nicht als Liste zum Abarbeiten.
-        </template>
-        <template v-if="overview.softCount > 0">
-          Dazu kommen {{ overview.softCount }} empfohlene Schritte ohne
-          gesetzliche Frist.
+          Termine beim Amt sind je nach Stadt Wochen im Voraus vergeben ({{
+            overview.officeSteps.join(", ")
+          }}).
         </template>
         <template v-if="overview.localSteps.length > 0">
           In {{ selected?.label }} kommen dazu:

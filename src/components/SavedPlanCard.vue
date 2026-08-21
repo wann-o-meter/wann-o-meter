@@ -7,16 +7,16 @@
       <span class="t-meta tnum">{{ shortDate(plan.date) }}</span>
     </p>
 
-    <h2 v-if="!next" class="t-title">Alle Fristen erledigt</h2>
+    <h2 v-if="!next" class="t-title">Alles erledigt</h2>
     <h2 v-else-if="span!.days < 0" class="t-title late">
       <AlertTriangle :size="18" aria-hidden="true" />
-      Nächste Frist {{ span!.n }} {{ span!.unit }} überfällig
+      Nächste Aufgabe {{ span!.n }} {{ span!.unit }} überfällig
     </h2>
     <h2 v-else-if="span!.days === 0" class="t-title">
-      Nächste Frist heute fällig
+      Nächste Aufgabe heute fällig
     </h2>
     <h2 v-else class="t-title">
-      Nächste Frist in {{ span!.n }} {{ dativeUnit(span!.unit) }}
+      Nächste Aufgabe in {{ span!.n }} {{ dativeUnit(span!.unit) }}
     </h2>
 
     <p v-if="next" class="next t-meta">
@@ -24,7 +24,7 @@
     </p>
 
     <p v-if="doneCount > 0" class="tally t-meta">
-      {{ doneCount }} von {{ total }} Fristen erledigt.
+      {{ doneCount }} von {{ total }} Aufgaben erledigt.
     </p>
 
     <p class="go">

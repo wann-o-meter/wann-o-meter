@@ -10,13 +10,13 @@ export const GET: APIRoute = ({ site }) => {
 
   const body = `# Wann-O-Meter
 
-> Fristen rückwärts vom Termin geplant. Nenne einen Tag, und der Plan sagt, wann
-> du anfangen musst. Jede Frist nennt den Paragrafen dahinter.
+> Termine und Fristen als konkrete Daten. Nenne einen Tag, und der Plan sagt,
+> wann du anfangen musst. Jede Frist nennt den Paragrafen dahinter.
 
 ## Pläne
 
-Ein Datum eingeben, und jede Frist wird davon zurückgerechnet, mit den
-Feiertagen des gewählten Bundeslands.
+Ein Datum eingeben, und jede Aufgabe bekommt ihren Tag, mit den Feiertagen des
+gewählten Bundeslands.
 
 ${plans.map((r) => `- [${r.v.label}](${url(`/${r.path}/`)}): ${r.description}`).join("\n")}
 

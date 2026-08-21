@@ -23,7 +23,10 @@ const {
   canonical,
 } = Astro.props;
 const canonicalUrl = new URL(canonical ?? Astro.url.pathname, Astro.site).href;
-const pageTitle = title;
+// The site name in the tab, the bookmark and every unfurl. Google drops it
+// where it renders the site name itself, so it only costs a page whose own
+// title already fills the width Google shows.
+const pageTitle = title.length > 55 ? title : `${title} | Wann-O-Meter`;
 // Every Vorhaben is reachable from every page: the startpage picker is a set
 // of buttons, so without this the plan pages have no incoming internal links.
 const vorhabenLinks = loadAllVorhaben().map((v) => ({

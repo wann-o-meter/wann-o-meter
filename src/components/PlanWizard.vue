@@ -81,11 +81,11 @@
           <dd class="t-title">{{ summary.span }}</dd>
         </div>
         <div>
-          <dt class="t-label">Fristen</dt>
+          <dt class="t-label">Aufgaben</dt>
           <dd class="t-title tnum">{{ summary.count }}</dd>
         </div>
         <div>
-          <dt class="t-label">Erste Frist</dt>
+          <dt class="t-label">Erste Aufgabe</dt>
           <dd class="t-title tnum">{{ summary.first }}</dd>
         </div>
         <div>
@@ -231,7 +231,7 @@ const summary = computed(() => {
     .sort((a, b) => a.date!.localeCompare(b.date!));
   const office = schedule.value.filter((e) => e.needs_office).length;
   // The plan page says every date. Here the numbers say how big the plan is,
-  // and only the first Frist gets a day, because that one is the appointment
+  // and only the first task gets a day, because that one is the appointment
   // somebody has to make now.
   const days =
     dated.length > 0

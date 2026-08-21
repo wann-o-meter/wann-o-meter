@@ -6,7 +6,7 @@ import { allFristTasks } from "../../lib/tasks";
 import FristenFinder from "../components/FristenFinder.vue";
 
 const homeDescription =
-  "Wann muss ich anfangen? Fristen rückwärts vom Termin geplant, mit Quelle - Umzug, Geburt, Hochzeit und Jobwechsel.";
+  "Plane mit Datum statt Checkliste: Termin eingeben, jede Aufgabe als konkretes Datum. Für Umzug, Geburt, Hochzeit und Jobwechsel.";
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "WebSite",
@@ -28,10 +28,13 @@ const fristen = allFristTasks().map(({ task, vorhaben }) => ({
   note: task.note,
   plans: vorhaben.map((v) => ({ slug: v.slug, label: v.label })),
 }));
-
 ---
 
-<Layout title="Wann muss ich anfangen?" description={homeDescription} structuredData={structuredData}>
+<Layout
+  title="Plane mit Datum statt Checkliste"
+  description={homeDescription}
+  structuredData={structuredData}
+>
   <IndexTimeline client:load vorhaben={vorhaben} />
 
   <FristenFinder

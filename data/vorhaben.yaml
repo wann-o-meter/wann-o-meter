@@ -3,8 +3,6 @@
 - slug: umzug
   label: Umzug
   teaser: Kündigung, Ummeldung, Halteverbot
-  # backwards: the Fristen run up to the anchor, forwards: the clock starts there.
-  direction: backwards
   vorhaben: Umzug innerhalb Deutschlands
   possessive: Dein
   anchorLabel: Umzugstag
@@ -22,7 +20,6 @@
 - slug: geburt
   label: Geburt
   teaser: Elterngeld, Kindergeld, Urkunde
-  direction: forwards
   titleSubject: Nach der Geburt
   vorhaben: Geburt eines Kindes
   possessive: Deine
@@ -34,7 +31,9 @@
 - slug: heirat
   label: Hochzeit
   teaser: Standesamt, Urkunden, Namen
-  direction: backwards
+  # No step of a Hochzeit rests on a Paragraf, so the title says what the page
+  # really has: how much Vorlauf each one needs.
+  titleFallback: "Hochzeit planen: Vorlaufzeiten vom Standesamt bis Namensänderung"
   vorhaben: Standesamtliche Hochzeit
   possessive: Deine
   anchorLabel: Hochzeitstermin
@@ -45,9 +44,6 @@
 - slug: jobwechsel
   label: Jobwechsel
   teaser: Kündigung, Arbeitsagentur, Zeugnis
-  direction: backwards
-  # The anchor as the title says it, after "vom".
-  anchorDative: letzten Arbeitstag
   vorhaben: Jobwechsel
   possessive: Dein
   anchorLabel: Letzter Arbeitstag

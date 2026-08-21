@@ -3,9 +3,9 @@
     <section class="intro">
       <h1>Damit dir keine Frist durchrutscht.</h1>
       <p class="lede t-body">
-        Wann-O-Meter rechnet jede Frist rückwärts von deinem Termin: mit dem
-        Datum, bis wann sie erledigt sein muss, <strong>mit Paragraf</strong>,
-        und mit den Feiertagen deines Bundeslands schon eingerechnet.
+        Wann-O-Meter macht aus deinem Termin ein Datum je Aufgabe: bis wann sie
+        erledigt sein muss, <strong>mit Paragraf</strong>, und mit den
+        Feiertagen deines Bundeslands schon eingerechnet.
       </p>
     </section>
 
@@ -24,14 +24,14 @@
     <section class="step">
       <h2 id="q1" class="t-section">Plan erstellen</h2>
       <p class="section-lede t-meta">
-        Kategorie wählen, Termin eingeben und Plan mit konkreten Fristen
+        Vorhaben wählen, Termin eingeben und jede Aufgabe mit Datum
         bekommen.
       </p>
       <div class="choices">
-        <a v-for="v in vorhaben" :key="v.slug" class="choice" :href="`/${v.slug}/`">
-          <span class="t-title">{{ v.label }}</span>
+        <div v-for="v in vorhaben" :key="v.slug" class="choice">
+          <a class="t-title" :href="`/${v.slug}/`">{{ v.label }}</a>
           <small class="t-meta">{{ v.teaser }}</small>
-        </a>
+        </div>
       </div>
     </section>
   </div>
@@ -137,19 +137,33 @@ make on the page you are on. */
   }
 }
 .choice {
-  display: block;
+  position: relative;
   background: var(--paper-raised);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   padding: var(--s-2);
+}
+.choice a {
   color: var(--ink);
   text-decoration: none;
+}
+/* The whole card is the target, but the link text a crawler reads is the name
+of the Vorhaben and nothing else. */
+.choice a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-lg);
 }
 .choice:hover {
   border-color: var(--accent);
 }
-.choice:hover .t-title {
+.choice:hover a {
   color: var(--accent);
+}
+.choice:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 .choice small {
   display: block;

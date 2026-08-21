@@ -36,17 +36,15 @@ const vorhabenSchema = z.object({
   slug: z.string(),
   label: z.string(),
   teaser: z.string(),
-  // Which way the plan runs. The page titles are built from it, so a Vorhaben
-  // cannot be described backwards while its Fristen all come after the anchor.
-  direction: z.enum(["backwards", "forwards"]),
-  // The subject a title starts with, where the bare label would read wrong
-  // ("Nach der Geburt" instead of "Geburt").
+  // The subject a title starts with, where "<Label> planen" would read wrong
+  // ("Nach der Geburt" instead of "Geburt planen").
   titleSubject: z.string().optional(),
-  // The anchor as a title says it after "vom", where the label does not fit.
-  anchorDative: z.string().optional(),
+  // The title for a Vorhaben whose plan rests on no statute at all, where the
+  // generated one would promise a Paragraf the page cannot show.
+  titleFallback: z.string().optional(),
   // What a place page is called, where the query people actually type is not
   // the one the generated title answers. {ort} is the Gemeinde. Without these
-  // a place page keeps the counted title every other page gets.
+  // a place page keeps the generated title every other page gets.
   placeTitle: z.string().optional(),
   placeHeading: z.string().optional(),
   vorhaben: z.string(),

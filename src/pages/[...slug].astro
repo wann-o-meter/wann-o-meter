@@ -28,10 +28,15 @@ const crumbs = [
 // Every number below is counted from the plan itself, so the text cannot drift
 // away from the Fristen it describes.
 const entries = variant.deadlines.filter((d) => appliesTo(d, [])).sort(byOffset);
-const earliest = entries[0];
+const fristen = entries.filter((d) => d.kind !== "soft");
+const softCount = entries.length - fristen.length;
+const first = entries[0];
 const officeSteps = entries.filter((d) => d.needs_office).map((d) => d.label);
-const afterAnchor = entries.filter((d) => (d.offset_days ?? 0) > 0).length;
-const undated = entries.filter((d) => d.offset_days === null).length;
+// Only worth a sentence where it splits the Fristen. All of them or none of
+// them is what the plan's direction already says.
+const after = fristen.filter((d) => (d.offset_days ?? 0) > 0).length;
+const afterAnchor = after === fristen.length ? 0 : after;
+const fristCount = (n: number) => `${n} ${n === 1 ? "Frist" : "Fristen"}`;
 const baseIds = new Set(
   (v.variants.find((x) => x.slug === BUNDESWEIT_SLUG)?.deadlines ?? []).map(
     (d) => d.id,
@@ -84,29 +89,28 @@ const rest = siblings.slice(PREVIEW);
   <!-- Keep in sync with the .overview paragraph in DeadlinePlanner.vue, which
   recounts the same sentences once the Ort or the facets change. -->
   <p class="overview t-body">
-    Der Zeitplan für {v.vorhaben} umfasst <b>{entries.length} Fristen</b>.{" "}
-    {earliest && (
+    Der Zeitplan für {v.vorhaben} umfasst{" "}
+    {fristen.length > 0 ? (
       <>
-        Die erste ist {earliest.label} ({offsetLabel(earliest, v.anchorLabel)}).{" "}
+        <b>{fristCount(fristen.length)}</b>
+        {softCount > 0 && <> und {softCount} weitere Schritte</>}
+      </>
+    ) : (
+      <><b>{entries.length} Schritte</b> ohne gesetzliche Frist</>
+    )}.{" "}
+    {first && (
+      <>
+        Es geht los mit {first.label} ({offsetLabel(first, v.anchorLabel)}).{" "}
       </>
     )}
     {afterAnchor > 0 && (
-      <>{afterAnchor} davon fallen erst nach dem {v.anchorLabel} an.{" "}</>
+      <>{fristCount(afterAnchor)} laufen erst nach dem {v.anchorLabel}.{" "}</>
     )}
     {officeSteps.length > 0 && (
       <>
-        <b>
-          {officeSteps.length}{" "}
-          {officeSteps.length === 1 ? "Frist braucht" : "Fristen brauchen"}
-          {" "}einen Termin beim Amt
-        </b>{" "}
-        ({officeSteps.join(", ")}). Solche Termine sind je nach Stadt Wochen im
-        Voraus vergeben, deshalb steht der Plan rückwärts und nicht als Liste
-        zum Abarbeiten.{" "}
+        Termine beim Amt sind je nach Stadt Wochen im Voraus vergeben
+        ({officeSteps.join(", ")}).{" "}
       </>
-    )}
-    {undated > 0 && (
-      <>{undated} Fristen sind noch nicht gegen ihre Rechtsgrundlage geprüft.{" "}</>
     )}
     {localSteps.length > 0 && (
       <>In {variant.label} kommen dazu: {localSteps.join(", ")}.</>

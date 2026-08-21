@@ -26,9 +26,9 @@ export const GET: APIRoute = ({ props, site }) => {
 
 > ${description}
 
-Alle Fristen sind relativ zum ${v.anchorLabel} angegeben. Quelle: ${canonical}
+Alle Angaben sind relativ zum ${v.anchorLabel}. Quelle: ${canonical}
 
-## Fristen
+## Zeitplan
 
 ${lines.join("\n")}
 
