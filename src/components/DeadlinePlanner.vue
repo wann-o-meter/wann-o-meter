@@ -72,7 +72,6 @@ const {
   facetOptions,
   overlapMonths,
   touched,
-  fresh,
 } = usePlanUrlState(props.slug, props.variants, props.defaultSlug);
 
 // Keeping a plan is the visitor's decision, not a side effect of opening one.
@@ -143,9 +142,6 @@ const { timeline, tasks, unscheduled } = usePlannerSchedule(
 );
 
 const { stuck, headerGap } = useStickyHeader(rootEl, headerEl, sentinelEl);
-
-// fresh says the wizard just sent us, playing says the entrance is running.
-const playing = ref(false);
 
 const editor = ref<{ id: string; kind: EditorKind } | null>(null);
 
@@ -345,22 +341,6 @@ function trackActiveCard() {
 onMounted(() => {
   addEventListener("scroll", trackActiveCard, { passive: true });
   trackActiveCard();
-  if (!fresh.value) return;
-  // The entrance waits for the frame after hydration. Started any earlier it
-  // runs while the island is still building itself, the browser paints none of
-  // its frames, and the plan lands as a jump instead of a movement.
-  const start = () => (playing.value = true);
-  requestAnimationFrame(() => requestAnimationFrame(start));
-  // Where the frames never come, start it anyway: a short wait is one thing, a
-  // list that stays blank is another.
-  setTimeout(start, 300);
-  // Once it has played, the plan is a plan: a card that appears later because
-  // the Ort changed has nothing to announce. It is also the safety net: where
-  // no frame ever comes, a plan the visitor can read beats one that waits.
-  setTimeout(() => {
-    fresh.value = false;
-    playing.value = false;
-  }, 1500);
 });
 
 onBeforeUnmount(() => {
@@ -373,7 +353,7 @@ onBeforeUnmount(() => {
   <div
     ref="rootEl"
     class="deadline-planner"
-    :class="{ compact: stuck, fresh, playing }"
+    :class="{ compact: stuck }"
   >
     <div class="title-row">
       <h1 class="title t-display">
@@ -493,10 +473,12 @@ onBeforeUnmount(() => {
         Keine Aufgabe passt zu „{{ taskQuery }}".
       </p>
       <div ref="listEl" class="list">
+        <TransitionGroup appear name="row">
         <TaskCard
-          v-for="entry in shownEntries"
+          v-for="(entry, i) in shownEntries"
           :key="entry.id"
           :class="{ focused: activeId === entry.id }"
+          :style="{ '--i': i }"
           :entry="entry"
           :anchor-date="anchorDate"
           :anchor-label="anchorLabel"
@@ -516,6 +498,7 @@ onBeforeUnmount(() => {
           @mouseenter="hoveredId = entry.id"
           @mouseleave="hoveredId = null"
         />
+        </TransitionGroup>
         <div class="add-end-wrap">
           <TaskPicker
             v-if="picker.isOpen({ kind: 'end' })"
@@ -789,35 +772,29 @@ sit in the same slot and trade widths. */
   margin: var(--s-4) 0 var(--s-2);
 }
 
-/* The plan arrives once, on the step out of the wizard, and it arrives whole:
-one fade for the page, one small rise for the list under it. Row by row read as
-a stutter, because everything above the rows was already there. */
-.fresh {
+/* The rows come in from below, each a moment after the one above it, and
+everything past the ninth together, so the wait never grows with the plan. Same
+fade, blur and distance the sections on the startpage use. */
+.row-enter-from {
   opacity: 0;
+  filter: blur(6px);
+  transform: translateY(20px);
 }
-.fresh.playing {
-  animation: fade 0.3s ease-out both;
-}
-.fresh.playing .list {
-  animation: rise 0.42s ease-out both;
-}
-@keyframes fade {
-  from {
-    opacity: 0;
-  }
-}
-@keyframes rise {
-  from {
-    transform: translateY(0.75rem);
-  }
+.row-enter-active {
+  transition:
+    opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: calc(min(var(--i, 0), 8) * 50ms);
 }
 @media (prefers-reduced-motion: reduce) {
-  .fresh {
+  .row-enter-from {
     opacity: 1;
+    filter: none;
+    transform: none;
   }
-  .fresh.playing,
-  .fresh.playing .list {
-    animation: none;
+  .row-enter-active {
+    transition: none;
   }
 }
 

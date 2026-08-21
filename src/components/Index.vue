@@ -1,14 +1,5 @@
 <template>
   <div class="wom-start">
-    <section class="intro">
-      <h1>Damit dir keine Frist durchrutscht.</h1>
-      <p class="lede t-body">
-        Wann-O-Meter macht aus deinem Termin ein Datum je Aufgabe: bis wann sie
-        erledigt sein muss, <strong>mit Paragraf</strong>, und mit den
-        Feiertagen deines Bundeslands schon eingerechnet.
-      </p>
-    </section>
-
     <h2 v-if="planCards.length > 0" id="plaene" class="t-section mine">
       Deine Pläne
     </h2>
@@ -60,22 +51,6 @@ onMounted(() => (savedPlans.value = loadSavedPlans()));
 </script>
 
 <style scoped>
-.intro {
-  padding: var(--s-2) 0 var(--s-1);
-}
-h1 {
-  max-width: 20ch;
-  margin: 0 0 var(--s-2);
-}
-.lede {
-  color: var(--muted);
-  max-width: 56ch;
-  margin: 0;
-}
-.lede strong {
-  color: var(--ink);
-}
-
 /* Two plans fit side by side, four stack into two rows, one fills the row. */
 h2.mine {
   margin: var(--section-gap) 0 var(--s-1);

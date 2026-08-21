@@ -1,4 +1,5 @@
 ---
+import FadeInText from "@astroanimate/core/FadeInText";
 import Layout from "../layouts/Layout.astro";
 import IndexTimeline from "../components/Index.vue";
 import { loadAllVorhaben } from "../../lib/vorhaben-data";
@@ -35,11 +36,48 @@ const fristen = allFristTasks().map(({ task, vorhaben }) => ({
   description={homeDescription}
   structuredData={structuredData}
 >
-  <IndexTimeline client:load vorhaben={vorhaben} />
+  <!-- One after the other on arrival: the promise, then what it means, then
+  the things to do about it. -->
+  <section class="intro">
+    <FadeInText>
+      <h1>Damit dir keine Frist durchrutscht.</h1>
+    </FadeInText>
+    <FadeInText delay={0.14}>
+      <p class="lede t-body">
+        Wann-O-Meter macht aus deinem Termin ein Datum je Aufgabe: bis wann sie
+        erledigt sein muss, <strong>mit Paragraf</strong>, und mit den
+        Feiertagen deines Bundeslands schon eingerechnet.
+      </p>
+    </FadeInText>
+  </section>
 
-  <FristenFinder
-    client:load
-    fristen={fristen}
-    plans={vorhaben.map((v) => ({ slug: v.slug, label: v.label }))}
-  />
+  <FadeInText delay={0.28}>
+    <IndexTimeline client:load vorhaben={vorhaben} />
+  </FadeInText>
+
+  <FadeInText delay={0.42}>
+    <FristenFinder
+      client:load
+      fristen={fristen}
+      plans={vorhaben.map((v) => ({ slug: v.slug, label: v.label }))}
+    />
+  </FadeInText>
 </Layout>
+
+<style>
+  .intro {
+    padding: var(--s-2) 0 var(--s-1);
+  }
+  .intro h1 {
+    max-width: 20ch;
+    margin: 0 0 var(--s-2);
+  }
+  .lede {
+    color: var(--muted);
+    max-width: 56ch;
+    margin: 0;
+  }
+  .lede strong {
+    color: var(--ink);
+  }
+</style>
