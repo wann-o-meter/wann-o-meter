@@ -91,6 +91,9 @@ no link decoration that a reader cannot click anyway. */
   .back-link {
     display: none;
   }
+  .go-link svg {
+    display: none;
+  }
   main {
     padding: 0;
   }
@@ -135,6 +138,33 @@ link on this site makes. */
 }
 @media (prefers-reduced-motion: reduce) {
   .back-link svg {
+    transition: none;
+  }
+}
+
+/* The same link, pointing the other way: it opens a page of its own, and its
+arrow leans that way when you reach for it. */
+.go-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--accent);
+  text-decoration: none;
+}
+.go-link:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.15em;
+}
+.go-link svg {
+  transition: transform 0.15s ease;
+}
+.go-link:hover svg,
+.go-link:focus-visible svg {
+  transform: translateX(0.25rem);
+}
+@media (prefers-reduced-motion: reduce) {
+  .go-link svg {
     transition: none;
   }
 }

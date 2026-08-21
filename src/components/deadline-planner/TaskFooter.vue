@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
+import { ArrowRight } from "lucide-vue-next";
 import { sourceLabel } from "../../../lib/offset-label";
 
 const props = defineProps<{
@@ -42,10 +43,10 @@ const fallbackLabel = () =>
     <p class="src">
       <a
         v-if="entry.kind !== 'soft'"
-        class="frist"
+        class="frist go-link"
         :href="fristHref()"
         data-astro-reload
-        >Frist im Detail</a
+        >Frist im Detail <ArrowRight :size="14" /></a
       >
       <span v-if="!entry.source_url">Grundlage: {{ fallbackLabel() }}</span>
     </p>

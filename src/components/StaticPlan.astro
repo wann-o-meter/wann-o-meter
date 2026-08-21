@@ -1,4 +1,5 @@
 ---
+import { ArrowRight } from "@lucide/astro";
 import { appliesTo } from "../../lib/facets";
 import { byOffset, offsetLabel, sourceLabel } from "../../lib/offset-label";
 import type { Deadline } from "../../lib/deadline-plan";
@@ -45,8 +46,8 @@ turns every relative offset below into a day. -->
           {d.note && <p class="note t-body">{d.note}</p>}
           {d.kind !== "soft" && (
             <p class="src t-meta">
-              <a class="frist" href={`/frist/${d.id}/`}>
-                Frist im Detail
+              <a class="frist go-link" href={`/frist/${d.id}/`}>
+                Frist im Detail <ArrowRight size={14} />
               </a>
               {!d.source_url && (
                 <span class:list={["flag", { missing: !d.no_source_needed }]}>
