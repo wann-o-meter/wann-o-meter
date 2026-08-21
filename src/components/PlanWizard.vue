@@ -98,7 +98,7 @@
       </dl>
       <div class="nav">
         <button type="button" class="btn-tertiary" @click="back">Zurück</button>
-        <a class="btn-primary" :href="href">Plan öffnen</a>
+        <a class="btn-go" :href="href">Plan öffnen</a>
       </div>
     </div>
     </div>

@@ -107,7 +107,8 @@ no link decoration that a reader cannot click anyway. */
 screen, secondary carries a border, tertiary is text in the accent colour. */
 .btn-primary,
 .btn-secondary,
-.btn-tertiary {
+.btn-tertiary,
+.btn-go {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -126,6 +127,17 @@ screen, secondary carries a border, tertiary is text in the accent colour. */
 }
 /* Filled button: deepen it, accent on accent would erase the label. */
 .btn-primary:hover {
+  filter: brightness(0.92);
+}
+/* The move that finishes the wizard, in the colour that means done. Green stays
+semantic even here: it says the plan is ready, not "look at me". */
+.btn-go {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--done);
+  background: var(--done);
+  color: var(--accent-ink);
+}
+.btn-go:hover {
   filter: brightness(0.92);
 }
 .btn-secondary {
