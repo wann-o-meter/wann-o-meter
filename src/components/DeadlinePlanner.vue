@@ -494,10 +494,9 @@ onBeforeUnmount(() => {
       </p>
       <div ref="listEl" class="list">
         <TaskCard
-          v-for="(entry, i) in shownEntries"
+          v-for="entry in shownEntries"
           :key="entry.id"
           :class="{ focused: activeId === entry.id }"
-          :style="{ '--i': i }"
           :entry="entry"
           :anchor-date="anchorDate"
           :anchor-label="anchorLabel"
@@ -790,26 +789,34 @@ sit in the same slot and trade widths. */
   margin: var(--s-4) 0 var(--s-2);
 }
 
-/* The plan arrives once, on the step out of the wizard: the rows come in from
-below, each a moment after the one above it, and the last few together so the
-wait never grows with the plan. Hidden from the first frame, so nothing shows
-itself before it comes in. */
-.fresh :deep(.list > *) {
+/* The plan arrives once, on the step out of the wizard, and it arrives whole:
+one fade for the page, one small rise for the list under it. Row by row read as
+a stutter, because everything above the rows was already there. */
+.fresh {
   opacity: 0;
 }
-.fresh.playing :deep(.list > *) {
-  animation: rise 0.32s ease both;
-  animation-delay: calc(min(var(--i, 0), 8) * 45ms);
+.fresh.playing {
+  animation: fade 0.3s ease-out both;
+}
+.fresh.playing .list {
+  animation: rise 0.42s ease-out both;
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
 }
 @keyframes rise {
   from {
-    opacity: 0;
-    transform: translateY(0.5rem);
+    transform: translateY(0.75rem);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .fresh :deep(.list > *) {
+  .fresh {
     opacity: 1;
+  }
+  .fresh.playing,
+  .fresh.playing .list {
     animation: none;
   }
 }
