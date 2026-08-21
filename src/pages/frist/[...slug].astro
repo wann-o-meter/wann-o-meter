@@ -1,6 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import { ArrowRight, CalendarPlus } from "@lucide/astro";
+import { ArrowLeft, ArrowRight, CalendarPlus } from "@lucide/astro";
 import FristRechner from "../../components/FristRechner.vue";
 import { evaluateRule, nextOccurrence } from "../../../lib/calendar-rule";
 import { formatDate } from "../../../lib/format-date";
@@ -117,6 +117,14 @@ const structuredData = {
 ---
 
 <Layout title={title} description={description} structuredData={structuredData}>
+  <!-- Only for somebody who came from a plan, and only their own history knows
+  that. Hidden until the script below finds the plan they left. -->
+  <p class="back" data-back hidden>
+    <button type="button" class="btn-secondary">
+      <ArrowLeft size={16} /> <span data-back-label>Zurück zum Plan</span>
+    </button>
+  </p>
+
   <nav class="crumbs" aria-label="Brotkrumen">
     {
       crumbs.map((c, i) => (
@@ -273,7 +281,7 @@ const structuredData = {
 
   {
     plans.length > 0 && (
-      <nav class="bundle">
+      <nav class="bundle" data-bundle>
         <h2>Diese Frist steht nicht allein</h2>
         <p class="lede">
           Sie gehört zum {plans.map((v) => v.label).join(" und zum ")}-Plan. Ein
@@ -368,13 +376,34 @@ const structuredData = {
       if (!ref || !ref.startsWith(location.origin)) return;
       const from = new URL(ref).pathname.split("/")[1];
       if (!planIndex[from]) return;
-      // They just came from that plan, so inviting them to start it is noise.
-      document.querySelector(`[data-plan-cta="${from}"]`)?.remove();
+      // They came here out of a plan, so the way back is what they need. The
+      // pitch to start that plan, and the list of the plans this Frist sits in,
+      // are answers to a question they already asked.
+      document.querySelector("[data-bundle]")?.remove();
+      document.querySelector("[data-parents]")?.remove();
+      const back = document.querySelector("[data-back]");
+      if (!back) return;
+      back.querySelector("[data-back-label]").textContent =
+        `Zurück zum ${planIndex[from]}-Plan`;
+      // history.back keeps the date and the scroll position the plan had. A
+      // link could only name the address, and the plan lives in its fragment.
+      back.querySelector("button").addEventListener("click", () =>
+        history.back(),
+      );
+      back.hidden = false;
     });
   </script>
 </Layout>
 
 <style>
+  .back {
+    margin: 0 0 var(--s-2);
+  }
+  .back button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
   .crumbs {
     font-size: var(--t-meta);
     color: var(--muted);
