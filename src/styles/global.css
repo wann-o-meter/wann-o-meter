@@ -169,6 +169,39 @@ arrow leans that way when you reach for it. */
   }
 }
 
+/* Anything you press that ends in an arrow moves it the way it points, the same
+step the back and forward links take. Only arrows move: a calendar icon walking
+away from its own label would be a fidget, not a signal. */
+:is(.btn-primary, .btn-secondary, .btn-tertiary, .btn-go, .cta-link)
+  svg[class*="arrow"] {
+  transition: transform 0.15s ease;
+}
+:is(.btn-primary, .btn-secondary, .btn-tertiary, .btn-go, .cta-link):hover
+  svg[class*="arrow-right"],
+:is(.btn-primary, .btn-secondary, .btn-tertiary, .btn-go, .cta-link):focus-visible
+  svg[class*="arrow-right"] {
+  transform: translateX(0.25rem);
+}
+:is(.btn-primary, .btn-secondary, .btn-tertiary, .btn-go, .cta-link):hover
+  svg[class*="arrow-left"],
+:is(.btn-primary, .btn-secondary, .btn-tertiary, .btn-go, .cta-link):focus-visible
+  svg[class*="arrow-left"] {
+  transform: translateX(-0.25rem);
+}
+/* Up and to the right: it leaves the site, so it leaves the button too. */
+:is(.btn-primary, .btn-secondary, .btn-tertiary, .btn-go, .cta-link):hover
+  svg[class*="arrow-up-right"],
+:is(.btn-primary, .btn-secondary, .btn-tertiary, .btn-go, .cta-link):focus-visible
+  svg[class*="arrow-up-right"] {
+  transform: translate(0.2rem, -0.2rem);
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.btn-primary, .btn-secondary, .btn-tertiary, .btn-go, .cta-link)
+    svg[class*="arrow"] {
+    transition: none;
+  }
+}
+
 /* Three buttons and no fourth. Primary is filled and there is exactly one per
 screen, secondary carries a border, tertiary is text in the accent colour. */
 .btn-primary,
