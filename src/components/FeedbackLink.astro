@@ -1,0 +1,29 @@
+---
+import { ArrowRight } from "@lucide/astro";
+
+// The report names the page it came from, so nobody has to describe which
+// Frist they mean. The Feedback-Seite hands the address to the form.
+interface Props {
+  page?: string;
+}
+const { page = Astro.url.pathname } = Astro.props;
+---
+
+<p class="feedback">
+  <a class="go-link" href={`/feedback/?seite=${encodeURIComponent(page)}`}>
+    Fehler gefunden? Schreib uns <ArrowRight size={14} />
+  </a>
+</p>
+
+<style>
+  .feedback {
+    margin: var(--s-3) 0 0;
+    font-size: var(--t-meta);
+  }
+
+  @media print {
+    .feedback {
+      display: none;
+    }
+  }
+</style>

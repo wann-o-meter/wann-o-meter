@@ -1,6 +1,7 @@
 ---
 import { ArrowLeft } from "@lucide/astro";
 import Layout from "../../layouts/Layout.astro";
+import FeedbackLink from "../../components/FeedbackLink.astro";
 import DeadlinePlanner from "../../components/DeadlinePlanner.vue";
 import { loadAllVorhaben, BUNDESWEIT_SLUG } from "../../../lib/vorhaben-data";
 
@@ -24,16 +25,27 @@ const { v } = Astro.props;
       <ArrowLeft size={16} /> {v.label}
     </a>
   </p>
-  <DeadlinePlanner
-    client:only="vue"
-    slug={v.slug}
-    vorhaben={v.vorhaben}
-    anchorLabel={v.anchorLabel}
-    anchorName={v.anchorName}
-    anchorPersonal={v.anchorPersonal}
-    variantLabel={v.variantLabel}
-    variantPreposition={v.variantPreposition}
-    variants={v.variants}
-    defaultSlug={BUNDESWEIT_SLUG}
-  />
+  <div class="planner-slot">
+    <DeadlinePlanner
+      client:only="vue"
+      slug={v.slug}
+      vorhaben={v.vorhaben}
+      anchorLabel={v.anchorLabel}
+      anchorName={v.anchorName}
+      anchorPersonal={v.anchorPersonal}
+      variantLabel={v.variantLabel}
+      variantPreposition={v.variantPreposition}
+      variants={v.variants}
+      defaultSlug={BUNDESWEIT_SLUG}
+    />
+  </div>
+  <FeedbackLink />
 </Layout>
+
+<style>
+  /* Holds the height the plan will take, so the page does not spring open when
+  the island arrives. Same reserve as the wizard slot on the Vorhaben page. */
+  html[data-js] .planner-slot {
+    min-height: 32rem;
+  }
+</style>

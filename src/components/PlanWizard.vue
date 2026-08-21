@@ -194,7 +194,7 @@ const ortLabel = computed(
 const facetOptions = computed(() => facetsUsedBy(selected.value?.deadlines ?? []));
 const hasFacets = computed(() => facetOptions.value.length > 0);
 
-const step = ref(clampStep(Number(initial.get("schritt"))));
+const step = ref(clampStep(Number(initial.get("s"))));
 const stepCount = computed(() => (hasFacets.value ? 3 : 2));
 // What the dots count, which is not the pane number once step 2 is gone.
 const shownStep = computed(() =>
@@ -216,9 +216,9 @@ const params = computed(() => ({
   facets: activeFacets.value.length > 0 ? activeFacets.value.join(",") : null,
 }));
 
-// neu marks the first arrival, so the plan can come in rather than just be
-// there. The plan page drops it again right away.
-const href = computed(() => planHref(props.slug, { ...params.value, neu: "1" }));
+// n marks the first arrival, so the plan can come in rather than just be there.
+// The plan page drops it again right away.
+const href = computed(() => planHref(props.slug, { ...params.value, n: "1" }));
 
 const schedule = computed(() => {
   const v = selected.value;
@@ -265,11 +265,11 @@ function writeUrl(push: boolean) {
   const next = new URLSearchParams();
   for (const [key, value] of Object.entries(params.value))
     if (value) next.set(key, value);
-  if (step.value > 1) next.set("schritt", String(step.value));
+  if (step.value > 1) next.set("s", String(step.value));
   const fragment = next.toString();
   const to = fragment ? `${location.pathname}#${fragment}` : location.pathname;
-  if (push) history.pushState({ schritt: step.value }, "", to);
-  else history.replaceState({ schritt: step.value }, "", to);
+  if (push) history.pushState({ s: step.value }, "", to);
+  else history.replaceState({ s: step.value }, "", to);
 }
 
 function go(n: number) {
@@ -292,7 +292,7 @@ function focusPane() {
 }
 
 function onPop() {
-  step.value = clampStep(Number(url().get("schritt")));
+  step.value = clampStep(Number(url().get("s")));
   focusPane();
 }
 

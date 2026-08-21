@@ -144,6 +144,9 @@ const { timeline, tasks, unscheduled } = usePlannerSchedule(
 
 const { stuck, headerGap } = useStickyHeader(rootEl, headerEl, sentinelEl);
 
+// fresh says the wizard just sent us, playing says the entrance is running.
+const playing = ref(false);
+
 const editor = ref<{ id: string; kind: EditorKind } | null>(null);
 
 const picker = useTaskPicker({
@@ -342,9 +345,22 @@ function trackActiveCard() {
 onMounted(() => {
   addEventListener("scroll", trackActiveCard, { passive: true });
   trackActiveCard();
-  // Once the entrance has played, the plan is a plan: a card that appears later
-  // because the Ort changed has nothing to announce.
-  if (fresh.value) setTimeout(() => (fresh.value = false), 1200);
+  if (!fresh.value) return;
+  // The entrance waits for the frame after hydration. Started any earlier it
+  // runs while the island is still building itself, the browser paints none of
+  // its frames, and the plan lands as a jump instead of a movement.
+  const start = () => (playing.value = true);
+  requestAnimationFrame(() => requestAnimationFrame(start));
+  // Where the frames never come, start it anyway: a short wait is one thing, a
+  // list that stays blank is another.
+  setTimeout(start, 300);
+  // Once it has played, the plan is a plan: a card that appears later because
+  // the Ort changed has nothing to announce. It is also the safety net: where
+  // no frame ever comes, a plan the visitor can read beats one that waits.
+  setTimeout(() => {
+    fresh.value = false;
+    playing.value = false;
+  }, 1500);
 });
 
 onBeforeUnmount(() => {
@@ -357,7 +373,7 @@ onBeforeUnmount(() => {
   <div
     ref="rootEl"
     class="deadline-planner"
-    :class="{ compact: stuck, fresh }"
+    :class="{ compact: stuck, fresh, playing }"
   >
     <div class="title-row">
       <h1 class="title t-display">
@@ -776,9 +792,13 @@ sit in the same slot and trade widths. */
 
 /* The plan arrives once, on the step out of the wizard: the rows come in from
 below, each a moment after the one above it, and the last few together so the
-wait never grows with the plan. */
+wait never grows with the plan. Hidden from the first frame, so nothing shows
+itself before it comes in. */
 .fresh :deep(.list > *) {
-  animation: rise 0.3s ease both;
+  opacity: 0;
+}
+.fresh.playing :deep(.list > *) {
+  animation: rise 0.32s ease both;
   animation-delay: calc(min(var(--i, 0), 8) * 45ms);
 }
 @keyframes rise {
@@ -789,6 +809,7 @@ wait never grows with the plan. */
 }
 @media (prefers-reduced-motion: reduce) {
   .fresh :deep(.list > *) {
+    opacity: 1;
     animation: none;
   }
 }

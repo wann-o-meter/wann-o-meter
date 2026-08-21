@@ -1,5 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import FeedbackLink from "../../components/FeedbackLink.astro";
 import { ArrowLeft, ArrowRight, CalendarPlus } from "@lucide/astro";
 import FristRechner from "../../components/FristRechner.vue";
 import { evaluateRule, nextOccurrence } from "../../../lib/calendar-rule";
@@ -345,6 +346,8 @@ const structuredData = {
       </p>
     )
   }
+
+  <FeedbackLink />
 
   <p class="stand">
     {
