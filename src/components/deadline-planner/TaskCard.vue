@@ -6,6 +6,7 @@ import {
   EyeOff,
   MessageSquarePlus,
   Pencil,
+  Trash2,
   TriangleAlert,
 } from "lucide-vue-next";
 import type { ScheduleEntry } from "../../../lib/deadline-plan";
@@ -46,6 +47,7 @@ const emit = defineEmits<{
   (e: "update", patch: TaskPatch): void;
   (e: "toggle-done"): void;
   (e: "hide"): void;
+  (e: "remove"): void;
 }>();
 
 function open(kind: EditorKind) {
@@ -120,11 +122,20 @@ const menuItems = computed<MenuItem[]>(() => [
     ? [{ label: "Titel ändern", icon: Pencil, onSelect: () => open("label") }]
     : []),
   { label: "Notiz", icon: MessageSquarePlus, onSelect: () => open("note") },
-  {
-    label: "Nicht relevant für mich",
-    icon: EyeOff,
-    onSelect: () => emit("hide"),
-  },
+  // A Frist stays in the list once it is put aside, because the law does not
+  // care that it was. A task the visitor wrote is theirs to throw away.
+  props.isCustom
+    ? {
+      label: "Löschen",
+      icon: Trash2,
+      danger: true,
+      onSelect: () => emit("remove"),
+    }
+    : {
+      label: "Nicht relevant für mich",
+      icon: EyeOff,
+      onSelect: () => emit("hide"),
+    },
 ]);
 </script>
 

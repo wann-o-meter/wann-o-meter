@@ -79,6 +79,13 @@ export function useTaskEditor(
     if (!(id in attachments)) attachments[id] = LETTER_TEMPLATE;
   }
 
+  // Hiding is for a Frist from the plan: it stays listed, because the law does
+  // not care that it was put aside. A task the visitor wrote goes away for good.
+  function removeTask(id: string) {
+    customTasks.value = customTasks.value.filter((t) => t.id !== id);
+    for (const map of Object.values(maps)) delete map[id];
+  }
+
   function hideEntry(entry: ScheduleEntry) {
     hiddenIds[entry.id] = true;
     lastHidden.value = { id: entry.id, label: entry.label };
@@ -191,6 +198,7 @@ export function useTaskEditor(
     commitAttachment,
     ensureAttachment,
     hideEntry,
+    removeTask,
     unhide,
     addTaskAtEnd,
   };

@@ -7,11 +7,14 @@
         :class="{ on: n <= shownStep }"
         :aria-current="n === shownStep ? 'step' : undefined"
       >
-        <span class="sr">Schritt {{ n }} von {{ stepCount }}</span>
+        <button type="button" @click="go(n)">
+          <span class="sr">Zu Schritt {{ n }} von {{ stepCount }}</span>
+        </button>
       </li>
     </ol>
 
-    <div v-show="step === 1" ref="pane1" class="pane" tabindex="-1">
+    <div class="panes">
+    <div :class="{ away: step !== 1 }" ref="pane1" class="pane" tabindex="-1">
       <h2>Wann und wo?</h2>
       <div class="fields">
         <label class="field">
@@ -53,7 +56,7 @@
       </div>
     </div>
 
-    <div v-show="step === 2" ref="pane2" class="pane" tabindex="-1">
+    <div :class="{ away: step !== 2 }" ref="pane2" class="pane" tabindex="-1">
       <h2>Was trifft auf dich zu?</h2>
       <p class="lede">
         Nichts davon ist Pflicht. Was du stehen lässt, bleibt auf der
@@ -73,7 +76,7 @@
       </div>
     </div>
 
-    <div v-show="step === 3" ref="pane3" class="pane" tabindex="-1">
+    <div :class="{ away: step !== 3 }" ref="pane3" class="pane" tabindex="-1">
       <h2>Dein Plan</h2>
       <dl class="stats">
         <div>
@@ -97,6 +100,7 @@
         <button type="button" class="btn-tertiary" @click="back">Zurück</button>
         <a class="btn-primary" :href="href">Plan öffnen</a>
       </div>
+    </div>
     </div>
   </section>
 </template>
@@ -329,6 +333,32 @@ h2 {
 .steps li.on {
   background: var(--accent);
 }
+/* The dot is the whole target on a mouse, and a finger-sized one on touch. */
+.steps button {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  cursor: pointer;
+}
+.steps button::after {
+  content: "";
+  position: absolute;
+  inset: -0.5rem;
+}
+@media (pointer: coarse) {
+  .steps button::after {
+    inset: calc((0.5rem - 44px) / 2);
+  }
+}
+.steps button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
 .sr {
   position: absolute;
   width: 1px;
@@ -338,6 +368,25 @@ h2 {
   white-space: nowrap;
 }
 
+/* All three steps share one box, so the step that shows never moves the
+buttons under it. The tallest one sets the height for every step. */
+.panes {
+  display: grid;
+}
+.pane {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+}
+.pane.away {
+  visibility: hidden;
+}
+/* Pushed to the bottom of the shared box, but never sitting right under the
+last chip of a step that fills it. */
+.pane .nav {
+  margin-top: auto;
+  padding-top: var(--s-3);
+}
 .pane:focus {
   outline: none;
 }

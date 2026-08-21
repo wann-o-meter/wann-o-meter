@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
-import { X } from "lucide-vue-next";
 
 const PRESET_TASKS = [
   "Bank- und Versicherungsadresse ändern",
@@ -52,22 +51,17 @@ function submit() {
         aria-label="Eigene Aufgabe"
         @keydown.esc="emit('close')"
       />
+      <input
+        v-model="date"
+        type="date"
+        class="task-add-date"
+        aria-label="Termin"
+        @keydown.esc="emit('close')"
+      />
       <button type="submit" class="btn-secondary" :disabled="!query.trim()">
         Hinzufügen
       </button>
-      <button
-        type="button"
-        class="icon-button"
-        aria-label="Abbrechen"
-        @click="emit('close')"
-      >
-        <X :size="14" />
-      </button>
     </form>
-    <label class="task-add-date t-meta">
-      <span>Termin</span>
-      <input v-model="date" type="date" />
-    </label>
     <ul v-if="matches.length > 0" class="task-add-presets">
       <li v-for="preset in matches" :key="preset">
         <button type="button" @click="emit('pick', preset, date)">
@@ -85,20 +79,21 @@ function submit() {
 }
 .task-add-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 /* Takes the room the two buttons leave, and no more. */
 .task-add-input {
-  flex: 1 1 8rem;
+  flex: 1 1 6rem;
   min-width: 0;
 }
+/* Optional, so it never pushes the field it belongs to off its own line. */
 .task-add-date {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.5rem;
-  color: var(--muted);
+  flex: 0 1 8.5rem;
+  min-width: 0;
+  padding-inline: 0.4rem;
+  font-size: var(--t-meta);
 }
 .task-add-presets {
   list-style: none;

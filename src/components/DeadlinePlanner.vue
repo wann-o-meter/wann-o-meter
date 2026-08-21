@@ -122,6 +122,7 @@ const {
   commitAttachment,
   ensureAttachment,
   hideEntry,
+  removeTask,
   unhide,
   addTaskAtEnd,
 } = useTaskEditor(
@@ -204,6 +205,7 @@ const store = computed<TaskStore>(() => ({
     editor.value = kind ? { id, kind } : null;
   },
   hideEntry,
+  removeTask,
   applyPatch: (entry: ScheduleEntry, patch: TaskPatch) => {
     if (patch.label !== undefined) commitLabel(entry.id, patch.label);
     if (patch.note !== undefined) commitNote(entry.id, patch.note);
@@ -480,6 +482,7 @@ onBeforeUnmount(() => {
           @update:editor="store.setEditor(entry.id, $event)"
           @update="store.applyPatch(entry, $event)"
           @hide="store.hideEntry(entry)"
+          @remove="store.removeTask(entry.id)"
           @toggle-done="onToggleDone(entry.id)"
           @mouseenter="hoveredId = entry.id"
           @mouseleave="hoveredId = null"
@@ -763,7 +766,16 @@ by a rail and a tint, never by becoming a different shape. */
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   background: var(--paper-raised);
-  overflow: hidden;
+}
+/* No clipping: a card menu opens past the bottom of a short card, and on the
+last row it leaves the list altogether. The rows round their own corners. */
+.list > :first-child {
+  border-start-start-radius: inherit;
+  border-start-end-radius: inherit;
+}
+.list > :last-child {
+  border-end-start-radius: inherit;
+  border-end-end-radius: inherit;
 }
 
 /* The last row of the list, not a button orphaned under it. */
@@ -776,6 +788,8 @@ by a rail and a tint, never by becoming a different shape. */
   padding: var(--s-1) var(--s-2);
   border: 0;
   border-radius: 0;
+  border-end-start-radius: inherit;
+  border-end-end-radius: inherit;
   background: transparent;
   color: var(--muted);
   text-align: left;
