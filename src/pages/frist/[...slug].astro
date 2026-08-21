@@ -125,7 +125,7 @@ const structuredData = {
     </button>
   </p>
 
-  <nav class="crumbs" aria-label="Brotkrumen">
+  <nav class="crumbs" data-crumbs aria-label="Brotkrumen">
     {
       crumbs.map((c, i) => (
         <>
@@ -381,6 +381,10 @@ const structuredData = {
       // are answers to a question they already asked.
       document.querySelector("[data-bundle]")?.remove();
       document.querySelector("[data-parents]")?.remove();
+      // The way back replaces the crumbs. Both answer "where am I", and only
+      // one of them knows the plan they left. The BreadcrumbList in the head
+      // stays: a crawler never comes out of a plan.
+      document.querySelector("[data-crumbs]")?.remove();
       const back = document.querySelector("[data-back]");
       if (!back) return;
       back.querySelector("[data-back-label]").textContent =
