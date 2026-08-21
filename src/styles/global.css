@@ -87,7 +87,8 @@ no link decoration that a reader cannot click anyway. */
     color: #000;
   }
   header,
-  footer {
+  footer,
+  .back-link {
     display: none;
   }
   main {
@@ -100,6 +101,41 @@ no link decoration that a reader cannot click anyway. */
   a {
     color: inherit;
     text-decoration: none;
+  }
+}
+
+/* One way back on every page: same place, same words, same arrow. The arrow
+steps toward where it points when you reach for it, which is the only motion a
+link on this site makes. */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: var(--t-meta);
+  font-weight: var(--fw-semibold);
+  color: var(--accent);
+  text-decoration: none;
+  cursor: pointer;
+}
+.back-link:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.15em;
+}
+.back-link svg {
+  transition: transform 0.15s ease;
+}
+.back-link:hover svg,
+.back-link:focus-visible svg {
+  transform: translateX(-0.25rem);
+}
+@media (prefers-reduced-motion: reduce) {
+  .back-link svg {
+    transition: none;
   }
 }
 

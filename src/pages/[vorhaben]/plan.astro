@@ -1,4 +1,5 @@
 ---
+import { ArrowLeft } from "@lucide/astro";
 import Layout from "../../layouts/Layout.astro";
 import DeadlinePlanner from "../../components/DeadlinePlanner.vue";
 import { loadAllVorhaben, BUNDESWEIT_SLUG } from "../../../lib/vorhaben-data";
@@ -18,7 +19,11 @@ const { v } = Astro.props;
   noindex={true}
   canonical={`/${v.slug}/`}
 >
-  <p class="back"><a href={`/${v.slug}/`}>&larr; {v.label}</a></p>
+  <p class="back">
+    <a class="back-link" href={`/${v.slug}/`}>
+      <ArrowLeft size={16} /> {v.label}
+    </a>
+  </p>
   <DeadlinePlanner
     client:only="vue"
     slug={v.slug}

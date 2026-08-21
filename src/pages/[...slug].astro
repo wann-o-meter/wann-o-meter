@@ -1,4 +1,5 @@
 ---
+import { ArrowLeft } from "@lucide/astro";
 import Layout from "../layouts/Layout.astro";
 import PlanWizard from "../components/PlanWizard.vue";
 import StaticPlan from "../components/StaticPlan.astro";
@@ -84,7 +85,9 @@ const rest = siblings.slice(PREVIEW);
   structuredData={structuredData}
   noindex={noindex}
 >
-  <p class="back"><a href="/">&larr; Alle Vorhaben</a></p>
+  <p class="back">
+    <a class="back-link" href="/"><ArrowLeft size={16} /> Alle Vorhaben</a>
+  </p>
   <h1>{heading}</h1>
   <!-- Keep in sync with the .overview paragraph in DeadlinePlanner.vue, which
   recounts the same sentences once the Ort or the facets change. -->
@@ -192,7 +195,7 @@ const rest = siblings.slice(PREVIEW);
     font-weight: var(--fw-semibold);
   }
   .back {
-    font-size: var(--t-meta);
+    margin: 0 0 var(--s-1);
   }
   /* ponytail: one number for every plan, split it per Vorhaben if the plans
   ever differ enough in length that the reserve reads as empty space. */

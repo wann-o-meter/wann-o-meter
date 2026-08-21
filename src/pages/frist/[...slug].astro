@@ -121,7 +121,7 @@ const structuredData = {
   <!-- Only for somebody who came from a plan, and only their own history knows
   that. Hidden until the script below finds the plan they left. -->
   <p class="back" data-back hidden>
-    <button type="button" class="btn-secondary">
+    <button type="button" class="back-link">
       <ArrowLeft size={16} /> <span data-back-label>Zurück zum Plan</span>
     </button>
   </p>
@@ -403,11 +403,6 @@ const structuredData = {
 <style>
   .back {
     margin: 0 0 var(--s-2);
-  }
-  .back button {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
   }
   .crumbs {
     font-size: var(--t-meta);
