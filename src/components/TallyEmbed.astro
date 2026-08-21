@@ -1,0 +1,102 @@
+---
+import { TALLY_WIDGET_URL, tallyEmbedUrl } from "../../lib/tally";
+
+// Nothing reaches tally.so until the visitor asks for it: the iframe carries no
+// src and the loader is not on the page. The button is the consent, and what it
+// does afterwards is Tally's own embed snippet, one click later.
+interface Props {
+  id: string;
+  title?: string;
+}
+const { id, title = "Feedback-Formular" } = Astro.props;
+---
+
+<div class="tally" data-widget={TALLY_WIDGET_URL}>
+  <p class="note">
+    Das Formular liegt bei Tally (Tally BV, Gent, Belgien). Erst wenn du es
+    lädst, verbindet sich dein Browser dorthin und übermittelt dabei deine
+    IP-Adresse. Was dort passiert, steht in der{" "}
+    <a href="/datenschutz/">Datenschutzerklärung</a>.
+  </p>
+  <p class="load">
+    <button type="button" class="btn-primary">Formular laden</button>
+  </p>
+  <iframe
+    data-tally-src={tallyEmbedUrl(id)}
+    loading="lazy"
+    width="100%"
+    height="342"
+    frameborder="0"
+    marginheight="0"
+    marginwidth="0"
+    title={title}
+    hidden
+  ></iframe>
+</div>
+
+<script>
+  type TallyWidget = { loadEmbeds(): void };
+
+  function widget(): TallyWidget | undefined {
+    return (window as unknown as { Tally?: TallyWidget }).Tally;
+  }
+
+  // What Tally's snippet does once its script is there, plus its own fallback:
+  // if the loader never arrives, the iframe still gets its address.
+  function show(box: HTMLElement) {
+    const frame = box.querySelector("iframe");
+    if (!frame) return;
+    frame.hidden = false;
+    const start = () => {
+      const tally = widget();
+      if (tally) tally.loadEmbeds();
+      else if (!frame.src) frame.src = frame.dataset.tallySrc ?? "";
+    };
+    if (widget() || document.querySelector(`script[src="${box.dataset.widget}"]`)) {
+      start();
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = box.dataset.widget ?? "";
+    script.onload = start;
+    script.onerror = start;
+    document.body.appendChild(script);
+  }
+
+  document.addEventListener("astro:page-load", () => {
+    for (const box of document.querySelectorAll<HTMLElement>(".tally")) {
+      box.querySelector("button")?.addEventListener("click", () => {
+        box.querySelector(".load")?.remove();
+        show(box);
+      });
+    }
+  });
+</script>
+
+<style>
+  .tally {
+    max-width: 34rem;
+  }
+  .note {
+    max-width: 60ch;
+    color: var(--muted);
+    font-size: var(--t-meta);
+  }
+  /* The form brings its own light paper, so it sits on the page as a card
+  rather than as a hole in it. */
+  .tally iframe[hidden] {
+    display: none;
+  }
+  .tally iframe {
+    display: block;
+    border: 0;
+    border-radius: var(--r-lg);
+    background: #fff;
+  }
+
+  @media print {
+    .tally {
+      display: none;
+    }
+  }
+</style>
