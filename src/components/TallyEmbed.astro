@@ -15,8 +15,7 @@ const { id, title = "Feedback-Formular" } = Astro.props;
   <p class="note">
     Das Formular liegt bei Tally (Tally BV, Gent, Belgien). Erst wenn du es
     lädst, verbindet sich dein Browser dorthin und übermittelt dabei deine
-    IP-Adresse und, wenn du von einer Frist oder einem Plan kommst, deren
-    Adresse. Was dort passiert, steht in der{" "}
+    IP-Adresse. Was dort passiert, steht in der{" "}
     <a href="/datenschutz/">Datenschutzerklärung</a>.
   </p>
   <p class="load">
@@ -47,14 +46,6 @@ const { id, title = "Feedback-Formular" } = Astro.props;
   function show(box: HTMLElement) {
     const frame = box.querySelector("iframe");
     if (!frame) return;
-    // The page a report is about travels as seite= on this page's address, and
-    // is handed to the form as a hidden field of the same name.
-    const page = new URLSearchParams(location.search).get("seite");
-    if (page && frame.dataset.tallySrc) {
-      const url = new URL(frame.dataset.tallySrc);
-      url.searchParams.set("seite", page);
-      frame.dataset.tallySrc = url.toString();
-    }
     frame.hidden = false;
     const start = () => {
       const tally = widget();
