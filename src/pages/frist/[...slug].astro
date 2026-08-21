@@ -33,8 +33,9 @@ const answer = isAbsolute
   : null;
 
 // A Frist can sit in several plans, so the page belongs to none of them. Which
-// one a visitor came from is a question only the browser can answer, from the
-// from= parameter the plans put on their links.
+// one a visitor came from is answered by the from= the plan puts on its link,
+// and by nothing else: everybody arriving from search or from the start page
+// gets the whole page.
 const anchorLabel = plans[0]?.anchorLabel ?? "Termin";
 const planIndex = Object.fromEntries(plans.map((v) => [v.slug, v.label]));
 
@@ -369,13 +370,13 @@ const structuredData = {
   </p>
 
   <script is:inline define:vars={{ planIndex }}>
-    // Where a visitor came from is the referrer's job, not the url's: the page
-    // is the same page either way and should have one address.
+    // Only a click inside a plan carries from=, and it sits in the fragment, so
+    // the page keeps one address for everybody else.
     document.addEventListener("astro:page-load", () => {
-      const ref = document.referrer;
-      if (!ref || !ref.startsWith(location.origin)) return;
-      const from = new URL(ref).pathname.split("/")[1];
-      if (!planIndex[from]) return;
+      const from = new URLSearchParams(location.hash.replace(/^#/, "")).get(
+        "from",
+      );
+      if (!from || !planIndex[from]) return;
       // They came here out of a plan, so the way back is what they need. The
       // pitch to start that plan, and the list of the plans this Frist sits in,
       // are answers to a question they already asked.

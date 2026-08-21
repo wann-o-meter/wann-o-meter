@@ -9,9 +9,16 @@ const props = defineProps<{
 }>();
 
 // The Frist's own page recalculates from a date. Carrying the one already
-// entered here means it opens with the answer instead of an empty field.
-const fristHref = () =>
-  `/frist/${props.entry.id}/${props.anchorDate ? `#date=${props.anchorDate}` : ""}`;
+// entered here means it opens with the answer instead of an empty field, and
+// from= tells it that a plan sent the visitor, so it can offer the way back.
+const fristHref = () => {
+  const state = new URLSearchParams();
+  if (props.anchorDate) state.set("date", props.anchorDate);
+  const plan = props.entry.belongsTo[0];
+  if (plan) state.set("from", plan);
+  const fragment = state.toString();
+  return `/frist/${props.entry.id}/${fragment ? `#${fragment}` : ""}`;
+};
 
 const fallbackLabel = () =>
   props.isCustom && !props.entry.derivation?.length
