@@ -21,6 +21,10 @@ function sourcesFor(url) {
 
 export default defineConfig({
   site: "https://wannometer.de",
+  // GitHub Pages serves every page as <path>/index.html, so a slashless link
+  // costs a 301 on the way in. One address per page, the one the sitemap and
+  // the canonical already name, and dev 404s on a link that forgets the slash.
+  trailingSlash: "always",
   prefetch: true,
   // The two stylesheets are 10 KiB gzipped and block the first paint for a
   // whole round trip on a slow connection. Inlined they cost about 7 KiB per
