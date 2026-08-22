@@ -24,6 +24,10 @@ const patchSchema = z
     documents: z.array(z.string()).optional(),
     source_url: z.url().nullable().optional(),
     source_label: z.string().optional(),
+    // When this office opens its diary, as an offset from the anchor like
+    // offset_days. A Standesamt taking bookings a year out is its own policy,
+    // not the law: a statutory validity period is not this.
+    earliest_offset_days: z.number().int().optional(),
     lead_time_days: z.number().int().positive().optional(),
     lead_time_source: z.string().optional(),
     no_source_needed: z.boolean().optional(),
