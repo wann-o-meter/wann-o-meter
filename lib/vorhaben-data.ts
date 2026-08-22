@@ -78,7 +78,9 @@ function resolve(entries: z.infer<typeof entrySchema>[]): Deadline[] {
     .map((e) => ("ref" in e ? fristById(e.ref) : (e as Deadline)));
 }
 
-const variantFileSchema = deadlineListSchema.extend({
+// Exported so the Recherche tool can hold a file it is about to write against
+// the same schema this loader will read it with.
+export const variantFileSchema = deadlineListSchema.extend({
   name: z.string(),
   state: z.string(),
 });
