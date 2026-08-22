@@ -56,7 +56,7 @@ ${fristLines.join("\n")}
 
 - [Fristen](${url("/api/v1/fristen.json")}): every Frist with the Paragraf behind it, each linking to its own JSON.
 - [OpenAPI spec](${url("/openapi.json")}): formal schema for every endpoint - use this instead of guessing response shapes from prose.
-- [Gemeinden](${url("/gemeinden.json")}): every German Gemeinde as \`{name, plz, state}\`, from Wikidata.
+- [Gemeinden](${url("/gemeinden.json")}): every German Gemeinde as \`{name, plz, state, ags}\`, from Wikidata.
 
 ## Notes for automated use
 
