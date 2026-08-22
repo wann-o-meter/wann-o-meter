@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 
 export const GET: APIRoute = ({ site }) => {
-  // Everything is allowed for everyone, so naming single crawlers would only
+  // Searching and input is allowed for everyone, so naming single crawlers would only
   // repeat the star group and risk one of them reading a narrower rule.
   //
   // Content Signals answer a different question: not whether a crawler may
@@ -15,7 +15,7 @@ export const GET: APIRoute = ({ site }) => {
     "#   ai-train: training or fine-tuning a model",
     "",
     "User-agent: *",
-    "Content-Signal: search=yes, ai-input=yes, ai-train=yes",
+    "Content-Signal: search=yes, ai-input=yes, ai-train=no",
     "Allow: /",
     "",
     `Sitemap: ${new URL("sitemap-index.xml", site).href}`,
