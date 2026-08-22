@@ -70,15 +70,18 @@ const seen = new Set();
 const out = [];
 for (const row of rows) {
   const name = row.gemLabel?.value;
-  const state = STATE_OF_AGS[row.ags?.value?.slice(0, 2)];
+  const ags = row.ags?.value;
+  const state = STATE_OF_AGS[ags?.slice(0, 2)];
   const plz = firstPlz(row.plzList?.value);
   // An entity without a German label, without a usable key or without a PLZ is
-  // not something anyone can search for.
+  // not something anyone can search for. A key that is not eight digits belongs
+  // to a Kreis or a Land, not to a Gemeinde.
   if (!name || /^Q\d+$/.test(name) || !state || !plz) continue;
+  if (!/^\d{8}$/.test(ags)) continue;
   const key = `${name}|${plz}`;
   if (seen.has(key)) continue;
   seen.add(key);
-  out.push({ name, plz, state });
+  out.push({ name, plz, state, ags });
 }
 
 out.sort(
