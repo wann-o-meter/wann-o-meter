@@ -13,18 +13,69 @@ const VORHABEN_FILE = "vorhaben.yaml";
 // module would pull node:fs into the browser bundle.
 export const BUNDESWEIT_SLUG = "bundesweit";
 
-// A plan either spells a task out or points at a Frist that lives on its own.
+// What a place may add to a task the whole country shares: who does it here,
+// what to bring here, where that is written here. Never a Frist and never a
+// Paragraf, and .strict() is what enforces that. A place cannot rewrite the
+// law, only say where in town it happens.
+const patchSchema = z
+  .object({
+    id: z.string(),
+    authority: z.string().optional(),
+    documents: z.array(z.string()).optional(),
+    source_url: z.url().nullable().optional(),
+    source_label: z.string().optional(),
+    lead_time_days: z.number().int().positive().optional(),
+    lead_time_source: z.string().optional(),
+    no_source_needed: z.boolean().optional(),
+    checked_on: z.iso.date().optional(),
+    note: z.string().optional(),
+  })
+  .strict();
+
+type Patch = z.infer<typeof patchSchema>;
+
+// A plan either spells a task out, points at a Frist that lives on its own, or
+// patches one it already has. Order matters: a full task carries keys the patch
+// refuses, and a patch is missing keys a full task needs, so each falls through
+// to the one it belongs to.
 const entrySchema = z.union([
   z.object({ ref: z.string() }).strict(),
+  patchSchema,
   deadlineSchema,
 ]);
+
+function isPatch(e: z.infer<typeof entrySchema>): e is Patch {
+  return !("ref" in e) && !("kind" in e);
+}
+
+export interface Patched {
+  all: Deadline[];
+  // The ones this place actually said something about.
+  local: Deadline[];
+}
+
+// Fill the shared tasks in with what a place says about them. Patched in place,
+// so the plan keeps the order the bundesweit file sets, and a task nobody
+// patched comes back untouched.
+export function applyPatches(shared: Deadline[], patches: Patch[], where: string): Patched {
+  const byId = new Map(patches.map((x) => [x.id, x]));
+  // A patch naming a task the plan does not have is a typo, and a silent one
+  // would look exactly like a Gemeinde nobody has researched yet.
+  for (const id of byId.keys()) {
+    if (!shared.some((d) => d.id === id)) throw new Error(`${where}: patches unknown task ${id}`);
+  }
+  const all = shared.map((d) => (byId.has(d.id) ? { ...d, ...byId.get(d.id) } : d));
+  return { all, local: all.filter((d) => byId.has(d.id)) };
+}
 
 const deadlineListSchema = z.object({
   deadlines: z.array(entrySchema).default([]),
 });
 
 function resolve(entries: z.infer<typeof entrySchema>[]): Deadline[] {
-  return entries.map((e) => ("ref" in e ? fristById(e.ref) : e));
+  return entries
+    .filter((e) => !isPatch(e))
+    .map((e) => ("ref" in e ? fristById(e.ref) : (e as Deadline)));
 }
 
 const variantFileSchema = deadlineListSchema.extend({
@@ -105,12 +156,20 @@ function loadVorhaben(slug: string): VorhabenData | null {
     .filter((e) => e.isFile() && e.name.endsWith(".yaml") && e.name !== BUNDESWEIT_FILE)
     .map((e) => {
       const doc = variantFileSchema.parse(readYaml(join(dir, e.name)));
+      const merged = applyPatches(
+        own(bundesweit.deadlines),
+        doc.deadlines.filter(isPatch),
+        `${slug}/${e.name}`,
+      );
+      const added = own(doc.deadlines);
       return {
         slug: e.name.replace(/\.yaml$/, ""),
         label: doc.name,
         regionCode: doc.state,
-        deadlines: own([...bundesweit.deadlines, ...doc.deadlines]),
-        localDeadlines: own(doc.deadlines),
+        deadlines: [...merged.all, ...added],
+        // A patched task is a local fact: it is what this page has that the
+        // bundesweit plan does not, so indexing is decided on it too.
+        localDeadlines: [...merged.local, ...added],
       };
     })
     .sort((a, b) => a.label.localeCompare(b.label, "de"));
