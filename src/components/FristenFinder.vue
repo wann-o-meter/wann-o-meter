@@ -106,7 +106,7 @@ const toggle = (id: string) => (filter.value = filter.value === id ? "" : id);
     </ul>
     <p v-else class="empty">
       Dazu haben wir noch keine Frist. Fehlt eine?
-      <a href="/feedback">Sag Bescheid.</a>
+      <a href="/feedback/">Sag Bescheid.</a>
     </p>
   </section>
 </template>
